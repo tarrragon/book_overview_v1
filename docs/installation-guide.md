@@ -10,25 +10,145 @@
 
 ## 1. 下載
 
-> **本章節待 0.19.0-W1-002.3 補完**：ZIP 下載連結 + 版本說明 + 校驗碼。
+**版本說明**：本版本為 v0.19.0 內測版。公開分發策略（Chrome Web Store / GitHub Release）待 v1.0 正式版確定後再行公告。
+
+### 1.1 主要取得管道：聯繫內測負責人
+
+本版本採封閉內測，請聯繫內測負責人取得安裝 ZIP 檔案：
+
+- 檔名範例：`readmoo-book-extractor-v0.19.0.zip`
+- 檔案大小：約 1.27 MB
+- 取得方式：透過內測負責人指定的傳輸通道（Email / 雲端共享連結）
+
+### 1.2 Fallback：本地建置（具開發環境者）
+
+若使用者已具備 Node.js 開發環境，可從原始碼自行建置安裝包：
+
+```bash
+# 1. 取得專案原始碼後，進入專案根目錄
+cd /path/to/book_overview_v1
+
+# 2. 安裝相依套件（首次或環境恢復後）
+npm install --legacy-peer-deps
+
+# 3. 執行生產版本建置
+npm run build:prod
+
+# 4. 打包成 ZIP
+npm run package
+```
+
+建置完成後，產物位於：
+
+```
+dist/readmoo-book-extractor-v0.19.0.zip
+```
+
+### 1.3 校驗
+
+取得 ZIP 後，解壓前後可確認以下兩點：
+
+- ZIP 檔案大小約 1.27 MB（顯著偏離此值代表檔案可能損毀或版本不符）
+- 解壓後根目錄含 `manifest.json`，其中 `"version": "0.19.0"` 對應本版本
 
 ---
 
 ## 2. 解壓
 
-> **本章節待 0.19.0-W1-002.3 補完**：解壓步驟與目標目錄結構。
+### 2.1 選擇解壓目錄
+
+將下載的 ZIP 解壓至任一目錄。建議放在容易記憶且不會被誤刪的位置，例如：
+
+| 平台 | 建議路徑 |
+|------|---------|
+| macOS | `~/Desktop/readmoo-extractor/` 或 `~/Documents/readmoo-extractor/` |
+| Windows | `C:\Users\<username>\Desktop\readmoo-extractor\` |
+| Linux | `~/readmoo-extractor/` |
+
+**注意**：Extension 載入後，Chrome 會持續從此目錄讀取檔案。若日後移動或刪除此目錄，Extension 會載入失敗。
+
+### 2.2 解壓工具
+
+| 平台 | 推薦工具 |
+|------|---------|
+| macOS | 內建 Archive Utility（雙擊 ZIP 即可解壓） |
+| Windows | 檔案總管右鍵「解壓縮全部」 |
+| CLI | `unzip readmoo-book-extractor-v0.19.0.zip -d ~/readmoo-extractor/` |
+
+### 2.3 解壓後目錄結構驗證
+
+解壓完成後，目錄根目錄應包含以下項目：
+
+```
+readmoo-extractor/
+├── manifest.json     # Manifest V3 設定檔
+├── src/              # 程式碼目錄（background / content / popup）
+└── assets/           # 圖示與靜態資源
+```
+
+若解壓後根目錄不含 `manifest.json`，可能是 ZIP 損毀或解壓出多層巢狀目錄；請重新下載或檢查解壓工具設定。
 
 ---
 
 ## 3. 開啟 Chrome 開發者模式
 
-> **本章節待 0.19.0-W1-002.3 補完**：`chrome://extensions/` 開啟開發者模式 toggle 步驟與截圖。
+本步驟在 Chrome 內開啟 Extension 開發者模式，這是載入未封裝 Extension 的前置條件。
+
+### 3.1 進入 Extension 管理頁
+
+在 Chrome 網址列輸入：
+
+```
+chrome://extensions/
+```
+
+按 Enter 進入 Extension 管理頁。
+
+### 3.2 開啟「開發者模式」toggle
+
+頁面右上角有「開發者模式」（Developer mode）開關：
+
+- 將 toggle 切換至**開啟**（藍色 / 啟用狀態）
+- 開啟後，頁面左上角會出現三個新按鈕：
+  - **載入未封裝項目**（Load unpacked）
+  - **封裝擴充功能**（Pack extension）
+  - **更新**（Update）
+
+### 3.3 確認開發者模式已啟用
+
+若以上三個按鈕順利出現，代表開發者模式已成功啟用，可進入下一步。
+
+若 toggle 切換無效或灰色不可點，請參考下方 FAQ Q1。
 
 ---
 
 ## 4. Load Unpacked 載入 Extension
 
-> **本章節待 0.19.0-W1-002.3 補完**：Load Unpacked 按鈕 + 選擇解壓後目錄 + 確認載入成功提示。
+### 4.1 點選「載入未封裝項目」
+
+在 `chrome://extensions/` 頁面左上角，點擊「**載入未封裝項目**」（Load unpacked）按鈕。
+
+### 4.2 選擇解壓後的根目錄
+
+在彈出的目錄選擇器中：
+
+- 導航至章節 2 解壓後的目錄（例如 `~/Desktop/readmoo-extractor/`）
+- **選擇含 `manifest.json` 那一層目錄**（不是它的父目錄，也不是 `src/` 子目錄）
+- 點「選擇」（macOS）或「選擇資料夾」（Windows）確認
+
+### 4.3 確認 Extension 載入成功
+
+Extension 載入成功後，`chrome://extensions/` 頁面上會出現一張新的 Extension 卡片，預期觀察到：
+
+- **名稱**：「Readmoo 書庫數據提取器」
+- **版本號**：與 `manifest.json` 中的 `version` 欄位一致（v0.19.0 內測版為 `0.19.0`）
+- **Service worker 連結**：可點擊（顯示為藍色超連結）
+- **啟用 toggle**：預設開啟（藍色）
+- **無紅色錯誤提示**
+
+### 4.4 銜接安裝後驗證
+
+Extension 卡片成功出現後，請繼續第 5 章節「安裝後驗證 checklist」做完整功能驗證（包含 Service Worker DevTools 確認與 Content Script 注入確認）。
 
 ---
 
@@ -139,7 +259,53 @@
 
 ## FAQ
 
-> **本章節待 0.19.0-W1-002.3 補完**：至少 3 個常見問題與解答（開發者模式找不到 / Service Worker 報錯 / Readmoo 頁面 content script 未注入）。
+本章節彙整內測階段最常見的三類安裝問題與處理建議。
+
+### Q1：開發者模式 toggle 找不到或灰色無法切換
+
+**可能原因**：
+
+- Chrome 版本過舊（< 88），尚未支援 Manifest V3 Extension 載入介面
+- Chrome 處於企業管控模式（Enterprise managed），政策禁止啟用開發者模式
+- 使用了受限 profile（例如兒童帳號、受監督帳號）
+
+**處理建議**：
+
+1. 確認 Chrome 版本：網址列輸入 `chrome://version/`，確認版本 >= 88
+2. 嘗試切換至個人 profile（右上角頭像 → 切換為非企業帳號）
+3. 若 toggle 旁有「由貴機構管理」標示，請洽詢企業 IT 解除政策限制，或改用個人裝置安裝
+4. 確認當前 Chrome profile 未被監督（家長控管 / Family Link）
+
+### Q2：Service Worker DevTools 出現紅色 error
+
+**可能原因**：
+
+- `manifest.json` 結構不符 Manifest V3 規範
+- `host_permissions` 與其他 Extension 衝突
+- Service Worker 內部依賴載入失敗
+
+**處理建議**：
+
+1. **截圖 + 完整 error message**：在 Service Worker DevTools Console 截圖紅色 error 訊息與完整 stack trace，提供給內測負責人
+2. **嘗試卡片 reload 按鈕**：在 `chrome://extensions/` 卡片上點 reload（重新整理圖示），有時可解決暫時性載入失敗
+3. **預先執行驗證腳本**：建置後安裝前可執行 `npm run validate:manifest:prod`（W1-066 自動化驗證腳本），多數結構問題會在此階段預先攔截
+4. **重新建置確認**：若是自行建置版本，先 `npm run clean` 後重新 `npm run build:prod` 確認產物完整
+
+### Q3：Readmoo 頁面 popup 顯示「不支援當前頁面」（content script 未注入）
+
+**可能原因**：
+
+- 當前 URL 未進入 Readmoo 書庫 hash 路由（必須是 `#/library` 路徑）
+- 尚未登入 Readmoo 帳號，頁面跳轉至登入頁
+- 其他 Extension 干擾或阻擋 content script 注入
+
+**處理建議**：
+
+1. **確認 URL 正確**：網址必須是 `https://read.readmoo.com/#/library`（注意是 hash 路由 `#/library`，不是直接路徑）
+2. **完成 Readmoo 登入**：先在 Readmoo 完成帳號登入，再導航至書庫頁
+3. **排查 Extension 衝突**：暫時停用其他 Extension（特別是廣告封鎖、隱私保護類）後重試
+4. **檢查 Extension 啟用狀態**：在 `chrome://extensions/` 確認 Readmoo 書庫數據提取器卡片的「啟用」toggle 為開啟
+5. **頁面 reload 後重試**：content script 注入發生於頁面載入時，若 Extension 是書庫頁開啟後才安裝，需 reload 頁面才會注入
 
 ---
 
@@ -157,4 +323,4 @@
 | 版本 | 變更 |
 |------|------|
 | v0.19.0（初版） | 5 章節骨架 + 安裝後驗證 checklist（0.19.0-W1-067 落地） |
-| v0.19.0（待補） | 章節 1~4 與 FAQ 內容（0.19.0-W1-002.3 補完） |
+| v0.19.0（完成） | 章節 1~4 與 FAQ 內容補完（0.19.0-W1-002.3 落地） |
