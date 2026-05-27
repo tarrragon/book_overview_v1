@@ -450,7 +450,9 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
       // Then: 應該按照依賴順序重啟
       expect(result.restartOrder).toEqual(['EventBus', 'StorageManager', 'UIController'])
-      expect(result.totalTime).toBeLessThan(700) // 應該有並行優化
+      // W1-099 Rule 1: 移除 result.totalTime < 700 計時門檻
+      // （testHelpers.progressiveRestart 內部以 Date.now() 累加 restartTime 為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留重啟順序與最終狀態驗證。
       expect(result.allComponentsRunning).toBe(true)
     }, 30000)
 
@@ -487,18 +489,12 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
 
       // When: 批量執行恢復策略
       // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const results = await Promise.all(
         errors.map(error => testHelpers.executeRecovery(error))
       )
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
 
-      // Then: 應該在合理時間內完成
-      // eslint-disable-next-line no-unused-vars
-      const totalTime = endTime - startTime
-      expect(totalTime).toBeLessThan(5000) // 小於5秒
+      // W1-099 Rule 1: 移除 totalTime < 5000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留恢復策略結果結構驗證。
       results.forEach(result => {
         expect(result.recovered).toBeDefined()
         expect(result.strategy).toBeDefined()
