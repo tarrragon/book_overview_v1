@@ -599,15 +599,12 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         )
 
         // eslint-disable-next-line no-unused-vars
-        const startTime = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const result = await migrationValidator.validateReadmooMigration(validationContext)
-        // eslint-disable-next-line no-unused-vars
-        const endTime = Date.now()
 
+        // 驗證延遲場景下仍能成功完成（移除 toBeGreaterThan(1000) / toBeLessThan(6000) 計時門檻）
+        // 依 test-assertion-design-rules.md 規則 1：計時門檻屬效能 SLA，應於 tests/perf/ 驗證
+        // 超時邊界由獨立 test「應該處理驗證超時情況」覆蓋
         expect(result.isValid).toBe(true)
-        expect(endTime - startTime).toBeGreaterThan(1000) // 應該包含延遲時間
-        expect(endTime - startTime).toBeLessThan(6000) // 但不應該超過超時時間
       })
 
       test('應該處理驗證超時情況', async () => {
@@ -691,17 +688,12 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
         mockReadmooAdapter.extractBookData.mockResolvedValue(largeDataSet)
 
         // eslint-disable-next-line no-unused-vars
-        const startTime = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const result = await migrationValidator.validateReadmooMigration(validationContext)
-        // eslint-disable-next-line no-unused-vars
-        const endTime = Date.now()
 
+        // 移除 (endTime - startTime).toBeLessThan(10000) 計時門檻斷言
+        // 依 test-assertion-design-rules.md 規則 1：計時門檻屬效能 SLA，應於 tests/perf/ 驗證
         expect(result.isValid).toBe(true)
         expect(result.data.validationDetails.dataExtractionValidation.data.dataCount).toBe(500)
-
-        // 處理時間應該合理（小於 10 秒）
-        expect(endTime - startTime).toBeLessThan(10000)
       })
 
       test('應該在大量資料下保持記憶體效率', async () => {
@@ -898,9 +890,6 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
     })
 
     test('應該提供效能指標追蹤', async () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
       // 執行多次驗證
       for (let i = 0; i < 5; i++) {
         await migrationValidator.validateReadmooMigration({
@@ -910,12 +899,13 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
       }
 
       // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const report = migrationValidator.getValidationReport()
 
+      // 驗證內部計時追蹤已記錄非零值（功能存在性驗證）
+      // 移除 averageValidationTime < (endTime-startTime)/5 + 100 計時門檻比較
+      // 依 test-assertion-design-rules.md 規則 1：兩側皆為真實計時的比較屬計時 SLA，
+      // 應於 tests/perf/ 驗證
       expect(report.overview.averageValidationTime).toBeGreaterThan(0)
-      expect(report.overview.averageValidationTime).toBeLessThan((endTime - startTime) / 5 + 100) // 允許一些誤差
     })
 
     test('應該支援事件監聽器整合', async () => {
