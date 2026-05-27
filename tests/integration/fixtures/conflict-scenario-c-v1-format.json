@@ -1,0 +1,52 @@
+[
+  {
+    "id": "cs-c-v1-book-01",
+    "title": "v1 已完成書",
+    "author": "v1 作者甲",
+    "cover": "https://cdn.readmoo.com/cover/cs-c-v1-01.jpg",
+    "isNew": false,
+    "isFinished": true,
+    "progress": 100,
+    "category": "v1 科幻",
+    "type": "電子書",
+    "publisher": "v1 出版社",
+    "extractedAt": "2025-08-01T08:00:00.000Z"
+  },
+  {
+    "id": "cs-c-v1-book-02",
+    "title": "v1 閱讀中書",
+    "author": "v1 作者乙",
+    "cover": "https://cdn.readmoo.com/cover/cs-c-v1-02.jpg",
+    "isNew": false,
+    "isFinished": false,
+    "progress": 45,
+    "category": "v1 文學",
+    "type": "電子書",
+    "publisher": "v1 出版社",
+    "extractedAt": "2025-08-01T08:00:00.000Z"
+  },
+  {
+    "id": "cs-c-v1-book-03",
+    "title": "v1 未讀新書",
+    "author": "v1 作者丙",
+    "cover": "https://cdn.readmoo.com/cover/cs-c-v1-03.jpg",
+    "isNew": true,
+    "isFinished": false,
+    "progress": 0,
+    "category": "v1 科幻",
+    "type": "電子書",
+    "publisher": "v1 出版社",
+    "extractedAt": "2025-08-01T08:00:00.000Z"
+  },
+  {
+    "id": "cs-c-v1-book-04",
+    "title": "v1 預設未讀書（無 isNew/isFinished）",
+    "author": "v1 作者丁",
+    "cover": "https://cdn.readmoo.com/cover/cs-c-v1-04.jpg",
+    "progress": 0,
+    "category": "v1 文學",
+    "type": "電子書",
+    "publisher": "v1 出版社",
+    "extractedAt": "2025-08-01T08:00:00.000Z"
+  }
+]

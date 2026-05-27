@@ -1,0 +1,76 @@
+{
+  "_doc": "衝突場景 D：匯入端 tag 引用的 categoryId 不存在於 tagCategories 區段（裝置 A 已刪除該 category 但 tag 區段仍保留孤兒 tag）。匯入到裝置 B 後，應自動建立『未分類』category 並把孤兒 tag 歸入，書籍 tag 關聯不丟失。本 fixture 為已模擬的『裝置 A 匯出 v2 JSON』結果（裸 interchange format），匯入端直接走 ContentParser.parse + mergeAllData。所屬 ticket: 0.19.0-W1-003.2。",
+  "metadata": {
+    "formatVersion": "2.0.0",
+    "exportDate": "2026-04-26T10:00:00.000Z",
+    "source": "readmoo-book-extractor",
+    "schemaVersion": "2.0.0",
+    "totalBooks": 2,
+    "totalTags": 2,
+    "totalTagCategories": 1
+  },
+  "tagCategories": [
+    {
+      "id": "cat_existing",
+      "name": "保留分類",
+      "description": "裝置 A 未刪除的 category",
+      "color": "#10B981",
+      "isSystem": false,
+      "sortOrder": 0,
+      "createdAt": "2026-04-01T00:00:00.000Z",
+      "updatedAt": "2026-04-01T00:00:00.000Z"
+    }
+  ],
+  "tags": [
+    {
+      "id": "tag_normal",
+      "name": "正常標籤",
+      "categoryId": "cat_existing",
+      "isSystem": false,
+      "sortOrder": 0,
+      "createdAt": "2026-04-02T00:00:00.000Z",
+      "updatedAt": "2026-04-02T00:00:00.000Z"
+    },
+    {
+      "id": "tag_orphan",
+      "name": "孤兒標籤",
+      "categoryId": "cat_deleted_x",
+      "isSystem": false,
+      "sortOrder": 1,
+      "createdAt": "2026-04-02T00:00:00.000Z",
+      "updatedAt": "2026-04-02T00:00:00.000Z"
+    }
+  ],
+  "books": [
+    {
+      "id": "cs-d-book-01",
+      "title": "場景 D 書一",
+      "authors": ["D 作者甲"],
+      "publisher": "D 出版社",
+      "progress": 50,
+      "readingStatus": "reading",
+      "type": "電子書",
+      "cover": "https://cdn.readmoo.com/cover/cs-d-book-01.jpg",
+      "tagIds": ["tag_normal", "tag_orphan"],
+      "isManualStatus": false,
+      "extractedAt": "2026-04-10T08:00:00.000Z",
+      "updatedAt": "2026-04-20T10:00:00.000Z",
+      "source": "readmoo"
+    },
+    {
+      "id": "cs-d-book-02",
+      "title": "場景 D 書二（只引用孤兒）",
+      "authors": ["D 作者乙"],
+      "publisher": "D 出版社",
+      "progress": 100,
+      "readingStatus": "finished",
+      "type": "電子書",
+      "cover": "https://cdn.readmoo.com/cover/cs-d-book-02.jpg",
+      "tagIds": ["tag_orphan"],
+      "isManualStatus": false,
+      "extractedAt": "2026-04-10T08:00:00.000Z",
+      "updatedAt": "2026-04-15T10:00:00.000Z",
+      "source": "readmoo"
+    }
+  ]
+}

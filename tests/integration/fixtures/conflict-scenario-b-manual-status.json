@@ -1,0 +1,87 @@
+{
+  "_doc": "衝突場景 B：isManualStatus 保留驗證。裝置 A 已將書籍標記為 abandoned (isManualStatus=true)；裝置 B 上同 id 書籍處於 reading 自動追蹤狀態。匯入 A→B 合併模式後，B 端該書應反映 A 端的手動狀態（abandoned + isManualStatus=true），非被自動進度覆寫回 reading。所屬 ticket: 0.19.0-W1-003.2。",
+  "deviceA": {
+    "tagCategories": [
+      {
+        "id": "cat_a_status_test",
+        "name": "狀態測試",
+        "description": "場景 B 用",
+        "color": "#10B981",
+        "isSystem": false,
+        "sortOrder": 0,
+        "createdAt": "2026-04-01T00:00:00.000Z",
+        "updatedAt": "2026-04-01T00:00:00.000Z"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag_a_abandoned_mark",
+        "name": "已棄讀",
+        "categoryId": "cat_a_status_test",
+        "isSystem": false,
+        "sortOrder": 0,
+        "createdAt": "2026-04-02T00:00:00.000Z",
+        "updatedAt": "2026-04-02T00:00:00.000Z"
+      }
+    ],
+    "books": [
+      {
+        "id": "cs-b-book-01",
+        "title": "戰爭與和平",
+        "authors": ["托爾斯泰"],
+        "publisher": "遠流",
+        "progress": 50,
+        "readingStatus": "abandoned",
+        "type": "電子書",
+        "cover": "https://cdn.readmoo.com/cover/cs-b-book-01.jpg",
+        "tagIds": ["tag_a_abandoned_mark"],
+        "isManualStatus": true,
+        "extractedAt": "2026-04-10T08:00:00.000Z",
+        "updatedAt": "2026-04-25T10:00:00.000Z",
+        "source": "readmoo"
+      }
+    ]
+  },
+  "deviceB": {
+    "tagCategories": [
+      {
+        "id": "cat_b_personal",
+        "name": "個人",
+        "description": "場景 B 用",
+        "color": "#3B82F6",
+        "isSystem": false,
+        "sortOrder": 0,
+        "createdAt": "2026-03-01T00:00:00.000Z",
+        "updatedAt": "2026-03-01T00:00:00.000Z"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag_b_in_progress",
+        "name": "進行中",
+        "categoryId": "cat_b_personal",
+        "isSystem": false,
+        "sortOrder": 0,
+        "createdAt": "2026-03-02T00:00:00.000Z",
+        "updatedAt": "2026-03-02T00:00:00.000Z"
+      }
+    ],
+    "books": [
+      {
+        "id": "cs-b-book-01",
+        "title": "戰爭與和平",
+        "authors": ["托爾斯泰"],
+        "publisher": "遠流",
+        "progress": 70,
+        "readingStatus": "reading",
+        "type": "電子書",
+        "cover": "https://cdn.readmoo.com/cover/cs-b-book-01.jpg",
+        "tagIds": ["tag_b_in_progress"],
+        "isManualStatus": false,
+        "extractedAt": "2026-03-15T08:00:00.000Z",
+        "updatedAt": "2026-03-30T11:00:00.000Z",
+        "source": "readmoo"
+      }
+    ]
+  }
+}

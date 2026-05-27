@@ -1,0 +1,114 @@
+{
+  "_doc": "衝突場景 A：tag 聯集策略驗證。裝置 A 與裝置 B 各自持有同 id 書籍（cs-a-book-01）但 tagIds 集合不同。匯入後應取聯集而非覆蓋。聯集驗證公式: |A∪B| = |A| + |B| - |A∩B|。所屬 ticket: 0.19.0-W1-003.2。",
+  "deviceA": {
+    "tagCategories": [
+      {
+        "id": "cat_a_genre",
+        "name": "類型",
+        "description": "裝置 A 類型分類",
+        "color": "#10B981",
+        "isSystem": false,
+        "sortOrder": 0,
+        "createdAt": "2026-04-01T00:00:00.000Z",
+        "updatedAt": "2026-04-01T00:00:00.000Z"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag_a_sci_fi",
+        "name": "科幻",
+        "categoryId": "cat_a_genre",
+        "isSystem": false,
+        "sortOrder": 0,
+        "createdAt": "2026-04-02T00:00:00.000Z",
+        "updatedAt": "2026-04-02T00:00:00.000Z"
+      },
+      {
+        "id": "tag_a_classic",
+        "name": "經典",
+        "categoryId": "cat_a_genre",
+        "isSystem": false,
+        "sortOrder": 1,
+        "createdAt": "2026-04-02T00:00:00.000Z",
+        "updatedAt": "2026-04-02T00:00:00.000Z"
+      },
+      {
+        "id": "tag_a_shared",
+        "name": "共同標籤",
+        "categoryId": "cat_a_genre",
+        "isSystem": false,
+        "sortOrder": 2,
+        "createdAt": "2026-04-02T00:00:00.000Z",
+        "updatedAt": "2026-04-02T00:00:00.000Z"
+      }
+    ],
+    "books": [
+      {
+        "id": "cs-a-book-01",
+        "title": "三體",
+        "authors": ["劉慈欣"],
+        "publisher": "貓頭鷹",
+        "progress": 80,
+        "readingStatus": "reading",
+        "type": "電子書",
+        "cover": "https://cdn.readmoo.com/cover/cs-a-book-01.jpg",
+        "tagIds": ["tag_a_sci_fi", "tag_a_classic", "tag_a_shared"],
+        "isManualStatus": false,
+        "extractedAt": "2026-04-10T08:00:00.000Z",
+        "updatedAt": "2026-04-20T10:00:00.000Z",
+        "source": "readmoo"
+      }
+    ]
+  },
+  "deviceB": {
+    "tagCategories": [
+      {
+        "id": "cat_b_genre",
+        "name": "類型",
+        "description": "裝置 B 類型分類（同名應收斂）",
+        "color": "#3B82F6",
+        "isSystem": false,
+        "sortOrder": 0,
+        "createdAt": "2026-03-01T00:00:00.000Z",
+        "updatedAt": "2026-03-01T00:00:00.000Z"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag_b_thriller",
+        "name": "驚悚",
+        "categoryId": "cat_b_genre",
+        "isSystem": false,
+        "sortOrder": 0,
+        "createdAt": "2026-03-02T00:00:00.000Z",
+        "updatedAt": "2026-03-02T00:00:00.000Z"
+      },
+      {
+        "id": "tag_b_shared",
+        "name": "共同標籤",
+        "categoryId": "cat_b_genre",
+        "isSystem": false,
+        "sortOrder": 1,
+        "createdAt": "2026-03-02T00:00:00.000Z",
+        "updatedAt": "2026-03-02T00:00:00.000Z"
+      }
+    ],
+    "books": [
+      {
+        "id": "cs-a-book-01",
+        "title": "三體",
+        "authors": ["劉慈欣"],
+        "publisher": "貓頭鷹",
+        "progress": 50,
+        "readingStatus": "reading",
+        "type": "電子書",
+        "cover": "https://cdn.readmoo.com/cover/cs-a-book-01.jpg",
+        "tagIds": ["tag_b_thriller", "tag_b_shared"],
+        "isManualStatus": false,
+        "extractedAt": "2026-03-15T08:00:00.000Z",
+        "updatedAt": "2026-03-30T11:00:00.000Z",
+        "source": "readmoo"
+      }
+    ]
+  }
+}
