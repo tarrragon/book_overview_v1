@@ -455,34 +455,34 @@ describe('UC01ErrorFactory', () => {
   })
 
   describe('效能測試', () => {
-    test('常用錯誤建立應該快速', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
+    test('常用錯誤應該支援重複呼叫而不崩潰', () => {
+      const errors = []
       for (let i = 0; i < 100; i++) {
-        UC01ErrorFactory.getCommonError('PAGE_DETECTION')
+        errors.push(UC01ErrorFactory.getCommonError('PAGE_DETECTION'))
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(10) // 100次快取存取應該在10ms內
+      // W1-095: 移除 Date.now() 差值斷言（規則 1 違規）；
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證功能正確性。
+      expect(errors).toHaveLength(100)
+      expect(errors[0]).toBeDefined()
+      expect(errors[99]).toBeDefined()
     })
 
-    test('錯誤建立應該在合理時間內完成', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
+    test('複雜錯誤應該支援批量建立而不崩潰', () => {
+      const errors = []
       for (let i = 0; i < 50; i++) {
-        UC01ErrorFactory.createPageDetectionError(
+        errors.push(UC01ErrorFactory.createPageDetectionError(
           `https://test${i}.com`,
           [`pattern${i}`],
           { iteration: i }
-        )
+        ))
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(100) // 50個複雜錯誤應該在100ms內
+      // W1-095: 移除 Date.now() 差值斷言（規則 1 違規）；
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證功能正確性。
+      expect(errors).toHaveLength(50)
+      expect(errors[0]).toBeDefined()
+      expect(errors[49]).toBeDefined()
     })
   })
 })

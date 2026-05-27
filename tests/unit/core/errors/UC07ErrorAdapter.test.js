@@ -394,11 +394,7 @@ describe('UC07ErrorAdapter', () => {
   // 計時斷言一律改為「大幅退化防護」門檻，只攔截數量級退化；
   // 功能正確性（轉換產出正確、快取一致）為真正的 pass-fail gate。
   describe('效能測試（大幅退化防護）', () => {
-    test('大量錯誤轉換應該保持功能且不發生數量級退化', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
-      // eslint-disable-next-line no-unused-vars
+    test('大量錯誤轉換應該保持功能正確性', () => {
       let lastError
       for (let i = 0; i < 100; i++) {
         lastError = UC07ErrorAdapter.convertError(
@@ -412,19 +408,12 @@ describe('UC07ErrorAdapter', () => {
       expect(lastError).toBeDefined()
       expect(lastError.code).toBe(ErrorCodes.OPERATION_ERROR)
 
-      // 大幅退化防護門檻（門檻刻意放寬，避免機器負載誤判）
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(500)
+      // W1-095: 移除 Date.now() 差值斷言（規則 1 違規，即使門檻 500ms 寬鬆）；
+      // 大幅退化防護改由 npm run test:perf 提供。
     })
 
-    test('映射表快取應該回傳一致結果且不發生數量級退化', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
-      // eslint-disable-next-line no-unused-vars
+    test('映射表快取應該回傳一致結果', () => {
       const firstMapping = UC07ErrorAdapter.getErrorMapping()
-      // eslint-disable-next-line no-unused-vars
       let lastMapping
       for (let i = 0; i < 1000; i++) {
         lastMapping = UC07ErrorAdapter.getErrorMapping()
@@ -435,10 +424,8 @@ describe('UC07ErrorAdapter', () => {
       // 快取未重建；toEqual（值相等）即使每次都新建物件也會通過，無法驗證快取。
       expect(lastMapping).toBe(firstMapping)
 
-      // 大幅退化防護門檻（門檻刻意放寬，避免機器負載誤判）
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(500)
+      // W1-095: 移除 Date.now() 差值斷言（規則 1 違規，即使門檻 500ms 寬鬆）；
+      // 大幅退化防護改由 npm run test:perf 提供。
     })
   })
 

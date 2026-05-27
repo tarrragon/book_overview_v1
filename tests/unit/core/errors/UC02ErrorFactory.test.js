@@ -317,16 +317,11 @@ describe('UC02ErrorFactory - 錯誤工廠測試', () => {
       ]
 
       performanceTests.forEach((testFunction, index) => {
-        // When: 測量執行時間
-        // eslint-disable-next-line no-unused-vars
-        const startTime = performance.now()
-        // eslint-disable-next-line no-unused-vars
+        // When: 執行函式
         const error = testFunction()
-        // eslint-disable-next-line no-unused-vars
-        const endTime = performance.now()
 
-        // Then: 執行時間應該小於5毫秒（避免 CI 環境 flaky）
-        expect(endTime - startTime).toBeLessThan(5)
+        // W1-095: 移除 performance.now() 差值斷言（規則 1 違規）；
+        // 大幅退化防護改由 npm run test:perf 提供。保留功能正確性驗證。
         expect(error).toBeInstanceOf(Error)
       })
     })
