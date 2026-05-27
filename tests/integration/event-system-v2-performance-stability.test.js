@@ -500,11 +500,11 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
 
         await stabilityPromise
 
-        // 驗證穩定性指標
+        // 驗證穩定性指標（W1-094：規則 1 真實計時 < 1000ms 門檻已移除，
+        // 改以 npm run test:perf 提供大幅退化防護；本檔保留功能正確性驗證）
         expect(stabilityMonitor.eventProcessed).toBeGreaterThan(80) // 至少處理 80 個事件
         expect(stabilityMonitor.errorsDetected).toBe(0) // 零錯誤
-        expect(stabilityMonitor.maxLatency).toBeLessThan(1000) // 最大延遲：大幅退化防護門檻
-        expect(stabilityMonitor.minLatency).toBeGreaterThan(0) // 最小延遲大於 0
+        expect(stabilityMonitor.minLatency).toBeGreaterThan(0) // 最小延遲大於 0（sanity，非計時門檻）
 
         // 檢查系統仍然響應
         // eslint-disable-next-line no-unused-vars
@@ -581,10 +581,10 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
         // eslint-disable-next-line no-unused-vars
         const streamResults = await Promise.all(streamPromises)
 
-        // 驗證所有流的效能
+        // 驗證所有流的功能正確性（W1-094：規則 1 真實計時 averageLatency < 500ms
+        // 門檻已移除，npm run test:perf 提供大幅退化防護）
         for (const result of streamResults) {
           expect(result.eventsProcessed).toBeGreaterThan(50) // 每個流至少處理 50 個事件
-          expect(result.averageLatency).toBeLessThan(500) // 平均延遲：大幅退化防護門檻
           expect(result.errors).toBe(0) // 零錯誤
         }
 
@@ -598,7 +598,8 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
 
         expect(totalEvents).toBeGreaterThan(250) // 總共至少 250 個事件
         expect(totalErrors).toBe(0) // 零錯誤
-        expect(avgLatency).toBeLessThan(500) // 總體平均延遲：大幅退化防護門檻
+        // W1-094：規則 1 真實計時 avgLatency < 500ms 門檻已移除，
+        // npm run test:perf 提供大幅退化防護
       })
     })
 
@@ -671,9 +672,8 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
         // eslint-disable-next-line no-console
         console.log(`記憶體指標: 壓力增加=${memoryPressureIncrease}, 恢復後=${memoryAfterRecovery}`)
 
-        // 主要驗證系統功能性恢復能力（大幅退化防護門檻）
-        expect(responseTime).toBeLessThan(1000)
-
+        // W1-094：規則 1 真實計時 responseTime < 1000ms 門檻已移除（performance.now() 差值）；
+        // 系統恢復能力改以下方 responseTime > 0 sanity check 與功能可呼叫驗證
         // 記憶體驗證 - 現實的標準，在測試環境中記憶體行為不穩定
         // eslint-disable-next-line no-unused-vars
         const memoryIncreaseAfterRecovery = recoveryMetrics.afterRecovery.memory.heapUsed - recoveryMetrics.beforePressure.memory.heapUsed
@@ -801,11 +801,9 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
         const totalProcessed = Array.from(processedEvents.values()).reduce((sum, count) => sum + count, 0)
         expect(totalProcessed).toBe(concurrentEventCount)
 
-        // 驗證效能
-        // eslint-disable-next-line no-unused-vars
-        const avgTimePerEvent = totalTime / concurrentEventCount
-        expect(avgTimePerEvent).toBeLessThan(25) // 平均每個事件：大幅退化防護門檻
-        expect(totalTime).toBeLessThan(20000) // 總時間：大幅退化防護門檻
+        // W1-094：規則 1 真實計時 avgTimePerEvent < 25ms / totalTime < 20000ms 門檻已移除
+        // （performance.now() 差值），npm run test:perf 提供大幅退化防護。
+        // 本檔保留下方事件分佈一致性驗證作為功能正確性核心斷言。
 
         // 驗證各事件類型的處理平衡
         for (const [, count] of processedEvents) {
@@ -998,10 +996,10 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
           clearInterval(resourceMonitor)
         }
 
-        // 驗證系統在極限負載下的表現
+        // 驗證系統在極限負載下的功能正確性（W1-094：規則 1 真實計時 maxEventLatency
+        // < 2000ms 門檻已移除，npm run test:perf 提供大幅退化防護）
         expect(resourceLimitTest.systemStable).toBe(true)
         expect(resourceLimitTest.totalEventsProcessed).toBeGreaterThan(8000) // 至少處理 8000 個事件
-        expect(resourceLimitTest.maxEventLatency).toBeLessThan(2000) // 最大延遲：大幅退化防護門檻
 
         // 記憶體使用應該在合理範圍內
         // eslint-disable-next-line no-unused-vars
