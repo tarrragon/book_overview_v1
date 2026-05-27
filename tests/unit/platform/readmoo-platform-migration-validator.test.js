@@ -580,13 +580,12 @@ describe('ReadmooPlatformMigrationValidator', () => {
         { id: '1', title: '測試', author: '作者', progress: 50 }
       ])
 
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-      await validator.validateReadmooMigration(context)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
-
-      expect(endTime - startTime).toBeLessThan(5000) // 5秒內完成
+      // 移除 (endTime - startTime).toBeLessThan(5000) 計時門檻斷言
+      // 依 test-assertion-design-rules.md 規則 1：Date.now() 真實計時門檻屬效能 SLA，
+      // 在 Jest jsdom 完整套件下受負載影響，應於 tests/perf/ 驗證
+      // 保留功能性驗證：validateReadmooMigration 能順利 await 完成（不拋例外）
+      const result = await validator.validateReadmooMigration(context)
+      expect(result).toBeDefined()
     })
   })
 })
