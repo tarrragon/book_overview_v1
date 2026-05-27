@@ -69,14 +69,10 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
       // When: 開啟Popup
       // eslint-disable-next-line no-unused-vars
-      const popupOpenStart = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const popupState = await extensionController.openPopup()
-      // eslint-disable-next-line no-unused-vars
-      const popupOpenTime = Date.now() - popupOpenStart
 
       // Then: 驗證狀態同步精確性
-      expect(popupOpenTime).toBeLessThan(1000) // Popup開啟時間恢復正常要求
+      // 計時斷言已移除（規則 1：Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
       expect(popupState.synced).toBe(true)
 
       // 檢查關鍵狀態項目同步的精確性
@@ -134,8 +130,8 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       // Then: 驗證快速操作的穩定性
       rapidOperations.forEach((operation, index) => {
         expect(operation.openState.synced).toBe(true)
-        expect(operation.openTime).toBeLessThan(500) // 每次開啟<500ms
-        expect(operation.closeTime).toBeLessThan(800) // 完整週期<800ms
+        // 計時斷言已移除（規則 1：Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+        // 功能驗證：synced 狀態與下方 bookCount 連續性已涵蓋
 
         if (index > 0) {
           // 檢查狀態連續性
@@ -268,7 +264,9 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
           }
           // eslint-disable-next-line no-unused-vars
           const avgUpdateInterval = updateIntervals.reduce((sum, interval) => sum + interval, 0) / updateIntervals.length
-          expect(avgUpdateInterval).toBeLessThan(2000) // 平均更新間隔<2秒
+          // 計時斷言已移除（規則 1：stateUpdates timestamp 由 Date.now() 取樣為真實計時，主套件禁止絕對計時門檻）
+          // 功能驗證：上方 stateUpdates.length 與 hasExpectedType 已涵蓋
+          expect(avgUpdateInterval).toBeGreaterThanOrEqual(0) // 邏輯不變式：間隔非負
         }
 
         // 驗證UI響應性（有延遲資料時才檢查）
@@ -280,7 +278,9 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
         if (validResponseTimes.length > 0) {
           // eslint-disable-next-line no-unused-vars
           const avgResponseTime = validResponseTimes.reduce((sum, time) => sum + time, 0) / validResponseTimes.length
-          expect(avgResponseTime).toBeLessThan(200) // 平均UI響應<200ms
+          // 計時斷言已移除（規則 1：uiUpdateDelay 來源不確定，保守視為真實計時）
+          // 功能驗證：上方訂閱更新與事件類型檢查已涵蓋
+          expect(avgResponseTime).toBeGreaterThanOrEqual(0) // 邏輯不變式：響應時間非負
         }
       } else {
         // eslint-disable-next-line no-console
@@ -392,8 +392,10 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       expect(operationResult.success).toBe(true)
 
       // 分析批次處理效果
-      expect(batchAnalysis.actualBatches).toBeCloseTo(15, 3) // 接近預期批次數
+      // toBeCloseTo 精度從 3 降至 2（規則 3：numDigits <= 2，整數批次數差異 ±0.005 已足夠）
+      expect(batchAnalysis.actualBatches).toBeCloseTo(15, 2) // 接近預期批次數
       expect(batchAnalysis.averageBatchSize).toBeCloseTo(10, 2) // 接近設定批次大小
+      // mock 固定回傳值，非真實計時量測（規則 1 例外條款；來源 tests/helpers/ui-state-tracker.js）
       expect(batchAnalysis.batchProcessingTime).toBeLessThan(200) // 批次處理<200ms
 
       // 檢查批次優化效果
@@ -407,6 +409,7 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
       // 驗證用戶體驗影響
       expect(batchAnalysis.uiSmoothness).toBeGreaterThan(0.9) // UI流暢度>90%
+      // mock 固定回傳值，非真實計時量測（規則 1 例外條款；來源 tests/helpers/ui-state-tracker.js）
       expect(batchAnalysis.perceivedDelay).toBeLessThan(100) // 感知延遲<100ms
 
       // 確認最終狀態正確
@@ -493,7 +496,8 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       // Then: 驗證所有交互事件正確處理
       interactionResults.forEach(result => {
         expect(result.success).toBe(true)
-        expect(result.responseTime).toBeLessThan(1000) // 響應時間<1秒
+        // 計時斷言已移除（規則 1：responseTime 為 Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+        // 功能驗證：success 與 backgroundProcessed 已涵蓋
         expect(result.backgroundProcessed).toBe(true)
       })
 
@@ -550,12 +554,14 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
       // 檢查進度更新頻率和品質
       expect(progressAnalysis.progressUpdates.length).toBeGreaterThan(15)
+      // mock 固定回傳值，非真實計時量測（規則 1 例外條款；來源 tests/helpers/ui-state-tracker.js）
       expect(progressAnalysis.averageUpdateInterval).toBeLessThan(1000) // 平均<1秒更新一次
 
       // 驗證進度資訊的準確性
       // eslint-disable-next-line no-unused-vars
       const progressAccuracy = progressAnalysis.calculateAccuracy()
       expect(progressAccuracy.percentageAccuracy).toBeGreaterThan(0.9) // 準確度>90%
+      // mock 固定回傳值（0.15），非真實計時量測（規則 1 例外條款；來源 tests/helpers/ui-state-tracker.js:326）
       expect(progressAccuracy.timeEstimationError).toBeLessThan(0.2) // 時間估算誤差<20%
 
       // 檢查用戶體驗指標
@@ -612,7 +618,8 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
 
       // Then: 驗證取消處理的正確性
       expect(cancellationResult.initiated).toBe(true)
-      expect(cancellationTime).toBeLessThan(2000) // 取消響應<2秒
+      // 計時斷言已移除（規則 1：cancellationTime 為 Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 功能驗證：initiated/cancelled/reason 與下方 processedCount 邏輯不變式已涵蓋
 
       expect(operationResult.success).toBe(false)
       expect(operationResult.cancelled).toBe(true)
@@ -709,7 +716,8 @@ describe('Popup ↔ Background 跨模組整合測試', () => {
       // Then: 驗證錯誤處理策略
       errorHandlingResults.forEach(result => {
         expect(result.handlingStrategy).toBeDefined()
-        expect(result.handlingTime).toBeLessThan(12000) // 處理時間<12秒
+        // 計時斷言已移除（規則 1：handlingTime 為 Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+        // 功能驗證：handlingStrategy 與下方各情境 recovered/finalSuccess 已涵蓋
 
         // 檢查特定錯誤的處理策略
         // eslint-disable-next-line no-unused-vars
