@@ -848,17 +848,38 @@ describe('Popup Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () =
     expect(output).not.toContain('[Missing: INITIALIZATION_COMPLETE]')
   })
 
-  it('無 local dict 第三參數時 popup-specific key 退回 GlobalMessages 解析（W1-115 修復前的破窗情境）', () => {
-    // 業務情境：若未傳入 local dict（W1-115 修復前的潛在錯用模式），
-    // 仍應退回 GlobalMessages 既有定義（W1-113 revert 後保留 5 key 於 GlobalMessages）。
-    // 此 test 防回歸：避免未來 GlobalMessages 移除 5 key 又無 local dict 注入時靜默失敗。
-    const logger = new Logger('NoLocalDict', 'INFO')
+  it('Logger 不傳第三參數 messages 時應 fallback 到 GlobalMessages 機制', () => {
+    // 業務情境（W1-117 方案 B 改寫）：
+    // 原 W1-116 測試斷言「GlobalMessages 含 popup-specific 5 key」屬 production
+    // state assertion，與 W1-117 移除 5 key 的清理目標衝突。改寫為 mock-based
+    // 機制驗證：驗證「Logger constructor 第三參數省略時走 GlobalMessages 預設值」
+    // 此一 fallback 機制本身，而非依賴 GlobalMessages 含特定 popup-specific key。
+    //
+    // 防護目標（regress test）：
+    //   未來若 Logger constructor 簽章變更（例如把 messages 第三參數改為必填、
+    //   或刪除預設值 GlobalMessages），此 test 立即紅燈。Mock 注入確保即使
+    //   GlobalMessages 內容後續又被清理，本 test 仍能獨立驗證 fallback 路徑。
+    //
+    // 驗證手法：用 jest.spyOn 監聽 GlobalMessages.get 是否被呼叫。若 Logger
+    // 確實 fallback 到 GlobalMessages，則建構時 this.messages === GlobalMessages，
+    // info(key) 時必呼叫 GlobalMessages.get(key, {})。
+    const { GlobalMessages } = require('../../../src/core/messages/MessageDictionary')
+    const getSpy = jest.spyOn(GlobalMessages, 'get').mockReturnValue('mocked-fallback-message')
 
-    logger.info('POPUP_INTERFACE_LOADED')
+    try {
+      // 不傳第三參數（messages），Logger 應自動使用 GlobalMessages 為預設值
+      const logger = new Logger('NoLocalDict', 'INFO')
 
-    const output = infoSpy.mock.calls[0][0]
-    // GlobalMessages 中此 key 預設為 'Popup 介面已載入'
-    expect(output).toContain('Popup 介面已載入')
-    expect(output).not.toContain('[Missing: POPUP_INTERFACE_LOADED]')
+      logger.info('ANY_KEY_FOR_FALLBACK_VERIFICATION')
+
+      // 驗證 1：GlobalMessages.get 被呼叫，證明 fallback 機制觸發
+      expect(getSpy).toHaveBeenCalledWith('ANY_KEY_FOR_FALLBACK_VERIFICATION', expect.any(Object))
+
+      // 驗證 2：Logger 輸出採用 GlobalMessages.get 的回傳值
+      const output = infoSpy.mock.calls[0][0]
+      expect(output).toContain('mocked-fallback-message')
+    } finally {
+      getSpy.mockRestore()
+    }
   })
 })

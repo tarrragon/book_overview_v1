@@ -1,17 +1,34 @@
 console.log('[POPUP DEBUG] popup-error-handler.js 已載入')
 // 支援多環境載入（瀏覽器 / Node.js 測試環境）
-var Logger, ErrorCodes
+var Logger, ErrorCodes, MessageDictionary
 if (typeof require !== 'undefined') {
   try {
     ({ Logger } = require('src/core/logging/Logger'));
-    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'))
+    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'));
+    ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
   } catch (e) {
     Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
     ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+    MessageDictionary = window.MessageDictionary
   }
 } else {
   Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
   ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+  MessageDictionary = window.MessageDictionary
+}
+
+// PopupErrorHandler local dict（W1-117）：
+// 此模組獨立於 popup.js，使用自己的 MessageDictionary 注入 Logger。
+// 業務情境：W1-117 將 popup-specific key 從 GlobalMessages 移除後，
+//          popup-error-handler 必須自帶 local dict，否則 logger.info('INITIALIZATION_COMPLETE')
+//          會輸出 [Missing: INITIALIZATION_COMPLETE]。
+// 設計考量：採方案 B（模組自包含 local dict）而非方案 A（依賴 popup.js 注入），
+//          保持模組獨立性與測試可注入性。
+var popupErrorHandlerMessages = null
+if (MessageDictionary) {
+  popupErrorHandlerMessages = new MessageDictionary({
+    INITIALIZATION_COMPLETE: '初始化流程完成'
+  })
 }
 /**
  * PopupErrorHandler - 重構版錯誤處理器 (TDD 循環 #42)
@@ -86,8 +103,10 @@ class PopupErrorHandler {
     // 支援依賴注入的 UIManager
     this.uiManager = dependencies.uiManager || null
 
-    // 建立組件專用Logger實例
-    this.logger = new Logger('PopupErrorHandler')
+    // 建立組件專用Logger實例（W1-117 注入 local dict 確保 INITIALIZATION_COMPLETE 解析）
+    this.logger = popupErrorHandlerMessages
+      ? new Logger('PopupErrorHandler', 'INFO', popupErrorHandlerMessages)
+      : new Logger('PopupErrorHandler')
 
     // 向後相容性：保留原有屬性
     this.elements = {}
