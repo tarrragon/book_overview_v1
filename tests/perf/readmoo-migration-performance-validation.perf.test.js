@@ -1,12 +1,19 @@
 /**
- * Readmoo 遷移效能驗證測試
- * 整合測試：驗證事件系統 v2.0 升級後的效能基準
+ * Readmoo 遷移效能驗證測試（效能測試，非 npm test 主套件）
+ *
+ * 注意：此測試在 Jest jsdom 環境下執行，使用 mock 模擬，非有效效能量測環境。
+ * 計時斷言定位為「大幅退化防護」而非效能 SLA，門檻寬鬆。
+ * 執行方式：npm run test:perf（獨立於 npm test 主套件）
  *
  * 測試重點：
  * - 事件處理效能基準驗證
  * - 記憶體使用量監控
  * - 並發處理能力驗證
  * - Readmoo 平台功能效能回歸測試
+ *
+ * 移檔來源：tests/integration/readmoo-migration-performance-validation.test.js
+ * 移檔依據：.claude/rules/core/test-assertion-design-rules.md 規則 2（效能測試放 tests/perf/）
+ * 移檔 Ticket：0.19.0-W1-098（W1-091 ANA Batch 4）
  */
 
 // eslint-disable-next-line no-unused-vars
