@@ -125,7 +125,7 @@ describe('Content Script 注入整合測試', () => {
 
         if (pageType.shouldInject) {
           expect(result.injectionSuccess).toBe(true)
-          expect(result.injectionTime).toBeLessThan(2000) // 注入時間<2秒
+          // W1-096 移除 Rule 1 違規: result.injectionTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
           expect(result.scriptType).toBe(pageType.expectedScript)
           expect(result.validationPassed).toBe(true)
 
@@ -136,10 +136,7 @@ describe('Content Script 注入整合測試', () => {
         }
       })
 
-      // 檢查注入效能統計
-      // eslint-disable-next-line no-unused-vars
-      const avgInjectionTime = injectionResults.reduce((sum, r) => sum + r.injectionTime, 0) / injectionResults.length
-      expect(avgInjectionTime).toBeLessThan(1000) // 平均注入時間<1秒
+      // W1-096 移除 Rule 1 違規: avgInjectionTime 由真實計時差值計算，效能驗證移至 npm run test:perf
     })
 
     test('應該正確檢測並跳過不支援的頁面', async () => {
@@ -198,7 +195,7 @@ describe('Content Script 注入整合測試', () => {
         const page = unsupportedPages[index]
 
         expect(result.injectionSkipped).toBe(true)
-        expect(result.detectionTime).toBeLessThan(500) // 檢測時間<500ms
+        // W1-096 移除 Rule 1 違規: result.detectionTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
         expect(result.actualReason).toBe(page.reason)
 
         // 檢查錯誤訊息的用戶友善性
@@ -295,7 +292,7 @@ describe('Content Script 注入整合測試', () => {
         const scenario = injectionFailureScenarios[index]
 
         expect(result.errorHandled).toBe(true)
-        expect(result.handlingTime).toBeLessThan(10000) // 處理時間<10秒
+        // W1-096 移除 Rule 1 違規: result.handlingTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
         expect(result.errorMessage).toContain(scenario.expectedError)
 
         if (scenario.recoverable) {
@@ -353,15 +350,16 @@ describe('Content Script 注入整合測試', () => {
       const lifecycleAnalysis = await injectionAnalyzer.getLifecycleAnalysis()
 
       // Then: 驗證生命周期管理
-      expect(lifecycleTime).toBeLessThan(15000) // 完整週期<15秒
+      // W1-096 移除 Rule 1 違規: lifecycleTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
-      // 檢查各階段時間分配
+      // W1-096 移除 Rule 1 違規: phases.*.duration 為各階段真實計時量測，效能驗證移至 npm run test:perf
+      // 階段存在性與資料結構驗證仍保留
       // eslint-disable-next-line no-unused-vars
       const phases = lifecycleAnalysis.phases
-      expect(phases.injection.duration).toBeLessThan(2000) // 注入<2秒
-      expect(phases.initialization.duration).toBeLessThan(1000) // 初始化<1秒
-      expect(phases.execution.duration).toBeLessThan(10000) // 執行<10秒
-      expect(phases.cleanup.duration).toBeLessThan(500) // 清理<500ms
+      expect(phases.injection).toBeDefined()
+      expect(phases.initialization).toBeDefined()
+      expect(phases.execution).toBeDefined()
+      expect(phases.cleanup).toBeDefined()
 
       // 驗證資源管理
       expect(lifecycleAnalysis.resourceManagement.memoryLeaks).toBe(0)
@@ -441,17 +439,10 @@ describe('Content Script 注入整合測試', () => {
         expect(result.injectionSuccess).toBe(true)
         expect(result.extractionSuccess).toBe(true)
         expect(result.extractedCount).toBe(result.expectedCount)
-        expect(result.executionTime).toBeLessThan(12000) // 單個分頁<12秒
+        // W1-096 移除 Rule 1 違規: result.executionTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
       })
 
-      // 檢查並發執行效能
-      // eslint-disable-next-line no-unused-vars
-      const maxExecutionTime = Math.max(...concurrentResults.map(r => r.executionTime))
-      // eslint-disable-next-line no-unused-vars
-      const avgExecutionTime = concurrentResults.reduce((sum, r) => sum + r.executionTime, 0) / concurrentResults.length
-
-      expect(maxExecutionTime).toBeLessThan(15000) // 最慢的<15秒
-      expect(avgExecutionTime).toBeLessThan(10000) // 平均<10秒
+      // W1-096 移除 Rule 1 違規: max/avg ExecutionTime 為真實計時聚合，效能驗證移至 npm run test:perf
 
       // 驗證資源隔離
       // eslint-disable-next-line no-unused-vars
@@ -508,7 +499,7 @@ describe('Content Script 注入整合測試', () => {
       // 注意：模擬環境中 previousScriptDetected 可能為 true（因為模擬不完全清除狀態）
       expect(typeof reinjectionResult.previousScriptDetected).toBe('boolean')
       expect(reinjectionResult.cleanupPerformed).toBe(true)
-      expect(reloadTime).toBeLessThan(8000) // 重載和重注入<8秒
+      // W1-096 移除 Rule 1 違規: reloadTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
       // 驗證重新注入後的功能性
       // eslint-disable-next-line no-unused-vars
@@ -612,13 +603,13 @@ describe('Content Script 注入整合測試', () => {
       const isolationTime = Date.now() - isolationStart
 
       // Then: 驗證隔離性結果
-      expect(isolationTime).toBeLessThan(10000) // 隔離測試<10秒
+      // W1-096 移除 Rule 1 違規: isolationTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
       isolationResults.forEach(result => {
         expect(result.passed).toBe(true)
         expect(result.isolated).toBe(true)
         expect(result.conflicts.length).toBe(0)
-        expect(result.testTime).toBeLessThan(3000)
+        // W1-096 移除 Rule 1 違規: result.testTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
       })
 
       // 檢查全域污染
@@ -707,7 +698,7 @@ describe('Content Script 注入整合測試', () => {
 
       // Then: 驗證CSP處理結果
       cspHandlingResults.forEach(result => {
-        expect(result.testTime).toBeLessThan(5000) // CSP測試<5秒
+        // W1-096 移除 Rule 1 違規: result.testTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
         switch (result.expectedBehavior) {
           case 'injection_blocked':
@@ -845,7 +836,7 @@ describe('Content Script 注入整合測試', () => {
 
       // Then: 驗證安全防護效果
       securityResults.forEach(result => {
-        expect(result.securityTestTime).toBeLessThan(8000) // 安全測試<8秒
+        // W1-096 移除 Rule 1 違規: result.securityTestTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
         // 檢查安全違規檢測
         if (result.securityViolationsDetected > 0) {
@@ -880,9 +871,7 @@ describe('Content Script 注入整合測試', () => {
 
       expect(protectionRate).toBeGreaterThan(0.8) // 防護成功率>80%
 
-      // eslint-disable-next-line no-unused-vars
-      const avgSecurityResponseTime = securityResults.reduce((sum, r) => sum + r.securityTestTime, 0) / securityResults.length
-      expect(avgSecurityResponseTime).toBeLessThan(6000) // 平均安全響應<6秒
+      // W1-096 移除 Rule 1 違規: avgSecurityResponseTime 為真實計時聚合，效能驗證移至 npm run test:perf
     })
   })
 })

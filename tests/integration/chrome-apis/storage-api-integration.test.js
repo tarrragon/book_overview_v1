@@ -86,8 +86,7 @@ describe('Chrome Storage API 整合測試', () => {
       // eslint-disable-next-line no-unused-vars
       const writeTime = Date.now() - writeStart
 
-      // Then: 驗證寫入時間合理
-      expect(writeTime).toBeLessThan(1000) // 寫入時間<1秒
+      // Then: W1-096 移除 Rule 1 違規: writeTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
       // 驗證資料讀取
       // eslint-disable-next-line no-unused-vars
@@ -100,7 +99,7 @@ describe('Chrome Storage API 整合測試', () => {
       const readTime = Date.now() - readStart
 
       expect(readResult).toBeDefined()
-      expect(readTime).toBeLessThan(500) // 讀取時間<500ms
+      // W1-096 移除 Rule 1 違規: readTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
     })
 
     test('應該處理大量資料的分批儲存', async () => {
@@ -148,8 +147,7 @@ describe('Chrome Storage API 整合測試', () => {
       expect(batchResults.length).toBe(10) // 1000/100 = 10批
       expect(batchResults.every(result => result.success)).toBe(true)
 
-      // 檢查儲存效能
-      expect(totalBatchTime).toBeLessThan(15000) // 總時間<15秒
+      // W1-096 移除 Rule 1 違規: totalBatchTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
       // 驗證Storage使用量
       // eslint-disable-next-line no-unused-vars
@@ -197,8 +195,7 @@ describe('Chrome Storage API 整合測試', () => {
       // eslint-disable-next-line no-unused-vars
       const updateTime = Date.now() - updateStart
 
-      // Then: 驗證更新時間合理
-      expect(updateTime).toBeLessThan(2000) // 更新時間<2秒
+      // Then: W1-096 移除 Rule 1 違規: updateTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
       // 驗證最終資料狀態
       // eslint-disable-next-line no-unused-vars

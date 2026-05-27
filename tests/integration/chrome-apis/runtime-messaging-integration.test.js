@@ -125,14 +125,14 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         const testMessage = testMessages[index]
 
         expect(result.success).toBe(true)
-        expect(result.responseTime).toBeLessThan(1000) // 響應時間<1秒
+        // W1-096 移除 Rule 1 違規: result.responseTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
         expect(result.responseType).toBe(testMessage.expectedResponse.type)
       })
 
       // 檢查訊息傳遞統計
       expect(messagingAnalysis.totalMessages).toBe(8) // 4個請求 + 4個響應
       expect(messagingAnalysis.deliveryRate).toBe(1.0) // 100%投遞率
-      expect(messagingAnalysis.averageResponseTime).toBeLessThan(500) // 平均響應<500ms
+      // W1-096 移除 Rule 1 違規: averageResponseTime 為真實計時聚合，效能驗證移至 npm run test:perf
       expect(messagingAnalysis.lostMessages).toBe(0)
     })
 
@@ -208,12 +208,11 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         const command = backgroundCommands[index]
 
         expect(result.success).toBe(true)
-        expect(result.executionTime).toBeLessThan(2000) // 執行時間<2秒
+        // W1-096 移除 Rule 1 違規: result.executionTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
         expect(result.actionTaken).toBe(command.expectedAction)
       })
 
-      // 檢查指令傳遞效能
-      expect(commandAnalysis.averageDeliveryTime).toBeLessThan(200) // 平均投遞<200ms
+      // W1-096 移除 Rule 1 違規: averageDeliveryTime 為真實計時聚合，效能驗證移至 npm run test:perf
       expect(commandAnalysis.commandExecutionRate).toBe(1.0) // 100%執行率
       expect(commandAnalysis.failedCommands).toBe(0)
 
@@ -301,14 +300,13 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
 
         expect(result.reportSent).toBe(true)
         expect(result.popupUpdated).toBe(true)
-        expect(result.reportingTime).toBeLessThan(1500) // 回報時間<1.5秒
+        // W1-096 移除 Rule 1 違規: result.reportingTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
         expect(result.updateType).toBe(scenario.expectedPopupUpdate)
       })
 
       // 檢查回報傳遞效能
       expect(reportingAnalysis.reportDeliveryRate).toBe(1.0) // 100%投遞率
-      expect(reportingAnalysis.averageProcessingTime).toBeLessThan(300) // 平均處理<300ms
-      expect(reportingAnalysis.popupUpdateLatency).toBeLessThan(100) // UI更新延遲<100ms
+      // W1-096 移除 Rule 1 違規: averageProcessingTime / popupUpdateLatency 為真實計時聚合，效能驗證移至 npm run test:perf
 
       // 驗證Popup最終狀態
       // eslint-disable-next-line no-unused-vars
@@ -358,13 +356,15 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       expect(routingPatterns.backgroundToPopup).toBeGreaterThan(8)
 
       // 驗證路由效率
+      // averageHops 為跳躍次數計數（非計時），保留作業務不變式驗證
       expect(routingAnalysis.averageHops).toBeLessThan(2.5) // 平均跳躍次數<2.5
-      expect(routingAnalysis.routingOverhead).toBeLessThan(50) // 路由開銷<50ms
+      // W1-096 移除 Rule 1 違規: routingOverhead 為真實計時量測，效能驗證移至 npm run test:perf
       expect(routingAnalysis.messageDeliverySuccess).toBeGreaterThan(0.98) // 投遞成功率>98%
 
       // 檢查路由瓶頸
       if (routingAnalysis.bottlenecks.length > 0) {
         routingAnalysis.bottlenecks.forEach(bottleneck => {
+          // bottleneck.impact 為影響比率（0-1），非計時，保留作業務不變式
           expect(bottleneck.impact).toBeLessThan(0.3) // 瓶頸影響<30%
           expect(bottleneck.resolved).toBe(true)
         })
@@ -491,7 +491,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       broadcastResults.forEach(result => {
         expect(result.broadcast).toBe(true)
         expect(result.recipientsReached).toBe(result.expectedRecipients)
-        expect(result.broadcastTime).toBeLessThan(2000) // 廣播時間<2秒
+        // W1-096 移除 Rule 1 違規: result.broadcastTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
         expect(result.deliveryRate).toBeGreaterThan(0.9) // 投遞率>90%
       })
 
@@ -499,7 +499,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       p2pResults.forEach(result => {
         expect(result.delivered).toBe(true)
         expect(result.responseReceived).toBe(true)
-        expect(result.p2pTime).toBeLessThan(1000) // P2P時間<1秒
+        // W1-096 移除 Rule 1 違規: result.p2pTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
       })
 
       // 清理額外分頁
@@ -579,6 +579,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         .map(msg => msg.index)
 
       // 緊急訊息應該最先處理（即使最後發送）
+      // urgentMessageIndex 為處理順序索引（非計時），保留作業務不變式
       expect(urgentMessageIndex).toBeLessThan(5) // 在前5個處理
 
       // 高優先級訊息應該在正常優先級之前處理
@@ -587,18 +588,18 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
         const normalIndicesAfter = processedOrder
           .slice(highIndex)
           .filter(msg => msg.priority === 'normal').length
+        // normalIndicesAfter 為訊息數量計數（非計時），保留作業務不變式
         expect(normalIndicesAfter).toBeLessThan(8) // 大部分正常訊息在高優先級後處理
       })
 
       // 檢查佇列管理效果
       expect(processingAnalysis.queueOverflow).toBe(false)
-      expect(processingAnalysis.averageQueueTime).toBeLessThan(500) // 平均排隊<500ms
+      // W1-096 移除 Rule 1 違規: averageQueueTime 為真實計時，效能驗證移至 npm run test:perf
       expect(processingAnalysis.priorityInversions).toBe(0) // 無優先級倒置
 
       // 驗證處理效能
-      expect(processingAnalysis.totalProcessingTime).toBeLessThan(6000) // 總處理<6秒
+      // W1-096 移除 Rule 1 違規: totalProcessingTime / averageProcessingTime 為真實計時，效能驗證移至 npm run test:perf
       expect(processingAnalysis.messagesLost).toBe(0)
-      expect(processingAnalysis.averageProcessingTime).toBeLessThan(200) // 平均處理<200ms
     })
   })
 
@@ -689,7 +690,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       failureHandlingResults.forEach(result => {
         // 基本錯誤處理檢查
         expect(result.handlingStrategy).toBeDefined()
-        expect(result.handlingTime).toBeLessThan(12000) // 處理時間<12秒
+        // W1-096 移除 Rule 1 違規: result.handlingTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
         // 檢查恢復嘗試
         if (result.errorDetected) {
@@ -711,9 +712,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
 
       expect(recoveryRate).toBeGreaterThan(0.75) // 恢復率>75%
 
-      // eslint-disable-next-line no-unused-vars
-      const avgHandlingTime = failureHandlingResults.reduce((sum, r) => sum + r.handlingTime, 0) / failureHandlingResults.length
-      expect(avgHandlingTime).toBeLessThan(6000) // 平均處理時間<6秒
+      // W1-096 移除 Rule 1 違規: avgHandlingTime 為真實計時聚合，效能驗證移至 npm run test:perf
     })
 
     test('應該支援訊息重試和降級機制', async () => {
@@ -791,14 +790,9 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       retryResults.forEach(result => {
         expect(result.finalSuccess).toBe(true)
         expect(result.retryAttempts).toBeGreaterThan(0)
-        expect(result.retryTime).toBeLessThan(15000) // 重試時間<15秒
+        // W1-096 移除 Rule 1 違規: result.retryTime 由 Date.now() 差值計算，效能驗證移至 npm run test:perf
 
-        // 檢查策略特定效果
-        if (result.retryStrategy === 'exponential_backoff') {
-          expect(result.retryTime).toBeGreaterThan(2000) // 指數退避需要較長時間
-        } else if (result.retryStrategy === 'immediate_retry') {
-          expect(result.retryTime).toBeLessThan(3000) // 立即重試較快
-        }
+        // 檢查策略特定效果（retryTime 為真實計時，策略差異性效能驗證移至 npm run test:perf）
 
         // 如果使用了降級，應該有具體的降級方法
         if (result.degradationUsed) {
@@ -809,6 +803,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       // 檢查重試效能統計
       // eslint-disable-next-line no-unused-vars
       const avgRetryAttempts = retryResults.reduce((sum, r) => sum + r.retryAttempts, 0) / retryResults.length
+      // avgRetryAttempts 為重試次數計數（非計時），保留作業務不變式
       expect(avgRetryAttempts).toBeLessThanOrEqual(3) // 平均重試次數<=3次
 
       // eslint-disable-next-line no-unused-vars
@@ -894,7 +889,7 @@ describe('Chrome Runtime Messaging API 整合測試', () => {
       const sequenceStats = await messagingValidator.getSequenceStatistics()
       expect(sequenceStats.totalMessages).toBe(20)
       expect(sequenceStats.orderViolations).toBe(0)
-      expect(sequenceStats.averageDeliveryTime).toBeLessThan(200) // 平均投遞<200ms
+      // W1-096 移除 Rule 1 違規: averageDeliveryTime 為真實計時聚合，效能驗證移至 npm run test:perf
       expect(sequenceStats.sequenceCompleteness).toBe(1.0) // 100%完整
     })
   })
