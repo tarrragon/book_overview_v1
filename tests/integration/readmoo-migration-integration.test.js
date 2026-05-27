@@ -669,14 +669,11 @@ describe('Readmoo Migration Integration Tests', () => {
       }
 
       // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const result = await migrationValidator.validateReadmooMigration(context)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
 
+      // 移除 endTime - startTime < 5000 計時門檻斷言
+      // 依 test-assertion-design-rules.md 規則 1：計時門檻屬效能 SLA，應於 tests/perf/ 驗證
       expect(result.isValid).toBe(true)
-      expect(endTime - startTime).toBeLessThan(5000) // 5秒內完成
 
       // 恢復原始方法
       platformDetectionService.detectPlatform = originalDetectPlatform
@@ -721,12 +718,10 @@ describe('Readmoo Migration Integration Tests', () => {
       }
 
       // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const result = await migrationValidator.validateReadmooMigration(context)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
 
+      // 移除 endTime - startTime < 10000 計時門檻斷言
+      // 依 test-assertion-design-rules.md 規則 1：計時門檻屬效能 SLA，應於 tests/perf/ 驗證
       expect(result.isValid).toBe(true)
       // 檢查資料提取結果的存在性
       if (result.data && result.data.validationDetails && result.data.validationDetails.dataExtractionValidation && result.data.validationDetails.dataExtractionValidation.extractedData) {
@@ -735,7 +730,6 @@ describe('Readmoo Migration Integration Tests', () => {
         // 如果結構不同，使用其他方式驗證
         expect(result.isValid).toBe(true) // 驗證必須成功
       }
-      expect(endTime - startTime).toBeLessThan(10000) // 10秒內完成
 
       // 恢復原始方法
       platformDetectionService.detectPlatform = originalDetectPlatform
