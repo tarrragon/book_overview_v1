@@ -249,9 +249,6 @@ describe('UC01ErrorSystem 整合測試', () => {
 
   describe('效能與記憶體測試', () => {
     test('大量錯誤建立應該保持效能', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const errors = []
 
       // 建立 200 個不同的錯誤
@@ -267,9 +264,8 @@ describe('UC01ErrorSystem 整合測試', () => {
         }
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(500) // 200個錯誤建立應該在500ms內
+      // W1-095: 移除 Date.now() 差值斷言（規則 1 違規）；
+      // 大幅退化防護改由 npm run test:perf 提供。保留功能正確性驗證。
       expect(errors).toHaveLength(200)
 
       // 驗證所有錯誤都有效

@@ -395,34 +395,34 @@ describe('UC06ErrorAdapter', () => {
   })
 
   describe('效能測試', () => {
-    test('大量錯誤轉換應該保持效能', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
+    test('大量錯誤轉換應該支援批量呼叫而不崩潰', () => {
+      const errors = []
       for (let i = 0; i < 100; i++) {
-        UC06ErrorAdapter.convertError(
+        errors.push(UC06ErrorAdapter.convertError(
           'SYSTEM_OVERVIEW_RENDERING_FAILURE',
           `測試訊息 ${i}`,
           { testIndex: i }
-        )
+        ))
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(50) // 100次轉換應該在50ms內
+      // W1-095: 移除 Date.now() 差值斷言（規則 1 違規）；
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證功能正確性。
+      expect(errors).toHaveLength(100)
+      expect(errors[0]).toBeDefined()
+      expect(errors[99]).toBeDefined()
     })
 
-    test('映射表快取應該減少重複計算', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
+    test('映射表快取應該回傳一致結果', () => {
+      // 多次呼叫應該使用快取，回傳同一參考的單例（參考相等才真正驗證快取未重建）
+      const firstMapping = UC06ErrorAdapter.getErrorMapping()
+      let lastMapping
       for (let i = 0; i < 1000; i++) {
-        UC06ErrorAdapter.getErrorMapping()
+        lastMapping = UC06ErrorAdapter.getErrorMapping()
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const duration = Date.now() - startTime
-      expect(duration).toBeLessThan(10) // 1000次存取應該在10ms內
+      // W1-095: 移除 Date.now() 差值斷言（規則 1 違規）；
+      // 大幅退化防護改由 npm run test:perf 提供。改用參考相等驗證快取一致性。
+      expect(lastMapping).toBe(firstMapping)
     })
   })
 

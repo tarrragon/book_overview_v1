@@ -372,46 +372,28 @@ describe('OperationResult 向下相容功能', () => {
 })
 
 describe('OperationResult 效能測試', () => {
-  test('建立OperationResult應該在0.5ms內完成', () => {
+  test('建立OperationResult應該支援大量資料而不崩潰', () => {
     // Given: 測試資料
-    // eslint-disable-next-line no-unused-vars
     const testData = { items: Array.from({ length: 100 }, (_, i) => ({ id: i, value: `item_${i}` })) }
 
-    // When: 測量建立時間
-    // eslint-disable-next-line no-unused-vars
-    const start = process.hrtime.bigint()
-    // eslint-disable-next-line no-unused-vars
+    // When: 建立 OperationResult
     const result = OperationResult.success(testData)
-    // eslint-disable-next-line no-unused-vars
-    const end = process.hrtime.bigint()
 
-    // eslint-disable-next-line no-unused-vars
-    const durationMs = Number(end - start) / 1000000
-
-    // Then: 建立時間應該小於0.5ms
-    expect(durationMs).toBeLessThan(0.5)
+    // W1-095: 移除 process.hrtime.bigint() 差值斷言（規則 1 違規）；
+    // 大幅退化防護改由 npm run test:perf 提供。保留功能正確性驗證。
     expect(result.success).toBe(true)
   })
 
-  test('錯誤轉換應該在合理時間內完成', () => {
+  test('錯誤轉換應該支援複雜錯誤而不崩潰', () => {
     // Given: 複雜的原生錯誤
-    // eslint-disable-next-line no-unused-vars
     const complexError = new Error('Complex error')
     complexError.details = { nested: { data: Array.from({ length: 50 }, (_, i) => `item_${i}`) } }
 
-    // When: 測量錯誤轉換時間
-    // eslint-disable-next-line no-unused-vars
-    const start = process.hrtime.bigint()
-    // eslint-disable-next-line no-unused-vars
+    // When: 執行錯誤轉換
     const result = OperationResult.failure(complexError)
-    // eslint-disable-next-line no-unused-vars
-    const end = process.hrtime.bigint()
 
-    // eslint-disable-next-line no-unused-vars
-    const durationMs = Number(end - start) / 1000000
-
-    // Then: 轉換時間應該合理
-    expect(durationMs).toBeLessThan(2) // 2ms內
+    // W1-095: 移除 process.hrtime.bigint() 差值斷言（規則 1 違規）；
+    // 大幅退化防護改由 npm run test:perf 提供。保留功能正確性驗證。
     expect(!result.success).toBe(true)
     expect(result.error).toBeInstanceOf(Error)
     expect(result.error.code).toBeDefined()

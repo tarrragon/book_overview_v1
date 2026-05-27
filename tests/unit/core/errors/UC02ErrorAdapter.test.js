@@ -325,16 +325,11 @@ describe('UC02ErrorAdapter - StandardError 轉換測試', () => {
       // eslint-disable-next-line no-unused-vars
       const details = { performanceTest: true }
 
-      // When: 測量轉換執行時間
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
+      // When: 執行轉換
       const error = UC02ErrorAdapter.convertError(originalCode, message, details)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
 
-      // Then: 執行時間應該小於5毫秒（效能要求，含 GC/排程容差）
-      expect(endTime - startTime).toBeLessThan(5)
+      // W1-095: 移除 performance.now() 差值斷言（規則 1 違規）；
+      // 大幅退化防護改由 npm run test:perf 提供。保留功能正確性驗證。
       expect(error.code).toBe(ErrorCodes.VALIDATION_ERROR)
     })
 
