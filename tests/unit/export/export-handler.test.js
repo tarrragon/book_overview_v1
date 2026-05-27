@@ -981,25 +981,16 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
       handlerRegistry.registerDefaultHandlers()
     })
 
-    test('處理器應該在合理時間內完成處理', async () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
+    test('處理器應該完成 CSV 匯出請求', async () => {
       // eslint-disable-next-line no-unused-vars
       const csvExportData = {
         books: mockBooks,
         options: {}
       }
 
-      await eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData)
-
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
-      const executionTime = endTime - startTime
-
-      // 處理時間應該在合理範圍內（1秒內）
-      expect(executionTime).toBeLessThan(1000)
+      // W1-099 Rule 1: 移除 executionTime < 1000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證請求能順利完成（不拋例外）。
+      await expect(eventBus.emit('EXPORT.CSV.REQUESTED', csvExportData)).resolves.toBeDefined()
     })
 
     test('處理器應該正確處理大量並發請求', async () => {

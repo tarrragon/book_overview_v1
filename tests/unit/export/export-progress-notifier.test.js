@@ -558,9 +558,6 @@ describe('ExportProgressNotifier', () => {
       // - 非阻塞進度更新
       // - 批量更新處理
       // - 更新頻率限制
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-
       try {
         for (let i = 0; i <= 100; i += 10) {
           progressNotifier.updateProgress(exportId, { percentage: i })
@@ -570,10 +567,8 @@ describe('ExportProgressNotifier', () => {
         expect(error.message).toContain('not implemented - Red phase')
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
-      // 進度更新應該很快完成，不阻塞 UI
-      expect(endTime - startTime).toBeLessThan(100)
+      // W1-099 Rule 1: 移除 endTime - startTime < 100 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。原 try-catch 已涵蓋 Red phase 行為驗證。
     })
 
     test('應該支援進度更新節流', () => {
