@@ -20,13 +20,29 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 class MessageDictionary {
   /**
    * 建立訊息字典實例
-   * @param {string} language - 語言代碼 (預設: 'zh-TW')
+   *
+   * Union signature：依參數型別分流
+   * - string：作為語言代碼（向後相容既有呼叫端）
+   * - object：作為初始 messages 物件，批次註冊至 this.messages
+   * - undefined：使用預設語言 'zh-TW'
+   *
+   * @param {string|Object} languageOrMessages - 語言代碼或初始 messages 物件
    */
-  constructor (language = 'zh-TW') {
-    this.messages = this._loadDefaultMessages()
-    this.language = language
+  constructor (languageOrMessages = 'zh-TW') {
+    // 先初始化 cache 欄位與預設訊息（addMessages 內部需要這些欄位）
     this._cacheSize = 0
     this._maxCacheSize = 100 * 1024 // 100KB 限制
+    this.messages = this._loadDefaultMessages()
+    this._updateCacheSize()
+
+    if (typeof languageOrMessages === 'object' && languageOrMessages !== null) {
+      // Object 路徑：批次註冊自訂 messages，沿用預設 language
+      this.language = 'zh-TW'
+      this.addMessages(languageOrMessages) // 重用既有方法，含 cache size 檢查與型別驗證
+    } else {
+      // String 路徑或 undefined（向後相容）
+      this.language = languageOrMessages || 'zh-TW'
+    }
   }
 
   /**
