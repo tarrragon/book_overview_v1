@@ -68,6 +68,8 @@ related:
 | 派發指引未強制 PM cd | `.claude/references/agent-dispatch-template.md` 與 dispatch 流程沒提醒 PM「派發後若要再對 ticket md 操作，必須 cd 到 worktree」 |
 | Frontmatter 與 body 變更難自動 merge | ticket md 是純文字，frontmatter（YAML）與 body（Markdown）跨變更不能 git auto-merge 區段 |
 
+**橋接**：表層原因可由 Approach A（PM cd 到 worktree）規避，零工程成本；深層原因（CLI 未偵測 worktree、文件純文字易衝突）需 Approach C 系統性改造 ticket CLI 才能根除。Approach B 為過渡補救方案。
+
 ## 正確做法
 
 ### Approach A：PM 派發後 cd 到 worktree（推薦）
@@ -115,13 +117,19 @@ related:
 
 ### 第一層：派發 SOP 提醒（短期）
 
+**適用條件**：尚未實作任何 hook 偵測前的立即生效防護。零工程成本，但依賴 PM 自律，覆蓋率視 PM 警覺性而定。
+
 PM 派發 agent 後立即 cd 到 worktree，後續 ticket CLI 操作均在 worktree cwd 執行；只有 worktree 不存在時才在 main repo 操作。
 
 ### 第二層：建 ticket-cwd-check hook（中期）
 
-PostToolUse:Bash 偵測「`ticket track (claim|append-log|complete)` 在 main repo cwd 執行 + 該 ticket 有 active worktree」時警告。
+**適用條件**：第一層覆蓋率不足（PM 自律失效案例累積 ≥ 3 次）時引入。中等工程成本，但事後警告而非事前阻擋。
+
+PostToolUse:Bash 偵測「`ticket track (claim|append-log|complete)` 在 main repo cwd 執行 + 該 ticket 有 active worktree」時警告。Hook 事件選 PostToolUse 而非 PreToolUse，因偵測邏輯需先讀 ticket frontmatter 與 git worktree list，預先阻擋會打斷 PM 工作流；事後警告便於 PM 立即補做 reconcile。
 
 ### 第三層：ticket CLI 整合 worktree 偵測（長期，Approach C）
+
+**適用條件**：第二層警告轉化為阻擋失效（PM 忽略警告繼續操作的案例累積）時引入。最高工程成本，需修改 ticket CLI 核心邏輯，建議由獨立 ANA ticket 評估設計與工作量。
 
 如上節 Approach C 所述，需獨立 ANA ticket 評估。
 
@@ -133,6 +141,8 @@ PostToolUse:Bash 偵測「`ticket track (claim|append-log|complete)` 在 main re
 | DOC ticket 純文件更新 | 可不開 worktree（直接 main repo commit），不觸發本 PC |
 | 多 agent 並行（W17-203.1 parallel-check） | 每個 ticket 都有獨立 worktree，本 PC 各自獨立適用 |
 | Agent 完成 + complete 全程順利 | 不觸發本 PC（agent 自己處理 ticket md commit） |
+
+**邊界判定原則**：本 PC 觸發前提是「PM 與 agent 對同一 ticket md 並行作業於不同 working tree」。任一條件不成立即不適用——單一 cwd 操作（無 worktree 或全程同 cwd）、agent 自主完成全部 ticket md 變更（PM 無 append-log）、ticket md 變更全部在 agent commit 前 reconcile 完畢，均屬安全情境。多 agent 並行情境下，每對「PM cwd × agent worktree」獨立判定。
 
 ## 相關
 
@@ -146,4 +156,5 @@ PostToolUse:Bash 偵測「`ticket track (claim|append-log|complete)` 在 main re
 ---
 
 **Last Updated**: 2026-05-27
+**Version**: 1.1.0 — Layer 2 by basil-writing-critic 審查補強：表格後橋接說明（根本原因 / 邊界與例外）+ 防護措施三層各補適用條件
 **Version**: 1.0.0 — 初始建立，源 W1-096 reconcile 案例
