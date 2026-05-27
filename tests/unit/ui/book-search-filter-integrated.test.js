@@ -527,3 +527,105 @@ describe('BookSearchFilterIntegrated - TDD 循環 8/8', () => {
     })
   })
 })
+
+/**
+ * BookSearchFilter Logger ↔ MessageDictionary 真實整合測試 (0.19.0-W1-116)
+ *
+ * 業務情境：
+ * - W1-112 ANA 發現 src/ui/book-search-filter-integrated.js:54 以
+ *   new Logger('BookSearchFilterIntegrated', 'INFO', searchUIMessages) 形式
+ *   傳入 local dict，但 W1-115 修復前第三參數被 JS 靜默 ignore。
+ * - 本區段驗證 search-filter 自訂訊息經第三參數注入後可正確解析，
+ *   防止 SEARCH_EXECUTION_ERROR / FILTER_APPLICATION_ERROR / SEARCH_CLEARED
+ *   等 search-filter-specific key 退化為 [Missing: KEY]。
+ *
+ * 驗收覆蓋（W1-116 AC 3）：
+ * - search-filter local dict 注入後輸出採自訂文字（非 [Missing: KEY]）
+ * - {error} / {count} 等模板參數正確替換
+ */
+describe('BookSearchFilter Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () => {
+  const { Logger } = require('../../../src/core/logging/Logger')
+  const { MessageDictionary } = require('../../../src/core/messages/MessageDictionary')
+
+  // 重現 src/ui/book-search-filter-integrated.js:37-52 的 local dict 內容
+  function createSearchFilterLocalDict () {
+    return new MessageDictionary({
+      COMPONENT_INIT: '🔧 BookSearchFilterIntegrated 組件初始化',
+      EVENT_BUS_MISSING: '❌ 事件總線是必需的',
+      MODULAR_COMPONENTS_SUCCESS: '✅ 所有模組化組件初始化完成',
+      SEARCH_EXECUTION_ERROR: '❌ 搜尋執行失敗: {error}',
+      FILTER_APPLICATION_ERROR: '❌ 篩選套用失敗: {error}',
+      SEARCH_CLEARED: '✅ 搜尋和篩選已清除',
+      BOOKS_DATA_UPDATED: '✅ 書籍資料更新完成: {count} 本書籍'
+    })
+  }
+
+  let infoSpy
+  let errorSpy
+
+  beforeEach(() => {
+    infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {})
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    infoSpy.mockRestore()
+    errorSpy.mockRestore()
+  })
+
+  test('COMPONENT_INIT 應解析為 search-filter local dict 自訂文字', () => {
+    const localDict = createSearchFilterLocalDict()
+    const logger = new Logger('BookSearchFilterIntegrated', 'INFO', localDict)
+
+    logger.info('COMPONENT_INIT')
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('🔧 BookSearchFilterIntegrated 組件初始化')
+    expect(output).not.toContain('[Missing: COMPONENT_INIT]')
+  })
+
+  test('SEARCH_EXECUTION_ERROR 應正確替換 {error} 模板參數', () => {
+    const localDict = createSearchFilterLocalDict()
+    const logger = new Logger('BookSearchFilterIntegrated', 'INFO', localDict)
+
+    logger.error('SEARCH_EXECUTION_ERROR', { error: '索引建立失敗' })
+
+    const output = errorSpy.mock.calls[0][0]
+    expect(output).toContain('❌ 搜尋執行失敗: 索引建立失敗')
+    expect(output).not.toContain('{error}')
+    expect(output).not.toContain('[Missing: SEARCH_EXECUTION_ERROR]')
+  })
+
+  test('FILTER_APPLICATION_ERROR 應正確替換 {error} 模板參數', () => {
+    const localDict = createSearchFilterLocalDict()
+    const logger = new Logger('BookSearchFilterIntegrated', 'INFO', localDict)
+
+    logger.error('FILTER_APPLICATION_ERROR', { error: 'status 欄位缺失' })
+
+    const output = errorSpy.mock.calls[0][0]
+    expect(output).toContain('❌ 篩選套用失敗: status 欄位缺失')
+    expect(output).not.toContain('[Missing: FILTER_APPLICATION_ERROR]')
+  })
+
+  test('SEARCH_CLEARED 應解析為 search-filter local dict 自訂文字', () => {
+    const localDict = createSearchFilterLocalDict()
+    const logger = new Logger('BookSearchFilterIntegrated', 'INFO', localDict)
+
+    logger.info('SEARCH_CLEARED')
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('✅ 搜尋和篩選已清除')
+    expect(output).not.toContain('[Missing: SEARCH_CLEARED]')
+  })
+
+  test('BOOKS_DATA_UPDATED 應正確替換 {count} 模板參數', () => {
+    const localDict = createSearchFilterLocalDict()
+    const logger = new Logger('BookSearchFilterIntegrated', 'INFO', localDict)
+
+    logger.info('BOOKS_DATA_UPDATED', { count: 128 })
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('✅ 書籍資料更新完成: 128 本書籍')
+    expect(output).not.toContain('[Missing: BOOKS_DATA_UPDATED]')
+  })
+})

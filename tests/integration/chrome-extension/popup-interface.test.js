@@ -745,3 +745,120 @@ describe('Popup Interface 整合測試', () => {
     })
   })
 })
+
+/**
+ * Popup Logger ↔ MessageDictionary 真實整合測試 (0.19.0-W1-116)
+ *
+ * 業務情境：
+ * - 上方 36 個 test case 使用 MockLogger / MockMessageDictionary，
+ *   不檢查訊息文字，這是 W1-106 false positive 通過的根本原因。
+ * - W1-112 ANA 重大發現：Logger constructor 三參數 (name, level, messages)
+ *   假設不成立。原 constructor (name, level) hardcoded
+ *   `this.messages = GlobalMessages`，導致 popup local dict 註冊靜默失敗。
+ * - W1-115 修復 constructor signature 加第三參數 messages = GlobalMessages。
+ * - 本區段使用「真實 Logger + 真實 MessageDictionary + popup.js 本人的
+ *   local dict 內容」直接驗證 5 個 popup-specific key 解析回 popup 自訂文字
+ *   而非 [Missing: KEY] 或 GlobalMessages 預設文字。
+ *
+ * 驗收覆蓋（W1-116 AC 2）：
+ * - 5 個 popup key（POPUP_INTERFACE_LOADED / POPUP_SCRIPT_LOADED /
+ *   POPUP_INIT_START / POPUP_INIT_COMPLETE / INITIALIZATION_COMPLETE）
+ *   經 popup local dict 注入後 logger.info(...) 輸出符合預期文字。
+ */
+describe('Popup Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () => {
+  const { Logger } = require('../../../src/core/logging/Logger')
+  const { MessageDictionary } = require('../../../src/core/messages/MessageDictionary')
+
+  // 重現 src/popup/popup.js:79-101 的 local dict 內容（節錄 5 個關鍵 key）
+  // 注意：INITIALIZATION_COMPLETE 由 popup-error-handler.js 使用，非 popup.js，
+  //       測試補入此 key 以涵蓋完整 5 個 popup-specific key 的解析行為
+  function createPopupLocalDict () {
+    return new MessageDictionary({
+      POPUP_INTERFACE_LOADED: '🎨 Popup Interface 載入完成',
+      POPUP_SCRIPT_LOADED: '✅ Popup Script 載入完成',
+      POPUP_INIT_START: '🚀 開始初始化 Popup Interface',
+      POPUP_INIT_COMPLETE: '✅ Popup Interface 初始化完成',
+      INITIALIZATION_COMPLETE: '初始化流程完成'
+    })
+  }
+
+  let infoSpy
+
+  beforeEach(() => {
+    infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    infoSpy.mockRestore()
+  })
+
+  it('POPUP_INTERFACE_LOADED 應解析為 popup local dict 自訂文字（非 [Missing: KEY]）', () => {
+    const localDict = createPopupLocalDict()
+    const popupLogger = new Logger('PopupInterface', 'INFO', localDict)
+
+    popupLogger.info('POPUP_INTERFACE_LOADED')
+
+    expect(infoSpy).toHaveBeenCalledTimes(1)
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('🎨 Popup Interface 載入完成')
+    expect(output).not.toContain('[Missing: POPUP_INTERFACE_LOADED]')
+  })
+
+  it('POPUP_SCRIPT_LOADED 應解析為 popup local dict 自訂文字', () => {
+    const localDict = createPopupLocalDict()
+    const popupLogger = new Logger('PopupInterface', 'INFO', localDict)
+
+    popupLogger.info('POPUP_SCRIPT_LOADED')
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('✅ Popup Script 載入完成')
+    expect(output).not.toContain('[Missing: POPUP_SCRIPT_LOADED]')
+  })
+
+  it('POPUP_INIT_START 應解析為 popup local dict 自訂文字', () => {
+    const localDict = createPopupLocalDict()
+    const popupLogger = new Logger('PopupInterface', 'INFO', localDict)
+
+    popupLogger.info('POPUP_INIT_START')
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('🚀 開始初始化 Popup Interface')
+    expect(output).not.toContain('[Missing: POPUP_INIT_START]')
+  })
+
+  it('POPUP_INIT_COMPLETE 應解析為 popup local dict 自訂文字', () => {
+    const localDict = createPopupLocalDict()
+    const popupLogger = new Logger('PopupInterface', 'INFO', localDict)
+
+    popupLogger.info('POPUP_INIT_COMPLETE')
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('✅ Popup Interface 初始化完成')
+    expect(output).not.toContain('[Missing: POPUP_INIT_COMPLETE]')
+  })
+
+  it('INITIALIZATION_COMPLETE 應解析為 popup local dict 自訂文字（popup-error-handler 使用）', () => {
+    const localDict = createPopupLocalDict()
+    const popupLogger = new Logger('PopupErrorHandler', 'INFO', localDict)
+
+    popupLogger.info('INITIALIZATION_COMPLETE')
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('初始化流程完成')
+    expect(output).not.toContain('[Missing: INITIALIZATION_COMPLETE]')
+  })
+
+  it('無 local dict 第三參數時 popup-specific key 退回 GlobalMessages 解析（W1-115 修復前的破窗情境）', () => {
+    // 業務情境：若未傳入 local dict（W1-115 修復前的潛在錯用模式），
+    // 仍應退回 GlobalMessages 既有定義（W1-113 revert 後保留 5 key 於 GlobalMessages）。
+    // 此 test 防回歸：避免未來 GlobalMessages 移除 5 key 又無 local dict 注入時靜默失敗。
+    const logger = new Logger('NoLocalDict', 'INFO')
+
+    logger.info('POPUP_INTERFACE_LOADED')
+
+    const output = infoSpy.mock.calls[0][0]
+    // GlobalMessages 中此 key 預設為 'Popup 介面已載入'
+    expect(output).toContain('Popup 介面已載入')
+    expect(output).not.toContain('[Missing: POPUP_INTERFACE_LOADED]')
+  })
+})

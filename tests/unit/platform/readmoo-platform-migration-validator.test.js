@@ -589,3 +589,97 @@ describe('ReadmooPlatformMigrationValidator', () => {
     })
   })
 })
+
+/**
+ * Validator Logger ↔ MessageDictionary 真實整合測試 (0.19.0-W1-116)
+ *
+ * 業務情境：
+ * - W1-112 ANA 發現 src/platform/readmoo-platform-migration-validator.js:64 以
+ *   new Logger('ReadmooMigrationValidator', 'INFO', validatorMessages) 形式
+ *   傳入 local dict，但 W1-115 修復前第三參數被 JS 靜默 ignore。
+ * - 本區段驗證 validator 自訂訊息經第三參數注入後可正確解析，
+ *   防止 VALIDATOR_INIT / VALIDATION_TIMEOUT / PLATFORM_DETECTION_FAILED
+ *   等 validator-specific key 退化為 [Missing: KEY]。
+ *
+ * 驗收覆蓋（W1-116 AC 3）：
+ * - validator local dict 注入後輸出採自訂文字（非 [Missing: KEY]）
+ * - {timeout} / {platform} / {confidence} 等模板參數正確替換
+ */
+describe('Validator Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () => {
+  const { Logger } = require('src/core/logging/Logger')
+  const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+
+  // 重現 src/platform/readmoo-platform-migration-validator.js:40-62 的 local dict 內容
+  function createValidatorLocalDict () {
+    return new MessageDictionary({
+      VALIDATOR_INIT: '🔧 Readmoo 平台遷移驗證器初始化',
+      VALIDATION_START: '🚀 開始完整 Readmoo 平台遷移驗證',
+      VALIDATION_TIMEOUT: '⏰ 驗證超時 ({timeout}ms)',
+      PLATFORM_DETECTION_FAILED: '❌ 平台檢測失敗: 檢測到 {platform} 平台',
+      PLATFORM_CONFIDENCE_LOW: '⚠️ 檢測信心度過低: {confidence} (最低要求: {required})'
+    })
+  }
+
+  let infoSpy
+  let warnSpy
+  let errorSpy
+
+  beforeEach(() => {
+    infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {})
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    infoSpy.mockRestore()
+    warnSpy.mockRestore()
+    errorSpy.mockRestore()
+  })
+
+  test('VALIDATOR_INIT 應解析為 validator local dict 自訂文字', () => {
+    const localDict = createValidatorLocalDict()
+    const logger = new Logger('ReadmooMigrationValidator', 'INFO', localDict)
+
+    logger.info('VALIDATOR_INIT')
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('🔧 Readmoo 平台遷移驗證器初始化')
+    expect(output).not.toContain('[Missing: VALIDATOR_INIT]')
+  })
+
+  test('VALIDATION_START 應解析為 validator local dict 自訂文字', () => {
+    const localDict = createValidatorLocalDict()
+    const logger = new Logger('ReadmooMigrationValidator', 'INFO', localDict)
+
+    logger.info('VALIDATION_START')
+
+    const output = infoSpy.mock.calls[0][0]
+    expect(output).toContain('🚀 開始完整 Readmoo 平台遷移驗證')
+    expect(output).not.toContain('[Missing: VALIDATION_START]')
+  })
+
+  test('VALIDATION_TIMEOUT 應正確替換 {timeout} 模板參數', () => {
+    const localDict = createValidatorLocalDict()
+    const logger = new Logger('ReadmooMigrationValidator', 'INFO', localDict)
+
+    logger.warn('VALIDATION_TIMEOUT', { timeout: 5000 })
+
+    const output = warnSpy.mock.calls[0][0]
+    expect(output).toContain('⏰ 驗證超時 (5000ms)')
+    expect(output).not.toContain('{timeout}')
+    expect(output).not.toContain('[Missing: VALIDATION_TIMEOUT]')
+  })
+
+  test('PLATFORM_CONFIDENCE_LOW 應正確替換 {confidence} 與 {required} 模板參數', () => {
+    const localDict = createValidatorLocalDict()
+    const logger = new Logger('ReadmooMigrationValidator', 'INFO', localDict)
+
+    logger.warn('PLATFORM_CONFIDENCE_LOW', { confidence: 0.3, required: 0.8 })
+
+    const output = warnSpy.mock.calls[0][0]
+    expect(output).toContain('⚠️ 檢測信心度過低: 0.3 (最低要求: 0.8)')
+    expect(output).not.toContain('{confidence}')
+    expect(output).not.toContain('{required}')
+    expect(output).not.toContain('[Missing: PLATFORM_CONFIDENCE_LOW]')
+  })
+})
