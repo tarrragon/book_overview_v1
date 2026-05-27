@@ -454,26 +454,23 @@ describe('EventTypeDefinitions', () => {
         eventNames.push(`EXTRACTION.READMOO.EXTRACT.COMPLETED_${i}`)
       }
 
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-      eventNames.forEach(name => eventTypes.isValidEventName(name))
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-
-      expect(endTime - startTime).toBeLessThan(100) // 應該在 100ms 內完成
+      // W1-099 Rule 1: 移除 endTime - startTime < 100 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證 1000 次驗證呼叫皆能執行完成（不拋例外，回傳布林值）。
+      // 原測試名稱含「驗證」但結果可為 true/false，本驗證僅確認呼叫流程穩定。
+      const validationResults = eventNames.map(name => eventTypes.isValidEventName(name))
+      expect(validationResults).toHaveLength(1000)
+      expect(validationResults.every(r => typeof r === 'boolean')).toBe(true)
     })
 
     test('應該快速建構大量事件名稱', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-
+      // W1-099 Rule 1: 移除 endTime - startTime < 50 計時門檻（performance.now() 差值為真實計時）
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證 1000 次建構皆能產出有效事件名稱（功能正確性）。
+      const built = []
       for (let i = 0; i < 1000; i++) {
-        eventTypes.buildEventName('EXTRACTION', 'READMOO', 'EXTRACT', 'COMPLETED')
+        built.push(eventTypes.buildEventName('EXTRACTION', 'READMOO', 'EXTRACT', 'COMPLETED'))
       }
-
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-      expect(endTime - startTime).toBeLessThan(50) // 應該在 50ms 內完成
+      expect(built).toHaveLength(1000)
+      expect(built.every(name => typeof name === 'string' && name.length > 0)).toBe(true)
     })
   })
 })

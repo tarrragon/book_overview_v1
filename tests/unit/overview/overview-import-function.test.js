@@ -477,15 +477,12 @@ describe('📄 Overview 資料匯入功能測試', () => {
       const fileContent = JSON.stringify(largeDataset)
 
       // When: 執行檔案載入
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
       await controller.handleFileLoad(createMockFile(fileContent))
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
 
-      // Then: 驗證效能要求
+      // W1-099 Rule 1: 移除 endTime - startTime < 5000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留書籍載入數量功能驗證。
+      // Then: 驗證資料正確性
       expect(controller.currentBooks).toHaveLength(1000)
-      expect(endTime - startTime).toBeLessThan(5000) // 5秒內完成
     })
 
     test('應該處理包含特殊字符的書名', async () => {

@@ -455,16 +455,10 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
 
       // When: 批量分類錯誤
       // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
       const results = errors.map(error => mockClassifyError(error))
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
 
-      // Then: 應該在合理時間內完成
-      // eslint-disable-next-line no-unused-vars
-      const processingTime = endTime - startTime
-      expect(processingTime).toBeLessThan(1000) // 小於1秒
+      // W1-099 Rule 1: 移除 processingTime < 1000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留結果數量與分類結構驗證。
       expect(results).toHaveLength(1000)
       results.forEach(result => {
         expect(result.category).toBeDefined()

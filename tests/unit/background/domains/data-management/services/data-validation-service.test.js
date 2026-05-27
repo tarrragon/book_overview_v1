@@ -1254,19 +1254,16 @@ describe('Data Validation Service v2.0', () => {
         }))
 
         // eslint-disable-next-line no-unused-vars
-        const startTime = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const result = await dataValidationService.validateAndNormalize(
           smallBatch,
           'READMOO',
           'SMALL_BATCH_PERF_TEST'
         )
-        // eslint-disable-next-line no-unused-vars
-        const duration = Date.now() - startTime
 
-        expect(duration).toBeLessThan(100)
+        // W1-099 Rule 1: 移除 duration < 100 與 result.duration < 100 計時門檻
+        // 兩者皆為 Date.now() 差值（service 內部以 Date.now() 計算 result.duration），主套件禁止絕對計時門檻
+        // 大幅退化防護改由 npm run test:perf 提供。保留 totalBooks 功能驗證。
         expect(result.totalBooks).toBe(10)
-        expect(result.duration).toBeLessThan(100)
       })
 
       test('應該在合理時間內完成中等批次驗證 (<500ms)', async () => {
@@ -1277,17 +1274,14 @@ describe('Data Validation Service v2.0', () => {
         }))
 
         // eslint-disable-next-line no-unused-vars
-        const startTime = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const result = await dataValidationService.validateAndNormalize(
           mediumBatch,
           'READMOO',
           'MEDIUM_BATCH_PERF_TEST'
         )
-        // eslint-disable-next-line no-unused-vars
-        const duration = Date.now() - startTime
 
-        expect(duration).toBeLessThan(500)
+        // W1-099 Rule 1: 移除 duration < 500 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+        // 大幅退化防護改由 npm run test:perf 提供。保留 totalBooks 功能驗證。
         expect(result.totalBooks).toBe(100)
       })
 
@@ -1299,17 +1293,14 @@ describe('Data Validation Service v2.0', () => {
         }))
 
         // eslint-disable-next-line no-unused-vars
-        const startTime = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const result = await dataValidationService.validateAndNormalize(
           largeBatch,
           'READMOO',
           'LARGE_BATCH_PERF_TEST'
         )
-        // eslint-disable-next-line no-unused-vars
-        const duration = Date.now() - startTime
 
-        expect(duration).toBeLessThan(2000)
+        // W1-099 Rule 1: 移除 duration < 2000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+        // 大幅退化防護改由 npm run test:perf 提供。保留 totalBooks/validBooks 功能驗證。
         expect(result.totalBooks).toBe(1000)
         expect(result.validBooks).toHaveLength(1000)
       })
@@ -1377,18 +1368,14 @@ describe('Data Validation Service v2.0', () => {
         ]
 
         // eslint-disable-next-line no-unused-vars
-        const startTime = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const results = await Promise.all(
           concurrentBatches.map((batch, index) =>
             dataValidationService.validateAndNormalize(batch, 'READMOO', `CONCURRENT_BATCH_${index}`)
           )
         )
-        // eslint-disable-next-line no-unused-vars
-        const duration = Date.now() - startTime
 
-        // 並行處理應該比串行處理快
-        expect(duration).toBeLessThan(500) // 假設串行需要更長時間
+        // W1-099 Rule 1: 移除 duration < 500 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+        // 並行處理 vs 串行比較改由 npm run test:perf 提供量測；本測試保留並行結果正確性驗證。
         results.forEach(result => {
           expect(result.totalBooks).toBe(50)
           expect(result.validBooks).toHaveLength(50)
@@ -1517,22 +1504,20 @@ describe('Data Validation Service v2.0', () => {
 
         // 第一次驗證
         // eslint-disable-next-line no-unused-vars
-        const startTime1 = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const result1 = await cacheService.validateSingleBook(sameBook, 'READMOO', 'CACHE_TEST_1')
-        // eslint-disable-next-line no-unused-vars
-        const duration1 = Date.now() - startTime1
+        const cacheSizeAfterFirst = cacheService.validationCache.size
 
         // 第二次驗證同一本書（應該使用快取）
         // eslint-disable-next-line no-unused-vars
-        const startTime2 = Date.now()
-        // eslint-disable-next-line no-unused-vars
         const result2 = await cacheService.validateSingleBook(sameBook, 'READMOO', 'CACHE_TEST_2')
-        // eslint-disable-next-line no-unused-vars
-        const duration2 = Date.now() - startTime2
+        const cacheSizeAfterSecond = cacheService.validationCache.size
 
+        // W1-099 Rule 4: 移除 duration2 < duration1 相對計時比較（規則 4：禁止快取效能用計時比較）
+        // 改用快取狀態驗證：首次呼叫建立快取項，第二次呼叫命中快取（cache size 不增加）。
+        // 比計時更強的快取驗證（與計時完全無關；參考 W1-095 toBe 模式變體，因 _setCachedValidation 用 spread copy 無法 toBe 比對）。
         expect(result1.isValid).toBe(result2.isValid)
-        expect(duration2).toBeLessThan(duration1) // 快取應該更快
+        expect(cacheSizeAfterFirst).toBeGreaterThan(0) // 首次呼叫已建立快取項
+        expect(cacheSizeAfterSecond).toBe(cacheSizeAfterFirst) // 第二次呼叫命中快取，size 不增加
       })
     })
   })
@@ -2071,8 +2056,8 @@ describe('Data Validation Service v2.0', () => {
       expect(realDataResult.normalizedBooks.length).toBeGreaterThan(0)
       expect(realDataResult.qualityScore).toBeGreaterThan(65)
 
-      // 檢查處理效能
-      expect(realDataResult.duration).toBeLessThan(1000) // 1秒內完成
+      // W1-099 Rule 1: 移除 realDataResult.duration < 1000 計時門檻（service 內部 Date.now() 差值為真實計時）
+      // 大幅退化防護改由 npm run test:perf 提供。保留功能正確性與資料品質驗證。
 
       // 檢查資料品質
       realDataResult.normalizedBooks.forEach(book => {

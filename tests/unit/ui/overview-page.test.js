@@ -938,14 +938,9 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
       controller.currentBooks = largeDataset
       controller.filteredBooks = largeDataset
 
-      // 性能測試 - 渲染應該在合理時間內完成
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-      controller.renderBooksTable()
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-
-      expect(endTime - startTime).toBeLessThan(1000) // 1秒內完成
+      // W1-099 Rule 1: 移除 endTime - startTime < 1000 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。改驗證大型資料集 render 不拋例外（功能正確性）。
+      expect(() => controller.renderBooksTable()).not.toThrow()
     })
 
     test('應該正確處理Chrome API錯誤', async () => {

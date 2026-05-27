@@ -403,12 +403,10 @@ describe('📚 資料提取器測試', () => {
   })
 
   describe('⚡ 效能測試', () => {
-    test('應該能夠在合理時間內處理大量書籍', async () => {
+    test('應該能夠處理大量書籍', async () => {
       // Arrange - 建立大量模擬書籍
       // eslint-disable-next-line no-unused-vars
       const bookCount = 100
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
 
       for (let i = 0; i < bookCount; i++) {
         // eslint-disable-next-line no-unused-vars
@@ -422,14 +420,11 @@ describe('📚 資料提取器測試', () => {
       // Act
       // eslint-disable-next-line no-unused-vars
       const books = document.querySelectorAll('.library-item')
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
-      const processingTime = endTime - startTime
 
-      // Assert - 處理時間應該在合理範圍內（例如小於1秒）
+      // Assert - 保留書籍數量正確性驗證
+      // W1-099 Rule 1: 移除 processingTime < 1000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。
       expect(books.length).toBe(bookCount)
-      expect(processingTime).toBeLessThan(1000)
     })
   })
 

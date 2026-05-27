@@ -391,9 +391,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
       })
 
       // TC028: 批量處理效能測試
-      test('TC028: 批量處理1000次應該在合理時間內完成', () => {
-        // eslint-disable-next-line no-unused-vars
-        const startTime = performance.now()
+      test('TC028: 批量處理1000次應該完成且結果有效', () => {
         // eslint-disable-next-line no-unused-vars
         const results = []
 
@@ -407,13 +405,9 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
           results.push(result)
         }
 
-        // eslint-disable-next-line no-unused-vars
-        const endTime = performance.now()
-        // eslint-disable-next-line no-unused-vars
-        const totalTime = endTime - startTime
-
+        // W1-099 Rule 1: 移除 totalTime < 1000 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+        // 大幅退化防護改由 npm run test:perf 提供。保留結果數量與格式驗證。
         expect(results).toHaveLength(1000)
-        expect(totalTime).toBeLessThan(1000) // 應該在1秒內完成
 
         // 檢查每個結果都是有效的
         results.forEach(result => {
@@ -692,10 +686,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
   })
 
   describe('📊 效能和記憶體測試', () => {
-    test('單次調用效能測試 - 應該在10ms內完成', () => {
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-
+    test('單次調用功能測試 - 應該正確返回 ID', () => {
       // eslint-disable-next-line no-unused-vars
       const result = adapter.generateStableBookId(
         'reader123',
@@ -703,14 +694,10 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
         'https://cdn.readmoo.com/cover/ab/perf123_210x315.jpg'
       )
 
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-      // eslint-disable-next-line no-unused-vars
-      const duration = endTime - startTime
-
+      // W1-099 Rule 1: 移除 duration < 10 計時門檻（performance.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留 ID 正確性功能驗證。
       // W6-012.2.1：優先級 reader → cover → title，readerId 有效時走 reader 策略
       expect(result).toBe('reader-reader123')
-      expect(duration).toBeLessThan(10) // 10ms內完成
     })
 
     test('記憶體使用測試 - 不應該有記憶體洩漏', async () => {

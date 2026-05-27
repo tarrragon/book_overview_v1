@@ -340,13 +340,11 @@ describe('PlatformDetectionService', () => {
         hostname: 'readmoo.com'
       }
 
+      // W1-099 Rule 1: 移除 performance.now() 差值 < 50ms 計時門檻（真實計時，主套件禁止絕對計時門檻）
+      // 改驗證 detectPlatform 完成且結果可用。大幅退化防護改由 npm run test:perf 提供。
       // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
-      await service.detectPlatform(context)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
-
-      expect(endTime - startTime).toBeLessThan(50) // 50ms threshold for URL matching
+      const result = await service.detectPlatform(context)
+      expect(result).toBeDefined()
     })
 
     test('should cache URL pattern matching results', async () => {
@@ -356,17 +354,21 @@ describe('PlatformDetectionService', () => {
         hostname: 'readmoo.com'
       }
 
+      // 清空快取後執行首次偵測，建立快取項
+      service.clearCache && service.clearCache()
+      const cacheSizeBefore = service.detectionCache.size
       // First call
       await service.detectPlatform(context)
+      const cacheSizeAfterFirst = service.detectionCache.size
 
-      // Second call should be faster (cached)
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
+      // Second call should hit cache (verified by cache state, not timing)
       await service.detectPlatform(context)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
+      const cacheSizeAfterSecond = service.detectionCache.size
 
-      expect(endTime - startTime).toBeLessThan(10) // Should be very fast from cache
+      // W1-099 Rule 4: 移除 performance.now() 差值 < 10ms 計時門檻（快取驗證改用 cache state，非計時比較）
+      // 規則 4：禁止 secondRunTime < firstRunTime * N 的相對計時比較；改用快取命中率/狀態驗證
+      expect(cacheSizeAfterFirst).toBeGreaterThan(cacheSizeBefore) // 首次呼叫已建立快取
+      expect(cacheSizeAfterSecond).toBe(cacheSizeAfterFirst) // 第二次呼叫不增加項目，命中快取
     })
 
     test('should handle concurrent URL pattern matching', async () => {
@@ -598,14 +600,11 @@ describe('PlatformDetectionService', () => {
 
       service.domAnalysisTimeout = 500 // 500ms timeout
 
-      // eslint-disable-next-line no-unused-vars
-      const startTime = performance.now()
+      // W1-099 Rule 1: 移除 performance.now() 差值 < 600ms 計時門檻（真實計時，主套件禁止絕對計時門檻）
+      // 超時行為由 features 中的 'dom_analysis_timeout' 標記驗證（功能正確性，非計時）。
       // eslint-disable-next-line no-unused-vars
       const result = await service.detectPlatform(context)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = performance.now()
 
-      expect(endTime - startTime).toBeLessThan(600) // Should timeout
       expect(result.features).toContain('dom_analysis_timeout')
     })
 

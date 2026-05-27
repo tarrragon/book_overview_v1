@@ -375,12 +375,10 @@ describe('💾 儲存適配器測試', () => {
   })
 
   describe('⚡ 效能測試', () => {
-    test('儲存操作應該在合理時間內完成', async () => {
+    test('儲存操作應該完成且結果正確', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
       const testData = global.testUtils.createMockBooks(100)
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
 
       // Act - 模擬儲存操作
       // eslint-disable-next-line no-unused-vars
@@ -392,13 +390,9 @@ describe('💾 儲存適配器測試', () => {
 
       // eslint-disable-next-line no-unused-vars
       const result = await saveOperation(testData)
-      // eslint-disable-next-line no-unused-vars
-      const endTime = Date.now()
-      // eslint-disable-next-line no-unused-vars
-      const duration = endTime - startTime
 
-      // Assert - 儲存時間應該合理（例如小於200ms）
-      expect(duration).toBeLessThan(200)
+      // W1-099 Rule 1: 移除 duration < 200 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留結果正確性驗證。
       expect(result).toEqual(testData)
     })
 
