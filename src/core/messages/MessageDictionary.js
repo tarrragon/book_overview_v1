@@ -68,6 +68,11 @@ class MessageDictionary {
       CONTENT_SCRIPT_LOADED: '內容腳本已載入',
       POPUP_OPENED: '彈出視窗已開啟',
       BACKGROUND_SCRIPT_ACTIVE: '背景腳本運行中',
+      POPUP_INTERFACE_LOADED: 'Popup 介面已載入',
+      POPUP_SCRIPT_LOADED: 'Popup 腳本載入完成',
+      POPUP_INIT_START: '開始初始化 Popup 介面',
+      POPUP_INIT_COMPLETE: 'Popup 介面初始化完成',
+      INITIALIZATION_COMPLETE: '初始化流程完成',
 
       // 使用者訊息
       SUCCESS: '成功',
