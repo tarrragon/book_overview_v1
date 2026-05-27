@@ -59,13 +59,22 @@ const LEVEL_PRIORITIES = {
 class Logger {
   /**
    * 建立 Logger 實例
+   *
+   * 業務情境：caller 可注入自訂 MessageDictionary（local dict）以覆寫 GlobalMessages
+   * 預設行為。W1-112 ANA 根因：原 constructor 僅 (name, level)，hardcoded
+   * this.messages = GlobalMessages，導致 popup/search-filter/validator 等 3 處
+   * `new Logger('Name', 'INFO', localMessages)` 的第三參數被 JS 靜默 ignore，
+   * 整個 local dict 機制從未生效（W1-105 修 MessageDictionary union signature
+   * 雖通過測試但 runtime 無效用）。
+   *
    * @param {string} name - Logger 名稱
    * @param {string} level - 日誌等級（預設: 'INFO'）
+   * @param {Object} messages - 訊息字典（預設: GlobalMessages，可注入 local dict）
    */
-  constructor (name = 'App', level = 'INFO') {
+  constructor (name = 'App', level = 'INFO', messages = GlobalMessages) {
     this.name = name
     this.level = level
-    this.messages = GlobalMessages
+    this.messages = messages
     this._buffer = [] // 用於緩衝日誌（如果需要）
     this._maxBufferSize = 100
   }
