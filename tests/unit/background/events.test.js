@@ -468,7 +468,8 @@ describe('🎭 背景服務事件系統測試', () => {
       const duration = endTime - startTime
 
       // Assert
-      expect(duration).toBeLessThan(100) // 應該在100ms內完成
+      // W1-099 Rule 1: 移除 duration < 100 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留 handler 被呼叫的功能驗證。
       expect(heavyHandler).toHaveBeenCalled()
     })
 
@@ -494,7 +495,8 @@ describe('🎭 背景服務事件系統測試', () => {
 
       // Assert
       expect(handler).toHaveBeenCalledTimes(100)
-      expect(duration).toBeLessThan(1000) // 應該在1秒內完成
+      // W1-099 Rule 1: 移除 duration < 1000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+      // 大幅退化防護改由 npm run test:perf 提供。保留 handler 呼叫次數的功能驗證。
     })
   })
 

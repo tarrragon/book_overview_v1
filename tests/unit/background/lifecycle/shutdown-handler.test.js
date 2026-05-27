@@ -224,15 +224,11 @@ describe('ShutdownHandler', () => {
         () => new Promise(resolve => setTimeout(resolve, 6000))
       )
 
-      // eslint-disable-next-line no-unused-vars
-      const startTime = Date.now()
       try {
         await shutdownHandler.gracefulShutdown('default_timeout_test')
       } catch (error) {
-        // eslint-disable-next-line no-unused-vars
-        const duration = Date.now() - startTime
-        expect(duration).toBeGreaterThan(29000) // 接近 30 秒
-        expect(duration).toBeLessThan(32000)
+        // W1-099 Rule 1: 移除 duration 區間斷言 (>29000 / <32000)（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+        // 大幅退化防護改由 npm run test:perf 提供。保留錯誤碼的功能驗證（TIMEOUT_ERROR 已表達超時行為）。
         expect(error.code).toBe(ErrorCodes.TIMEOUT_ERROR)
       }
     }, 35000)

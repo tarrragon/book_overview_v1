@@ -776,8 +776,6 @@ describe('DataDomainCoordinator Performance', () => {
     await coordinator.initialize()
 
     // eslint-disable-next-line no-unused-vars
-    const startTime = Date.now()
-    // eslint-disable-next-line no-unused-vars
     const eventPromises = []
 
     // 發送 50 個並發事件
@@ -794,13 +792,12 @@ describe('DataDomainCoordinator Performance', () => {
     await Promise.all(eventPromises)
 
     // eslint-disable-next-line no-unused-vars
-    const duration = Date.now() - startTime
-    // eslint-disable-next-line no-unused-vars
     const validationEvents = mockEventBus.getEmittedEventsByType('DATA.VALIDATION.REQUESTED')
 
     // 驗證處理效率
     expect(validationEvents).toHaveLength(50)
-    expect(duration).toBeLessThan(5000) // 應該在 5 秒內完成
+    // W1-099 Rule 1: 移除 duration < 5000 計時門檻（Date.now() 差值為真實計時，主套件禁止絕對計時門檻）
+    // 大幅退化防護改由 npm run test:perf 提供。保留事件處理數量與 activeOperations 狀態功能驗證。
     expect(coordinator.activeOperations.size).toBe(50)
   })
 
