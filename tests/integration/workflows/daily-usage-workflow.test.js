@@ -224,11 +224,9 @@ describe('日常使用工作流程整合測試', () => {
       // When & Then: 驗證每個步驟的UI回饋
 
       // 步驟1: 開啟Extension的載入回饋
-      const loadingStart = Date.now()
       const popupState = await extensionController.openPopup()
-      const loadingTime = Date.now() - loadingStart
 
-      expect(loadingTime).toBeLessThan(500) // 載入時間<500ms
+      // W1-097 Rule 1: 移除 loadingTime < 500ms (Date.now() 差值真實計時門檻)，保留按鈕就緒功能驗證
       expect(popupState.extractButtonEnabled).toBe(true) // 按鈕已就緒
 
       // 步驟2: 提取前按鈕狀態
@@ -441,18 +439,16 @@ describe('日常使用工作流程整合測試', () => {
       // eslint-disable-next-line no-unused-vars
       const performanceEnd = await testSuite.capturePerformanceBaseline()
 
-      // Then: 驗證效能指標
-      expect(popupOpenTime).toBeLessThan(500) // Popup開啟<500ms
-      expect(syncTime).toBeLessThan(8000) // 小量同步<8秒
-      expect(overviewTime).toBeLessThan(1000) // Overview開啟<1秒
+      // W1-097 Rule 1: 移除 popupOpenTime / syncTime / overviewTime 計時門檻（measureOperation 回傳真實計時）
+      // 保留資源預算斷言（記憶體 / CPU 非計時，屬資源邊界檢查）
 
       // 記憶體使用檢查
       // eslint-disable-next-line no-unused-vars
       const memoryUsage = performanceEnd.memory.used - performanceStart.memory.used
-      expect(memoryUsage).toBeLessThan(30 * 1024 * 1024) // 記憶體增長<30MB
+      expect(memoryUsage).toBeLessThan(30 * 1024 * 1024) // 記憶體增長<30MB（資源預算，非計時）
 
       // CPU使用檢查
-      expect(performanceEnd.cpu.usage).toBeLessThan(0.8) // CPU使用<80%
+      expect(performanceEnd.cpu.usage).toBeLessThan(0.8) // CPU使用<80%（資源預算，非計時）
     })
 
     test('應該支援多次連續使用且保持穩定', async () => {
@@ -500,25 +496,18 @@ describe('日常使用工作流程整合測試', () => {
 
       // Then: 驗證多輪操作的穩定性
 
-      // 驗證效能沒有顯著退化
-      // eslint-disable-next-line no-unused-vars
-      const avgExecutionTime = performanceHistory.reduce((sum, record) =>
-        sum + record.executionTime, 0) / operationCount
-      expect(avgExecutionTime).toBeLessThan(10000) // 平均執行時間<10秒
+      // W1-097 Rule 1: 移除 avgExecutionTime < 10000 計時門檻（Date.now() 差值平均）
+      // W1-097 Rule 1 (非 Rule 4): 移除 lastRoundTime < firstRoundTime * 1.5 相對計時比較
+      //   斷言對象為 Date.now() 差值，非快取加速驗證；Rule 4 適用範圍為「驗證快取效能」，
+      //   本斷言屬「非快取相關計時測試」，依 Rule 4 適用範圍表回落 Rule 1 處理（移除）。
+      //   穩定性驗證改由下方 maxMemoryUsage 與最終資料一致性（行數）覆蓋。
 
-      // 驗證最後一輪不比第一輪慢太多
-      // eslint-disable-next-line no-unused-vars
-      const firstRoundTime = performanceHistory[0].executionTime
-      // eslint-disable-next-line no-unused-vars
-      const lastRoundTime = performanceHistory[operationCount - 1].executionTime
-      expect(lastRoundTime).toBeLessThan(firstRoundTime * 1.5) // 不超過首輪1.5倍
-
-      // 驗證記憶體使用穩定
+      // 驗證記憶體使用穩定（資源預算，非計時）
       // eslint-disable-next-line no-unused-vars
       const memoryUsages = performanceHistory.map(record => record.memoryUsage)
       // eslint-disable-next-line no-unused-vars
       const maxMemoryUsage = Math.max(...memoryUsages)
-      expect(maxMemoryUsage).toBeLessThan(50 * 1024 * 1024) // 單輪記憶體<50MB
+      expect(maxMemoryUsage).toBeLessThan(50 * 1024 * 1024) // 單輪記憶體<50MB（資源預算，非計時）
 
       // 驗證資料一致性
       // eslint-disable-next-line no-unused-vars

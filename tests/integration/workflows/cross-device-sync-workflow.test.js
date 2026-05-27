@@ -239,12 +239,13 @@ describe('跨設備同步工作流程整合測試', () => {
       const exportTime = Date.now() - exportStart
 
       expect(exportResult.success).toBe(true)
-      expect(exportTime).toBeLessThan(15000) // 1500本書匯出<15秒
+      // W1-097 Rule 1: 移除 exportTime < 15000 計時門檻（Date.now() 差值）
+      // 功能驗證由上方 exportResult.success + 下方 fileSize 範圍覆蓋
 
-      // 驗證匯出檔案大小合理
+      // 驗證匯出檔案大小合理（資料體積，非計時）
       // eslint-disable-next-line no-unused-vars
       const fileSize = await testSuite.getFileSize(exportResult.exportedFile)
-      expect(fileSize).toBeLessThan(20 * 1024 * 1024) // 檔案<20MB
+      expect(fileSize).toBeLessThan(20 * 1024 * 1024) // 檔案<20MB（資料體積，非計時）
       expect(fileSize).toBeGreaterThan(400 * 1024) // 檔案>400KB (確保有資料)
 
       // 切換到設備B並匯入
@@ -267,15 +268,12 @@ describe('跨設備同步工作流程整合測試', () => {
       // Then: 驗證大量資料處理效能
       expect(importResult.success).toBe(true)
       expect(importResult.importedCount).toBe(1500)
-      expect(importTime).toBeLessThan(20000) // 匯入<20秒
-
-      // eslint-disable-next-line no-unused-vars
-      const totalTime = performanceEnd - performanceStart
-      expect(totalTime).toBeLessThan(35000) // 總時間<35秒
+      // W1-097 Rule 1: 移除 importTime < 20000 與 totalTime < 35000 計時門檻（Date.now() 差值）
+      // 功能驗證由 importResult.success + importedCount === 1500 覆蓋
 
       // eslint-disable-next-line no-unused-vars
       const memoryUsage = endMemory.used - startMemory.used
-      expect(memoryUsage).toBeLessThan(100 * 1024 * 1024) // 記憶體增長<100MB
+      expect(memoryUsage).toBeLessThan(100 * 1024 * 1024) // 記憶體增長<100MB（資源預算，非計時）
 
       // 驗證資料完整性
       // eslint-disable-next-line no-unused-vars
@@ -883,9 +881,10 @@ describe('跨設備同步工作流程整合測試', () => {
         }
 
         if (importIntervals.length > 0) {
+          // W1-097 Rule 1: 移除 avgInterval < 2000 計時門檻（timestamp 差值平均）
+          // 進度更新頻率屬效能特性，非功能正確性；上方 hasValidStages 驗證已覆蓋進度結構
           // eslint-disable-next-line no-unused-vars
-          const avgInterval = importIntervals.reduce((sum, interval) => sum + interval, 0) / importIntervals.length
-          expect(avgInterval).toBeLessThan(2000) // 平均更新間隔<2秒
+          const _avgInterval = importIntervals.reduce((sum, interval) => sum + interval, 0) / importIntervals.length
         }
       } else {
         // eslint-disable-next-line no-console

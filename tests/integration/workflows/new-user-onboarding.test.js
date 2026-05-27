@@ -170,15 +170,8 @@ describe('新手首次使用工作流程整合測試', () => {
       expect(finalProgress.totalCount).toBe(100)
       expect(finalProgress.completed).toBe(true)
 
-      // 驗證進度更新頻率（至少每2秒一次）
-      // eslint-disable-next-line no-unused-vars
-      const timeIntervals = []
-      for (let i = 1; i < progressHistory.length; i++) {
-        timeIntervals.push(progressHistory[i].timestamp - progressHistory[i - 1].timestamp)
-      }
-      // eslint-disable-next-line no-unused-vars
-      const avgInterval = timeIntervals.reduce((sum, interval) => sum + interval, 0) / timeIntervals.length
-      expect(avgInterval).toBeLessThan(2000) // 平均間隔小於2秒
+      // W1-097 Rule 1: 移除 avgInterval < 2000 計時門檻（timestamp 差值平均，真實計時）
+      // 進度更新頻率屬效能特性，非功能正確性；功能驗證由上方 finalProgress.completed === true 覆蓋。
     })
   })
 
@@ -381,13 +374,12 @@ describe('新手首次使用工作流程整合測試', () => {
       // eslint-disable-next-line no-unused-vars
       const memoryUsage = endMemory.used - startMemory.used
 
-      expect(executionTime).toBeLessThan(15000) // 100本書應在15秒內完成
-      expect(memoryUsage).toBeLessThan(50 * 1024 * 1024) // 記憶體增長<50MB
+      // W1-097 Rule 1: 移除 executionTime < 15000 計時門檻（Date.now() 差值）
+      // 保留 memoryUsage 資源預算斷言（非計時）
+      expect(memoryUsage).toBeLessThan(50 * 1024 * 1024) // 記憶體增長<50MB（資源預算，非計時）
 
-      // 驗證UI響應性
-      // eslint-disable-next-line no-unused-vars
-      const responseTime = await extensionController.measureButtonResponseTime()
-      expect(responseTime).toBeLessThan(100) // 按鈕響應<100ms
+      // W1-097 Rule 1: 移除 responseTime < 100 計時門檻（measureButtonResponseTime 回傳真實計時）
+      // 功能驗證已由上方 waitForExtractionComplete 覆蓋
     })
 
     test('應該提供流暢的使用者體驗', async () => {
@@ -414,10 +406,10 @@ describe('新手首次使用工作流程整合測試', () => {
       const progressSmoothness = uxMonitor.measureProgressSmoothness()
 
       // Then: 驗證UX指標
-      expect(popupLoadTime).toBeLessThan(500) // Popup載入<500ms
-      expect(buttonResponseTime).toBeLessThan(100) // 按鈕響應<100ms
-      expect(progressSmoothness.frameDrops).toBeLessThan(5) // 掉幀<5次
-      expect(progressSmoothness.smoothnessScore).toBeGreaterThan(0.9) // 流暢度>90%
+      // W1-097 Rule 1: 移除 popupLoadTime / buttonResponseTime 計時門檻（UXMonitor 量測真實計時）
+      // 保留 frameDrops（幀數計數）與 smoothnessScore（流暢度比率），屬非計時 UX 品質指標
+      expect(progressSmoothness.frameDrops).toBeLessThan(5) // 掉幀<5次（幀數計數，非計時）
+      expect(progressSmoothness.smoothnessScore).toBeGreaterThan(0.9) // 流暢度>90%（比率，非計時）
     })
   })
 })
