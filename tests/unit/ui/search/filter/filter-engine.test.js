@@ -584,7 +584,9 @@ describe('FilterEngine', () => {
       })
 
       expect(result.filteredBooks).toEqual(testBooks)
-      expect(mockLogger.warn).toHaveBeenCalledWith('未知的篩選條件', expect.objectContaining({
+      // W1-119.1: messageKey 改為 UPPER_SNAKE_CASE（FILTER_UNKNOWN_CONDITION）；
+      // 渲染文字仍為「未知的篩選條件」由 filterEngineMessages local dict 提供
+      expect(mockLogger.warn).toHaveBeenCalledWith('FILTER_UNKNOWN_CONDITION', expect.objectContaining({
         criterion: 'unknownFilter'
       }))
     })
@@ -983,6 +985,46 @@ describe('FilterEngine', () => {
       // Both filters applied sequentially (AND): intersection = empty
       // Actually: tagIds filter first → book 3 only; then tagCategoryIds → book 3 has tag-history not in cat-prog → empty
       expect(result.filteredBooks).toHaveLength(0)
+    })
+  })
+
+  /**
+   * W1-119.1: filterEngineMessages local dict 渲染驗證（PC-165 防護）
+   *
+   * 設計目的：避免 mock-based unit test 通過但 runtime 渲染為 [Missing: KEY] 的
+   * false positive 修復鏈。本 describe 使用真實 Logger + MessageDictionary 實例，
+   * 驗證 FilterEngine constructor 將 filterEngineMessages 註冊到 logger.messages，
+   * 使 FILTER_UNKNOWN_CONDITION 渲染為「未知的篩選條件」中文文字。
+   */
+  describe('W1-119.1: filterEngineMessages local dict runtime rendering', () => {
+    const { Logger } = require('src/core/logging/Logger')
+    const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+
+    test('constructor 將 FILTER_UNKNOWN_CONDITION 註冊至注入的 logger.messages，渲染為中文', () => {
+      // 真實 Logger + 空 local dict（模擬 searchUIMessages 不含 W1-119.1 keys）
+      const externalDict = new MessageDictionary({})
+      const realLogger = new Logger('TestFilterEngine', 'INFO', externalDict)
+
+      // eslint-disable-next-line no-unused-vars
+      const _engine = new FilterEngine({
+        eventBus: mockEventBus,
+        logger: realLogger
+      })
+
+      // 驗證註冊後 logger.messages 含 W1-119.1 keys
+      expect(realLogger.messages.has('FILTER_UNKNOWN_CONDITION')).toBe(true)
+      expect(realLogger.messages.get('FILTER_UNKNOWN_CONDITION')).toBe('未知的篩選條件')
+    })
+
+    test('mock logger 無 messages 欄位時不破壞 constructor（既有測試相容）', () => {
+      // mock logger 無 messages 欄位 → _registerLocalMessages 應靜默略過
+      expect(() => {
+        // eslint-disable-next-line no-unused-vars
+        const _engine = new FilterEngine({
+          eventBus: mockEventBus,
+          logger: mockLogger
+        })
+      }).not.toThrow()
     })
   })
 })

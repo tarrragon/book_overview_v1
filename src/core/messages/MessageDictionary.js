@@ -61,14 +61,20 @@ class MessageDictionary {
    * - readmoo-adapter (readmooAdapterMessages, 36 keys) — src/content/adapters/readmoo-adapter.js
    * - background (BACKGROUND_STARTUP 等 27 keys) — src/background/background.js 已遷移為
    *   backgroundMessages local dict（W1-110.1）
+   * - filter-engine (filterEngineMessages, 1 key FILTER_UNKNOWN_CONDITION) —
+   *   src/ui/search/filter/filter-engine.js（W1-119.1）
+   * - search-engine (searchEngineMessages, 1 key SEARCH_INDEX_FALLBACK_TO_LINEAR) —
+   *   src/ui/search/core/search-engine.js（W1-119.1）
+   * - platform-detection-service (platformDetectionMessages, 1 key
+   *   EVENT_LISTENER_REGISTRATION_FAILED) — src/background/domains/platform/services/
+   *   platform-detection-service.js（W1-119.1）
    *
-   * 中文 legacy keys（未知的篩選條件 / 索引搜尋失敗... / Event listener registration failed）
-   * 暫保留：filter-engine / search-engine / platform-detection-service 仍以中文字面
-   * 作為 messageKey 直接呼叫 logger.warn('...')，未注入 local dict。移除會導致
-   * runtime 出現 [Missing: ...]。待後續 ticket 為這些 caller 建立 local dict 後清理。
+   * W1-119.1 收尾：3 個中文 legacy keys（未知的篩選條件 / 索引搜尋失敗... /
+   * Event listener registration failed）已隨 caller 建立 local dict 完成清理。
+   * GlobalMessages 進入「僅 21 個跨模組共用 key」的最終穩態。
    *
    * @private
-   * @returns {Object} 預設訊息物件（21 個跨模組共用 + 3 個中文 legacy）
+   * @returns {Object} 預設訊息物件（21 個跨模組共用 key）
    */
   _loadDefaultMessages () {
     return {
@@ -101,12 +107,7 @@ class MessageDictionary {
 
       // 測試專用（2）— 跨多個測試套件共用
       TEST_MESSAGE: '測試訊息',
-      TEST_WITH_PARAMS: '測試參數: {param1} 和 {param2}',
-
-      // 中文 legacy（3）— 暫保留至 caller 建立 local dict
-      未知的篩選條件: '未知的篩選條件',
-      '索引搜尋失敗，回退到線性搜尋': '索引搜尋失敗，回退到線性搜尋',
-      'Event listener registration failed': '事件監聽器註冊失敗'
+      TEST_WITH_PARAMS: '測試參數: {param1} 和 {param2}'
     }
   }
 

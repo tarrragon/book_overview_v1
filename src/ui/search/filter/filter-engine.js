@@ -28,6 +28,32 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+
+/**
+ * FilterEngine local MessageDictionary (W1-119.1)
+ *
+ * Business context: 篩選引擎的「未知的篩選條件」訊息，原以中文字面作為 messageKey
+ * 直接呼叫 this.logger.warn，並依賴 GlobalMessages._loadDefaultMessages 內的同名
+ * legacy key 渲染。W1-107 議題 A 收斂時識別此 key 違反 GlobalMessages 納入標準
+ * （單一 caller、屬 module-specific 業務訊息），暫保留至本 ticket 為 caller 建立
+ * local dict。
+ *
+ * Why (PC-165 防護): 此 dict 透過 _registerLocalMessages 註冊至外部注入的 Logger
+ * 之 messages 字典，使 runtime 渲染正確中文文字。測試端必須驗證渲染結果而非僅
+ * messageKey 字面，避免 mock-based unit test 通過但 runtime 顯示 [Missing: KEY]
+ * 的 false positive 修復鏈。
+ *
+ * Injection pattern: 由於 FilterEngine 強制依賴注入 Logger（不在內部 new Logger），
+ * 改採 constructor-time 註冊：caller-supplied logger.messages.addMessages(keys)。
+ * Mock logger（測試常見）無 messages 欄位時靜默略過，不破壞既有 mock-based 測試。
+ *
+ * Scope: 單一 key（FILTER_UNKNOWN_CONDITION）。後續若新增此 engine 專屬訊息，
+ * 一律加入此 local dict，禁止回流 GlobalMessages。
+ */
+const filterEngineMessages = new MessageDictionary({
+  FILTER_UNKNOWN_CONDITION: '未知的篩選條件'
+})
 
 class FilterEngine {
   /**
@@ -56,6 +82,11 @@ class FilterEngine {
     // 效能考量: UI 組件但需要詳細的過濾過程記錄
     this.logger = logger
 
+    // W1-119.1: 將 engine-owned message keys 註冊至外部注入的 logger.messages，
+    // 使 FILTER_UNKNOWN_CONDITION 等 module-specific keys 在 runtime 渲染為中文。
+    // Mock logger（測試）無 messages.addMessages 時靜默略過。
+    this._registerLocalMessages()
+
     // 合併預設配置和自定義配置
     this.config = {
       enableEvents: true,
@@ -73,6 +104,32 @@ class FilterEngine {
     this._initializeStatistics()
     this._initializeCache()
     this._isDestroyed = false
+  }
+
+  /**
+   * 將 engine-owned local dict 註冊至外部 logger.messages（W1-119.1）
+   *
+   * 設計考量：
+   * - Mock logger 在單元測試常無 messages 欄位（plain { info, warn, ... } 物件），
+   *   defensive check 確保不破壞既有 mock-based 測試。
+   * - 真實 Logger 注入時 messages 為 MessageDictionary 實例，addMessages 將
+   *   filterEngineMessages 的 keys（FILTER_UNKNOWN_CONDITION 等）合併進外部 dict。
+   * - W1-110 已對 GlobalMessages.messages 套用 Object.freeze，但本方法只對
+   *   caller-supplied logger.messages（typically local dict 如 searchUIMessages）
+   *   寫入，不觸發 freeze TypeError。
+   *
+   * @private
+   */
+  _registerLocalMessages () {
+    if (this.logger && this.logger.messages && typeof this.logger.messages.addMessages === 'function') {
+      try {
+        this.logger.messages.addMessages(filterEngineMessages.export())
+      } catch (registerError) {
+        // 註冊失敗（例如 logger.messages 為 frozen 的 GlobalMessages）不影響
+        // engine 主要功能；hot line 改用 logger 自身字典 fallback 至 [Missing: KEY]
+        // 仍可在 console 看見訊息結構，不掩蓋根因。
+      }
+    }
   }
 
   /**
@@ -418,7 +475,8 @@ class FilterEngine {
 
     for (const key in filters) {
       if (!knownFilters.includes(key)) {
-        this.logger.warn('未知的篩選條件', {
+        // W1-119.1: 改用 UPPER_SNAKE_CASE messageKey，由 filterEngineMessages 渲染為中文
+        this.logger.warn('FILTER_UNKNOWN_CONDITION', {
           criterion: key,
           value: filters[key]
         })

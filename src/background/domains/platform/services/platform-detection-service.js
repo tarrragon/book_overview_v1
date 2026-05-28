@@ -1,4 +1,25 @@
 const { Logger } = require('src/core/logging/Logger')
+const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+
+/**
+ * Platform Detection Service local MessageDictionary (W1-119.1)
+ *
+ * Business context: 平台偵測服務的事件監聽器註冊失敗訊息，原以中文字面
+ * 「Event listener registration failed」作為 messageKey 直接呼叫 logger.warn，
+ * 並依賴 GlobalMessages._loadDefaultMessages 內的同名 legacy key 渲染。
+ * W1-107 議題 A 收斂時識別此 key 違反 GlobalMessages 納入標準（單一 caller、
+ * 非通用詞彙、屬 module-specific），暫保留至本 ticket 為 caller 建立 local dict。
+ *
+ * Why (PC-165 防護): 此 dict 透過 Logger constructor 第三參數注入（W1-115 修復後
+ * 機制生效），測試端必須驗證渲染後的中文文字而非僅 messageKey，避免 mock-based
+ * unit test 通過但 runtime 渲染為 [Missing: KEY] 的 false positive 修復鏈。
+ *
+ * Scope: 單一 key（EVENT_LISTENER_REGISTRATION_FAILED）。後續若新增此 service
+ * 專屬訊息，一律加入此 local dict，禁止回流 GlobalMessages。
+ */
+const platformDetectionMessages = new MessageDictionary({
+  EVENT_LISTENER_REGISTRATION_FAILED: '事件監聽器註冊失敗'
+})
 
 /**
  * @fileoverview Platform Detection Service - 平台自動檢測和識別服務
@@ -44,7 +65,10 @@ class PlatformDetectionService {
       // 設計理念: 平台偵測是核心系統功能，需要完整日誌記錄
       // 資源考量: 長期運行服務，強制提供 Logger 實例確保診斷能力
       // 命名規範: 使用 [ServiceName] 格式便於日誌識別
-      this.logger = config.logger || new Logger('[PlatformDetectionService]')
+      // W1-119.1: 注入 platformDetectionMessages local dict，使
+      // EVENT_LISTENER_REGISTRATION_FAILED 等 module-specific keys 在 runtime
+      // 正確渲染（依賴 W1-115 修復的 Logger constructor 第三參數機制）
+      this.logger = config.logger || new Logger('[PlatformDetectionService]', 'INFO', platformDetectionMessages)
       this.confidenceThreshold = 0.8
       this.detectionCache = new Map()
       this.cacheTimeout = 5 * 60 * 1000 // 5 minutes
@@ -69,7 +93,8 @@ class PlatformDetectionService {
       } catch (listenerError) {
         // 監聽器註冊失敗不影響服務創建
         // 使用已初始化的 logger，此時 logger 必然存在
-        this.logger.warn('Event listener registration failed', { error: listenerError.message })
+        // W1-119.1: 改用 UPPER_SNAKE_CASE messageKey，由 platformDetectionMessages 渲染為中文
+        this.logger.warn('EVENT_LISTENER_REGISTRATION_FAILED', { error: listenerError.message })
       }
     } catch (initError) {
       // 即使初始化失敗，也要創建服務的基本狀態
@@ -77,7 +102,8 @@ class PlatformDetectionService {
 
       // Logger 後備機制: 確保錯誤處理時仍有日誌功能
       // 此處與主要初始化使用相同模式保持一致性
-      this.logger = config.logger || new Logger('[PlatformDetectionService]')
+      // W1-119.1: 同步注入 platformDetectionMessages local dict
+      this.logger = config.logger || new Logger('[PlatformDetectionService]', 'INFO', platformDetectionMessages)
       this.confidenceThreshold = 0.8
       this.detectionCache = new Map()
       this.cacheTimeout = 5 * 60 * 1000

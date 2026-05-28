@@ -719,8 +719,10 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
       // 應該回退到線性搜尋
       expect(results).toHaveLength(1)
+      // W1-119.1: messageKey 改為 UPPER_SNAKE_CASE（SEARCH_INDEX_FALLBACK_TO_LINEAR）；
+      // 渲染文字仍為「索引搜尋失敗，回退到線性搜尋」由 searchEngineMessages local dict 提供
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('索引搜尋失敗'),
+        'SEARCH_INDEX_FALLBACK_TO_LINEAR',
         expect.any(Object)
       )
     })
@@ -1390,6 +1392,49 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
         tagEngine.destroy?.()
       })
+    })
+  })
+
+  /**
+   * W1-119.1: searchEngineMessages local dict 渲染驗證（PC-165 防護）
+   *
+   * 設計目的：避免 mock-based unit test 通過但 runtime 渲染為 [Missing: KEY] 的
+   * false positive 修復鏈。本 describe 使用真實 Logger + MessageDictionary 實例，
+   * 驗證 SearchEngine constructor 將 searchEngineMessages 註冊到 logger.messages，
+   * 使 SEARCH_INDEX_FALLBACK_TO_LINEAR 渲染為「索引搜尋失敗，回退到線性搜尋」中文文字。
+   */
+  describe('W1-119.1: searchEngineMessages local dict runtime rendering', () => {
+    const { Logger } = require('src/core/logging/Logger')
+    const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+    const SearchEngine = require('src/ui/search/core/search-engine')
+
+    test('constructor 將 SEARCH_INDEX_FALLBACK_TO_LINEAR 註冊至注入的 logger.messages，渲染為中文', () => {
+      // 真實 Logger + 空 local dict（模擬 searchUIMessages 不含 W1-119.1 keys）
+      const externalDict = new MessageDictionary({})
+      const realLogger = new Logger('TestSearchEngine', 'INFO', externalDict)
+
+      // eslint-disable-next-line no-unused-vars
+      const _engine = new SearchEngine({
+        indexManager: mockIndexManager,
+        eventBus: mockEventBus,
+        logger: realLogger
+      })
+
+      // 驗證註冊後 logger.messages 含 W1-119.1 keys
+      expect(realLogger.messages.has('SEARCH_INDEX_FALLBACK_TO_LINEAR')).toBe(true)
+      expect(realLogger.messages.get('SEARCH_INDEX_FALLBACK_TO_LINEAR')).toBe('索引搜尋失敗，回退到線性搜尋')
+    })
+
+    test('mock logger 無 messages 欄位時不破壞 constructor（既有測試相容）', () => {
+      // mock logger 無 messages 欄位 → _registerLocalMessages 應靜默略過
+      expect(() => {
+        // eslint-disable-next-line no-unused-vars
+        const _engine = new SearchEngine({
+          indexManager: mockIndexManager,
+          eventBus: mockEventBus,
+          logger: mockLogger
+        })
+      }).not.toThrow()
     })
   })
 })

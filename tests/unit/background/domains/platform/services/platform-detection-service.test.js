@@ -1283,6 +1283,34 @@ describe('PlatformDetectionService', () => {
       expect(confidence).toBeLessThan(0.5)
     })
   })
+
+  /**
+   * W1-119.1: platformDetectionMessages local dict 渲染驗證（PC-165 防護）
+   *
+   * 設計目的：避免 mock-based unit test 通過但 runtime 渲染為 [Missing: KEY] 的
+   * false positive 修復鏈。本 describe 不 mock Logger，而是用真實 Logger 實例
+   * 並驗證渲染結果為「事件監聽器註冊失敗」中文文字。
+   */
+  describe('W1-119.1: platformDetectionMessages local dict runtime rendering', () => {
+    test('預設 Logger 注入 platformDetectionMessages，EVENT_LISTENER_REGISTRATION_FAILED 渲染為中文', () => {
+      // 不提供 config.logger → 觸發 internal `new Logger(..., platformDetectionMessages)` 路徑
+      const localService = new PlatformDetectionService(mockEventBus)
+      const logger = localService.logger
+
+      // 驗證 Logger.messages 含 W1-119.1 註冊的 key
+      expect(logger.messages.has('EVENT_LISTENER_REGISTRATION_FAILED')).toBe(true)
+      expect(logger.messages.get('EVENT_LISTENER_REGISTRATION_FAILED')).toBe('事件監聽器註冊失敗')
+    })
+
+    test('原中文字面 messageKey 不再存在於 GlobalMessages（W1-119.1 已清理）', () => {
+      const localService = new PlatformDetectionService(mockEventBus)
+      const logger = localService.logger
+
+      // W1-119.1 清理後：原中文字面已從 GlobalMessages 移除
+      // local dict 只負責新 UPPER_SNAKE_CASE key，不重複註冊原中文字面
+      expect(logger.messages.get('Event listener registration failed')).toBe('[Missing: Event listener registration failed]')
+    })
+  })
 })
 
 // ==================== 測試輔助工具 ====================
