@@ -16,14 +16,37 @@
 
 // 統一日誌管理系統
 import { Logger } from '../core/logging/Logger.js'
-import { GlobalMessages } from '../core/messages/MessageDictionary.js'
+import { MessageDictionary } from '../core/messages/MessageDictionary.js'
 
-// 將 Background Service 訊息註冊到全域訊息字典
-// 設計意圖：Logger 內部使用 GlobalMessages 來解析 messageKey，
-// 因此模組訊息必須註冊到 GlobalMessages 而非建立獨立的 MessageDictionary 實例
-GlobalMessages.addMessages({
+/**
+ * Background Service Worker local MessageDictionary (W1-110.1)
+ *
+ * 業務情境：仿 W1-108 readmoo-adapter local dict 模式（commit c5c5f21a），
+ * 將 27 個 background-specific 訊息 key 從 GlobalMessages 解耦，改以
+ * module-level local dict 注入 Logger 第三參數消費。W1-115 修復 Logger
+ * constructor union signature 後，此 local dict 在 Service Worker runtime
+ * 真正生效。
+ *
+ * Why（W1-110 freeze 預檢）：W1-110 規劃對 GlobalMessages.messages 套
+ * Object.freeze 禁止後續 addMessages 動態寫入，從根本防護 W1-004 模式重演。
+ * 原 background.js 直接呼叫 GlobalMessages.addMessages(...) 註冊 27 key
+ * 與 freeze 互斥，必須先遷移為 local dict 才能解鎖 W1-110。
+ *
+ * PC-165 防護：單元測試 mock Logger 無法驗證 messages 參數是否真正被消費；
+ * 需 runtime 層級驗證（真實 Logger + spy console）確認渲染後字串非
+ * `[Missing: KEY]`。
+ *
+ * 範圍邊界：
+ * - 本地擁有：原 GlobalMessages.addMessages 註冊的 27 個 background 專屬 key
+ * - 不在範圍：GlobalMessages._loadDefaultMessages 清理（W1-109 已完成）；
+ *   GlobalMessages.messages freeze（W1-110 parent ticket 範圍）
+ *
+ * 設計考量：訊息文字保留原 emoji + 中文格式；W1-115 後 Logger 可注入 local
+ * dict，此處過渡註解已更新，不再依賴 GlobalMessages 動態註冊機制。
+ */
+const backgroundMessages = new MessageDictionary({
   BACKGROUND_STARTUP: '🚀 Readmoo 書庫提取器 Background Service Worker 啟動',
-  SKIP_DUPLICATE_INIT: '⏭️ 系統已初始化，跳過重複初始化',
+  SKIP_DUPLICATE_INIT: '⏭️ 系統已初始化,跳過重複初始化',
   INIT_ATTEMPT: '🔧 開始初始化 Background 系統 (嘗試 {attempt}/{max})',
   INIT_COORDINATOR: '🔧 初始化模組協調器...',
   START_MODULES: '▶️ 啟動所有系統模組...',
@@ -33,7 +56,7 @@ GlobalMessages.addMessages({
   CHROMEBRIDGE_READY: '✅ 全域 ChromeBridge 實例已設定',
   INIT_FAILED: '❌ Background 系統初始化失敗 (嘗試 {attempt})',
   RETRY_INIT: '🔄 {delay}ms 後重試初始化...',
-  MAX_RETRIES_REACHED: '🚨 達到最大重試次數，啟動緊急模式',
+  MAX_RETRIES_REACHED: '🚨 達到最大重試次數,啟動緊急模式',
   REGISTER_LIFECYCLE: '📝 註冊 Service Worker 生命週期事件',
   EXTENSION_INSTALLED: '📦 擴展安裝事件',
   EXTENSION_STARTUP: '▶️ 擴展啟動事件',
@@ -51,7 +74,9 @@ GlobalMessages.addMessages({
   INIT_FLOW_FAILED: '💥 Background Service Worker 初始化最終失敗'
 })
 
-const logger = new Logger('BackgroundService')
+// W1-110.1: Logger 第三參數注入 backgroundMessages local dict
+// （W1-115 修復 constructor union signature 後，此模式 runtime 真正生效）
+const logger = new Logger('BackgroundService', 'INFO', backgroundMessages)
 
 // 維持向下相容的 log 物件
 const log = {
