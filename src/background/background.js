@@ -79,9 +79,18 @@ const backgroundMessages = new MessageDictionary({
 const logger = new Logger('BackgroundService', 'INFO', backgroundMessages)
 
 // 維持向下相容的 log 物件
+// W1-110.1.1（PC-165 收尾）：log.error 第二參數新增 union 型別支援：
+// (Error | Object)。傳入 Error 時自動萃取為 { error: error.message }；
+// 傳入 Object 時視為 logEntry data 直接交由 Logger 渲染。後者保留
+// messageKey placeholder 所需的 context 欄位（如 EMERGENCY_ERROR
+// 需 { eventType, error } 同時提供）。
 const log = {
   info: (message, data = {}) => logger.info(message, data),
-  error: (message, error) => logger.error(message, { error: error?.message || error }),
+  error: (message, errorOrData = {}) => {
+    const isError = errorOrData instanceof Error
+    const data = isError ? { error: errorOrData.message } : errorOrData
+    logger.error(message, data)
+  },
   warn: (message, data = {}) => logger.warn(message, data)
 }
 
@@ -190,7 +199,7 @@ async function initializeBackgroundSystem () {
     }
 
     // 啟動緊急模式
-    log.error('🚨 達到最大重試次數，啟動緊急模式')
+    log.error('MAX_RETRIES_REACHED')
     await activateEmergencyMode()
     throw error
   }
@@ -207,12 +216,12 @@ async function initializeBackgroundSystem () {
  */
 async function registerServiceWorkerEvents () {
   try {
-    log.info('📝 註冊 Service Worker 生命週期事件')
+    log.info('REGISTER_LIFECYCLE')
 
     // Chrome Extension 安裝事件
     if (chrome.runtime.onInstalled) {
       chrome.runtime.onInstalled.addListener(async (details) => {
-        log.info('📦 擴展安裝事件:', details.reason)
+        log.info('EXTENSION_INSTALLED', { reason: details.reason })
 
         if (backgroundCoordinator && backgroundCoordinator.eventBus) {
           await backgroundCoordinator.eventBus.emit('SYSTEM.INSTALLED', {
@@ -227,7 +236,7 @@ async function registerServiceWorkerEvents () {
     // Chrome Extension 啟動事件
     if (chrome.runtime.onStartup) {
       chrome.runtime.onStartup.addListener(async () => {
-        log.info('▶️ 擴展啟動事件')
+        log.info('EXTENSION_STARTUP')
 
         if (backgroundCoordinator && backgroundCoordinator.eventBus) {
           await backgroundCoordinator.eventBus.emit('SYSTEM.STARTUP', {
@@ -240,9 +249,9 @@ async function registerServiceWorkerEvents () {
     // error 和 unhandledrejection handler 已在檔案頂層同步註冊，
     // 避免 Chrome 警告 "Event handler must be added on initial evaluation"
 
-    log.info('✅ Service Worker 生命週期事件註冊完成')
+    log.info('LIFECYCLE_COMPLETE')
   } catch (error) {
-    log.error('❌ 註冊 Service Worker 事件失敗:', error)
+    log.error('LIFECYCLE_FAILED', error)
   }
 }
 
@@ -256,7 +265,7 @@ async function registerServiceWorkerEvents () {
  * - 記錄緊急模式相關的診斷資訊
  */
 async function activateEmergencyMode () {
-  log.error('🚨 啟動緊急模式')
+  log.error('EMERGENCY_MODE')
   emergencyMode = true
 
   try {
@@ -266,7 +275,7 @@ async function activateEmergencyMode () {
     // 註冊基本的訊息處理
     if (chrome.runtime.onMessage) {
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        log.info('📨 [緊急模式] 收到訊息:', message)
+        log.info('EMERGENCY_MESSAGE', { message })
 
         // 基本的回應處理
         if (message.type === 'GET_SYSTEM_STATUS') {
@@ -290,9 +299,9 @@ async function activateEmergencyMode () {
       })
     }
 
-    log.info('🚨 緊急模式啟動完成')
+    log.info('EMERGENCY_COMPLETE')
   } catch (error) {
-    log.error('❌ 緊急模式啟動失敗:', error)
+    log.error('EMERGENCY_FAILED', error)
   }
 }
 
@@ -319,7 +328,12 @@ function createEmergencyEventBus () {
         try {
           await handler({ type: eventType, data, timestamp: Date.now() })
         } catch (error) {
-          log.error(`❌ [緊急模式] 事件處理錯誤 (${eventType}):`, error)
+          // W1-110.1.1 補強：PA 表格未列此案（line 322），但與 PA 13 案
+          // 同屬 PC-165 「描述性字串繞過 messageKey」反模式（dict key
+          // EMERGENCY_ERROR 已就緒含 {eventType} placeholder），於本
+          // ticket 一併修復。data 同時帶 eventType 與 error message，
+          // 經 union 型別 log.error wrapper 直傳 logger。
+          log.error('EMERGENCY_ERROR', { eventType, error: error?.message })
         }
       }
     }
@@ -366,13 +380,13 @@ function getBackgroundCoordinator () {
 }
 
 // 立即啟動系統
-log.info('🏁 開始 Background Service Worker 初始化流程')
+log.info('INIT_FLOW_START')
 initializeBackgroundSystem()
   .then(() => {
-    log.info('🎉 Background Service Worker 初始化成功完成')
+    log.info('INIT_FLOW_SUCCESS')
   })
   .catch((error) => {
-    log.error('💥 Background Service Worker 初始化最終失敗:', error)
+    log.error('INIT_FLOW_FAILED', error)
   })
 
 // 匯出公用介面（用於測試和診斷）
