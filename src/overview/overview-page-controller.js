@@ -29,7 +29,6 @@
 
 // 引入核心模組（由 esbuild 在建置時打包解析）
 const EventHandlerClass = require('src/core/event-handler')
-const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { BookExporter } = require('src/overview/book-exporter')
 const { BookFileImporter } = require('src/overview/book-file-importer')
 const { ImportFlowController } = require('src/overview/import-flow-controller')
