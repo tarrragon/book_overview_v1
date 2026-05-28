@@ -77,6 +77,14 @@ __pycache__/
 .claude/dispatch-active.json
 .claude/dispatch-active.lock
 
+# Claude PM status (runtime state, auto-managed by hooks)
+.claude/pm-status.json
+
+# Claude PM intervention markers (runtime state)
+.claude/ARCHITECTURE_REVIEW_REQUIRED
+.claude/TASK_AVOIDANCE_FIX_MODE
+.claude/PM_INTERVENTION_REQUIRED
+
 # Claude hook state (runtime state, auto-managed by hooks)
 .claude/hook-state/
 
