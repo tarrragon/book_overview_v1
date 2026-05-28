@@ -14,7 +14,7 @@
  * - 涵蓋 Solution「測試策略」表格 5 個 test case，逐一對應 acceptance
  */
 
-const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+const { MessageDictionary, GlobalMessages } = require('src/core/messages/MessageDictionary')
 
 describe('MessageDictionary constructor union signature', () => {
   describe('向後相容：String / 無參數路徑', () => {
@@ -257,6 +257,80 @@ describe('MessageDictionary constructor union signature', () => {
       // 上下界容忍：避免微小調整（新增 1-2 共用 key）即破壞測試
       expect(keyCount).toBeGreaterThanOrEqual(22)
       expect(keyCount).toBeLessThanOrEqual(26)
+    })
+  })
+
+  /**
+   * W1-110：GlobalMessages.messages 物理 freeze 防護
+   *
+   * 對應 W1-107 議題 B 方案 3 結論 + W1-110 acceptance：
+   * - GlobalMessages 建立後其 messages 物件已 Object.freeze
+   * - 嘗試 GlobalMessages.set / addMessages / 直接賦值 / delete 應拋 TypeError（strict mode）
+   *
+   * 設計考量：
+   * - 測試檔頂層為 CommonJS require，預設 sloppy mode；ES Module source 內為 strict。
+   * - 為確保拋錯行為，將寫入操作包進 'use strict' IIFE，模擬 source 端的 strict 環境。
+   * - 同時驗證 local dict 實例（new MessageDictionary({...})）未受影響，可正常寫入。
+   */
+  describe('W1-110: GlobalMessages.messages 物理 freeze 防護', () => {
+    test('GlobalMessages.messages 已被 Object.freeze', () => {
+      expect(Object.isFrozen(GlobalMessages.messages)).toBe(true)
+    })
+
+    test('strict mode 下對 GlobalMessages.messages 直接賦值新 key 應拋 TypeError', () => {
+      expect(() => {
+        'use strict'
+        GlobalMessages.messages.W1_110_NEW_KEY = 'should fail'
+      }).toThrow(TypeError)
+    })
+
+    test('strict mode 下覆寫既有 key 應拋 TypeError', () => {
+      expect(() => {
+        'use strict'
+        GlobalMessages.messages.SUCCESS = 'overridden'
+      }).toThrow(TypeError)
+    })
+
+    test('strict mode 下 delete GlobalMessages.messages 既有 key 應拋 TypeError', () => {
+      expect(() => {
+        'use strict'
+        delete GlobalMessages.messages.SUCCESS
+      }).toThrow(TypeError)
+    })
+
+    test('GlobalMessages.set 對既有 key 寫入應拋 TypeError（freeze 阻擋）', () => {
+      // 内部 this.messages[key] = message 在 strict caller 下會拋 TypeError
+      expect(() => {
+        GlobalMessages.set('SUCCESS', 'overridden via set')
+      }).toThrow(TypeError)
+    })
+
+    test('GlobalMessages.set 對新 key 寫入應拋 TypeError（freeze 阻擋）', () => {
+      expect(() => {
+        GlobalMessages.set('W1_110_VIA_SET', 'should fail')
+      }).toThrow(TypeError)
+    })
+
+    test('GlobalMessages.addMessages 寫入應拋 TypeError（freeze 阻擋 Object.assign）', () => {
+      expect(() => {
+        GlobalMessages.addMessages({ W1_110_VIA_ADD: 'should fail' })
+      }).toThrow(TypeError)
+    })
+
+    test('GlobalMessages 既有 key 仍可正常讀取（freeze 只阻寫不阻讀）', () => {
+      expect(GlobalMessages.get('SUCCESS')).toBe('成功')
+      expect(GlobalMessages.get('VALIDATION_FAILED')).toBe('資料驗證失敗')
+      expect(GlobalMessages.has('SUCCESS')).toBe(true)
+    })
+
+    test('local dict 實例的 messages 未被 freeze（不影響非全域實例）', () => {
+      const localDict = new MessageDictionary({ INITIAL_KEY: 'initial' })
+      expect(Object.isFrozen(localDict.messages)).toBe(false)
+      // 可正常透過 set 寫入
+      expect(() => {
+        localDict.set('LOCAL_NEW_KEY', 'local value')
+      }).not.toThrow()
+      expect(localDict.get('LOCAL_NEW_KEY')).toBe('local value')
     })
   })
 })
