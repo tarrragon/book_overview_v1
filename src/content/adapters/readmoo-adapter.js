@@ -30,6 +30,78 @@
 
 // 導入統一日誌系統
 const { Logger } = require('src/core/logging/Logger')
+const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+
+/**
+ * Readmoo Adapter local MessageDictionary (W1-108)
+ *
+ * Business context: mirrors the local dict pattern from popup.js and
+ * book-search-filter-integrated.js. Decouples 36 extractor/content layer
+ * message keys from GlobalMessages. After W1-115 fixed the Logger
+ * constructor third parameter messages, this local dict actually takes
+ * effect at runtime.
+ *
+ * Why (PC-165 防護): W1-117 mock-based tests verified the Logger
+ * constructor signature, but unit tests assert mockLogger calls only at
+ * messageKey level, never validating the rendered message text. Whether
+ * this local dict switch truly takes effect needs runtime-level
+ * verification — see Test Results section for the integration-level
+ * assertion plan.
+ *
+ * Scope boundary:
+ * - Locally owned: 18 keys already in GlobalMessages (override the
+ *   GlobalMessages text)
+ * - Locally added: 18 keys missing in GlobalMessages (previously hit
+ *   `[Missing: KEY]` at runtime)
+ * - Out of scope: W1-109 will clean up GlobalMessages._loadDefaultMessages
+ *   extractor keys; W1-110 will implement the freeze mechanism.
+ *
+ * Design note: message texts mirror existing GlobalMessages versions where
+ * possible to preserve grep alignment; newly added keys carry concise
+ * Chinese descriptions with parameter placeholders.
+ */
+const readmooAdapterMessages = new MessageDictionary({
+  // === 18 keys with existing GlobalMessages text (preserved as-is) ===
+  BOOK_CONTAINERS_FOUND: '找到書籍容器',
+  BOOK_CONTAINERS_PARSE_FAILED: '書籍容器解析失敗',
+  BOOK_BATCH_PARSE_FAILED: '批次書籍解析失敗',
+  NO_BOOK_ELEMENTS_FOUND: '未找到書籍元素',
+  EXTRACTION_COMPLETED: '提取作業完成',
+  UNSAFE_COVER_URL_FILTERED: '不安全的封面網址已過濾',
+  PLACEHOLDER_URL_REPLACED: '佔位 URL 已替換為 privacy ID',
+  FALLBACK_SELECTOR_ATTEMPT: '嘗試回退選擇器',
+  LAST_RESORT_STRATEGY: '最後手段策略',
+  GET_BOOK_ELEMENTS_CALLED: '呼叫 getBookElements (caller: {caller})',
+  WAIT_FOR_BOOK_ELEMENTS_START: '開始等待書籍元素出現 (timeoutMs: {timeoutMs})',
+  WAIT_FOR_BOOK_ELEMENTS_FOUND: '書籍元素已找到 (source: {source}, count: {count})',
+  WAIT_FOR_BOOK_ELEMENTS_TIMEOUT: '等待書籍元素逾時 (timeoutMs: {timeoutMs}, finalCount: {finalCount})',
+  SELECTOR_PARADOX: '選擇器矛盾: 主選擇器未找到但備用策略成功',
+  CONTAINER_SAMPLE: '容器取樣資料',
+  EXTRACTION_SAMPLE_DATA: '提取樣本資料 (totalBooks: {totalBooks})',
+  FALLBACK_SELECTOR_SUCCESS: '備用選擇器成功 (selector: {selector}, count: {count})',
+
+  // === 18 keys missing in GlobalMessages, previously rendered as
+  // `[Missing: KEY]` at runtime; now filled with concise Chinese text. ===
+  ADAPTER_METHOD_ERROR: '適配器方法執行錯誤 (method: {method})',
+  BOOK_INSUFFICIENT_DATA: '書籍資料不足 (title / id / cover 全部缺失)',
+  BOOK_PARSE_ELEMENT_FAILED: '書籍元素解析失敗 (element: {elementTag}.{elementClass})',
+  COVERAGE_INCOMPLETE: '書庫提取涵蓋不完整 (missingCount: {missingCount}, reason: {reason})',
+  DOCUMENT_UNAVAILABLE: 'document 物件無法取得 (非瀏覽器環境或 SW context)',
+  DOM_QUERY_FAILED: 'DOM 查詢失敗',
+  FIND_SCROLL_CONTAINER_FAILED: '捲動容器辨識失敗',
+  FIRST_BOOK_SAMPLE: '首本書籍樣本資料',
+  MUTATION_OBSERVER_FAILED: 'MutationObserver 觀察失敗',
+  PARSE_LIBRARY_TOTAL_FAILED: '解析書庫總數失敗',
+  PARTIAL_EXTRACTION_FAILURE: '部分書籍提取失敗 (failed: {failed} / total: {total})',
+  PRIVACY_ID_EXTRACTION_FAILED: 'privacy ID 提取失敗',
+  READER_LINK_NOT_FOUND: '閱讀器連結未找到 (elementClass: {elementClass})',
+  RENDER_SETTLE_OBSERVER_FAILED: '渲染穩定 observer 觀察失敗',
+  SCROLL_CONTAINER_NOT_FOUND: '捲動容器辨識失敗,降級為現行提取行為',
+  SCROLL_LOAD_COMPLETED: '捲動載入完成',
+  SCROLL_LOAD_ERROR: '捲動載入過程發生例外',
+  SCROLL_POSITION_RESTORE_FAILED: '捲動位置還原失敗',
+  UNSAFE_URL_FILTERED: '不安全的 URL 已過濾'
+})
 
 /**
  * 建立 Readmoo 適配器實例
@@ -42,7 +114,10 @@ const { Logger } = require('src/core/logging/Logger')
  */
 function createReadmooAdapter (options = {}) {
   // 建立專用日誌記錄器（允許注入以驗證涵蓋率日誌契約）
-  const logger = options.logger || new Logger('ReadmooAdapter')
+  // W1-108: use module-level readmooAdapterMessages as the message
+  // dictionary source for the default Logger; no longer depends on
+  // GlobalMessages defaults (paving the way for W1-109 cleanup).
+  const logger = options.logger || new Logger('ReadmooAdapter', 'INFO', readmooAdapterMessages)
   const stats = {
     totalExtracted: 0,
     successfulExtractions: 0,
