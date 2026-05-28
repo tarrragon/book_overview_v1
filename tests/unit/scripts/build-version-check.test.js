@@ -229,6 +229,9 @@ describe('detectActiveWorklogVersion（保留為公用工具）', () => {
     // 格式判定漂移（W1-083 PC-074 同源風險）。
     const files = {
       [WORK_LOGS_ROOT]: null,
+      // W1-081：detectActiveWorklogVersion 跨 major dir 掃描，需明示 v0 major dir entry
+      // 否則 readdir(WORK_LOGS_ROOT) 推得 'v0' 但 stat(v0).isDirectory() === false
+      [path.join(WORK_LOGS_ROOT, 'v0')]: null,
       [path.join(WORK_LOGS_ROOT, 'v0', 'v0.19')]: null,
       [path.join(WORK_LOGS_ROOT, 'v0', 'v0.19', 'v0.19.0')]: null,
       // 使用顯式 U+FF1A 全形冒號（與 syncWorklogStatus 測試對稱）

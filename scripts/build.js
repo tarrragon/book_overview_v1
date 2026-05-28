@@ -61,7 +61,9 @@ const MODE = process.argv.includes('--prod') ? 'production' : 'development';
 const SKIP_VERSION_CHECK = process.argv.includes('--skip-version-check');
 const BUILD_DIR = path.join(__dirname, '..', 'build', MODE);
 const SOURCE_DIR = path.join(__dirname, '..');
-const WORK_LOGS_ROOT = path.join(SOURCE_DIR, 'docs', 'work-logs', 'v0');
+// W1-081：去除硬編碼 v0 major dir，改由 resolveWorklogPath 自 packageVersion
+// 取 major 動態推斷。支援 v0/v1+ 並存與 v1 only 場景。
+const WORK_LOGS_ROOT = path.join(SOURCE_DIR, 'docs', 'work-logs');
 
 /**
  * 預設 fsAdapter：使用 Node.js fs 模組，與 scripts/validate-manifest.js 同模式
@@ -96,16 +98,17 @@ const defaultFsWriter = {
  * 需確認對應的 worklog 目錄（如 docs/work-logs/v0/v0.19/v0.19.0/）
  * 確實存在。本函式為純路徑推斷工具，無 I/O 副作用。
  *
- * 推斷規則：
+ * 推斷規則（W1-081 後三層動態化）：
  *   - 0.19.0 -> v0/v0.19/v0.19.0/v0.19.0-main.md
  *   - 0.18.3 -> v0/v0.18/v0.18.3/v0.18.3-main.md
- *   - major 取 v{M.m}（前兩段），patch 取 v{M.m.p}（完整三段）
+ *   - 1.0.0  -> v1/v1.0/v1.0.0/v1.0.0-main.md
+ *   - major dir 取 v{M}（第一段），minor dir 取 v{M.m}（前兩段），patch dir 取 v{M.m.p}（完整三段）
  *
  * 邊界：本函式僅支援 M.m.p 三段格式，不處理 pre-release / build metadata
  * （Chrome Extension manifest version 規範即三段，無 pre-release 需求）。
  *
  * @param {string} packageVersion - package.json 的 version 欄位值
- * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
+ * @param {string} workLogsRoot - docs/work-logs/ 絕對路徑（W1-081：已從 v0 上移）
  * @returns {{ok: boolean, mainFile?: string, patchDir?: string, error?: string}}
  */
 function resolveWorklogPath (packageVersion, workLogsRoot) {
@@ -117,32 +120,36 @@ function resolveWorklogPath (packageVersion, workLogsRoot) {
     };
   }
   const [, major, minor] = match;
-  const majorDir = `v${major}.${minor}`;
+  // W1-081：新增 major 層（v0 / v1 / v2...），原 majorDir 改名為 minorDir
+  const majorDir = `v${major}`;
+  const minorDir = `v${major}.${minor}`;
   const patchDir = `v${packageVersion}`;
-  const patchPath = path.join(workLogsRoot, majorDir, patchDir);
+  const patchPath = path.join(workLogsRoot, majorDir, minorDir, patchDir);
   const mainFile = path.join(patchPath, `${patchDir}-main.md`);
   return { ok: true, patchDir: patchPath, mainFile };
 }
 
 /**
- * 從 docs/work-logs/v0/ 掃描 active worklog，推斷預期版號
+ * 從 docs/work-logs/ 掃描 active worklog，推斷預期版號（W1-081 後跨 major dir）
  *
  * 業務情境：v0.18.0 已發布後 wave 進入 v0.19.0，但 package.json
  * 未 bump 造成 dist ZIP 顯示舊版號（0.19.0-W1-002.2 觀察）。
  * 本函式以 worklog 「**狀態**: 開發中」標記為 SSOT，
  * 與 package.json 比對作為 build:prod sanity check。
  *
- * 掃描策略：
- *   1. 列舉 docs/work-logs/v0/ 下所有 v* 主版本目錄（如 v0.18, v0.19）
- *   2. 列舉每個主版本目錄下的 v*.*.* patch 子目錄（如 v0.19.0, v0.19.1）
- *   3. 讀取 v{patch}-main.md 並偵測「**狀態**: 開發中」標記
- *   4. 若僅有 1 個 active worklog → 該版號即預期值
- *   5. 若有 0 或 >1 個 active worklog → 回傳 { ok: false, reason }
+ * 掃描策略（W1-081 後三層遍歷）：
+ *   1. 列舉 docs/work-logs/ 下所有 v{major} 目錄並進入掃描（如 v0, v1, v2）
+ *   2. 列舉每個 major 目錄下的 v*.* minor 子目錄（如 v0.18, v0.19, v1.0）
+ *   3. 列舉每個 minor 目錄下的 v*.*.* patch 子目錄（如 v0.19.0, v1.0.0）
+ *   4. 讀取 v{patch}-main.md 並偵測「**狀態**: 開發中」標記
+ *   5. 若僅有 1 個 active worklog → 該版號即預期值
+ *   6. 若有 0 或 >1 個 active worklog → 回傳 { ok: false, reason }
  *
- * 排序原則：版號以 semantic version 字串排序（適用本專案 v0.x.x），
- * 多 active 時取最新版作為候選提示，但仍視為錯誤狀態。
+ * 排序原則：版號以 semantic version 字串排序（適用本專案 v0/v1 並存場景），
+ * 多 active 時取最新版作為候選提示，但仍視為錯誤狀態（用戶澄清：架構上
+ * 不應同時有多個 active 版本，跨 major dir 多 active 仍 fail-fast）。
  *
- * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
+ * @param {string} workLogsRoot - docs/work-logs/ 絕對路徑（W1-081：已從 v0 上移）
  * @param {object} fsAdapter - 注入的 fs 介面（測試可 mock）
  * @returns {{ok: boolean, version?: string, reason?: string, candidates?: string[]}}
  */
@@ -153,30 +160,39 @@ function detectActiveWorklogVersion (workLogsRoot, fsAdapter = defaultFsAdapter)
 
   const activeVersions = [];
 
+  // W1-081：新增最外層 major dir 掃描（v0 / v1 / v2...），支援 v0/v1 並存與 v1 only 情境
   const majorDirs = fsAdapter.readdir(workLogsRoot)
-    .filter((name) => /^v\d+\.\d+$/.test(name));
+    .filter((name) => /^v\d+$/.test(name));
 
   for (const majorDir of majorDirs) {
     const majorPath = path.join(workLogsRoot, majorDir);
     if (!fsAdapter.stat(majorPath).isDirectory()) continue;
 
-    const patchDirs = fsAdapter.readdir(majorPath)
-      .filter((name) => /^v\d+\.\d+\.\d+$/.test(name));
+    const minorDirs = fsAdapter.readdir(majorPath)
+      .filter((name) => /^v\d+\.\d+$/.test(name));
 
-    for (const patchDir of patchDirs) {
-      const patchPath = path.join(majorPath, patchDir);
-      if (!fsAdapter.stat(patchPath).isDirectory()) continue;
+    for (const minorDir of minorDirs) {
+      const minorPath = path.join(majorPath, minorDir);
+      if (!fsAdapter.stat(minorPath).isDirectory()) continue;
 
-      const mainFile = path.join(patchPath, `${patchDir}-main.md`);
-      if (!fsAdapter.fileExists(mainFile)) continue;
+      const patchDirs = fsAdapter.readdir(minorPath)
+        .filter((name) => /^v\d+\.\d+\.\d+$/.test(name));
 
-      const content = fsAdapter.readFile(mainFile);
-      // 偵測「**狀態**: 開發中」標記（容忍前後空白與全形/半形冒號 U+003A / U+FF1A）。
-      // W1-084 修復：原 regex [::] 兩字元皆為半形冒號（W1-074 implementation bug），
-      // 改為顯式 escape [:：] 與 syncWorklogStatus（line 308）對稱真正支援全形冒號。
-      if (/\*\*狀態\*\*\s*[:：]\s*開發中/.test(content)) {
-        // 移除 v 前綴以對齊 package.json 格式
-        activeVersions.push(patchDir.replace(/^v/, ''));
+      for (const patchDir of patchDirs) {
+        const patchPath = path.join(minorPath, patchDir);
+        if (!fsAdapter.stat(patchPath).isDirectory()) continue;
+
+        const mainFile = path.join(patchPath, `${patchDir}-main.md`);
+        if (!fsAdapter.fileExists(mainFile)) continue;
+
+        const content = fsAdapter.readFile(mainFile);
+        // 偵測「**狀態**: 開發中」標記（容忍前後空白與全形/半形冒號 U+003A / U+FF1A）。
+        // W1-084 修復：原 regex [::] 兩字元皆為半形冒號（W1-074 implementation bug），
+        // 改為顯式 escape [:：] 與 syncWorklogStatus 對稱真正支援全形冒號。
+        if (/\*\*狀態\*\*\s*[:：]\s*開發中/.test(content)) {
+          // 移除 v 前綴以對齊 package.json 格式
+          activeVersions.push(patchDir.replace(/^v/, ''));
+        }
       }
     }
   }
@@ -218,7 +234,7 @@ function detectActiveWorklogVersion (workLogsRoot, fsAdapter = defaultFsAdapter)
  * 本函式聚焦「結構性存在性」斷言，避免單一函式承載過多職責。
  *
  * @param {string} packageVersion - package.json 的 version 欄位值
- * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
+ * @param {string} workLogsRoot - docs/work-logs/ 絕對路徑（W1-081：已從 v0 上移）
  * @param {object} fsAdapter - 注入的 fs 介面（測試可 mock）
  * @returns {{ok: boolean, error?: string, actualVersion?: string, expectedMainFile?: string}}
  */
@@ -277,7 +293,7 @@ function validateVersionAlignment (packageVersion, workLogsRoot, fsAdapter = def
  *   本函式僅處理「當前 package.json 版號 → 標記為開發中」的單向 sync。
  *
  * @param {string} packageVersion - package.json 的 version 欄位值
- * @param {string} workLogsRoot - docs/work-logs/v0/ 絕對路徑
+ * @param {string} workLogsRoot - docs/work-logs/ 絕對路徑（W1-081：已從 v0 上移）
  * @param {object} fsAdapter - 注入的 fs 介面（測試可 mock）
  * @param {object} fsWriter - 注入的寫入介面（測試可 mock）
  * @returns {{ok: boolean, changed?: boolean, previousStatus?: string, error?: string, mainFile?: string}}
@@ -507,7 +523,7 @@ async function build() {
       if (!result.ok) {
         console.error(result.error);
         console.error('[VERSION CHECK] 修復建議：');
-        console.error('  1. 確認 docs/work-logs/v0/v{major}/v{patch}/v{patch}-main.md 已建立');
+        console.error('  1. 確認 docs/work-logs/v{M}/v{M.m}/v{M.m.p}/v{M.m.p}-main.md 已建立（W1-081：major 層動態化）');
         console.error('  2. 執行 version-release skill 的 start 子命令自動建立 worklog 結構');
         console.error('  3. dev 期暫時不一致：使用 --skip-version-check flag 繞過');
         process.exit(1);
