@@ -47,130 +47,63 @@ class MessageDictionary {
 
   /**
    * 載入預設訊息
+   *
+   * 設計原則（W1-107 ANA → W1-109 落地）：
+   * GlobalMessages 僅承載「真正跨模組共用」訊息（被 2+ 獨立模組引用、
+   * 屬通用詞彙、無模組前綴）。Module-specific 訊息一律由該模組自有
+   * local dict（new MessageDictionary({...}) 注入 Logger）承擔。
+   *
+   * 已外移到 local dict 的模組：
+   * - popup (popupMessages, 22 keys) — src/popup/popup.js
+   * - popup-error-handler (popupErrorHandlerMessages, 1 key) — src/popup/popup-error-handler.js
+   * - search-filter (searchUIMessages, 14 keys) — src/ui/book-search-filter-integrated.js
+   * - validator (validatorMessages, 22 keys) — src/platform/readmoo-platform-migration-validator.js
+   * - readmoo-adapter (readmooAdapterMessages, 36 keys) — src/content/adapters/readmoo-adapter.js
+   * - background (BACKGROUND_STARTUP 等 27 keys) — src/background/background.js 仍走
+   *   GlobalMessages.addMessages() 注入（W1-110 freeze 規劃時需評估遷移為 local dict）
+   *
+   * 中文 legacy keys（未知的篩選條件 / 索引搜尋失敗... / Event listener registration failed）
+   * 暫保留：filter-engine / search-engine / platform-detection-service 仍以中文字面
+   * 作為 messageKey 直接呼叫 logger.warn('...')，未注入 local dict。移除會導致
+   * runtime 出現 [Missing: ...]。待後續 ticket 為這些 caller 建立 local dict 後清理。
+   *
    * @private
-   * @returns {Object} 預設訊息物件
+   * @returns {Object} 預設訊息物件（21 個跨模組共用 + 3 個中文 legacy）
    */
   _loadDefaultMessages () {
     return {
-      // 錯誤訊息
+      // 錯誤類（5）
       VALIDATION_FAILED: '資料驗證失敗',
       NETWORK_ERROR: '網路連線異常',
       STORAGE_ERROR: '儲存操作失敗',
       PERMISSION_DENIED: '權限不足',
       UNKNOWN_ERROR: '未知錯誤',
 
-      // 操作訊息
+      // 操作類（5）
       OPERATION_START: '開始執行操作',
       OPERATION_COMPLETE: '操作完成',
       OPERATION_CANCELLED: '操作已取消',
       OPERATION_TIMEOUT: '操作逾時',
       OPERATION_RETRY: '重試操作',
 
-      // 系統訊息
+      // 系統類（4）
       SYSTEM_READY: '系統準備就緒',
       SYSTEM_SHUTDOWN: '系統正在關閉',
       LOADING: '載入中...',
       PROCESSING: '處理中...',
 
-      // 書庫相關訊息
-      BOOK_EXTRACTION_START: '開始提取書籍資料',
-      BOOK_EXTRACTION_COMPLETE: '書籍資料提取完成',
-      BOOK_COUNT: '找到 {count} 本書',
-      BOOK_PROGRESS_UPDATE: '書籍 {title} 進度更新為 {progress}%',
-      BOOK_VALIDATION_FAILED: '書籍 {title} 資料驗證失敗',
-
-      // Chrome Extension 相關
-      EXTENSION_READY: '擴充功能準備就緒',
-      CONTENT_SCRIPT_LOADED: '內容腳本已載入',
-      POPUP_OPENED: '彈出視窗已開啟',
-      BACKGROUND_SCRIPT_ACTIVE: '背景腳本運行中',
-      // popup-specific keys (POPUP_INTERFACE_LOADED / POPUP_SCRIPT_LOADED /
-      // POPUP_INIT_START / POPUP_INIT_COMPLETE / INITIALIZATION_COMPLETE)
-      // 已移至 src/popup/popup.js local dict（W1-117 重做 W1-106 清理）。
-      // W1-115 修復 Logger constructor 支援第三參數 messages 後，popup local
-      // dict 真正生效，GlobalMessages 不再需要承載 popup-specific 訊息。
-
-      // 使用者訊息
+      // 通用 UI（5）
       SUCCESS: '成功',
       FAILED: '失敗',
       RETRY: '重試',
       CANCEL: '取消',
       CONFIRM: '確認',
 
-      // 測試專用訊息
+      // 測試專用（2）— 跨多個測試套件共用
       TEST_MESSAGE: '測試訊息',
       TEST_WITH_PARAMS: '測試參數: {param1} 和 {param2}',
 
-      // 日誌相關
-      DEBUG_MESSAGE: '除錯訊息: {message}',
-      INFO_MESSAGE: '資訊: {message}',
-      WARN_MESSAGE: '警告: {message}',
-      ERROR_MESSAGE: '錯誤: {message}',
-
-      // 驗證相關訊息模板
-      VALIDATOR_INIT: '驗證器初始化',
-      VALIDATION_START: '開始資料驗證',
-      VALIDATION_SUCCESS: '資料驗證成功',
-      VALIDATION_TIMEOUT: '驗證逾時',
-      VALIDATION_RETRY: '重新驗證',
-      VALIDATION_CACHE_HIT: '命中驗證快取',
-
-      // 資料提取相關訊息模板
-      DATA_EXTRACTION_START: '開始資料提取',
-      DATA_EXTRACTION_EMPTY: '提取的資料為空',
-      DATA_EXTRACTION_COMPLETE: '資料提取完成',
-      DATA_VALIDATION_FAILED: '資料驗證失敗',
-
-      // 平台檢測相關訊息模板
-      PLATFORM_DETECTION_START: '開始平台檢測',
-      PLATFORM_CONFIDENCE_LOW: '平台檢測信心度較低',
-
-      // 錯誤處理相關訊息模板
-      ERROR_CATEGORIZED: '錯誤已分類',
-      EVENT_SYSTEM_START: '事件系統啟動',
-      EVENT_EMIT_FAILED: '事件發送失敗',
-
-      // 書籍處理相關訊息模板
-      BOOK_CONTAINERS_FOUND: '找到書籍容器',
-      BOOK_CONTAINERS_PARSE_FAILED: '書籍容器解析失敗',
-      BOOK_BATCH_PARSE_FAILED: '批次書籍解析失敗',
-      NO_BOOK_ELEMENTS_FOUND: '未找到書籍元素',
-      BOOKS_DATA_UPDATED: '書籍資料已更新',
-      BOOKS_DATA_UPDATE_WARNING: '書籍資料更新警告',
-
-      // 組件和系統相關訊息模板
-      COMPONENT_INIT: '組件初始化',
-      CLEANUP_SUCCESS: '清理成功',
-      CACHE_CLEANUP: '快取清理',
-      MODULAR_COMPONENTS_SUCCESS: '模組化組件載入成功',
-      EXTRACTION_COMPLETED: '提取作業完成',
-
-      // 搜尋和篩選相關訊息模板
-      SEARCH_CLEARED: '搜尋已清除',
-      SEARCH_EXECUTION_ERROR: '搜尋執行錯誤',
-      FILTER_APPLICATION_ERROR: '篩選應用錯誤',
-      UNSAFE_COVER_URL_FILTERED: '不安全的封面網址已過濾',
-      PLACEHOLDER_URL_REPLACED: '佔位 URL 已替換為 privacy ID',
-
-      // 回退策略相關訊息模板
-      FALLBACK_SELECTOR_ATTEMPT: '嘗試回退選擇器',
-      LAST_RESORT_STRATEGY: '最後手段策略',
-
-      // 診斷相關訊息模板
-      GET_BOOK_ELEMENTS_CALLED: '呼叫 getBookElements（呼叫者: {caller}）',
-      WAIT_FOR_BOOK_ELEMENTS_START: '開始等待書籍元素出現（逾時: {timeoutMs}ms）',
-      WAIT_FOR_BOOK_ELEMENTS_FOUND: '書籍元素已找到（來源: {source}，數量: {count}）',
-      WAIT_FOR_BOOK_ELEMENTS_SKIP: '跳過等待書籍元素',
-      WAIT_FOR_BOOK_ELEMENTS_TIMEOUT: '等待書籍元素逾時（逾時: {timeoutMs}ms，最終數量: {finalCount}）',
-      SELECTOR_PARADOX: '選擇器矛盾：主選擇器未找到但備用策略成功',
-      CONTAINER_SAMPLE: '容器取樣資料',
-      EXTRACTION_SAMPLE_DATA: '提取樣本資料（共 {totalBooks} 本）',
-      FALLBACK_SELECTOR_SUCCESS: '備用選擇器成功（選擇器: {selector}，數量: {count}）',
-
-      // 配置相關訊息模板
-      CONFIG_VALIDATION_FAILED: '配置驗證失敗',
-
-      // 多語言支援
+      // 中文 legacy（3）— 暫保留至 caller 建立 local dict
       未知的篩選條件: '未知的篩選條件',
       '索引搜尋失敗，回退到線性搜尋': '索引搜尋失敗，回退到線性搜尋',
       'Event listener registration failed': '事件監聽器註冊失敗'

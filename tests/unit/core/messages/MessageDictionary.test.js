@@ -108,4 +108,155 @@ describe('MessageDictionary constructor union signature', () => {
       expect(dict.get('NON_EXISTENT_KEY')).toBe('[Missing: NON_EXISTENT_KEY]')
     })
   })
+
+  /**
+   * W1-109：清理 _loadDefaultMessages module-specific keys 後，
+   *        驗證合格跨模組共用 keys 仍可取得，且 module-specific keys
+   *        已從 GlobalMessages 移除（各 caller 由 local dict 接管）。
+   *
+   * 對應 W1-107 Solution「合格 GlobalMessages key 清單」(~20 keys) + 中文 legacy 3。
+   */
+  describe('W1-109: GlobalMessages 清理後的作用域邊界', () => {
+    const SHARED_KEYS = {
+      // 錯誤類 (5)
+      VALIDATION_FAILED: '資料驗證失敗',
+      NETWORK_ERROR: '網路連線異常',
+      STORAGE_ERROR: '儲存操作失敗',
+      PERMISSION_DENIED: '權限不足',
+      UNKNOWN_ERROR: '未知錯誤',
+      // 操作類 (5)
+      OPERATION_START: '開始執行操作',
+      OPERATION_COMPLETE: '操作完成',
+      OPERATION_CANCELLED: '操作已取消',
+      OPERATION_TIMEOUT: '操作逾時',
+      OPERATION_RETRY: '重試操作',
+      // 系統類 (4)
+      SYSTEM_READY: '系統準備就緒',
+      SYSTEM_SHUTDOWN: '系統正在關閉',
+      LOADING: '載入中...',
+      PROCESSING: '處理中...',
+      // 通用 UI (5)
+      SUCCESS: '成功',
+      FAILED: '失敗',
+      RETRY: '重試',
+      CANCEL: '取消',
+      CONFIRM: '確認',
+      // 測試專用 (2)
+      TEST_MESSAGE: '測試訊息',
+      TEST_WITH_PARAMS: '測試參數: {param1} 和 {param2}'
+    }
+
+    const LEGACY_CHINESE_KEYS = {
+      // 中文 legacy keys：仍有 caller 直接以中文字面 logger.warn('未知的篩選條件', {...})
+      // 呼叫，且該 caller 未注入 local dict（filter-engine / search-engine /
+      // platform-detection-service）。移除會導致 [Missing: ...] runtime 失效。
+      // 暫保留至各 caller 建立 local dict 後再清理（W1-109 不在範圍）。
+      未知的篩選條件: '未知的篩選條件',
+      '索引搜尋失敗，回退到線性搜尋': '索引搜尋失敗，回退到線性搜尋',
+      'Event listener registration failed': '事件監聽器註冊失敗'
+    }
+
+    const REMOVED_KEYS = [
+      // 書庫類 (5) — 無 caller
+      'BOOK_EXTRACTION_START',
+      'BOOK_EXTRACTION_COMPLETE',
+      'BOOK_COUNT',
+      'BOOK_PROGRESS_UPDATE',
+      'BOOK_VALIDATION_FAILED',
+      // Chrome ext (4) — 無 caller
+      'EXTENSION_READY',
+      'CONTENT_SCRIPT_LOADED',
+      'POPUP_OPENED',
+      'BACKGROUND_SCRIPT_ACTIVE',
+      // 日誌類 (4) — 無 caller（Logger fallback 內含 inline，不需 dict）
+      'DEBUG_MESSAGE',
+      'INFO_MESSAGE',
+      'WARN_MESSAGE',
+      'ERROR_MESSAGE',
+      // validator (14) — validatorMessages local dict 已覆蓋
+      'VALIDATOR_INIT',
+      'VALIDATION_START',
+      'VALIDATION_SUCCESS',
+      'VALIDATION_TIMEOUT',
+      'VALIDATION_RETRY',
+      'VALIDATION_CACHE_HIT',
+      'DATA_EXTRACTION_START',
+      'DATA_EXTRACTION_EMPTY',
+      'DATA_VALIDATION_FAILED',
+      'PLATFORM_DETECTION_START',
+      'PLATFORM_CONFIDENCE_LOW',
+      'ERROR_CATEGORIZED',
+      'EVENT_SYSTEM_START',
+      'EVENT_EMIT_FAILED',
+      // search-filter (9) — searchUIMessages local dict 已覆蓋
+      'COMPONENT_INIT',
+      'CLEANUP_SUCCESS',
+      'CACHE_CLEANUP',
+      'MODULAR_COMPONENTS_SUCCESS',
+      'SEARCH_CLEARED',
+      'SEARCH_EXECUTION_ERROR',
+      'FILTER_APPLICATION_ERROR',
+      'BOOKS_DATA_UPDATED',
+      'BOOKS_DATA_UPDATE_WARNING',
+      // extractor (19) — readmooAdapterMessages local dict 已覆蓋
+      'DATA_EXTRACTION_COMPLETE',
+      'BOOK_CONTAINERS_FOUND',
+      'BOOK_CONTAINERS_PARSE_FAILED',
+      'BOOK_BATCH_PARSE_FAILED',
+      'NO_BOOK_ELEMENTS_FOUND',
+      'GET_BOOK_ELEMENTS_CALLED',
+      'WAIT_FOR_BOOK_ELEMENTS_START',
+      'WAIT_FOR_BOOK_ELEMENTS_FOUND',
+      'WAIT_FOR_BOOK_ELEMENTS_SKIP',
+      'WAIT_FOR_BOOK_ELEMENTS_TIMEOUT',
+      'SELECTOR_PARADOX',
+      'CONTAINER_SAMPLE',
+      'EXTRACTION_SAMPLE_DATA',
+      'FALLBACK_SELECTOR_SUCCESS',
+      'FALLBACK_SELECTOR_ATTEMPT',
+      'LAST_RESORT_STRATEGY',
+      'UNSAFE_COVER_URL_FILTERED',
+      'PLACEHOLDER_URL_REPLACED',
+      'EXTRACTION_COMPLETED',
+      // 配置 (1) — validator local dict 已覆蓋
+      'CONFIG_VALIDATION_FAILED'
+    ]
+
+    test('合格的 21 個跨模組共用 key 仍可從 GlobalMessages 取得且文字正確', () => {
+      const dict = new MessageDictionary()
+      Object.entries(SHARED_KEYS).forEach(([key, expectedText]) => {
+        expect(dict.has(key)).toBe(true)
+        expect(dict.get(key)).toBe(expectedText)
+      })
+    })
+
+    test('中文 legacy keys 暫保留（caller 尚未注入 local dict）', () => {
+      const dict = new MessageDictionary()
+      Object.entries(LEGACY_CHINESE_KEYS).forEach(([key, expectedText]) => {
+        expect(dict.has(key)).toBe(true)
+        expect(dict.get(key)).toBe(expectedText)
+      })
+    })
+
+    test('TEST_WITH_PARAMS 參數替換維持正確', () => {
+      const dict = new MessageDictionary()
+      expect(dict.get('TEST_WITH_PARAMS', { param1: 'A', param2: 'B' })).toBe('測試參數: A 和 B')
+    })
+
+    test('已移除的 ~56 個 module-specific keys 不再存在於 GlobalMessages', () => {
+      const dict = new MessageDictionary()
+      REMOVED_KEYS.forEach((key) => {
+        expect(dict.has(key)).toBe(false)
+        expect(dict.get(key)).toBe(`[Missing: ${key}]`)
+      })
+    })
+
+    test('GlobalMessages 預設 key 數收斂在 24 ± 2 範圍（21 共用 + 3 中文 legacy）', () => {
+      const dict = new MessageDictionary()
+      const keyCount = dict.keys().length
+      // 上下界容忍：避免微小調整（新增 1-2 共用 key）即破壞測試
+      expect(keyCount).toBeGreaterThanOrEqual(22)
+      expect(keyCount).toBeLessThanOrEqual(26)
+    })
+  })
 })
