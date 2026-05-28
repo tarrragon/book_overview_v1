@@ -15,24 +15,15 @@
  */
 
 // 條件性引入，支援瀏覽器和 Node.js 環境
+// W1-119.3: 移除影子 fallback messages dict（與 W1-110 SSOT 設計一致）
+// require fail 極少觸發（僅 Node.js + 路徑壞），提供最小 stub 維持 Logger init 不 crash
+// stub 行為與 MessageDictionary.get() 對未註冊 key 的回應一致（'[Missing: KEY]'）
 let GlobalMessages
 if (typeof require !== 'undefined') {
   try {
     GlobalMessages = require('src/core/messages/MessageDictionary').GlobalMessages
   } catch (e) {
-    // 瀏覽器環境或引入失敗時，使用後備方案
-    GlobalMessages = {
-      get: (key, params = {}) => {
-        // 簡單的後備訊息系統
-        const fallbackMessages = {
-          DEBUG_MESSAGE: 'Debug: {message}',
-          INFO_MESSAGE: 'Info: {message}',
-          WARN_MESSAGE: 'Warning: {message}',
-          ERROR_MESSAGE: 'Error: {message}'
-        }
-        return fallbackMessages[key] || key
-      }
-    }
+    GlobalMessages = { get: (key) => '[Missing: ' + key + ']' }
   }
 }
 
