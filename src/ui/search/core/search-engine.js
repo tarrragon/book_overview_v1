@@ -33,6 +33,30 @@
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { MessageDictionary } = require('src/core/messages/MessageDictionary')
+
+/**
+ * SearchEngine local MessageDictionary (W1-119.1)
+ *
+ * Business context: 搜尋引擎的「索引搜尋失敗，回退到線性搜尋」訊息，原以中文字面
+ * 作為 messageKey 直接呼叫 this.logger.warn，並依賴 GlobalMessages._loadDefaultMessages
+ * 內的同名 legacy key 渲染。W1-107 議題 A 收斂時識別此 key 違反 GlobalMessages
+ * 納入標準（單一 caller、屬 module-specific 業務訊息），暫保留至本 ticket 為
+ * caller 建立 local dict。
+ *
+ * Why (PC-165 防護): 此 dict 透過 _registerLocalMessages 註冊至外部注入的 Logger
+ * 之 messages 字典，使 runtime 渲染正確中文文字。測試端必須驗證渲染結果而非僅
+ * messageKey 字面。
+ *
+ * Injection pattern: 與 FilterEngine 一致——constructor-time 將 keys 註冊至
+ * caller-supplied logger.messages。Mock logger 無 messages 欄位時靜默略過。
+ *
+ * Scope: 單一 key（SEARCH_INDEX_FALLBACK_TO_LINEAR）。後續若新增此 engine
+ * 專屬訊息，一律加入此 local dict，禁止回流 GlobalMessages。
+ */
+const searchEngineMessages = new MessageDictionary({
+  SEARCH_INDEX_FALLBACK_TO_LINEAR: '索引搜尋失敗，回退到線性搜尋'
+})
 
 class SearchEngine {
   /**
@@ -59,6 +83,11 @@ class SearchEngine {
     this.eventBus = eventBus
     this.logger = logger
 
+    // W1-119.1: 將 engine-owned message keys 註冊至外部注入的 logger.messages，
+    // 使 SEARCH_INDEX_FALLBACK_TO_LINEAR 等 module-specific keys 在 runtime
+    // 渲染為中文。Mock logger（測試）無 messages.addMessages 時靜默略過。
+    this._registerLocalMessages()
+
     // 注入的 tag 解析函式（tagIds -> tag 物件）
     this._tagResolver = tagResolver || null
 
@@ -79,6 +108,28 @@ class SearchEngine {
 
     // 初始化效能統計
     this._initializePerformanceStats()
+  }
+
+  /**
+   * 將 engine-owned local dict 註冊至外部 logger.messages（W1-119.1）
+   *
+   * 設計考量：與 FilterEngine._registerLocalMessages 同模式——
+   * - Mock logger 在單元測試無 messages 欄位時靜默略過，不破壞既有 mock-based 測試。
+   * - 真實 Logger 注入時 messages 為 MessageDictionary 實例，addMessages 將
+   *   searchEngineMessages 的 keys 合併進外部 dict。
+   * - 註冊失敗（例如外部 dict 已 frozen）不影響 engine 主功能。
+   *
+   * @private
+   */
+  _registerLocalMessages () {
+    if (this.logger && this.logger.messages && typeof this.logger.messages.addMessages === 'function') {
+      try {
+        this.logger.messages.addMessages(searchEngineMessages.export())
+      } catch (registerError) {
+        // 註冊失敗（例如 logger.messages 為 frozen 的 GlobalMessages）不影響
+        // engine 主要功能；hot line fallback 至 [Missing: KEY] 仍保留 console 訊息結構
+      }
+    }
   }
 
   /**
@@ -199,7 +250,8 @@ class SearchEngine {
         results = await this._performIndexBasedSearch(normalizedQuery, books)
         this.performanceStats.indexBasedSearches++
       } catch (error) {
-        this.logger.warn('索引搜尋失敗，回退到線性搜尋', { error: error.message })
+        // W1-119.1: 改用 UPPER_SNAKE_CASE messageKey，由 searchEngineMessages 渲染為中文
+        this.logger.warn('SEARCH_INDEX_FALLBACK_TO_LINEAR', { error: error.message })
         // 回退到線性搜尋
         results = await this._performLinearSearch(normalizedQuery, books)
         this.performanceStats.linearSearches++

@@ -146,17 +146,13 @@ describe('MessageDictionary constructor union signature', () => {
       TEST_WITH_PARAMS: '測試參數: {param1} 和 {param2}'
     }
 
-    const LEGACY_CHINESE_KEYS = {
-      // 中文 legacy keys：仍有 caller 直接以中文字面 logger.warn('未知的篩選條件', {...})
-      // 呼叫，且該 caller 未注入 local dict（filter-engine / search-engine /
-      // platform-detection-service）。移除會導致 [Missing: ...] runtime 失效。
-      // 暫保留至各 caller 建立 local dict 後再清理（W1-109 不在範圍）。
-      未知的篩選條件: '未知的篩選條件',
-      '索引搜尋失敗，回退到線性搜尋': '索引搜尋失敗，回退到線性搜尋',
-      'Event listener registration failed': '事件監聽器註冊失敗'
-    }
-
     const REMOVED_KEYS = [
+      // W1-119.1 收尾：3 個中文 legacy keys 已隨 filter-engine / search-engine /
+      // platform-detection-service 建立 local dict 完成清理（W1-119.1）。
+      // GlobalMessages 進入「僅 21 個跨模組共用 key」的最終穩態。
+      '未知的篩選條件',
+      '索引搜尋失敗，回退到線性搜尋',
+      'Event listener registration failed',
       // 書庫類 (5) — 無 caller
       'BOOK_EXTRACTION_START',
       'BOOK_EXTRACTION_COMPLETE',
@@ -230,11 +226,16 @@ describe('MessageDictionary constructor union signature', () => {
       })
     })
 
-    test('中文 legacy keys 暫保留（caller 尚未注入 local dict）', () => {
+    test('W1-119.1 收尾：3 個中文 legacy keys 已從 GlobalMessages 移除（caller 已建 local dict）', () => {
       const dict = new MessageDictionary()
-      Object.entries(LEGACY_CHINESE_KEYS).forEach(([key, expectedText]) => {
-        expect(dict.has(key)).toBe(true)
-        expect(dict.get(key)).toBe(expectedText)
+      const cleanedChineseKeys = [
+        '未知的篩選條件',
+        '索引搜尋失敗，回退到線性搜尋',
+        'Event listener registration failed'
+      ]
+      cleanedChineseKeys.forEach((key) => {
+        expect(dict.has(key)).toBe(false)
+        expect(dict.get(key)).toBe(`[Missing: ${key}]`)
       })
     })
 
@@ -251,12 +252,12 @@ describe('MessageDictionary constructor union signature', () => {
       })
     })
 
-    test('GlobalMessages 預設 key 數收斂在 24 ± 2 範圍（21 共用 + 3 中文 legacy）', () => {
+    test('GlobalMessages 預設 key 數收斂在 21 ± 2 範圍（W1-119.1 後僅 21 個跨模組共用 key）', () => {
       const dict = new MessageDictionary()
       const keyCount = dict.keys().length
       // 上下界容忍：避免微小調整（新增 1-2 共用 key）即破壞測試
-      expect(keyCount).toBeGreaterThanOrEqual(22)
-      expect(keyCount).toBeLessThanOrEqual(26)
+      expect(keyCount).toBeGreaterThanOrEqual(19)
+      expect(keyCount).toBeLessThanOrEqual(23)
     })
   })
 
