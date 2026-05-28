@@ -1,4 +1,3 @@
-const { Logger } = require('src/core/logging/Logger')
 /**
  * 集中化訊息字典系統
  *
@@ -228,8 +227,10 @@ class MessageDictionary {
     const itemSize = this._estimateSize({ [key]: message })
 
     if (this._cacheSize + itemSize > this._maxCacheSize) {
+      // W1-119.2: 改用 console.warn 移除對 Logger 的循環依賴
+      // 設計：messages 是底層 primitive，不應依賴 logging（依賴方向原則）
       // eslint-disable-next-line no-console
-      Logger.warn(`MessageDictionary: Adding "${key}" would exceed cache limit (${this._maxCacheSize / 1024}KB)`)
+      console.warn(`MessageDictionary: Adding "${key}" would exceed cache limit (${this._maxCacheSize / 1024}KB)`)
       return false
     }
 
