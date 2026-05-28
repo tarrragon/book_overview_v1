@@ -59,8 +59,8 @@ class MessageDictionary {
    * - search-filter (searchUIMessages, 14 keys) — src/ui/book-search-filter-integrated.js
    * - validator (validatorMessages, 22 keys) — src/platform/readmoo-platform-migration-validator.js
    * - readmoo-adapter (readmooAdapterMessages, 36 keys) — src/content/adapters/readmoo-adapter.js
-   * - background (BACKGROUND_STARTUP 等 27 keys) — src/background/background.js 仍走
-   *   GlobalMessages.addMessages() 注入（W1-110 freeze 規劃時需評估遷移為 local dict）
+   * - background (BACKGROUND_STARTUP 等 27 keys) — src/background/background.js 已遷移為
+   *   backgroundMessages local dict（W1-110.1）
    *
    * 中文 legacy keys（未知的篩選條件 / 索引搜尋失敗... / Event listener registration failed）
    * 暫保留：filter-engine / search-engine / platform-detection-service 仍以中文字面
@@ -321,6 +321,27 @@ class MessageDictionary {
 
 // 建立全域訊息字典實例
 const GlobalMessages = new MessageDictionary()
+
+// W1-110：對 GlobalMessages.messages 套用 Object.freeze 物理防護
+//
+// 設計依據（W1-107 議題 B 方案 3 結論）：
+// W1-109 完成 _loadDefaultMessages 收斂（80 → 24 keys）、W1-110.1 完成 background
+// 唯一動態寫入點移除後，GlobalMessages 進入「禁止任何後續變更」的穩態。對其
+// messages 物件套 shallow freeze 提供物理層級防護，從根本上阻止：
+//
+// 1. 任何呼叫 GlobalMessages.set(key, value) 寫入嘗試（strict mode 拋 TypeError）
+// 2. 任何呼叫 GlobalMessages.addMessages({...}) 寫入嘗試（同上）
+// 3. 直接 GlobalMessages.messages.X = 'y' 寫入嘗試（同上）
+// 4. delete GlobalMessages.messages.X 移除嘗試（同上）
+//
+// 模組層 ES Module 自動為 strict mode，違規寫入會立即拋錯，避免 W1-004 模式
+// （popup-specific key 不知不覺加進 GlobalMessages）再次發生。
+//
+// 範圍說明：
+// - 僅 freeze GlobalMessages（全域實例的 messages），不影響 new MessageDictionary({...})
+//   建立的 local dict 實例（其 messages 物件未 freeze，仍可用 set/addMessages）。
+// - shallow freeze 足夠：messages 結構為 { key: string }，無 nested object 需 deep freeze。
+Object.freeze(GlobalMessages.messages)
 
 // 匯出類別和全域實例
 if (typeof module !== 'undefined' && module.exports) {
