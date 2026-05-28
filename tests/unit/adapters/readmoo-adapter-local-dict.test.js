@@ -187,8 +187,8 @@ describe('ReadmooAdapter Local MessageDictionary (W1-108 PC-165 防護)', () => 
     createReadmooAdapter()
 
     // GlobalMessages 不應被 adapter 的 local dict 寫入污染：
-    // 原 GlobalMessages 已有的 key 應維持原值
-    expect(GlobalMessages.has('BOOK_CONTAINERS_FOUND')).toBe(true)
+    // W1-109 後 BOOK_CONTAINERS_FOUND 已遷移至 readmooAdapterMessages local dict（不再屬 GlobalMessages 跨模組共用範疇）
+    expect(GlobalMessages.has('BOOK_CONTAINERS_FOUND')).toBe(false)
 
     // 原 GlobalMessages 缺失的 key（如 PARSE_LIBRARY_TOTAL_FAILED）
     // 在 adapter 載入後仍不應存在於 GlobalMessages
