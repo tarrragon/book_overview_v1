@@ -28,7 +28,7 @@ PM 被迫採用 workaround：
 
 1. **無「規則引用」豁免類別**：規則文件名稱本身含「Phase 4 評估」「Phase 5 再決定」等字眼，當 PM 在 acceptance / Problem Analysis / Solution 章節**引用規則名稱**時 hook 無法區分「真正延後話術」vs「規則引用」
 2. **無語意 negation 偵測**：前後文若有「禁止」「不應」「反模式」等 negation 詞，邏輯上是禁止延後而非提倡延後，hook 仍會抓
-3. **無欄位類型感知**：frontmatter 的 `how.strategy` 與 `why` 等欄位含階段名稱（含對 source ticket 歷史脈絡的引用）屬規格元資料，與 body 內延後話術語意不同（case 5 即此類，詳見下方「案例 5 詳述」）
+3. **無欄位類型感知**：frontmatter 的 `how.strategy` / `why` 欄位屬規格元資料，與 body 內延後話術語意層級不同。這些欄位常含階段名稱，包括對 source ticket 歷史脈絡的引用（case 5 即此類，詳見下方「案例 5 詳述」）
 4. **無歷史章節豁免**：Phase 1/2/3a 章節記錄 Phase 4 階段規劃是合法歷史脈絡，不應觸發
 
 ## 案例重現紀錄
@@ -63,13 +63,13 @@ PM 被迫採用 workaround：
 
 ### 已落地（W1-092，frontmatter 維度）
 
-case 5（frontmatter YAML 區塊誤判）已由 W1-092 結構性修復，commit `de2f82c3`。方案 b 以 `compute_frontmatter_lines()` 整段跳過 frontmatter，使 `scan_lines_for_phrases`（phrase 掃描）與 `collect_exempt_markers`（marker 蒐集）對 frontmatter 行一律 short-circuit。此維度對應原 W10-118 規劃的「frontmatter 欄位排除字面匹配」方向，且涵蓋範圍從 `how.strategy` 擴大至整個 frontmatter（含 `why` / `title` 等所有欄位）。
+case 5（frontmatter YAML 區塊誤判）已由 W1-092 結構性修復，commit `de2f82c3`。方案 b 以 `compute_frontmatter_lines()` 整段跳過 frontmatter，使 `scan_lines_for_phrases`（phrase 掃描）與 `collect_exempt_markers`（marker 蒐集）對 frontmatter 行一律 short-circuit。此方向對應原 W10-118 規劃的「frontmatter 欄位排除字面匹配」項目，且涵蓋範圍從 `how.strategy` 擴大至整個 frontmatter（含 `why` / `title` 等所有欄位）。
 
 **對 PM 工作流的影響**：frontmatter `why` / `title` / `how.strategy` 含 source ticket 歷史階段名稱引用時，complete 不再被攔截，無須再手動加 marker 後 `git restore`。
 
 ### 中期（body 內文維度 / W10-118 ANA 追蹤）
 
-W10-118 ANA（已完成）規劃 4 個 hook 限制收斂方向；frontmatter 維度已如上落地，body 內文維度的其餘方向（落地狀態見 W10-118 spawned tickets）：
+W10-118 ANA（已完成）規劃 4 個 hook 限制收斂方向；frontmatter 面向已如上落地，body 內文層面的其餘方向（落地狀態見 W10-118 spawned tickets）：
 
 - 新增 exempt category `rule-reference`（reason 需含規則路徑引用）
 - 加入語意 negation 偵測（前後 50 字含「禁止」「不應」「反模式」豁免）
