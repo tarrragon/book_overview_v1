@@ -29,7 +29,7 @@
 | 標準（standard） | 單版本影響 / 1-2 UC 變動 / 功能新增但不改架構 | 中 |
 | 重量（heavy） | 跨版本（跨 2 個以上大版本） / 跨專案（APP / Extension / CLI 任兩者以上） / framework 類（變更規則或方法論） / 3+ UC 結構性變動 / 架構層級改動 | 高 |
 
-**二分制（W3-093 落地）**：light enum 已於 2026-05-30 移除。W3-002 ANA 結論：11 個 PROP 樣本中 light 真實使用 = 0（W10-099 收斂後）；提早結論避免 enum 設計負擔（PC-093 yagni-deferred）。探索期 PROP 使用 `status: draft` 搭配實際強度的 `evaluation_level`（standard/heavy），hook 自動豁免章節檢查（豁免優先序 P2，見規則 2.5）。
+**二分制**：evaluation_level 只有 standard / heavy 兩個合法值；探索期 PROP 改用 `status: draft` 搭配實際強度的 `evaluation_level`，hook 自動豁免章節檢查（豁免優先序 P2，見規則 2.5）。**Why**：W3-002 ANA 結論（W10-099 收斂後）11 個 PROP 樣本中 light 真實使用 = 0，屬 PC-093 yagni-deferred 候選。**Action**：存量 PROP 若標有 `evaluation_level: light`，hook 將視為非法值阻擋寫入，需改為 standard 或 heavy（light 已於 2026-05-30 移除）。
 
 ### 分級強制
 
@@ -64,7 +64,7 @@ PROP 處於 `status: draft` 階段時，由 hook 自動豁免下列檢查：
 
 **Why**：Draft 屬探索期，章節通常未完整；強制完整章節會阻擋創意 brainstorming，違反 draft 設計目的，並讓提案者改用 light 規避（W10-099 重現實驗證實的 grandfather 模式）。
 
-**Consequence**：未明示 draft 豁免會讓 light 機制持續被誤用為 draft 暫設手段，long-term 治理上 PROP level 與真實強度脫節。
+**Consequence**：未明示 draft 豁免會讓提案者以不正確的 level（如把 heavy 改標 standard 以通過章節檢查）繞過強制機制，long-term 治理上 PROP level 與真實強度脫節。
 
 **Action**：探索期 PROP 維持 `status: draft` + 實際強度 `evaluation_level`；準備收斂時改 `status: discussing`，hook 自動切走嚴格路徑（P4），此時補充章節即可通過。
 
@@ -194,8 +194,6 @@ PM 建立 PROP 時，使用 AskUserQuestion 引導分級和評估強度：
 - 檢查 PROP frontmatter 是否有 `evaluation_level`
 - 檢查對應章節是否完備（依分級要求）
 - 檢查 confirmed 狀態是否綁 ticket_refs
-
-> **本規則發布時 Hook 尚未實作**，後續由子 Ticket 追蹤並派發 basil-hook-architect 實作。
 
 ---
 
