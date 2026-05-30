@@ -37,7 +37,7 @@ related:
 
 | Error Pattern | 關聯性 | 說明 |
 |--------------|--------|------|
-| PC-165（false-positive-fix-chain） | 強相關（上位 pattern） | PC-165 描述「測試綠燈但 runtime 無效」的通用機制（mock 自洽 + 斷言不覆蓋 runtime 路徑 + 後續 ticket 信任前序綠燈）；IMP-078 是 PC-165 在「跨環境部署（Node.js 測試環境 vs 瀏覽器 CE runtime）」維度的特化版本 |
+| PC-165（false-positive-fix-chain） | 並列關係（共通表層症狀）| 共享「測試綠燈但 runtime 失效」表層症狀，但根因領域正交：PC-165 聚焦「修復鏈 + mock 替代 + 後續信任」三層共振（流程層）；IMP-078 聚焦「Jest jsdom Node globals vs 瀏覽器 esbuild bundle API 可用性差異」（實作層）。交集案例為 W1-047.1~.5（既觸發 IMP-078 API 誤用，也具備 PC-165 acceptance 全勾 + commit + 後續推進的修復鏈特徵）|
 | ARCH-013（ESM/CJS 混合匯出）| 弱相關（同屬建置環境差異類） | ARCH-013 聚焦 ESM/CJS 模組格式差異；IMP-078 聚焦 Node.js API 與瀏覽器 API 可用性差異；兩者共同根因是「建置環境差異未被靜態防護」|
 | ARCH-021（模組組裝遺漏靜默斷裂） | 弱相關（同屬靜默失效類） | 共通機制：問題在 unit test 層不可見，只在端到端執行時暴露；觸發維度不同（ARCH-021 是組裝遺漏，IMP-078 是 API 環境差異）|
 
