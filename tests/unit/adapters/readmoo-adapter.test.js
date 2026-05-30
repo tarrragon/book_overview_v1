@@ -1368,6 +1368,129 @@ describe('ReadmooAdapter', () => {
   })
 
   /**
+   * W1-013：validateCoverUrlInput 與 validateReadmooDomain 相對 cover URL 修復
+   *
+   * 根因（同 W1-010/W1-012 模式）：
+   * 1. validateCoverUrlInput 呼叫 isUnsafeUrl(trimmed) 未傳 base → 相對路徑誤判 unsafe
+   * 2. validateReadmooDomain 呼叫 new URL(url) 未傳 base → 相對路徑 throw → false
+   *
+   * W1-010 已使 extractCoverAndTitle 保留相對封面，但 extractCoverIdFromUrl
+   * 呼叫鏈（validateCoverUrlInput → validateReadmooDomain）雙重阻擋相對 URL，
+   * 導致 coverId 無法提取 → tryCoverStrategy 失效 → 書籍 ID 退化為其他 fallback。
+   *
+   * 修復：
+   * - validateCoverUrlInput：isUnsafeUrl(trimmed) → isUnsafeUrl(trimmed, getLocation().origin)
+   * - validateReadmooDomain：相對 URL 以 base 解析 + 接受 /cover/ 路徑（已過上游安全閘）
+   *
+   * 安全保證：javascript:/data: 與路徑遍歷由 isUnsafeUrl 過濾，hostname 嚴格性
+   * 對絕對 URL 保留（cdn.readmoo.com only）。
+   */
+  describe('extractCoverIdFromUrl 相對 cover URL 修復 (W1-013)', () => {
+    beforeEach(() => {
+      adapter = createReadmooAdapter()
+    })
+
+    describe('validateCoverUrlInput - 相對路徑支援', () => {
+      test('相對 cover URL 不被誤判為 unsafe，回傳原 URL', () => {
+        // W1-013 根因 1：未傳 base 時相對路徑被誤判 unsafe → null
+        expect(adapter.validateCoverUrlInput('/cover/abc/xyz_210x315.jpg'))
+          .toBe('/cover/abc/xyz_210x315.jpg')
+      })
+
+      test('絕對 cover URL 行為不變（向後相容）', () => {
+        expect(adapter.validateCoverUrlInput('https://cdn.readmoo.com/cover/jb/q_210x315.jpg'))
+          .toBe('https://cdn.readmoo.com/cover/jb/q_210x315.jpg')
+      })
+
+      test('javascript: URI 仍被過濾為 null（安全檢查未弱化）', () => {
+        expect(adapter.validateCoverUrlInput('javascript:alert(1)')).toBeNull()
+      })
+
+      test('data: URI 仍被過濾為 null（安全檢查未弱化）', () => {
+        expect(adapter.validateCoverUrlInput('data:image/png;base64,AAAA')).toBeNull()
+      })
+
+      test('相對路徑含路徑遍歷 (..) 仍被過濾為 null', () => {
+        expect(adapter.validateCoverUrlInput('/cover/../../../etc/passwd')).toBeNull()
+      })
+
+      test('空值或非字串輸入仍回傳 null', () => {
+        expect(adapter.validateCoverUrlInput('')).toBeNull()
+        expect(adapter.validateCoverUrlInput(null)).toBeNull()
+        expect(adapter.validateCoverUrlInput(undefined)).toBeNull()
+        expect(adapter.validateCoverUrlInput(123)).toBeNull()
+      })
+    })
+
+    describe('validateReadmooDomain - 相對路徑支援', () => {
+      test('相對 /cover/ 路徑被視為合法（隱含 readmoo-domain）', () => {
+        expect(adapter.validateReadmooDomain('/cover/abc/xyz_210x315.jpg')).toBe(true)
+      })
+
+      test('絕對 cdn.readmoo.com /cover/ URL 行為不變（向後相容）', () => {
+        expect(adapter.validateReadmooDomain('https://cdn.readmoo.com/cover/jb/q_210x315.jpg'))
+          .toBe(true)
+      })
+
+      test('絕對 cdn.readmoo.com 非 /cover/ 路徑仍被拒絕', () => {
+        expect(adapter.validateReadmooDomain('https://cdn.readmoo.com/other/path.jpg'))
+          .toBe(false)
+      })
+
+      test('絕對非 cdn.readmoo.com 域名（即使路徑含 /cover/）仍被拒絕（hostname 嚴格性保留）', () => {
+        expect(adapter.validateReadmooDomain('https://evil.com/cover/abc/xyz.jpg')).toBe(false)
+      })
+
+      test('相對路徑非 /cover/ 開頭仍被拒絕', () => {
+        expect(adapter.validateReadmooDomain('/other/abc/xyz.jpg')).toBe(false)
+      })
+
+      test('protocol-relative URL (//evil.com/cover/...) 不視為相對路徑', () => {
+        // protocol-relative URL resolve 後 hostname = evil.com，非 cdn.readmoo.com，被拒絕
+        expect(adapter.validateReadmooDomain('//evil.com/cover/abc/xyz.jpg')).toBe(false)
+      })
+
+      test('無效輸入回傳 false（handleWithFallback 兜底）', () => {
+        expect(adapter.validateReadmooDomain('')).toBe(false)
+        expect(adapter.validateReadmooDomain(null)).toBe(false)
+        expect(adapter.validateReadmooDomain('not a url')).toBe(false)
+      })
+    })
+
+    describe('extractCoverIdFromUrl - 端到端相對路徑支援（主回歸）', () => {
+      test('相對 cover URL 可正確提取 coverId（W1-013 主修復目標）', () => {
+        // W1-013 主 AC：相對 cover URL 可正確提取 coverId
+        // 修復前：validateCoverUrlInput → null 或 validateReadmooDomain → false → null
+        // 修復後：完整流程通過 → extractIdFromCoverPath 取出 'xyz'
+        expect(adapter.extractCoverIdFromUrl('/cover/abc/xyz_210x315.jpg')).toBe('xyz')
+      })
+
+      test('絕對 cover URL 行為不變（向後相容）', () => {
+        expect(adapter.extractCoverIdFromUrl('https://cdn.readmoo.com/cover/jb/qpfmrmi_210x315.jpg'))
+          .toBe('qpfmrmi')
+      })
+
+      test('相對 cover URL 含查詢參數可正確提取 coverId', () => {
+        expect(adapter.extractCoverIdFromUrl('/cover/ab/test123_210x315.jpg?v=123456'))
+          .toBe('test123')
+      })
+
+      test('相對 cover URL 含 javascript: 被攔截回傳 null（安全檢查未弱化）', () => {
+        expect(adapter.extractCoverIdFromUrl('javascript:alert(1)')).toBeNull()
+      })
+
+      test('相對 cover URL 含路徑遍歷被攔截回傳 null（安全檢查未弱化）', () => {
+        expect(adapter.extractCoverIdFromUrl('/cover/../../../etc/passwd')).toBeNull()
+      })
+
+      test('非 cdn.readmoo.com 的絕對 URL 被拒絕回傳 null（hostname 嚴格性）', () => {
+        expect(adapter.extractCoverIdFromUrl('https://evil.com/cover/abc/xyz_210x315.jpg'))
+          .toBeNull()
+      })
+    })
+  })
+
+  /**
    * TG-8：extractAllBooks 與 loadAllBooksLazy 整合（0.19.0-W1-030）
    *
    * 對應 Phase 2 測試設計 TG-8。驗證捲動載入在 extractAllBooks 內

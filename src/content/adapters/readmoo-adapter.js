@@ -1680,26 +1680,52 @@ function createReadmooAdapter (options = {}) {
 
     /**
      * 驗證封面URL輸入
-     * @param {string} coverUrl - 封面URL
+     *
+     * 支援相對路徑（W1-013）：傳入 getLocation().origin 作 base，
+     * 避免 isUnsafeUrl 單參數 new URL() 對相對路徑 throw 而誤判 unsafe。
+     * W1-010 已使 extractCoverAndTitle 保留相對路徑封面，本處接續放行。
+     *
+     * @param {string} coverUrl - 封面URL（可為絕對 URL 或相對路徑）
      * @returns {string|null} 驗證後的URL或null
      */
     validateCoverUrlInput (coverUrl) {
       if (!coverUrl || typeof coverUrl !== 'string') return null
       const trimmed = coverUrl.trim()
-      return this.isUnsafeUrl(trimmed) ? null : trimmed
+      const base = getLocation().origin
+      return this.isUnsafeUrl(trimmed, base) ? null : trimmed
     },
 
     /**
      * 驗證Readmoo域名
-     * @param {string} url - URL
+     *
+     * 支援相對路徑（W1-013）：相對 cover URL（如 /cover/abc/xyz.jpg）來自
+     * Readmoo SPA 本身，隱含 readmoo-domain 來源。已通過 validateCoverUrlInput
+     * 的 isUnsafeUrl 安全檢查（含 javascript:/data: 協議與路徑遍歷過濾），
+     * 此處僅需驗證路徑特徵（含 /cover/）。
+     *
+     * 安全模型：
+     * - 絕對 URL：嚴格驗證 hostname === 'cdn.readmoo.com'（原有行為）
+     * - 相對 URL：只要 path 含 /cover/ 即視為合法（已過上游安全閘）
+     *
+     * 判斷相對路徑採 `startsWith('/') && !startsWith('//')`：排除 protocol-relative
+     * URL（//evil.com/...），避免被誤判為 readmoo 路徑。
+     *
+     * @param {string} url - URL（可為絕對 URL 或相對路徑）
      * @returns {boolean} 是否為Readmoo封面URL
      */
     validateReadmooDomain (url) {
       return this.handleWithFallback(
         'validateReadmooDomain',
         () => {
-          const urlObj = new URL(url)
-          return urlObj.hostname === 'cdn.readmoo.com' && urlObj.pathname.includes('/cover/')
+          const isRelative = typeof url === 'string' &&
+            url.startsWith('/') && !url.startsWith('//')
+          const base = getLocation().origin
+          const urlObj = isRelative ? new URL(url, base) : new URL(url)
+
+          const isCdnHost = urlObj.hostname === 'cdn.readmoo.com'
+          const hasCoverPath = urlObj.pathname.includes('/cover/')
+
+          return hasCoverPath && (isCdnHost || isRelative)
         },
         false
       )
