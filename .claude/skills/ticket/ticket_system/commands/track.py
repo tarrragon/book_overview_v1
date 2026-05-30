@@ -385,7 +385,8 @@ def _register_lifecycle_commands(
         dest="skip_verify",
         action="store_true",
         help=(
-            "W3-046: 已預設不執行 AC 驗證，此旗標保留為 no-op（向後相容）"
+            "W3-046: 已預設不執行 AC 驗證，此旗標保留為 no-op（向後相容）。"
+            "W3-055: 已標記 deprecated；任何用法皆會輸出警告，計畫於 v1.0 前移除"
         ),
     )
     p_claim.add_argument(

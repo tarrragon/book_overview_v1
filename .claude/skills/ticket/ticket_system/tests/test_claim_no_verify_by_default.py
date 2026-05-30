@@ -185,6 +185,67 @@ def test_execute_claim_skip_verify_flag_still_works(monkeypatch, stub_claim):
 
 
 # ---------------------------------------------------------------------------
+# Test 3b: --skip-verify standalone deprecation warning (W3-055 AC1)
+# ---------------------------------------------------------------------------
+
+
+def test_execute_claim_standalone_skip_verify_emits_deprecation(
+    capsys, stub_claim
+):
+    """W3-055 AC1（linux 發現 2）：standalone --skip-verify 也必須輸出
+    deprecation warning。
+
+    W3-046 後 --skip-verify 已是 no-op，但原實作僅在與 --yes/--verify 同用時
+    才輸出警告，遮蔽了 deprecation 觀察期所需的全量訊號。本測試確保任何
+    --skip-verify 使用皆能被觀察到。
+    """
+    args = _make_args(ticket_id="0.0.0-W0-PENDING", skip_verify=True)
+    rc = execute_claim(args, version="0.0.0")
+
+    assert rc == 0
+    assert stub_claim["count"] == 1, "deprecation warning 不可阻擋 claim 成功"
+    captured = capsys.readouterr()
+    assert "[Deprecation]" in captured.err, (
+        "standalone --skip-verify 應輸出 [Deprecation] 標頭警告"
+    )
+    assert "--skip-verify" in captured.err
+    assert "W3-055" in captured.err, "警告應引用 W3-055 觀察 ticket"
+
+
+def test_execute_claim_skip_verify_with_conflict_appends_extra_note(
+    capsys, stub_claim
+):
+    """--skip-verify + --yes 同用時，deprecation warning 後綴 conflict note。
+
+    保留原 W3-046 設計意圖：明示新預設已不執行驗證、--yes 無作用。
+    與 standalone case 共用同一 [Deprecation] 標頭。
+    """
+    args = _make_args(
+        ticket_id="0.0.0-W0-PENDING", skip_verify=True, yes=True
+    )
+    rc = execute_claim(args, version="0.0.0")
+
+    assert rc == 0
+    captured = capsys.readouterr()
+    assert "[Deprecation]" in captured.err
+    assert "新預設不執行驗證" in captured.err, (
+        "conflict case 應追加新預設說明 note"
+    )
+
+
+def test_execute_claim_no_flags_emits_no_deprecation(capsys, stub_claim):
+    """無 --skip-verify 旗標時不應觸發 deprecation warning（避免 noise）。"""
+    args = _make_args(ticket_id="0.0.0-W0-PENDING")
+    rc = execute_claim(args, version="0.0.0")
+
+    assert rc == 0
+    captured = capsys.readouterr()
+    assert "[Deprecation]" not in captured.err, (
+        "無 --skip-verify 時不應觸發 deprecation warning"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Test 4: complete 流程不執行 subprocess（並行 complete 安全性確認）
 # ---------------------------------------------------------------------------
 

@@ -2015,15 +2015,23 @@ def execute_claim(args: argparse.Namespace, version: str) -> int:
     # 全套件造成同 wave 並行 claim 衝突（PC-078 根本解）。--verify 旗標明示啟用
     # 才走 claim_with_verification（保留除錯場景）。
     # --skip-verify 變成 no-op（保留向後相容；歷史腳本不報錯）。
+    # W3-055 AC1（linux 發現 2）：standalone --skip-verify 也需 deprecation warning，
+    # 不再僅限 conflict case；觀察期內所有 --skip-verify 使用都明示為 deprecated。
     if verify_opt_in and not skip_verify:
         rc = lifecycle.claim_with_verification(
             args.ticket_id, skip_verify=skip_verify, auto_yes=auto_yes
         )
     else:
-        if skip_verify and (auto_yes or verify_opt_in):
+        if skip_verify:
+            conflict_note = (
+                "（同時指定 --yes/--verify 時新預設不執行驗證）"
+                if (auto_yes or verify_opt_in)
+                else ""
+            )
             sys.stderr.write(
-                "[Warning] --skip-verify 與 --yes/--verify 同時指定；"
-                "新預設已不執行驗證，--skip-verify 為 no-op\n"
+                "[Deprecation] --skip-verify 為 no-op（W3-046 後 claim 預設"
+                "不執行 AC 驗證），計畫於 v1.0 前移除（W3-055 觀察中）"
+                f"{conflict_note}\n"
             )
         rc = lifecycle.claim(args.ticket_id)
 
