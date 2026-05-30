@@ -1262,6 +1262,112 @@ describe('ReadmooAdapter', () => {
   })
 
   /**
+   * W1-012：extractHrefFromElement 相對路徑 reader link 修復
+   *
+   * 根因（同 W1-010 模式）：extractHrefFromElement 呼叫 isUnsafeUrl(rawHref) 未傳 base，
+   * 相對路徑 reader link（如 /api/reader/abc123）會被單參數 new URL() throw 誤判為 unsafe，
+   * 導致 href 清空 → readerId 變空 → 書籍主 ID 退化為 fallback（privacy ID / 硬編碼）。
+   *
+   * 修復：isUnsafeUrl(rawHref) → isUnsafeUrl(rawHref, getLocation().origin)
+   * 安全保證：javascript:/data: 協議與路徑遍歷 (../%2e%2e) 仍會被 isUnsafeUrl 過濾。
+   */
+  describe('extractHrefFromElement 相對路徑 reader link 修復 (W1-012)', () => {
+    beforeEach(() => {
+      adapter = createReadmooAdapter()
+    })
+
+    test('相對路徑 reader link 不被誤判為 unsafe，readerId 正確提取', () => {
+      // W1-012 根因：單參數 new URL() 對相對路徑 throw，被 isUnsafeUrl 誤判為 unsafe
+      // 修復後：傳入 getLocation().origin（測試環境為 https://readmoo.com）作 base
+      document.body.innerHTML = `
+        <div class="library-item">
+          <a href="/api/reader/abc123" class="reader-link"></a>
+        </div>
+      `
+      const element = document.querySelector('.library-item')
+
+      const result = adapter.extractHrefFromElement(element)
+
+      // href 不應被清空（修復前：相對路徑被誤判 unsafe → href = ''）
+      expect(result.href).toBe('/api/reader/abc123')
+      // readerId 不應退化（修復前：href 清空 → extractBookId 取不到 → readerId = ''）
+      expect(result.readerId).toBe('abc123')
+    })
+
+    test('相對 /api/reader/ 多段路徑 reader link 不被誤判為 unsafe', () => {
+      // 真實 Readmoo reader link selector 為 a[href*="/api/reader/"]，
+      // 此測試確認多段路徑（不只 /api/reader/{id} 短形）的相對路徑也能正確處理。
+      document.body.innerHTML = `
+        <div class="library-item">
+          <a href="/api/reader/xyz789/chapter/1" class="reader-link"></a>
+        </div>
+      `
+      const element = document.querySelector('.library-item')
+
+      const result = adapter.extractHrefFromElement(element)
+
+      expect(result.href).toBe('/api/reader/xyz789/chapter/1')
+      expect(result.readerId).toBe('xyz789')
+    })
+
+    test('絕對路徑 reader link 行為不變（向後相容）', () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <a href="https://readmoo.com/api/reader/abs999" class="reader-link"></a>
+        </div>
+      `
+      const element = document.querySelector('.library-item')
+
+      const result = adapter.extractHrefFromElement(element)
+
+      expect(result.href).toBe('https://readmoo.com/api/reader/abs999')
+      expect(result.readerId).toBe('abs999')
+    })
+
+    test('相對路徑 reader link 含 javascript: 仍被清空（安全檢查未弱化）', () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <a href="javascript:alert('xss')" class="reader-link"></a>
+        </div>
+      `
+      const element = document.querySelector('.library-item')
+
+      const result = adapter.extractHrefFromElement(element)
+
+      expect(result.href).toBe('')
+      expect(result.readerId).toBe('')
+    })
+
+    test('相對路徑 reader link 含路徑遍歷 (..) 仍被清空（安全檢查未弱化）', () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <a href="/api/reader/../../../etc/passwd" class="reader-link"></a>
+        </div>
+      `
+      const element = document.querySelector('.library-item')
+
+      const result = adapter.extractHrefFromElement(element)
+
+      expect(result.href).toBe('')
+      expect(result.readerId).toBe('')
+    })
+
+    test('相對路徑 reader link 含 %2e%2e 編碼路徑遍歷仍被清空', () => {
+      document.body.innerHTML = `
+        <div class="library-item">
+          <a href="/api/reader/%2e%2e/%2e%2e/etc/passwd" class="reader-link"></a>
+        </div>
+      `
+      const element = document.querySelector('.library-item')
+
+      const result = adapter.extractHrefFromElement(element)
+
+      expect(result.href).toBe('')
+      expect(result.readerId).toBe('')
+    })
+  })
+
+  /**
    * TG-8：extractAllBooks 與 loadAllBooksLazy 整合（0.19.0-W1-030）
    *
    * 對應 Phase 2 測試設計 TG-8。驗證捲動載入在 extractAllBooks 內

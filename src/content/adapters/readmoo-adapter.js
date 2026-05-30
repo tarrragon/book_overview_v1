@@ -1001,7 +1001,12 @@ function createReadmooAdapter (options = {}) {
       const rawHref = readerLink.getAttribute('href') || ''
 
       // 安全檢查 - 不安全的 URL 清空但不丟棄整筆
-      if (rawHref && this.isUnsafeUrl(rawHref)) {
+      // 傳入 location.origin 作 base，使相對路徑 reader link（如 /api/reader/abc123）
+      // 能被正確解析而非誤判為 unsafe（W1-012 / W1-010 同源修復）
+      // 若不傳 base，單參數 new URL() 對相對路徑 throw → 誤判 unsafe → href 清空
+      // → readerId 退化為 fallback ID（如 privacy ID 或硬編碼）
+      const hrefBase = getLocation().origin
+      if (rawHref && this.isUnsafeUrl(rawHref, hrefBase)) {
         logger.warn('UNSAFE_URL_FILTERED', { url: rawHref })
         return { href: '', readerId: '' }
       }
