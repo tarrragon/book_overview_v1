@@ -90,6 +90,7 @@ related:
 | `process.on('uncaughtException')` | Node.js 事件 | `self.addEventListener('error')` |
 | `require('crypto').randomBytes()` | Node.js 模組 | `crypto.getRandomValues()`（Web Crypto API）|
 | `require('crypto').createHash()` | Node.js 模組 | `crypto.subtle.digest()`（Web Crypto API）|
+| `global.gc()` | Node.js debugging | 不可用（CE runtime 無 V8 GC 暴露，移除或改用 `FinalizationRegistry`）|
 
 ---
 
@@ -125,19 +126,23 @@ related:
         "message": "CE runtime 無 __filename，此為 Node.js 模組 API"
       }
     ],
-    "no-restricted-modules": [
+    "no-restricted-imports": [
       "error",
       {
-        "name": "crypto",
-        "message": "CE runtime 無 Node.js crypto 模組，請改用 Web Crypto API (globalThis.crypto)"
-      },
-      {
-        "name": "fs",
-        "message": "CE runtime 無 Node.js fs 模組"
-      },
-      {
-        "name": "path",
-        "message": "CE runtime 無 Node.js path 模組"
+        "paths": [
+          {
+            "name": "crypto",
+            "message": "CE runtime 無 Node.js crypto 模組，請改用 Web Crypto API (globalThis.crypto)"
+          },
+          {
+            "name": "fs",
+            "message": "CE runtime 無 Node.js fs 模組"
+          },
+          {
+            "name": "path",
+            "message": "CE runtime 無 Node.js path 模組"
+          }
+        ]
       }
     ]
   }
@@ -203,6 +208,12 @@ if grep -rn 'process\.env\.NODE_ENV' "$DIST_DIR" --include="*.js"; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# 檢查 Node.js crypto 模組殘留
+if grep -rn "require\(['\"]crypto['\"]\)\|\.randomBytes\b\|\.createHash\b" "$DIST_DIR" --include="*.js"; then
+  echo "[ERROR] 發現 Node.js crypto 模組殘留，請改用 Web Crypto API"
+  ERRORS=$((ERRORS + 1))
+fi
+
 if [ $ERRORS -eq 0 ]; then
   echo "[PASS] CE bundle 相容性檢查通過"
   exit 0
@@ -228,6 +239,7 @@ fi
 
 ---
 
+<!-- PC-093-exempt: history:W1-050 + W1-001.2.1 + W1-047.1~.5 為已完成歷史錨點，非延後決策 -->
 ## 動機案例
 
 ### W1-050 ANA + W1-047.1~.5（2026-05-23，v0.19.0）
@@ -285,6 +297,7 @@ const reader = new FileReader();
 - [ ] 是否使用 `process.hrtime/nextTick/memoryUsage`？→ 改 `performance.now()` / `queueMicrotask()` / `performance.memory`
 - [ ] 是否使用 `process.on('uncaughtException')`？→ 改 `self.addEventListener('error')`
 - [ ] 是否使用 `require('crypto')`？→ 改 `globalThis.crypto.getRandomValues()` / `crypto.subtle.digest()`
+- [ ] 是否使用 `global.gc()`？→ 移除（Node.js debugging API，CE runtime 無 V8 GC 暴露）
 - [ ] 是否在 SW context 使用 `window.*`？→ 改 `self.*`（SW 使用 `self` 而非 `window`）
 
 ### 錯誤做法（避免）
@@ -328,6 +341,7 @@ const mem = performance.memory?.usedJSHeapSize; // Chrome-only，需 optional ch
 
 ---
 
+<!-- PC-093-exempt: history:W1-050 + W1-001.2.1 + W1-047.1~.5 為已完成歷史錨點，非延後決策 -->
 ## 相關資源
 
 - `docs/work-logs/v0/v0.19/v0.19.0/tickets/0.19.0-W1-050.md` — W1-050 ANA 全 src 盤點（致命 21 處完整表格 + 修復 IMP 拆分）
