@@ -96,7 +96,11 @@ def load_top_ready(
         if readiness != "READY":
             continue
         candidates.append((t, readiness))
-    candidates.sort(key=lambda pair: (_priority_rank(pair[0]), str(pair[0].get("id") or "")))
+    candidates.sort(key=lambda pair: (
+        _priority_rank(pair[0]),
+        1 if pair[0].get("trigger_bound") else 0,
+        str(pair[0].get("id") or ""),
+    ))
     if top <= 0:
         return []
     limited = candidates[:top]
@@ -106,6 +110,7 @@ def load_top_ready(
             "title": t.get("title") or "",
             "priority": t.get("priority") or "P?",
             "readiness": readiness,
+            "trigger_bound": bool(t.get("trigger_bound")),
         }
         for (t, readiness) in limited
     ]
@@ -175,8 +180,9 @@ def render_text(
     else:
         for index, item in enumerate(ready, start=1):
             readiness_label = "ready"
+            trigger_tag = " [T]" if item.get("trigger_bound") else ""
             lines.append(
-                f"  [{index}] [{item['priority']}] [{readiness_label}] "
+                f"  [{index}] [{item['priority']}] [{readiness_label}]{trigger_tag} "
                 f"{item['id']}  {item['title']}"
             )
     lines.append("")
@@ -230,6 +236,7 @@ def render_json(
                 "priority": item["priority"],
                 "readiness": "ready",
                 "title": item["title"],
+                "trigger_bound": bool(item.get("trigger_bound")),
             }
             for i, item in enumerate(ready)
         ],
