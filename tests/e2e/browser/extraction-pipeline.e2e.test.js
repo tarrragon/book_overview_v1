@@ -27,7 +27,6 @@ const ExtensionTestSetup = require('../setup/extension-setup')
 const { clearBooksStorage } = require('./helpers/storage-reader')
 const {
   FIXTURE_BOOK_COUNT,
-  triggerExtraction,
   runExtraction,
   reExtract
 } = require('./helpers/extraction-flow')

@@ -31,9 +31,8 @@
  */
 
 const ExtensionTestSetup = require('../setup/extension-setup')
-const { clearBooksStorage, readBooksFromStorage, waitForBooksStable, getServiceWorker } = require('./helpers/storage-reader')
+const { clearBooksStorage, waitForBooksStable, getServiceWorker } = require('./helpers/storage-reader')
 const {
-  FIXTURE_URL,
   FIXTURE_BOOK_COUNT,
   navigateToFixture
 } = require('./helpers/extraction-flow')
