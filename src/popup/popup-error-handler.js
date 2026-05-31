@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-console -- 載入時序日誌：Logger 模組尚未初始化（require 於下行才執行），須以 console 確認 bundle 載入順序
 console.log('[POPUP DEBUG] popup-error-handler.js 已載入')
 // 支援多環境載入（瀏覽器 / Node.js 測試環境）
 var Logger, ErrorCodes, MessageDictionary

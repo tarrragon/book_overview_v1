@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-console -- 載入時序日誌：Logger 模組尚未初始化（檔案頂層執行時序），須以 console 確認 bundle 載入順序
 console.log('[POPUP DEBUG] popup-ui-components.js 已載入')
 /**
  * Popup UI 組件管理器 - TDD 循環 #25
