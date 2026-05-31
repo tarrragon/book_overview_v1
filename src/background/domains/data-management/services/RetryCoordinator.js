@@ -421,6 +421,7 @@ class RetryCoordinator {
       await chrome.storage.local.set({ [STORAGE_KEY]: stateData })
     } catch (error) {
       // 持久化失敗不應阻塞重試流程，記錄錯誤供除錯
+      // eslint-disable-next-line no-console -- Logger 未注入：RetryCoordinator 為 Service Worker 持久化基礎元件，無 logger 依賴；用 console.error 保留錯誤可觀測性
       console.error('RetryCoordinator saveState 失敗:', error.message || error)
     }
   }
@@ -465,6 +466,7 @@ class RetryCoordinator {
       return stateData
     } catch (error) {
       // 載入失敗不應阻塞初始化，記錄錯誤供除錯
+      // eslint-disable-next-line no-console -- Logger 未注入：RetryCoordinator 為 Service Worker 持久化基礎元件，無 logger 依賴；用 console.error 保留錯誤可觀測性
       console.error('RetryCoordinator loadState 失敗:', error.message || error)
       return null
     }

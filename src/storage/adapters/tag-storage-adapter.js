@@ -21,6 +21,29 @@ const { COLORS } = require('../../core/design-system/colors.js')
 
 const TagSchema = require('../../data-management/TagSchema')
 
+const { Logger } = require('../../core/logging/Logger')
+// 顯式指向 messages/index 避免與同層 messages.js（legacy 基礎字典）衝突解析
+const { MessageDictionary } = require('../../core/messages/index')
+
+// 本地訊息字典（W4-024.2 G1 console A/C 分流 C 類處理）
+// Why: 業務日誌統一走 Logger 系統；保留原 [tag-storage-adapter] prefix 透過 Logger name 欄位呈現
+// Consequence: 訊息文字若需調整，僅修改本字典；無需散佈 grep
+// Action: 新增訊息時加入 TAG_STORAGE_* key（前綴對齊 module 命名規範，project-conventions §Messages 系統）
+const tagStorageAdapterMessages = new MessageDictionary({
+  LOCK_OPERATION_FAILED: 'Lock operation failed: {error}',
+  ROLLBACK_TRIGGERED: '{operation} failed, rolling back: {error}',
+  REPLACE_BLOCKED_QUOTA: 'replaceAllData blocked: quota exceeded',
+  REPLACE_FAILED_AFTER_ROLLBACK: 'replaceAllData failed after rollback',
+  MERGE_TAG_CATEGORY_MISSING: "merge: tag '{tagId}' categoryId 無對應，歸入「未分類」",
+  MERGE_BOOK_MISSING_ID: 'merge: book 缺 id 跳過',
+  MERGE_TAGID_UNMAPPABLE: "merge: 匯入 tagId 無法重映射，過濾 '{tagId}'",
+  MERGE_TAGIDS_TRUNCATED: "merge: book '{bookId}' tagIds 聯集超 {limit} 截斷",
+  MERGE_BLOCKED_QUOTA: 'mergeAllData blocked: quota exceeded',
+  MERGE_FAILED_AFTER_ROLLBACK: 'mergeAllData failed after rollback'
+})
+
+const logger = new Logger('[tag-storage-adapter]', 'INFO', tagStorageAdapterMessages)
+
 const STORAGE_KEYS = {
   READMOO_BOOKS: 'readmoo_books',
   TAG_CATEGORIES: 'tag_categories',
@@ -156,9 +179,7 @@ const operationLock = {
   run (fn) {
     const next = this._queue.then(fn, fn)
     this._queue = next.catch((err) => {
-      if (typeof console !== 'undefined') {
-        console.error('[tag-storage-adapter] Lock operation failed:', err)
-      }
+      logger.error('LOCK_OPERATION_FAILED', { error: err && err.message ? err.message : String(err) })
     })
     return next
   }
@@ -195,7 +216,7 @@ async function withAtomicRollback (snapshotKeys, operation, operationName) {
   try {
     return await operation()
   } catch (err) {
-    console.error(`[tag-storage-adapter] ${operationName} failed, rolling back:`, err.message)
+    logger.error('ROLLBACK_TRIGGERED', { operation: operationName, error: err.message })
     for (const [key, value] of Object.entries(snapshot)) {
       if (key === 'books') {
         await saveBooksWrapper(value)
@@ -751,7 +772,7 @@ async function replaceAllData ({ books, tags, tagCategories }) {
     // 步驟 A：配額前置攔截——blocked 時不寫入任何 key
     const quota = await checkQuotaLevel()
     if (quota.level === 'blocked') {
-      console.error('[tag-storage-adapter] replaceAllData blocked: quota exceeded')
+      logger.error('REPLACE_BLOCKED_QUOTA')
       return { success: false, error: 'quota_exceeded' }
     }
 
@@ -788,7 +809,7 @@ async function replaceAllData ({ books, tags, tagCategories }) {
 
     // withAtomicRollback 已完成回滾並回傳 { success:false, error:'rollback' }；
     // 對外統一轉為 'storage_error'，'rollback' 為實作細節不外洩。
-    console.error('[tag-storage-adapter] replaceAllData failed after rollback')
+    logger.error('REPLACE_FAILED_AFTER_ROLLBACK')
     return { success: false, error: 'storage_error' }
   })
 }
@@ -924,9 +945,7 @@ function computeMergeResult (local, incoming, idGenerators) {
     // 重映射 categoryId；匯入檔案內找不到對應 category → 歸入「未分類」
     let localCatId = categoryIdMap.get(impTag.categoryId)
     if (localCatId === undefined) {
-      console.warn(
-        `[tag-storage-adapter] merge: tag '${impTag.id}' categoryId 無對應，歸入「未分類」`
-      )
+      logger.warn('MERGE_TAG_CATEGORY_MISSING', { tagId: impTag.id })
       localCatId = ensureUncategorized()
     }
     const key = makeTagKey(localCatId, name)
@@ -952,7 +971,7 @@ function computeMergeResult (local, incoming, idGenerators) {
 
   for (const impBook of incomingBooks) {
     if (impBook.id === undefined || impBook.id === null) {
-      console.warn('[tag-storage-adapter] merge: book 缺 id 跳過')
+      logger.warn('MERGE_BOOK_MISSING_ID')
       continue
     }
     // 重映射匯入 tagIds，過濾無法重映射者（匯入側孤兒，不觸碰本地側）
@@ -960,9 +979,7 @@ function computeMergeResult (local, incoming, idGenerators) {
     for (const tid of (impBook.tagIds || [])) {
       const mapped = tagIdMap.get(tid)
       if (mapped === undefined) {
-        console.warn(
-          `[tag-storage-adapter] merge: 匯入 tagId 無法重映射，過濾 '${tid}'`
-        )
+        logger.warn('MERGE_TAGID_UNMAPPABLE', { tagId: tid })
         continue
       }
       remappedTagIds.push(mapped)
@@ -972,9 +989,7 @@ function computeMergeResult (local, incoming, idGenerators) {
       const localBook = localBookById.get(impBook.id)
       let unionTagIds = [...new Set([...(localBook.tagIds || []), ...remappedTagIds])]
       if (unionTagIds.length > TagSchema.MAX_TAGS_PER_BOOK) {
-        console.warn(
-          `[tag-storage-adapter] merge: book '${impBook.id}' tagIds 聯集超 ${TagSchema.MAX_TAGS_PER_BOOK} 截斷`
-        )
+        logger.warn('MERGE_TAGIDS_TRUNCATED', { bookId: impBook.id, limit: TagSchema.MAX_TAGS_PER_BOOK })
         unionTagIds = unionTagIds.slice(0, TagSchema.MAX_TAGS_PER_BOOK)
       }
       localBookById.set(impBook.id, { ...localBook, ...impBook, tagIds: unionTagIds })
@@ -1031,7 +1046,7 @@ async function mergeAllData ({ books, tags, tagCategories }) {
     // 步驟 A：配額前置攔截——blocked 時不讀、不算、不寫
     const quota = await checkQuotaLevel()
     if (quota.level === 'blocked') {
-      console.error('[tag-storage-adapter] mergeAllData blocked: quota exceeded')
+      logger.error('MERGE_BLOCKED_QUOTA')
       return { success: false, error: 'quota_exceeded' }
     }
 
@@ -1081,7 +1096,7 @@ async function mergeAllData ({ books, tags, tagCategories }) {
 
     // withAtomicRollback 已完成回滾並回傳 { success:false, error:'rollback' }；
     // 對外統一轉為 'storage_error'，'rollback' 為實作細節不外洩。
-    console.error('[tag-storage-adapter] mergeAllData failed after rollback')
+    logger.error('MERGE_FAILED_AFTER_ROLLBACK')
     return { success: false, error: 'storage_error' }
   })
 }
