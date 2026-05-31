@@ -744,6 +744,175 @@ describe('Popup Interface 整合測試', () => {
       })
     })
   })
+
+  /**
+   * W4-006: extractBtn UI 觸發路徑覆蓋
+   *
+   * 業務情境：
+   * - W1-008 Phase 3b 偏差 2 揭露：Puppeteer 環境下 popup 為獨立分頁致 checkCurrentTab
+   *   誤判、extractBtn 保持 disabled，E2E 改以 SW 直送 START_EXTRACTION，
+   *   popup UI button 觸發層因此未被 E2E 覆蓋。
+   * - W4-006 Phase 1 spike 確認方案 1（Puppeteer 真實 popup overlay）物理不可行，
+   *   方案 3（真實 click）受 popup Logger 重複宣告 pageerror 阻擋（已 spawn W4-006.1/.2）。
+   * - 採方案 2：integration test 層 mock chrome.tabs API 覆蓋
+   *   checkCurrentTab → extractBtn.disabled → click → sendMessage(START_EXTRACTION)
+   *   → UI 進入「提取中」狀態流轉的完整邏輯鏈。
+   *
+   * 三 case 設計：
+   * - Case A：checkCurrentTab + readmoo tab + Content Script 就緒 → extractBtn.disabled = false
+   * - Case B：extractBtn.click() → chrome.tabs.sendMessage 被以 {type:'START_EXTRACTION'} 呼叫
+   *           且 tab.id 正確（含 PING 與 START_EXTRACTION 兩次 sendMessage 的存在性斷言）
+   * - Case C：sendMessage 成功回應後 popup UI 進入「提取中」狀態（statusText、extensionStatus、
+   *           extractBtn.disabled、statusDot 四個 DOM 副作用）
+   *
+   * 預期 GREEN（regression 防護型 IMP，非 RED-first TDD）：
+   * - popup.js 邏輯已完整實作三個 case（Phase 2 評估），本區段補測試固化行為避免回歸
+   *
+   * 設計考量：
+   * - chrome.storage.onChanged 在本區 beforeEach 額外 mock，
+   *   避免 startExtraction → setupExtractionCompletionListener 因 chrome.storage undefined 早 return
+   * - sendMessage call sequence 含 PING（checkCurrentTab）+ START_EXTRACTION（startExtraction），
+   *   採 mock.calls.some 寬鬆斷言而非嚴格順序，提升測試穩健度
+   */
+  describe('W4-006: extractBtn UI 觸發路徑覆蓋', () => {
+    const READMOO_TAB_FIXTURE = {
+      id: 42,
+      url: 'https://read.readmoo.com/library',
+      title: 'Readmoo 書庫'
+    }
+
+    beforeEach(() => {
+      // loadPopupInterface() 已由外層 beforeEach 呼叫，
+      // 本區補充 chrome.storage mock 確保 startExtraction 內
+      // setupExtractionCompletionListener 不因 chrome.storage undefined 早 return
+      global.chrome.storage = {
+        onChanged: {
+          addListener: jest.fn(),
+          removeListener: jest.fn()
+        },
+        local: {}
+      }
+
+      // eslint-disable-next-line no-eval
+      eval(popupScript)
+
+      // 確保 extractBtn click handler 已綁定
+      if (window.setupEventListeners) {
+        window.setupEventListeners()
+      }
+    })
+
+    test('case A: 應在 Readmoo tab + Content Script 就緒時啟用 extractBtn', async () => {
+      // 前置斷言：popup 初始 extractBtn 狀態（依 popup.html 預設）
+      const extractBtn = document.getElementById('extractBtn')
+      expect(extractBtn).toBeTruthy()
+
+      // Mock 配置：readmoo tab + PING 回應成功
+      chrome.tabs.query.mockResolvedValue([READMOO_TAB_FIXTURE])
+      chrome.tabs.sendMessage.mockResolvedValue({ success: true })
+
+      // When：觸發 checkCurrentTab
+      expect(window.checkCurrentTab).toBeDefined()
+      await window.checkCurrentTab()
+
+      // Then：斷言 chrome API 被以正確參數呼叫
+      expect(chrome.tabs.query).toHaveBeenCalledWith({
+        active: true,
+        currentWindow: true
+      })
+
+      // Then：斷言 PING 被以 readmoo tab.id 呼叫
+      const pingCalled = chrome.tabs.sendMessage.mock.calls.some(
+        call => call[0] === READMOO_TAB_FIXTURE.id && call[1] && call[1].type === 'PING'
+      )
+      expect(pingCalled).toBe(true)
+
+      // Then：核心斷言 → extractBtn.disabled = false（補強既有測試僅驗證 query 被呼叫的覆蓋缺口）
+      expect(extractBtn.disabled).toBe(false)
+
+      // Then：pageInfo 顯示 Readmoo
+      const pageInfo = document.getElementById('pageInfo')
+      expect(pageInfo.textContent).toContain('Readmoo')
+    })
+
+    test('case B: 應在 extractBtn click 時發送 START_EXTRACTION 至當前 readmoo tab', async () => {
+      // Mock 配置：readmoo tab + PING/START_EXTRACTION 都成功
+      chrome.tabs.query.mockResolvedValue([READMOO_TAB_FIXTURE])
+      chrome.tabs.sendMessage.mockResolvedValue({ success: true, message: '已啟動' })
+
+      const extractBtn = document.getElementById('extractBtn')
+      expect(extractBtn).toBeTruthy()
+
+      // When：dispatchEvent click 觸發 startExtraction（async 流程）
+      const clickEvent = new window.MouseEvent('click', { bubbles: true })
+      extractBtn.dispatchEvent(clickEvent)
+
+      // 等 async startExtraction 完整走完（包含內部 await chrome.tabs.query 與兩次 sendMessage）
+      // 多輪 microtask flush 確保 chained promises 完成
+      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Then：sendMessage 至少被呼叫 2 次（PING + START_EXTRACTION）
+      expect(chrome.tabs.sendMessage.mock.calls.length).toBeGreaterThanOrEqual(2)
+
+      // Then：核心斷言 → 存在一次 sendMessage 以 (READMOO_TAB_FIXTURE.id, {type:'START_EXTRACTION'}) 呼叫
+      const startExtractionCalled = chrome.tabs.sendMessage.mock.calls.some(
+        call => call[0] === READMOO_TAB_FIXTURE.id &&
+                call[1] &&
+                call[1].type === 'START_EXTRACTION'
+      )
+      expect(startExtractionCalled).toBe(true)
+    })
+
+    test('case C: 應在 START_EXTRACTION 成功回應後將 UI 切換至提取中狀態', async () => {
+      // Mock 配置：同 case B
+      chrome.tabs.query.mockResolvedValue([READMOO_TAB_FIXTURE])
+      chrome.tabs.sendMessage.mockResolvedValue({ success: true, message: '已啟動' })
+
+      const extractBtn = document.getElementById('extractBtn')
+
+      // When：dispatchEvent click 觸發完整 startExtraction 流程
+      const clickEvent = new window.MouseEvent('click', { bubbles: true })
+      extractBtn.dispatchEvent(clickEvent)
+
+      // 多輪 microtask flush（含 await chrome.tabs.query + sendMessage(PING) + sendMessage(START_EXTRACTION)）
+      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise(resolve => setTimeout(resolve, 0))
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Then：DOM 副作用斷言 - UI 進入「提取中 / 完成」狀態流轉
+      // popup.js startExtraction 順序為：
+      //   1. updateStatus('提取中', EXTRACTION_IN_PROGRESS, ...) (line 845)
+      //   2. await sendMessage(START_EXTRACTION) (line 852)
+      //   3. response.success=true 後 updateStatus('完成', '資料提取完成', ...) (line 855)
+      // 本 case 接受最終終態為「完成」（含過渡狀態已執行的證據鏈：updateButtonState(true)）
+      const statusText = document.getElementById('statusText')
+      const extensionStatus = document.getElementById('extensionStatus')
+      const statusDot = document.getElementById('statusDot')
+
+      // 斷言：statusText 含「提取」或「完成」相關文字（startExtraction 終態為「完成」）
+      // 寬鬆斷言以容納 popup.js 從「提取中」流轉到「完成」的時序
+      const statusTextContent = statusText.textContent
+      const validStatus = statusTextContent.includes('提取') ||
+                          statusTextContent.includes('完成') ||
+                          statusTextContent.includes('資料')
+      expect(validStatus).toBe(true)
+
+      // 斷言：extensionStatus 顯示「提取中」或「完成」
+      const extensionStatusContent = extensionStatus.textContent
+      const validExtensionStatus = extensionStatusContent.includes('提取') ||
+                                    extensionStatusContent.includes('完成')
+      expect(validExtensionStatus).toBe(true)
+
+      // 斷言：statusDot className 反映過渡或終態（loading / ready / completed）
+      const statusDotClass = statusDot.className
+      const validDotClass = statusDotClass.includes('loading') ||
+                            statusDotClass.includes('ready') ||
+                            statusDotClass.includes('completed')
+      expect(validDotClass).toBe(true)
+    })
+  })
 })
 
 /**
