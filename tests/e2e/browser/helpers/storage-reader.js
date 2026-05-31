@@ -19,7 +19,7 @@
  */
 
 const { acquireServiceWorkerTarget } = require('../../setup/service-worker-target')
-const { STORAGE_STABLE_TIMEOUT } = require('./timeouts')
+const { STORAGE_STABLE_TIMEOUT, SW_LAUNCH_TIMEOUT } = require('./timeouts')
 
 const STORAGE_KEY = 'readmoo_books'
 
@@ -30,11 +30,11 @@ const STORAGE_KEY = 'readmoo_books'
  * 本函式保留 [SETUP] 前綴錯誤包裝（屬環境問題的可觀測契約）。
  *
  * @param {import('puppeteer').Browser} browser - Puppeteer Browser 實例
- * @param {number} timeout - 等待 SW target 的逾時毫秒數
+ * @param {number} [timeout=SW_LAUNCH_TIMEOUT] - 等待 SW target 的逾時毫秒數
  * @returns {Promise<import('puppeteer').WebWorker>} SW worker context
  * @throws {Error} 逾時未取得 SW 時拋錯（[SETUP] 前綴，屬環境問題）
  */
-async function getServiceWorker (browser, timeout = 10000) {
+async function getServiceWorker (browser, timeout = SW_LAUNCH_TIMEOUT) {
   try {
     const swTarget = await acquireServiceWorkerTarget(browser, timeout)
     return await swTarget.worker()
@@ -44,15 +44,50 @@ async function getServiceWorker (browser, timeout = 10000) {
 }
 
 /**
+ * 在 SW worker 內檢查 chrome.storage.local 是否可用
+ *
+ * 設計考量（W4-005.1）：
+ * - 直接在 worker 內 polling 失敗（setTimeout 在 evaluate 的 isolated world
+ *   不可用，會拋 ReferenceError）；改在 Node 側 polling，每次 polling 透過
+ *   獨立的 worker.evaluate 檢查。
+ * - Node 側 setTimeout 穩定可用。
+ *
+ * @param {import('puppeteer').WebWorker} worker - SW worker context
+ * @param {number} timeout - polling 上限
+ * @param {number} interval - polling 間隔
+ * @returns {Promise<void>}
+ * @throws {Error} 逾時未可用時拋錯
+ */
+async function waitForChromeStorageReady (worker, timeout = 5000, interval = 50) {
+  const deadline = Date.now() + timeout
+  while (Date.now() < deadline) {
+    const ready = await worker.evaluate(() => {
+      return typeof chrome !== 'undefined' &&
+             typeof chrome.storage !== 'undefined' &&
+             typeof chrome.storage.local !== 'undefined'
+    })
+    if (ready) {
+      return
+    }
+    await new Promise(resolve => setTimeout(resolve, interval))
+  }
+  throw new Error('[SETUP] chrome.storage.local 在 SW worker 內未於 ' + timeout + 'ms 內可用')
+}
+
+/**
  * 從 Service Worker 的 chrome.storage.local 讀取書籍陣列
  *
  * 雙形態容錯：readmoo_books 可能是物件（含 .books）或直接陣列。
+ *
+ * 設計考量（W4-005.1）：在 evaluate 前先 Node 側 polling 等待 chrome.storage.local
+ * 可用（worker 啟動 race 防護），避免「Cannot read properties of undefined」TypeError。
  *
  * @param {import('puppeteer').Browser} browser - Puppeteer Browser 實例
  * @returns {Promise<Array>} 書籍物件陣列；無資料時回傳空陣列
  */
 async function readBooksFromStorage (browser) {
   const worker = await getServiceWorker(browser)
+  await waitForChromeStorageReady(worker)
 
   // 在 SW context 內讀 storage；callback 形式的 get 包成 Promise
   const raw = await worker.evaluate((key) => {
@@ -113,11 +148,15 @@ async function waitForBooksStable (browser, expectedCount, options = {}) {
  *
  * 用於測試前置重置，確保每次提取從乾淨狀態開始。
  *
+ * 設計考量（W4-005.1）：在 evaluate 前先 Node 側 polling 等待 chrome.storage.local
+ * 可用（worker 啟動 race 防護），避免「Cannot read properties of undefined」TypeError。
+ *
  * @param {import('puppeteer').Browser} browser - Puppeteer Browser 實例
  * @returns {Promise<void>}
  */
 async function clearBooksStorage (browser) {
   const worker = await getServiceWorker(browser)
+  await waitForChromeStorageReady(worker)
   await worker.evaluate((key) => {
     return new Promise(resolve => {
       chrome.storage.local.remove([key], () => resolve())

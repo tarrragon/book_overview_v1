@@ -30,6 +30,7 @@ const path = require('path')
 const fs = require('fs')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { acquireServiceWorkerTarget } = require('./service-worker-target')
+const { SW_LAUNCH_TIMEOUT } = require('../browser/helpers/timeouts')
 
 class ExtensionTestSetup {
   constructor () {
@@ -75,56 +76,92 @@ class ExtensionTestSetup {
   }
 
   async setup (options = {}) {
-    try {
-      // 建立 Extension 建置路徑
-      const extensionPath = path.resolve(__dirname, '../../../build/development')
+    // SW launch 在系統負載/cold-start 情境下偶發無法在單次 timeout 內完成註冊
+    // （W4-005.1 二分定位確認：pristine baseline 在 5 run 中 2 run 失敗，與
+    // W4-005 重構無關，屬環境性 race condition）。採「Chrome instance 級別重試」
+    // 策略：若 SW 取得失敗，cleanup 當前 browser 並重新 launch，最多重試
+    // SW_LAUNCH_RETRY_MAX 次。每次 attempt 內 SW_LAUNCH_TIMEOUT 不變（已對齊
+    // DEFAULT_NAV_TIMEOUT 30s），重試重點在於繞過單次 Chrome cold-start 失敗。
+    const SW_LAUNCH_RETRY_MAX = 3
+    let lastError = null
 
-      // 偵測 Chrome 執行檔路徑
-      const chromePath = this.resolveChromePath()
-      const launchOptions = {
-        headless: false,
-        devtools: false,
-        protocolTimeout: 120000 // 增加協定超時時間
+    for (let attempt = 1; attempt <= SW_LAUNCH_RETRY_MAX; attempt++) {
+      try {
+        await this._setupSingleAttempt()
+        return // 成功
+      } catch (error) {
+        lastError = error
+        // 失敗時 cleanup 當前 browser 後重試（除非已是最後一次）
+        if (attempt < SW_LAUNCH_RETRY_MAX) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `⚠️ Extension 測試環境建立第 ${attempt} 次失敗，重試中: ${error.message}`
+          )
+          await this.cleanup()
+        }
       }
-
-      if (chromePath) {
-        launchOptions.executablePath = chromePath
-      }
-
-      // Chrome 不支援在 headless 模式下載入 Extension（Manifest V3 限制）
-      // 因此 E2E Extension 測試必須以 headed 模式執行
-      launchOptions.args = [
-        `--disable-extensions-except=${extensionPath}`,
-        `--load-extension=${extensionPath}`,
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-background-timer-throttling',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--remote-debugging-port=0', // 動態分配調試端口
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-features=TranslateUI',
-        '--disable-default-apps'
-      ]
-
-      this.browser = await puppeteer.launch(launchOptions)
-
-      // 取得 Extension ID
-      this.extensionId = await this.getExtensionId()
-
-      // 建立新頁面
-      this.page = await this.browser.newPage()
-
-      // 設定頁面配置
-      await this.configureTestPage()
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('❌ Extension 測試環境建立失敗:', error)
-      await this.cleanup()
-      throw error
     }
+
+    // 全部 attempt 用完仍失敗
+    // eslint-disable-next-line no-console
+    console.error('❌ Extension 測試環境建立失敗（已重試 ' + SW_LAUNCH_RETRY_MAX + ' 次）:', lastError)
+    await this.cleanup()
+    throw lastError
+  }
+
+  /**
+   * 單次 setup attempt（launch browser + 取得 SW + 建立 page）
+   *
+   * 抽出獨立方法供 setup() 內重試機制呼叫；錯誤直接拋出，由 setup() 統一處理
+   * cleanup 與 retry 邏輯。
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _setupSingleAttempt () {
+    // 建立 Extension 建置路徑
+    const extensionPath = path.resolve(__dirname, '../../../build/development')
+
+    // 偵測 Chrome 執行檔路徑
+    const chromePath = this.resolveChromePath()
+    const launchOptions = {
+      headless: false,
+      devtools: false,
+      protocolTimeout: 120000 // 增加協定超時時間
+    }
+
+    if (chromePath) {
+      launchOptions.executablePath = chromePath
+    }
+
+    // Chrome 不支援在 headless 模式下載入 Extension（Manifest V3 限制）
+    // 因此 E2E Extension 測試必須以 headed 模式執行
+    launchOptions.args = [
+      `--disable-extensions-except=${extensionPath}`,
+      `--load-extension=${extensionPath}`,
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-background-timer-throttling',
+      '--disable-web-security',
+      '--disable-features=VizDisplayCompositor',
+      '--remote-debugging-port=0', // 動態分配調試端口
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-features=TranslateUI',
+      '--disable-default-apps'
+    ]
+
+    this.browser = await puppeteer.launch(launchOptions)
+
+    // 取得 Extension ID
+    this.extensionId = await this.getExtensionId()
+
+    // 建立新頁面
+    this.page = await this.browser.newPage()
+
+    // 設定頁面配置
+    await this.configureTestPage()
   }
 
   /**
@@ -135,8 +172,10 @@ class ExtensionTestSetup {
     try {
       // Service Worker 可能需要數秒才完成註冊；SW target 取得邏輯收斂於
       // setup/service-worker-target.js（單一 SSOT），此處只需 target.url()。
-      const SW_WAIT_TIMEOUT = 10000
-      const extensionTarget = await acquireServiceWorkerTarget(this.browser, SW_WAIT_TIMEOUT)
+      // SW_LAUNCH_TIMEOUT 由 helpers/timeouts.js 集中宣告，cold-start 情境保留 30s
+      // 重試空間（W4-005.1：原 10s 在系統負載下穩定 false negative，30s 對齊
+      // DEFAULT_NAV_TIMEOUT）。
+      const extensionTarget = await acquireServiceWorkerTarget(this.browser, SW_LAUNCH_TIMEOUT)
 
       const extensionUrl = extensionTarget.url()
       const extensionId = extensionUrl.split('/')[2]
@@ -241,9 +280,9 @@ class ExtensionTestSetup {
   async getBackgroundPage () {
     try {
       // Manifest V3 使用 Service Worker；SW target 取得邏輯收斂於
-      // setup/service-worker-target.js（單一 SSOT）。
-      const SW_WAIT_TIMEOUT = 10000
-      const backgroundTarget = await acquireServiceWorkerTarget(this.browser, SW_WAIT_TIMEOUT)
+      // setup/service-worker-target.js（單一 SSOT）。timeout 與 getExtensionId
+      // 一致使用 SW_LAUNCH_TIMEOUT（W4-005.1）。
+      const backgroundTarget = await acquireServiceWorkerTarget(this.browser, SW_LAUNCH_TIMEOUT)
 
       // Service Worker 使用 worker() 而非 page() 取得執行上下文；
       // this.backgroundPage 副作用指派為 caller 專屬，不進 SSOT。

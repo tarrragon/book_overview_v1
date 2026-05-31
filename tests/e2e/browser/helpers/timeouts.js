@@ -57,10 +57,29 @@ const OVERVIEW_RENDER_TIMEOUT = 60000
  */
 const JEST_TEST_TIMEOUT = 90000
 
+/**
+ * Extension Service Worker 啟動（取得 SW target）的預設逾時（毫秒）
+ *
+ * 適用：tests/e2e/setup/extension-setup.js 內 getExtensionId / getBackgroundPage
+ * 等待 chrome-extension:// 的 service_worker target 出現的上限。
+ *
+ * 設計考量：
+ * - 原硬編碼為 10000ms（W4-005.1 前），實測在系統負載 / cold-start 情境下不足，
+ *   穩定性實測（W4-005.1 二分定位）9 run 中 3 run 因 10s 不足產生
+ *   「取得 Extension ID 失敗 Timed out after waiting 10000ms」之 false negative。
+ * - 拉長至 30000ms 對齊 DEFAULT_NAV_TIMEOUT 等其他 setup 階段 timeout，
+ *   GREEN 路徑 SW 取得仍 <100ms（無 latency 影響），僅在邊緣 cold-start 情境
+ *   爭取更多重試空間。
+ * - 與 JEST_TEST_TIMEOUT (90000) 留 60s buffer：beforeAll 即使遇 cold-start，
+ *   30s SW + 60s 提取 pipeline 仍在整體 90s 上限內。
+ */
+const SW_LAUNCH_TIMEOUT = 30000
+
 module.exports = {
   DEFAULT_NAV_TIMEOUT,
   CONTENT_SCRIPT_READY_TIMEOUT,
   STORAGE_STABLE_TIMEOUT,
   OVERVIEW_RENDER_TIMEOUT,
-  JEST_TEST_TIMEOUT
+  JEST_TEST_TIMEOUT,
+  SW_LAUNCH_TIMEOUT
 }
