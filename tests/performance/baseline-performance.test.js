@@ -83,10 +83,9 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.isLoaded).toBe(true)
       expect(result.contentVisible).toBe(true)
 
-      // And: 記憶體增長應小於閾值 (考慮測試環境的模擬資料變化)
-      // eslint-disable-next-line no-unused-vars
-      const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
-      expect(memoryGrowthMB).toBeLessThan(PERFORMANCE_CONFIG.memory.popupOpen / (1024 * 1024))
+      // W4-012: 移除環境敏感記憶體斷言（規則 1 變體 / 33% flaky 率，jsdom + jest workers
+      // 並行下 GC 時機隨機性 > CPU 排程隨機性）；大幅退化防護由 npm run test:perf 的
+      // benchmark report（console.log）提供。保留功能斷言（result.uiElements）。
 
       // And: 所有UI元素應正確渲染
       expect(result.uiElements.length).toBeGreaterThan(0)
@@ -210,10 +209,9 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.extractedCount).toBe(testBooks.length)
       expect(result.successRate).toBeGreaterThan(0.85) // 調整為符合真實資料的成功率
 
-      // And: 記憶體使用應小於閾值
-      // eslint-disable-next-line no-unused-vars
-      const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
-      expect(memoryGrowthMB).toBeLessThan(PERFORMANCE_CONFIG.memory.smallBookExtract / (1024 * 1024))
+      // W4-012: 移除環境敏感記憶體斷言（規則 1 變體 / 33% flaky 率）；
+      // 大幅退化防護由 npm run test:perf benchmark report 提供。
+      // 保留功能斷言（result.extractedCount / result.successRate）。
 
       // eslint-disable-next-line no-console
       console.log(`✅ 10本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
@@ -246,10 +244,9 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.extractedCount).toBe(testBooks.length)
       expect(result.successRate).toBeGreaterThan(0.90)
 
-      // And: 記憶體使用應合理增長
-      // eslint-disable-next-line no-unused-vars
-      const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
-      expect(memoryGrowthMB).toBeLessThan(PERFORMANCE_CONFIG.memory.mediumBookExtract / (1024 * 1024))
+      // W4-012: 移除環境敏感記憶體斷言（規則 1 變體 / 33% flaky 率）；
+      // 大幅退化防護由 npm run test:perf benchmark report 提供。
+      // 保留功能斷言（result.extractedCount / result.successRate）。
 
       // eslint-disable-next-line no-console
       console.log(`✅ 100本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
@@ -285,10 +282,11 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.parsedBooks).toBe(jsonData.books.length)
       expect(result.parseErrors).toBe(0)
 
-      // And: 記憶體使用應合理增長
+      // W4-012: 移除環境敏感記憶體斷言（規則 1 變體 / 33% flaky 率）；
+      // 大幅退化防護由 npm run test:perf benchmark report 提供。
+      // 保留 memoryGrowthMB 計算供 console.log 觀察用（非 SLA 斷言）。
       // eslint-disable-next-line no-unused-vars
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
-      expect(memoryGrowthMB).toBeLessThan(actualSize / (1024 * 1024) * 2) // 不超過檔案大小的2倍
 
       // eslint-disable-next-line no-console
       console.log(`✅ JSON解析速度: ${processingSpeedMBs.toFixed(2)}MB/s, 記憶體增長: ${memoryGrowthMB.toFixed(2)}MB`)
