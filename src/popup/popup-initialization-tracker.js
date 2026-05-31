@@ -1,23 +1,34 @@
-// 支援多環境載入（瀏覽器 / Node.js 測試環境）
-// 瀏覽器環境：Logger 和 ErrorCodes 由 popup-error-handler.js 先行宣告，此處不重複宣告以避免 SyntaxError
-// Node.js 測試環境：每個檔案獨立載入，需透過 require 取得
-// 設計考量：使用 var + typeof 守衛是跨環境載入的必要 hoisting 設計，let/const 會在瀏覽器環境造成 ReferenceError
-/* eslint-disable no-var, no-redeclare, no-use-before-define */
-if (typeof Logger === 'undefined') {
+// 支援多環境載入（瀏覽器 esbuild bundle / Node.js 測試環境）
+//
+// W4-006.2 重構（合併 popup 4 檔為單一 entry，esbuild 自動 bundle）：
+// - 原本頂層 `var Logger` + typeof guard 是 W1-117 引入後對抗 classic script
+//   跨檔同名宣告衝突的補救（試圖共用 popup-error-handler 已宣告的 Logger），
+//   但本質仍違反「var 跨 script 共用 global lexical record」反模式。
+// - esbuild bundle 後三檔合併進同一 IIFE,每檔 const Logger 為獨立 closure
+//   scope，不再衝突；移除 typeof Logger === 'undefined' guard。
+// - fallback chain：require(...).Logger || window.Logger || { stub }（保留 W4-006.1
+//   linux 讓步建議 3，避免 bundled 環境 require 失效時整檔崩潰）。
+const Logger = (() => {
   if (typeof require !== 'undefined') {
     try {
-      var Logger = require('src/core/logging/Logger').Logger
-      var ErrorCodes = require('src/core/errors/ErrorCodes').ErrorCodes
+      return require('src/core/logging/Logger').Logger
     } catch (e) {
-      var Logger = (typeof window !== 'undefined' && window.Logger) || { warn () {}, error () {}, info () {}, debug () {} }
-      var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+      return (typeof window !== 'undefined' && window.Logger) || { warn () {}, error () {}, info () {}, debug () {} }
     }
-  } else {
-    var Logger = (typeof window !== 'undefined' && window.Logger) || { warn () {}, error () {}, info () {}, debug () {} }
-    var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
   }
-}
-/* eslint-enable no-var, no-redeclare, no-use-before-define */
+  return (typeof window !== 'undefined' && window.Logger) || { warn () {}, error () {}, info () {}, debug () {} }
+})()
+
+const ErrorCodes = (() => {
+  if (typeof require !== 'undefined') {
+    try {
+      return require('src/core/errors/ErrorCodes').ErrorCodes
+    } catch (e) {
+      return (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+    }
+  }
+  return (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+})()
 /**
  * Popup 初始化進度追蹤器
  *
@@ -511,8 +522,17 @@ class PopupInitializationTracker {
 }
 
 // 匯出類別以供使用
+//
+// W4-006.2 重構：esbuild bundle 後 IIFE scope 內 PopupInitializationTracker 不會自動暴露到
+// global；必須顯式注入 window.PopupInitializationTracker，否則 popup.js 內部
+// `typeof PopupInitializationTracker !== 'undefined'` 檢查會 false → initializationTracker 永遠未初始化。
+//
+// W4-006.1 multi-view linux 否決點 1：必須保留 window.* 顯式注入，不可順手清理，
+// 否則 popup-controller / popup-ui-manager / popup-event-controller 等其他模組
+// （若未來新增訪問點）會 ReferenceError。
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = PopupInitializationTracker
-} else if (typeof window !== 'undefined') {
+}
+if (typeof window !== 'undefined') {
   window.PopupInitializationTracker = PopupInitializationTracker
 }

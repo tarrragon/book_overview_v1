@@ -333,10 +333,22 @@
     載入中...
   </div>
   
+  <!--
+    W4-006.2 重構（合併 popup 4 檔為單一 entry，esbuild 自動 bundle）：
+
+    原本 popup-error-handler.js / popup-diagnostic-enhancer.js /
+    popup-initialization-tracker.js 三檔以獨立 <script> tag 載入，造成 classic
+    script 跨檔 global lexical record 衝突（W1-117 的 `let Logger` 與其他兩檔的
+    `var Logger` 在同一 page 重複宣告 → parse-time SyntaxError）。
+
+    現改由 popup.js require 三檔，esbuild 在 build 階段自動 bundle 進 popup.js
+    IIFE，每檔 closure scope 獨立，徹底消除衝突。三檔的 window.Popup* 顯式注入
+    保留，使 popup.js typeof 檢查可命中。
+
+    popup-ui-components.js 維持獨立 <script> tag（無 Logger/ErrorCodes 跨檔宣告，
+    不在本次重構範圍）。
+  -->
   <script src="popup-ui-components.js"></script>
-  <script src="popup-error-handler.js"></script>
-  <script src="popup-diagnostic-enhancer.js"></script>
-  <script src="popup-initialization-tracker.js"></script>
   <script src="popup.js"></script>
 </body>
 </html> 

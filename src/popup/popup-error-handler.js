@@ -1,21 +1,48 @@
 console.log('[POPUP DEBUG] popup-error-handler.js 已載入')
-// 支援多環境載入（瀏覽器 / Node.js 測試環境）
-let Logger, ErrorCodes, MessageDictionary
-if (typeof require !== 'undefined') {
-  try {
-    ({ Logger } = require('src/core/logging/Logger'));
-    ({ ErrorCodes } = require('src/core/errors/ErrorCodes'));
-    ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
-  } catch (e) {
-    Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
-    ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
-    MessageDictionary = window.MessageDictionary
+// 支援多環境載入（瀏覽器 esbuild bundle / Node.js 測試環境）
+//
+// W4-006.2 重構（合併 popup 4 檔為單一 entry，esbuild 自動 bundle）：
+// - 原本頂層 `let Logger, ErrorCodes, MessageDictionary` 在 classic script global
+//   lexical record 與 popup-diagnostic-enhancer.js / popup-initialization-tracker.js
+//   的 `var Logger` 重複宣告 → 瀏覽器 parse-time SyntaxError。
+// - 改用 const + require：在 esbuild bundle 內 const 限制在 IIFE 內部 scope，
+//   不再汙染全域 lexical record，三檔可獨立宣告各自的 const Logger。
+// - 保留 typeof require guard：Node.js 測試環境（jest jsdom）以 require 載入，
+//   esbuild bundle 時 require 已替換為 __require shim 仍可運作。
+// - fallback chain：require(...).Logger || window.Logger || { stub }（保留 W4-006.1
+//   linux 讓步建議 3，避免 bundled 環境 require 失效時整檔崩潰）。
+const Logger = (() => {
+  if (typeof require !== 'undefined') {
+    try {
+      return require('src/core/logging/Logger').Logger
+    } catch (e) {
+      return (typeof window !== 'undefined' && window.Logger) || { warn () {}, error () {}, info () {}, debug () {} }
+    }
   }
-} else {
-  Logger = window.Logger || { warn () {}, error () {}, info () {}, debug () {} }
-  ErrorCodes = window.ErrorCodes || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
-  MessageDictionary = window.MessageDictionary
-}
+  return (typeof window !== 'undefined' && window.Logger) || { warn () {}, error () {}, info () {}, debug () {} }
+})()
+
+const ErrorCodes = (() => {
+  if (typeof require !== 'undefined') {
+    try {
+      return require('src/core/errors/ErrorCodes').ErrorCodes
+    } catch (e) {
+      return (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+    }
+  }
+  return (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
+})()
+
+const MessageDictionary = (() => {
+  if (typeof require !== 'undefined') {
+    try {
+      return require('src/core/messages/MessageDictionary').MessageDictionary
+    } catch (e) {
+      return (typeof window !== 'undefined' && window.MessageDictionary) || null
+    }
+  }
+  return (typeof window !== 'undefined' && window.MessageDictionary) || null
+})()
 
 // PopupErrorHandler local dict（W1-117）：
 // 此模組獨立於 popup.js，使用自己的 MessageDictionary 注入 Logger。
@@ -991,8 +1018,17 @@ ${JSON.stringify(diagnosticData, null, 2)}
 }
 
 // 導出錯誤處理器
+//
+// W4-006.2 重構：esbuild bundle 後 IIFE scope 內 PopupErrorHandler 不會自動暴露到
+// global；必須顯式注入 window.PopupErrorHandler，否則 popup.js 內部
+// `typeof PopupErrorHandler !== 'undefined'` 檢查會 false → errorHandler 永遠未初始化。
+//
+// W4-006.1 multi-view linux 否決點 1：必須保留 window.* 顯式注入，不可順手清理，
+// 否則 popup-controller / popup-ui-manager / popup-event-controller 等其他模組
+// （若未來新增訪問點）會 ReferenceError。
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = PopupErrorHandler
-} else {
+}
+if (typeof window !== 'undefined') {
   window.PopupErrorHandler = PopupErrorHandler
 }

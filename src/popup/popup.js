@@ -25,35 +25,69 @@
  * - 提供主要的使用者操作界面
  */
 
-// 統一日誌管理系統 - 支援多環境載入
-// 瀏覽器環境：Logger 和 ErrorCodes 由 popup-error-handler.js 先行宣告，此處不重複宣告以避免 SyntaxError
-// Node.js 測試環境：每個檔案獨立載入，需透過 require 取得
-// MessageDictionary 僅此檔案使用，可安全用 let 宣告
-// 設計考量：使用 var + typeof 守衛是跨環境載入的必要 hoisting 設計，let/const 會在瀏覽器環境造成 ReferenceError
-/* eslint-disable no-var, no-redeclare, no-use-before-define */
-if (typeof Logger === 'undefined') {
+// W4-006.2 重構（合併 popup 4 檔為單一 entry，esbuild 自動 bundle）：
+//
+// 將原本以獨立 <script> tag 載入的三個 popup helper 改為 require，由 esbuild
+// 在 build 階段內聯到 popup.js IIFE，徹底消除 classic script 跨檔 global lexical
+// record 衝突（W1-117 引入的 `let Logger` 與 var Logger 重複宣告 SyntaxError）。
+//
+// require 必須在 Logger/ErrorCodes/MessageDictionary 之前執行：
+// - bundled 環境：三個 helper 各自的 const Logger 在 IIFE closure scope 獨立，
+//   不影響本檔的 Logger
+// - Node test 環境（jest jsdom）：require 觸發三 helper 載入並執行 window.Popup*
+//   注入，使本檔後續 typeof PopupErrorHandler / typeof PopupDiagnosticEnhancer /
+//   typeof PopupInitializationTracker 檢查可命中
+//
+// 設計考量（W4-006.1 多視角審查）：
+// - 保留 try-catch fallback：若 require 路徑失敗（如 cjs require resolution 異常），
+//   不阻擋 popup.js 整檔執行，由 helper 自身的 window.* 注入提供 fallback
+// - 註冊到 window 由各 helper 內部負責（window.PopupErrorHandler 等），本檔不重複
+if (typeof require !== 'undefined') {
+  try {
+    require('./popup-error-handler')
+    require('./popup-diagnostic-enhancer')
+    require('./popup-initialization-tracker')
+  } catch (e) {
+    // require 失敗時 helper 仍可由 <script> tag fallback 載入（HTML 過渡期）
+    // 或由測試環境另行 mock window.Popup* 注入
+  }
+}
+
+// 統一日誌管理系統 - 支援多環境載入（esbuild bundle / Node.js 測試環境）
+//
+// W4-006.2 重構：
+// - 原本 `var Logger` + typeof guard 是對抗 classic script 跨檔同名宣告，
+//   esbuild bundle 後 IIFE closure scope 隔離，可改用 const 直接宣告
+// - require fallback chain：require(...).Logger || window.Logger || stub class
+const Logger = (() => {
   if (typeof require !== 'undefined') {
     try {
-      var Logger = require('src/core/logging/Logger').Logger
-      var ErrorCodes = require('src/core/errors/ErrorCodes').ErrorCodes
+      return require('src/core/logging/Logger').Logger
     } catch (e) {
-      var Logger = (typeof window !== 'undefined' && window.Logger) || class { info () {} warn () {} error () {} debug () {} }
-      var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || {
+      return (typeof window !== 'undefined' && window.Logger) || class { info () {} warn () {} error () {} debug () {} }
+    }
+  }
+  return (typeof window !== 'undefined' && window.Logger) || class { info () {} warn () {} error () {} debug () {} }
+})()
+
+const ErrorCodes = (() => {
+  if (typeof require !== 'undefined') {
+    try {
+      return require('src/core/errors/ErrorCodes').ErrorCodes
+    } catch (e) {
+      return (typeof window !== 'undefined' && window.ErrorCodes) || {
         UNKNOWN_ERROR: 'UNKNOWN_ERROR',
         CHROME_ERROR: 'CHROME_ERROR',
         OPERATION_ERROR: 'OPERATION_ERROR'
       }
     }
-  } else {
-    var Logger = (typeof window !== 'undefined' && window.Logger) || class { info () {} warn () {} error () {} debug () {} }
-    var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || {
-      UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-      CHROME_ERROR: 'CHROME_ERROR',
-      OPERATION_ERROR: 'OPERATION_ERROR'
-    }
   }
-}
-/* eslint-enable no-var, no-redeclare, no-use-before-define */
+  return (typeof window !== 'undefined' && window.ErrorCodes) || {
+    UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+    CHROME_ERROR: 'CHROME_ERROR',
+    OPERATION_ERROR: 'OPERATION_ERROR'
+  }
+})()
 
 let MessageDictionary
 if (typeof require !== 'undefined') {
