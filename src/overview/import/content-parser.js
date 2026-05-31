@@ -134,7 +134,8 @@ class ContentParser {
    * @private
    */
   _removeBOM (content) {
-    return content.replace(/^﻿/, '')
+    // 使用 Unicode escape (U+FEFF) 取代字面 BOM 字元，避免 no-irregular-whitespace lint 錯誤
+    return content.replace(/^\uFEFF/, '')
   }
 
   // ===== JSON path =====

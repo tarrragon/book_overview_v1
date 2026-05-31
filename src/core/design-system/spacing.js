@@ -10,15 +10,15 @@ const SPACING = Object.freeze({
   md: 16,
   lg: 24,
   xl: 32,
-  xxl: 48,
-});
+  xxl: 48
+})
 
 const BORDER_RADIUS = Object.freeze({
   xs: 4,
   sm: 8,
   md: 12,
   lg: 16,
-  xl: 20,
-});
+  xl: 20
+})
 
-module.exports = { SPACING, BORDER_RADIUS };
+module.exports = { SPACING, BORDER_RADIUS }

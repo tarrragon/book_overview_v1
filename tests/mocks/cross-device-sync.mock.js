@@ -685,7 +685,7 @@ class MockDevice {
       } catch (_e) {
         // 判斷是 JSON 語法錯誤還是截斷
         // 檢查是否包含 JSON 外的註解（排除 URL 中的 //）
-        const hasNonUrlComment = data.replace(/"[^"]*"/g, '').includes('//')  || data.replace(/"[^"]*"/g, '').includes('/*')
+        const hasNonUrlComment = data.replace(/"[^"]*"/g, '').includes('//') || data.replace(/"[^"]*"/g, '').includes('/*')
         // 檢查是否為截斷：字串結尾不是有效的 JSON 結束符
         const trimmed = data.trim()
         const isLikelyTruncated = !trimmed.endsWith('}') && !trimmed.endsWith(']')
@@ -799,7 +799,7 @@ class MockDevice {
             success: false,
             error: {
               type: 'JSON_PARSE_ERROR',
-              location: { line: 1, character: jsonString.indexOf(`"id"`) + 1 },
+              location: { line: 1, character: jsonString.indexOf('"id"') + 1 },
               correction: {
                 suggestion: '請修正資料類型錯誤，書籍 ID 必須為字串類型。'
               }
@@ -1657,7 +1657,7 @@ async function validateDataPropagation (devices) {
   const refIds = new Set(referenceBooks.map(b => b.id))
 
   let totalMissing = 0
-  let totalCorrupted = 0
+  const totalCorrupted = 0
 
   for (let i = 1; i < devices.length; i++) {
     const deviceBooks = await devices[i].storage.getBooks()

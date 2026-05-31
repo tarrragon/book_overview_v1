@@ -114,6 +114,7 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
       // W1-048.1 Stage C.1：遷移自 _validateFileBasics 直呼至 public validate(file)
       const importer = makeImporter()
       const txtFile = { name: 'books.txt', type: 'text/plain', size: 100 }
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，無 code/details 可比對
       expect(() => importer.validate(txtFile)).toThrow('檔案格式不正確')
     })
   })
@@ -263,6 +264,7 @@ describe('BookFileImporter CSV import（W6-012.6.2）', () => {
         '書名,書城來源,進度,狀態,封面URL,authors,tagIds',
         '"書","readmoo","0","unread","https://example.com/c.jpg","",""'
       ].join('\n')
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，使用 regex 模式驗證錯誤訊息
       expect(() => parseCSV(importer, csv)).toThrow(/CSV/)
     })
 

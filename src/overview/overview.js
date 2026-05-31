@@ -17,6 +17,7 @@
 
 // 引入核心模組（由 esbuild 在建置時打包解析）
 const { Logger } = require('src/core/logging/Logger')
+// eslint-disable-next-line no-unused-vars -- 保留 import 作為依賴宣告，實際 runtime 使用 window.ErrorCodes（line 138）
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const EventBus = require('src/core/event-bus')
 const { OverviewPageController } = require('src/overview/overview-page-controller')
@@ -61,7 +62,9 @@ const { OverviewPageController } = require('src/overview/overview-page-controlle
       }
 
       // 檢查 ChromeEventBridge 是否可用
+      // eslint-disable-next-line no-undef -- ChromeEventBridge 為 runtime-injected 全域，typeof 守衛已確認存在
       if (typeof ChromeEventBridge !== 'undefined' && typeof chrome !== 'undefined') {
+        // eslint-disable-next-line no-undef -- 同上，typeof 守衛通過後安全使用
         chromeBridge = new ChromeEventBridge(eventBus)
       }
 

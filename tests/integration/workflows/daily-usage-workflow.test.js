@@ -18,6 +18,7 @@ describe('日常使用工作流程整合測試', () => {
   let extensionController
   // eslint-disable-next-line no-unused-vars
   let testDataGenerator
+  // eslint-disable-next-line no-unused-vars -- 預留作為未來資料一致性驗證使用，beforeAll 已初始化
   let consistencyChecker
 
   beforeAll(async () => {

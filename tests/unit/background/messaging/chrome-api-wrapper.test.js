@@ -12,6 +12,7 @@
 
 // eslint-disable-next-line no-unused-vars
 const ChromeApiWrapper = require('src/background/messaging/chrome-api-wrapper')
+// eslint-disable-next-line no-unused-vars -- 保留 import 作為依賴宣告
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 // eslint-disable-next-line no-unused-vars
 const { StandardError } = require('src/core/errors/StandardError')

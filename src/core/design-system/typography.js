@@ -3,7 +3,7 @@
  * @see docs/spec/design-system-spec.md Section 7
  */
 
-const FONT_FAMILY = "'PingFang SC', 'Microsoft YaHei', sans-serif";
+const FONT_FAMILY = "'PingFang SC', 'Microsoft YaHei', sans-serif"
 
 const FONT_SIZES = Object.freeze({
   headline3: 24,
@@ -14,15 +14,15 @@ const FONT_SIZES = Object.freeze({
   bodyMedium: 14,
   bodySmall: 12,
   caption: 12,
-  overline: 10,
-});
+  overline: 10
+})
 
 const FONT_WEIGHTS = Object.freeze({
   light: 300,
   regular: 400,
   medium: 500,
   semiBold: 600,
-  bold: 700,
-});
+  bold: 700
+})
 
-module.exports = { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS };
+module.exports = { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS }

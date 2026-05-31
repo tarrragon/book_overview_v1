@@ -29,6 +29,8 @@
 // 瀏覽器環境：Logger 和 ErrorCodes 由 popup-error-handler.js 先行宣告，此處不重複宣告以避免 SyntaxError
 // Node.js 測試環境：每個檔案獨立載入，需透過 require 取得
 // MessageDictionary 僅此檔案使用，可安全用 let 宣告
+// 設計考量：使用 var + typeof 守衛是跨環境載入的必要 hoisting 設計，let/const 會在瀏覽器環境造成 ReferenceError
+/* eslint-disable no-var, no-redeclare, no-use-before-define */
 if (typeof Logger === 'undefined') {
   if (typeof require !== 'undefined') {
     try {
@@ -51,8 +53,9 @@ if (typeof Logger === 'undefined') {
     }
   }
 }
+/* eslint-enable no-var, no-redeclare, no-use-before-define */
 
-var MessageDictionary
+let MessageDictionary
 if (typeof require !== 'undefined') {
   try {
     ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
@@ -64,7 +67,7 @@ if (typeof require !== 'undefined') {
 }
 
 // Design System 配色常數
-var COLORS
+let COLORS
 if (typeof require !== 'undefined') {
   try {
     ({ COLORS } = require('src/core/design-system/colors.js'))
@@ -202,9 +205,9 @@ const elements = {
 /**
  * 全域變數宣告
  */
-var errorHandler = null
-var diagnosticEnhancer = null
-var initializationTracker = null
+let errorHandler = null
+let diagnosticEnhancer = null
+let initializationTracker = null
 
 /**
  * 終態旗標（W1-062.1）
@@ -224,7 +227,7 @@ var initializationTracker = null
  *   startExtraction 同步 response.success 時、startExtraction catch 區塊
  * - 設為 false：startExtraction 函式開頭（用戶再次點擊提取，重置回 polling）
  */
-var isFinalStatus = false
+let isFinalStatus = false
 
 // ==================== 狀態管理 ====================
 

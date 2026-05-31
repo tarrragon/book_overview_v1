@@ -546,7 +546,9 @@ describe('PerformanceAssessment 系統效能評估', () => {
       expect(() => {
         const invalidAssessment = new PerformanceAssessment(null)
         return invalidAssessment
-      }).toThrow(/配置參數必須是有效的物件/)
+      })
+        // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，使用 regex 模式驗證錯誤訊息
+        .toThrow(/配置參數必須是有效的物件/)
     })
 
     test('應該支援快取系統', async () => {
