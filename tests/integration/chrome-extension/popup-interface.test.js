@@ -835,6 +835,26 @@ describe('Popup Interface 整合測試', () => {
       expect(pageInfo.textContent).toContain('Readmoo')
     })
 
+    /**
+     * Microtask flush helper for chained-promise scenarios in Jest jsdom.
+     *
+     * startExtraction 內含多層 chained await：
+     *   1. await checkCurrentTab() → 內含 await chrome.tabs.query + await sendMessage(PING)
+     *   2. await chrome.tabs.sendMessage(START_EXTRACTION)
+     *   3. response 處理後的 updateStatus / isFinalStatus 寫入
+     *
+     * 每層 await 在 jsdom 環境下需一輪 macrotask boundary 才會排程後續 microtask，
+     * 故 n=3 對應三層 chained promise 深度。提高 n 不會造成測試錯誤，
+     * 但若 startExtraction 未來新增 await 層級，需同步調整。
+     *
+     * @param {number} n 需要 flush 的 macrotask 輪數（預設 3，對應目前 chained 深度）
+     */
+    const flushMicrotasks = async (n = 3) => {
+      for (let i = 0; i < n; i++) {
+        await new Promise(resolve => setTimeout(resolve, 0))
+      }
+    }
+
     test('case B: 應在 extractBtn click 時發送 START_EXTRACTION 至當前 readmoo tab', async () => {
       // Mock 配置：readmoo tab + PING/START_EXTRACTION 都成功
       chrome.tabs.query.mockResolvedValue([READMOO_TAB_FIXTURE])
@@ -847,11 +867,8 @@ describe('Popup Interface 整合測試', () => {
       const clickEvent = new window.MouseEvent('click', { bubbles: true })
       extractBtn.dispatchEvent(clickEvent)
 
-      // 等 async startExtraction 完整走完（包含內部 await chrome.tabs.query 與兩次 sendMessage）
-      // 多輪 microtask flush 確保 chained promises 完成
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      // 等 async startExtraction 完整走完（chained await：query + PING + START_EXTRACTION）
+      await flushMicrotasks()
 
       // Then：sendMessage 至少被呼叫 2 次（PING + START_EXTRACTION）
       expect(chrome.tabs.sendMessage.mock.calls.length).toBeGreaterThanOrEqual(2)
@@ -865,8 +882,8 @@ describe('Popup Interface 整合測試', () => {
       expect(startExtractionCalled).toBe(true)
     })
 
-    test('case C: 應在 START_EXTRACTION 成功回應後將 UI 切換至提取中狀態', async () => {
-      // Mock 配置：同 case B
+    test('case C: 應在 START_EXTRACTION 成功回應後將 UI 切換至完成終態', async () => {
+      // Mock 配置：同 case B（response.success=true → 進入 updateStatus('完成', ...) 終態分支）
       chrome.tabs.query.mockResolvedValue([READMOO_TAB_FIXTURE])
       chrome.tabs.sendMessage.mockResolvedValue({ success: true, message: '已啟動' })
 
@@ -876,41 +893,28 @@ describe('Popup Interface 整合測試', () => {
       const clickEvent = new window.MouseEvent('click', { bubbles: true })
       extractBtn.dispatchEvent(clickEvent)
 
-      // 多輪 microtask flush（含 await chrome.tabs.query + sendMessage(PING) + sendMessage(START_EXTRACTION)）
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
-      await new Promise(resolve => setTimeout(resolve, 0))
+      // chained await flush（query + PING + START_EXTRACTION + response 處理）
+      await flushMicrotasks()
 
-      // Then：DOM 副作用斷言 - UI 進入「提取中 / 完成」狀態流轉
-      // popup.js startExtraction 順序為：
-      //   1. updateStatus('提取中', EXTRACTION_IN_PROGRESS, ...) (line 845)
-      //   2. await sendMessage(START_EXTRACTION) (line 852)
-      //   3. response.success=true 後 updateStatus('完成', '資料提取完成', ...) (line 855)
-      // 本 case 接受最終終態為「完成」（含過渡狀態已執行的證據鏈：updateButtonState(true)）
+      // popup.js startExtraction 成功路徑邏輯步驟：
+      //   1. updateStatus 過渡呼叫：('提取中', EXTRACTION_IN_PROGRESS, ..., LOADING)
+      //   2. sendMessage(START_EXTRACTION) 等待回應
+      //   3. response.success=true 後 updateStatus 終態呼叫：('完成', '資料提取完成', ..., READY)
+      //
+      // 由於 mock 為 deterministic（永遠回 success:true）且 flushMicrotasks 覆蓋全部 chained await，
+      // 此 case 必然走到終態。斷言收斂為精確終態值，避免寬鬆 OR 斷言遮蔽未來回歸
+      // （如 updateStatus 誤傳含「資料」字眼的錯誤訊息將不會被偵測）。
       const statusText = document.getElementById('statusText')
       const extensionStatus = document.getElementById('extensionStatus')
       const statusDot = document.getElementById('statusDot')
 
-      // 斷言：statusText 含「提取」或「完成」相關文字（startExtraction 終態為「完成」）
-      // 寬鬆斷言以容納 popup.js 從「提取中」流轉到「完成」的時序
-      const statusTextContent = statusText.textContent
-      const validStatus = statusTextContent.includes('提取') ||
-                          statusTextContent.includes('完成') ||
-                          statusTextContent.includes('資料')
-      expect(validStatus).toBe(true)
-
-      // 斷言：extensionStatus 顯示「提取中」或「完成」
-      const extensionStatusContent = extensionStatus.textContent
-      const validExtensionStatus = extensionStatusContent.includes('提取') ||
-                                    extensionStatusContent.includes('完成')
-      expect(validExtensionStatus).toBe(true)
-
-      // 斷言：statusDot className 反映過渡或終態（loading / ready / completed）
-      const statusDotClass = statusDot.className
-      const validDotClass = statusDotClass.includes('loading') ||
-                            statusDotClass.includes('ready') ||
-                            statusDotClass.includes('completed')
-      expect(validDotClass).toBe(true)
+      // 終態斷言：updateStatus('完成', '資料提取完成', ..., STATUS_TYPES.READY)
+      // - statusText.textContent ← text 參數（'資料提取完成'）
+      // - extensionStatus.textContent ← status 參數（'完成'）
+      // - statusDot.className ← `status-dot ${type}`，type=READY='ready'
+      expect(statusText.textContent).toBe('資料提取完成')
+      expect(extensionStatus.textContent).toBe('完成')
+      expect(statusDot.className).toBe('status-dot ready')
     })
   })
 })
