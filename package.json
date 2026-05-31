@@ -217,6 +217,23 @@
             }
           ]
         }
+      },
+      {
+        "files": [
+          "tests/e2e/performance/**"
+        ],
+        "rules": {
+          "no-console": "off"
+        }
+      },
+      {
+        "files": [
+          "tests/mocks/**",
+          "tests/unit/storage/adapters/**"
+        ],
+        "rules": {
+          "n/no-callback-literal": "off"
+        }
       }
     ]
   },
