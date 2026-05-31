@@ -553,7 +553,7 @@ describe('InstallHandler', () => {
 
     test('應該檢測服務可用性', () => {
       // W6-012.2.2.1：未注入 migrationService 時 install-handler 會自動建立預設實例
-      //（依賴 chrome.storage.local，測試環境已 mock）。故 servicesAvailable
+      // （依賴 chrome.storage.local，測試環境已 mock）。故 servicesAvailable
       // 在僅有 logger/eventBus 的情境下仍為 true。
       //
       // 若要驗證「全部服務缺席」情境，須同時讓 chrome.storage.local 不可用，

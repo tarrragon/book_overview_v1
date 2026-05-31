@@ -84,7 +84,7 @@ class ExtensionTestSetup {
       const launchOptions = {
         headless: false,
         devtools: false,
-        protocolTimeout: 120000, // 增加協定超時時間
+        protocolTimeout: 120000 // 增加協定超時時間
       }
 
       if (chromePath) {

@@ -33,7 +33,7 @@
 function createMinimalFsAdapter (existingFiles) {
   return {
     fileExists: (filePath) => existingFiles.includes(filePath)
-  };
+  }
 }
 
 /**
@@ -57,38 +57,38 @@ function createMinimalFsAdapter (existingFiles) {
  * }}
  */
 function createFullFsAdapter (fileMap) {
-  const normalizePath = (p) => p.replace(/\/+$/, '');
+  const normalizePath = (p) => p.replace(/\/+$/, '')
   return {
     fileExists: (p) => Object.prototype.hasOwnProperty.call(fileMap, normalizePath(p)),
     readFile: (p) => {
-      const content = fileMap[normalizePath(p)];
+      const content = fileMap[normalizePath(p)]
       if (typeof content !== 'string') {
-        throw new Error(`mock readFile: ${p} 非檔案`);
+        throw new Error(`mock readFile: ${p} 非檔案`)
       }
-      return content;
+      return content
     },
     readdir: (p) => {
-      const prefix = normalizePath(p) + '/';
-      const directChildren = new Set();
+      const prefix = normalizePath(p) + '/'
+      const directChildren = new Set()
       for (const fullPath of Object.keys(fileMap)) {
         if (fullPath.startsWith(prefix)) {
-          const remainder = fullPath.slice(prefix.length);
-          const firstSegment = remainder.split('/')[0];
-          if (firstSegment) directChildren.add(firstSegment);
+          const remainder = fullPath.slice(prefix.length)
+          const firstSegment = remainder.split('/')[0]
+          if (firstSegment) directChildren.add(firstSegment)
         }
       }
-      return Array.from(directChildren);
+      return Array.from(directChildren)
     },
     stat: (p) => {
-      const content = fileMap[normalizePath(p)];
+      const content = fileMap[normalizePath(p)]
       return {
         isDirectory: () => content === null
-      };
+      }
     }
-  };
+  }
 }
 
 module.exports = {
   createMinimalFsAdapter,
   createFullFsAdapter
-};
+}

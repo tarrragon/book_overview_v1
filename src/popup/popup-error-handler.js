@@ -1,6 +1,6 @@
 console.log('[POPUP DEBUG] popup-error-handler.js 已載入')
 // 支援多環境載入（瀏覽器 / Node.js 測試環境）
-var Logger, ErrorCodes, MessageDictionary
+let Logger, ErrorCodes, MessageDictionary
 if (typeof require !== 'undefined') {
   try {
     ({ Logger } = require('src/core/logging/Logger'));
@@ -24,7 +24,7 @@ if (typeof require !== 'undefined') {
 //          會輸出 [Missing: INITIALIZATION_COMPLETE]。
 // 設計考量：採方案 B（模組自包含 local dict）而非方案 A（依賴 popup.js 注入），
 //          保持模組獨立性與測試可注入性。
-var popupErrorHandlerMessages = null
+let popupErrorHandlerMessages = null
 if (MessageDictionary) {
   popupErrorHandlerMessages = new MessageDictionary({
     INITIALIZATION_COMPLETE: '初始化流程完成'
@@ -60,7 +60,7 @@ if (MessageDictionary) {
  */
 
 // 錯誤配置函數（需要支援瀏覽器環境）
-var getUserErrorMessage
+let getUserErrorMessage
 
 // 嘗試載入錯誤配置
 try {
@@ -82,7 +82,7 @@ try {
 }
 
 // 嘗試載入診斷模組
-var DiagnosticModule
+let DiagnosticModule
 try {
   if (typeof require !== 'undefined') {
     DiagnosticModule = require('./diagnostic-module')

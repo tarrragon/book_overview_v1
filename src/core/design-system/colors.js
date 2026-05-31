@@ -34,21 +34,21 @@ const COLORS = Object.freeze({
   // Dark Theme 色
   darkBackground: '#121212',
   // 功能色（Section 2.5）
-  tagDefault: '#808080',
-});
+  tagDefault: '#808080'
+})
 
 const GRADIENT = Object.freeze({
   start: COLORS.primary,
   end: COLORS.primaryDark,
-  css: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`,
-});
+  css: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`
+})
 
 // rgba 背景色生成（從 hex fg 色值產生 15% alpha 背景）
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+function hexToRgba (hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')'
 }
 
 // ReadingStatus 配色映射（Section 3）
@@ -58,7 +58,7 @@ const STATUS_COLORS = Object.freeze({
   reading: Object.freeze({ fg: COLORS.primary, bg: hexToRgba(COLORS.primary, 0.15) }),
   finished: Object.freeze({ fg: COLORS.success, bg: hexToRgba(COLORS.success, 0.15) }),
   abandoned: Object.freeze({ fg: COLORS.warning, bg: hexToRgba(COLORS.warning, 0.15) }),
-  reference: Object.freeze({ fg: COLORS.primaryDark, bg: hexToRgba(COLORS.primaryDark, 0.15) }),
-});
+  reference: Object.freeze({ fg: COLORS.primaryDark, bg: hexToRgba(COLORS.primaryDark, 0.15) })
+})
 
-module.exports = { COLORS, GRADIENT, STATUS_COLORS };
+module.exports = { COLORS, GRADIENT, STATUS_COLORS }

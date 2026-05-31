@@ -3,8 +3,8 @@
  * @see docs/spec/design-system-spec.md
  */
 
-const { COLORS, GRADIENT, STATUS_COLORS } = require('./colors.js');
-const { SPACING, BORDER_RADIUS } = require('./spacing.js');
-const { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS } = require('./typography.js');
+const { COLORS, GRADIENT, STATUS_COLORS } = require('./colors.js')
+const { SPACING, BORDER_RADIUS } = require('./spacing.js')
+const { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS } = require('./typography.js')
 
-module.exports = { COLORS, GRADIENT, STATUS_COLORS, SPACING, BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS };
+module.exports = { COLORS, GRADIENT, STATUS_COLORS, SPACING, BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS }

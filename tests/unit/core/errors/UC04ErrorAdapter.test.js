@@ -389,5 +389,4 @@ describe('UC04ErrorAdapter', () => {
       expect(error.details.storageLimit).toBe('5.0MB')
     })
   })
-
 })

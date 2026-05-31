@@ -1127,34 +1127,49 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
     // 書籍測試資料
     const bookWithTagIds = {
-      id: 'b1', title: 'Dune', author: 'Herbert',
+      id: 'b1',
+      title: 'Dune',
+      author: 'Herbert',
       tagIds: ['tag-sf', 'tag-novel']
     }
     const bookWithOldTags = {
-      id: 'b2', title: 'Old Book', author: 'Author',
+      id: 'b2',
+      title: 'Old Book',
+      author: 'Author',
       tags: ['科幻小說', '冒險']
     }
     const bookMixed = {
-      id: 'b3', title: 'Mixed', author: 'Mix',
-      tagIds: ['tag-sf'], tags: ['舊標籤']
+      id: 'b3',
+      title: 'Mixed',
+      author: 'Mix',
+      tagIds: ['tag-sf'],
+      tags: ['舊標籤']
     }
     const bookNoTags = {
       id: 'b4', title: 'No Tags', author: 'None'
     }
     const bookEmptyTagIds = {
-      id: 'b5', title: 'Empty', author: 'Empty',
+      id: 'b5',
+      title: 'Empty',
+      author: 'Empty',
       tagIds: []
     }
     const bookDeletedTag = {
-      id: 'b6', title: 'Has Deleted', author: 'Del',
+      id: 'b6',
+      title: 'Has Deleted',
+      author: 'Del',
       tagIds: ['tag-deleted', 'tag-sf']
     }
     const bookInvalidTagIds = {
-      id: 'b7', title: 'Invalid', author: 'Inv',
+      id: 'b7',
+      title: 'Invalid',
+      author: 'Inv',
       tagIds: ['tag-sf', 123, null, 'tag-prog']
     }
     const bookOnlyOldTagsForD3 = {
-      id: 'b8', title: 'Legacy', author: 'Old',
+      id: 'b8',
+      title: 'Legacy',
+      author: 'Old',
       tags: ['科幻小說']
     }
 
@@ -1241,7 +1256,9 @@ describe('SearchEngine - TDD 循環 2/8', () => {
         )
 
         const bookWithProg = {
-          id: 'b-prog', title: 'Code', author: 'Coder',
+          id: 'b-prog',
+          title: 'Code',
+          author: 'Coder',
           tagIds: ['tag-prog']
         }
 

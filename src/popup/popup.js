@@ -52,7 +52,7 @@ if (typeof Logger === 'undefined') {
   }
 }
 
-var MessageDictionary
+let MessageDictionary
 if (typeof require !== 'undefined') {
   try {
     ({ MessageDictionary } = require('src/core/messages/MessageDictionary'))
@@ -64,7 +64,7 @@ if (typeof require !== 'undefined') {
 }
 
 // Design System 配色常數
-var COLORS
+let COLORS
 if (typeof require !== 'undefined') {
   try {
     ({ COLORS } = require('src/core/design-system/colors.js'))
@@ -202,9 +202,9 @@ const elements = {
 /**
  * 全域變數宣告
  */
-var errorHandler = null
-var diagnosticEnhancer = null
-var initializationTracker = null
+let errorHandler = null
+let diagnosticEnhancer = null
+let initializationTracker = null
 
 /**
  * 終態旗標（W1-062.1）
@@ -224,7 +224,7 @@ var initializationTracker = null
  *   startExtraction 同步 response.success 時、startExtraction catch 區塊
  * - 設為 false：startExtraction 函式開頭（用戶再次點擊提取，重置回 polling）
  */
-var isFinalStatus = false
+let isFinalStatus = false
 
 // ==================== 狀態管理 ====================
 

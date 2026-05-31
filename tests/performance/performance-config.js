@@ -76,56 +76,56 @@ const PERFORMANCE_CONFIG = {
     searchResponseTarget: 500 * ENV_MULTIPLIER,
     chromeStoreStartup: 3000 * ENV_MULTIPLIER,
     chromeStoreInteraction: 1000 * ENV_MULTIPLIER,
-    cacheHitTime: 200 * ENV_MULTIPLIER,
+    cacheHitTime: 200 * ENV_MULTIPLIER
   },
 
   // 記憶體閾值（bytes）— 不乘環境乘數（記憶體較不受 CPU 速度影響）
   memory: {
-    singleErrorObject: 5 * 1024 * 1024,       // 5MB
-    errorObjectGCTolerance: 5 * 1024 * 1024,   // 5MB
-    perBookEfficiency: 50 * 1024,               // 50KB/book
-    error1000Total: 10 * 1024 * 1024,          // 10MB
-    avgPerError: 5 * 1024,                      // 5KB
-    gcFinalIncrease: 5 * 1024 * 1024,          // 5MB
-    leakDetectMax: 100 * 1024 * 1024,          // 100MB
-    leakDetectThreshold: 100 * 1024,           // 100KB
-    leakRateMax: 500 * 1024,                   // 500KB/ms
+    singleErrorObject: 5 * 1024 * 1024, // 5MB
+    errorObjectGCTolerance: 5 * 1024 * 1024, // 5MB
+    perBookEfficiency: 50 * 1024, // 50KB/book
+    error1000Total: 10 * 1024 * 1024, // 10MB
+    avgPerError: 5 * 1024, // 5KB
+    gcFinalIncrease: 5 * 1024 * 1024, // 5MB
+    leakDetectMax: 100 * 1024 * 1024, // 100MB
+    leakDetectThreshold: 100 * 1024, // 100KB
+    leakRateMax: 500 * 1024, // 500KB/ms
 
-    popupOpen: 50 * 1024 * 1024,               // 50MB
-    smallBookExtract: 20 * 1024 * 1024,        // 20MB
-    mediumBookExtract: 50 * 1024 * 1024,       // 50MB
-    platformDetectSingle: 5 * 1024 * 1024,     // 5MB
+    popupOpen: 50 * 1024 * 1024, // 50MB
+    smallBookExtract: 20 * 1024 * 1024, // 20MB
+    mediumBookExtract: 50 * 1024 * 1024, // 50MB
+    platformDetectSingle: 5 * 1024 * 1024, // 5MB
 
-    searchResponse: 10 * 1024 * 1024,          // 10MB
-    chromeStoreLimit: 50 * 1024 * 1024,        // 50MB
+    searchResponse: 10 * 1024 * 1024, // 10MB
+    chromeStoreLimit: 50 * 1024 * 1024, // 50MB
 
-    errorHandlerInit: 5 * 1024 * 1024,         // 5MB
-    diagnosticInit: 5 * 1024 * 1024,           // 5MB
+    errorHandlerInit: 5 * 1024 * 1024, // 5MB
+    diagnosticInit: 5 * 1024 * 1024, // 5MB
 
-    performanceDelta: 10 * 1024 * 1024,        // 10MB
+    performanceDelta: 10 * 1024 * 1024 // 10MB
   },
 
   // 比率閾值 — 不乘環境乘數
   ratio: {
-    cacheHitRate: 0.8,                          // 80%
-    concurrentSuccessRate: 0.95,                // 95%
-    highLoadSuccessRate: 0.90,                  // 90%
-    minGCRecoveryRate: 0.1,                     // 10%
-    memoryGrowthVariance: 20,                   // 20 倍波動容忍
-    commonErrorsPerformanceVariance: 50,        // 50%
-    performanceRegressionTolerance: 2.0,        // 200%
-    cachePerformanceImprovement: 2,             // 2 倍加速
-    commonErrorsSpeedup: 2.0,                   // 2 倍
-    errorAdapterOverhead: 3.0,                  // 3 倍
-    errorHandlingImpact: 2.0,                   // 2 倍
-    minFps: 30,                                 // 30fps
-    maxDomQueries: 250,                         // 250 次
-    maxErrorHistory: 100,                       // 100 條
-    minEventsPerSecond: 1000,                   // 1000 事件/秒
-    jsonParseMinSpeed: 0.5,                     // 0.5 MB/s
-    memoryMaxIncrease: 2.0,                     // 最大記憶體增長 200%
-    batchSuccessRate: 0.95,                     // 批量成功率 95%
-  },
+    cacheHitRate: 0.8, // 80%
+    concurrentSuccessRate: 0.95, // 95%
+    highLoadSuccessRate: 0.90, // 90%
+    minGCRecoveryRate: 0.1, // 10%
+    memoryGrowthVariance: 20, // 20 倍波動容忍
+    commonErrorsPerformanceVariance: 50, // 50%
+    performanceRegressionTolerance: 2.0, // 200%
+    cachePerformanceImprovement: 2, // 2 倍加速
+    commonErrorsSpeedup: 2.0, // 2 倍
+    errorAdapterOverhead: 3.0, // 3 倍
+    errorHandlingImpact: 2.0, // 2 倍
+    minFps: 30, // 30fps
+    maxDomQueries: 250, // 250 次
+    maxErrorHistory: 100, // 100 條
+    minEventsPerSecond: 1000, // 1000 事件/秒
+    jsonParseMinSpeed: 0.5, // 0.5 MB/s
+    memoryMaxIncrease: 2.0, // 最大記憶體增長 200%
+    batchSuccessRate: 0.95 // 批量成功率 95%
+  }
 }
 
 module.exports = { PERFORMANCE_CONFIG, IS_CI, ENV_MULTIPLIER }
