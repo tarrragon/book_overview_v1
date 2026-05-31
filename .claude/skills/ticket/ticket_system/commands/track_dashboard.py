@@ -82,10 +82,16 @@ def load_top_ready(
     top: int,
     handoff_info: Optional[Dict[str, Dict]] = None,
 ) -> List[Dict[str, Any]]:
-    """收集 top N ready，按 priority + id 排序。
+    """收集 top N ready，按 (priority, trigger_bound, id) 排序。
 
     僅 readiness == 'READY' 列入；handoff_info 用於 _compute_readiness。
     top <= 0 回傳 []。
+
+    排序鍵語意（W3-096）：
+    - priority 為首要鍵（_priority_rank）；跨 priority 仍按 priority 排序
+    - trigger_bound 為次要鍵（false=0 / true=1）；同 priority 內 trigger-bound
+      排在 normal 之後，避免 trigger-bound ticket 佔 Top N 位置
+    - id 為穩定排序鍵
     """
     handoff_info = handoff_info or {}
     candidates = []
