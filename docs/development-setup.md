@@ -146,6 +146,42 @@ codegraph status
 
 ---
 
+## Pre-commit Hook（husky + lint-staged）
+
+本專案於 `git commit` 時自動執行 ESLint 對 staged JS/TS 檔案把關，防止新引入的 ESLint errors 累積（W4-017 / W4-009 根因防護）。
+
+### 自動初始化機制
+
+| 動作 | 觸發時機 | 說明 |
+|------|---------|------|
+| `husky` 安裝 | `npm install` 自動執行 | `package.json` 的 `prepare` script 在 `npm install` 後自動執行 `husky`，初始化 `.husky/_/` 內部目錄並設定 `git config core.hooksPath` |
+| `.husky/pre-commit` 觸發 | `git commit` 前 | 執行 `npx lint-staged` 對 staged `*.{js,jsx,ts,tsx,mjs,cjs}` 跑 `eslint` |
+
+**新成員 clone repo 後**：執行 `npm install --legacy-peer-deps` 即自動完成 husky 初始化，無需額外手動步驟。
+
+### Hook 行為速查
+
+完整規則與 `--no-verify` 緊急豁免流程見 `CLAUDE.md` §5「Pre-commit Hook（ESLint 把關）」章節。
+
+| 場景 | 行為 |
+|------|------|
+| Staged 檔案有 ESLint errors | 阻擋 commit，顯示 errors 詳情 |
+| Staged 檔案僅有 warnings | 允許 commit（既有 warnings 屬 W4-018 範圍） |
+| 緊急豁免 | `git commit --no-verify`（git 內建機制） |
+
+### 驗證 husky 已正確初始化
+
+```bash
+git config core.hooksPath
+# 預期輸出：.husky/_
+ls .husky/pre-commit
+# 預期輸出：.husky/pre-commit 存在
+```
+
+若 `core.hooksPath` 為空或不指向 `.husky/_`，執行 `npm run prepare` 重新初始化。
+
+---
+
 ## Troubleshooting
 
 | 症狀 | 可能原因 | 排查方法 | 修復動作 |
