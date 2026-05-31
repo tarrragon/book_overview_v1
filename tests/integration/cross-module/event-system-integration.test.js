@@ -784,9 +784,17 @@ describe('事件系統跨模組整合測試', () => {
       expect(performanceAnalysis.peakThroughput).toBeGreaterThanOrEqual(0) // 峰值吞吐量 >= 0
 
       // 檢查延遲指標
-      expect(performanceAnalysis.averageLatency).toBeLessThan(300) // 平均延遲<300ms
-      expect(performanceAnalysis.percentile90Latency).toBeLessThan(500) // 90%延遲<500ms
-      expect(performanceAnalysis.percentile99Latency).toBeLessThan(1000) // 99%延遲<1秒
+      // W4-008: 移除 averageLatency / percentile90Latency / percentile99Latency 絕對門檻斷言。
+      // 延遲值由全套件並行測試的機器負載、GC、JIT 暖機影響，是非確定性數值，
+      // 屬 test-assertion-design-rules 規則 1 反模式（絕對計時門檻當 pass-fail）。
+      // 比照 W4-003 對 averageCpuUsage 的修法，改驗證延遲指標為有效非負數，
+      // 確認分析器有回傳延遲指標。大幅退化防護由 npm run test:perf 提供。
+      expect(typeof performanceAnalysis.averageLatency).toBe('number')
+      expect(performanceAnalysis.averageLatency).toBeGreaterThanOrEqual(0)
+      expect(typeof performanceAnalysis.percentile90Latency).toBe('number')
+      expect(performanceAnalysis.percentile90Latency).toBeGreaterThanOrEqual(0)
+      expect(typeof performanceAnalysis.percentile99Latency).toBe('number')
+      expect(performanceAnalysis.percentile99Latency).toBeGreaterThanOrEqual(0)
 
       // 檢查資源使用
       // W1-031: 移除 peakMemoryUsage 絕對門檻斷言。該值由執行期間取樣的
@@ -808,6 +816,9 @@ describe('事件系統跨模組整合測試', () => {
       }
 
       // 分析效能瓶頸
+      // W4-008: bottleneck.impact 為瓶頸影響比例（0-1 ratio），屬功能正確性斷言（非計時量測），
+      // 保留 toBeLessThan(0.3) 作為「瓶頸偵測閾值合理性」驗證。此值由分析器計算，
+      // 非環境取樣值，不受 GC / JIT 影響。
       if (performanceAnalysis.bottlenecks.length > 0) {
         performanceAnalysis.bottlenecks.forEach(bottleneck => {
           expect(bottleneck.impact).toBeLessThan(0.3) // 瓶頸影響<30%
@@ -818,9 +829,14 @@ describe('事件系統跨模組整合測試', () => {
       // 檢查告警觸發
       // eslint-disable-next-line no-unused-vars
       const alerts = performanceAnalysis.alerts
+      // W4-008: 移除 alert.resolutionTime 絕對門檻斷言。告警解決時間由執行期環境取樣，
+      // 受全套件並行測試的機器負載影響，是非確定性數值，屬 test-assertion-design-rules
+      // 規則 1 反模式（絕對計時門檻當 pass-fail）。改驗證 resolutionTime 為有效非負數，
+      // 確認分析器有回傳告警解決時間欄位。大幅退化防護由 npm run test:perf 提供。
       alerts.forEach(alert => {
         expect(alert.resolved).toBe(true) // 所有告警都應該被處理
-        expect(alert.resolutionTime).toBeLessThan(5000) // 告警解決時間<5秒
+        expect(typeof alert.resolutionTime).toBe('number')
+        expect(alert.resolutionTime).toBeGreaterThanOrEqual(0)
       })
     })
 
