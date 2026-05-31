@@ -146,6 +146,36 @@ npm run format
 npm run format:check
 ```
 
+### Pre-commit Hook（ESLint 把關）
+
+本專案配置 `husky + lint-staged` 於 `git commit` 時自動對 staged JS/TS 檔案執行 ESLint 檢查。
+
+| 行為 | 說明 |
+|------|------|
+| 觸發時機 | `git commit` 時觸發 `.husky/pre-commit` |
+| 檢查範圍 | staged 的 `*.{js,jsx,ts,tsx,mjs,cjs}` 檔案 |
+| 阻擋條件 | ESLint errors > 0 → 阻擋 commit（exit non-zero）並印出 errors 詳情 |
+| 不阻擋 | ESLint warnings 僅顯示不阻擋（與既有歷史違規分開處理，屬 W4-018） |
+| 自動安裝 | `npm install` 觸發 `prepare` script 自動執行 `husky` 初始化（含新 clone repo） |
+
+**`--no-verify` 緊急豁免**：
+
+```bash
+git commit --no-verify -m "..."
+```
+
+| 適用情境 | 不適用情境 |
+|---------|-----------|
+| 緊急修復（hotfix）需立即合併但 lint errors 屬其他模組既有問題 | 日常 commit 為求方便 |
+| WIP / draft commit 但用戶明確知道後續會修補（例如 PR 流程中的階段性 push） | 規避自己引入的新 errors |
+| Phase 4 重構評估中的中間狀態 commit | 取代 `npm run lint:fix` 自動修復流程 |
+
+**Why**：pre-commit hook 是 local first line（防止新違規累積），CI lint job 是 safety net；`--no-verify` 提供緊急情境豁免，但不應成為預設行為。違反此原則會讓本機防線形同虛設，與 W4-009 暴露的「9 天 ESLint 違規從 194 累積到 220」根因相同。
+
+**Consequence**：濫用 `--no-verify` 會讓新引入的 ESLint errors 進入 main 分支，未來清理成本以指數增長（W4-018 範圍擴大）。
+
+**Action**：日常 commit 一律走 hook；遇 hook 阻擋時優先用 `npm run lint:fix` 自動修復，或 manual 修正後重新 `git add`，最後才考慮 `--no-verify`（且應在 commit message 明示理由）。
+
 ---
 
 ## 6. 專案特定規範
