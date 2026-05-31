@@ -1,6 +1,8 @@
 // 支援多環境載入（瀏覽器 / Node.js 測試環境）
 // 瀏覽器環境：Logger 和 ErrorCodes 由 popup-error-handler.js 先行宣告，此處不重複宣告以避免 SyntaxError
 // Node.js 測試環境：每個檔案獨立載入，需透過 require 取得
+// 設計考量：使用 var + typeof 守衛是跨環境載入的必要 hoisting 設計，let/const 會在瀏覽器環境造成 ReferenceError
+/* eslint-disable no-var, no-redeclare, no-use-before-define */
 if (typeof Logger === 'undefined') {
   if (typeof require !== 'undefined') {
     try {
@@ -15,6 +17,7 @@ if (typeof Logger === 'undefined') {
     var ErrorCodes = (typeof window !== 'undefined' && window.ErrorCodes) || { UNKNOWN_ERROR: 'UNKNOWN_ERROR', CHROME_ERROR: 'CHROME_ERROR' }
   }
 }
+/* eslint-enable no-var, no-redeclare, no-use-before-define */
 /**
  * Popup 診斷增強模組
  *

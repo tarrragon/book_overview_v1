@@ -268,6 +268,7 @@ describe('ImportFlowController.execute() 4 條路徑（W1-058）', () => {
         throw validateError
       })
 
+      // eslint-disable-next-line no-restricted-syntax -- 來源 mock 拋出 plain Error，無 code/details 可比對
       await expect(controller.execute(fakeFile)).rejects.toThrow('validation failed')
 
       // validate throw 後流程立即中止

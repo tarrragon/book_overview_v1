@@ -351,7 +351,6 @@ describe('Chrome Web Store 上架準備測試', () => {
       const files = fs.readdirSync(buildPath, { recursive: true })
 
       const jsFiles = files.filter(file => typeof file === 'string' && file.endsWith('.js'))
-      const pngFiles = files.filter(file => typeof file === 'string' && file.endsWith('.png'))
 
       // 至少應有一些 JS 檔案
       expect(jsFiles.length).toBeGreaterThan(0)

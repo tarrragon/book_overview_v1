@@ -29,6 +29,8 @@
 // 瀏覽器環境：Logger 和 ErrorCodes 由 popup-error-handler.js 先行宣告，此處不重複宣告以避免 SyntaxError
 // Node.js 測試環境：每個檔案獨立載入，需透過 require 取得
 // MessageDictionary 僅此檔案使用，可安全用 let 宣告
+// 設計考量：使用 var + typeof 守衛是跨環境載入的必要 hoisting 設計，let/const 會在瀏覽器環境造成 ReferenceError
+/* eslint-disable no-var, no-redeclare, no-use-before-define */
 if (typeof Logger === 'undefined') {
   if (typeof require !== 'undefined') {
     try {
@@ -51,6 +53,7 @@ if (typeof Logger === 'undefined') {
     }
   }
 }
+/* eslint-enable no-var, no-redeclare, no-use-before-define */
 
 let MessageDictionary
 if (typeof require !== 'undefined') {

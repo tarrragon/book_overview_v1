@@ -891,6 +891,7 @@ describe('Content Script Extractor Integration', () => {
       }
 
       // 確保 document 和 MutationObserver 來自同一個 JSDOM 實例，避免跨 realm 錯誤
+      // eslint-disable-next-line no-unused-vars -- 預留 savedDocument 給未來 afterEach 還原機制使用
       const savedDocument = globalThis.document
       Object.defineProperty(globalThis, 'document', {
         value: document,

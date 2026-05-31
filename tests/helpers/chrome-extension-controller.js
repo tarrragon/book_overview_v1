@@ -3159,7 +3159,6 @@ class ChromeExtensionController {
     // 模擬獲取當前系統狀態
     const storageData = await this.getStorageData()
     const currentProgress = this.state.storage.get('operationProgress') || 0.0
-    const backgroundState = await this.getBackgroundState()
 
     return {
       bookCount: storageData.books?.length || 0,

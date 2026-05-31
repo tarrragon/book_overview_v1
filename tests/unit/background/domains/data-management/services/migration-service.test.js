@@ -58,7 +58,9 @@ describe('MigrationService', () => {
 
   describe('constructor', () => {
     it('storage 未提供時應拋出錯誤', () => {
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，非結構化 ProjectError，無 code/details 可比對
       expect(() => new MigrationService()).toThrow('MigrationService requires storage dependency')
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，非結構化 ProjectError，無 code/details 可比對
       expect(() => new MigrationService({})).toThrow('MigrationService requires storage dependency')
     })
 
@@ -114,13 +116,18 @@ describe('MigrationService', () => {
     it('id 重複時應拋錯', () => {
       const step = { id: 'dup', applies: () => true, run: async () => ({}) }
       svc.registerStep(step)
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，非結構化 ProjectError，無 code/details 可比對
       expect(() => svc.registerStep({ ...step })).toThrow('Migration step already registered: dup')
     })
 
     it('缺少必填欄位時應拋錯', () => {
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，非結構化 ProjectError，無 code/details 可比對
       expect(() => svc.registerStep(null)).toThrow('Invalid migration step')
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，非結構化 ProjectError，無 code/details 可比對
       expect(() => svc.registerStep({ id: 'x' })).toThrow('Invalid migration step')
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，非結構化 ProjectError，無 code/details 可比對
       expect(() => svc.registerStep({ id: 'x', applies: () => true })).toThrow('Invalid migration step')
+      // eslint-disable-next-line no-restricted-syntax -- 來源類別拋出 plain Error，非結構化 ProjectError，無 code/details 可比對
       expect(() => svc.registerStep({ applies: () => true, run: async () => ({}) })).toThrow('Invalid migration step')
     })
   })

@@ -22,6 +22,7 @@ const {
   BOOK_SCHEMA_V2,
   isManualOnlyStatus,
   isAutoTrackableStatus,
+  // eslint-disable-next-line no-unused-vars -- 保留 API surface 文件性引用
   validateField,
   validateBook,
   applyDefaults,
@@ -31,7 +32,9 @@ const {
 } = require('src/data-management/BookSchemaV2')
 
 const {
+  // eslint-disable-next-line no-unused-vars -- 保留 API surface 文件性引用
   TAG_CATEGORY_SCHEMA,
+  // eslint-disable-next-line no-unused-vars -- 保留 API surface 文件性引用
   TAG_SCHEMA,
   TAG_CATEGORY_NAME_MAX_LENGTH,
   TAG_CATEGORY_DESCRIPTION_MAX_LENGTH,
