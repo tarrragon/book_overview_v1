@@ -19,6 +19,7 @@
  */
 
 const { acquireServiceWorkerTarget } = require('../../setup/service-worker-target')
+const { STORAGE_STABLE_TIMEOUT } = require('./timeouts')
 
 const STORAGE_KEY = 'readmoo_books'
 
@@ -81,13 +82,13 @@ async function readBooksFromStorage (browser) {
  * @param {import('puppeteer').Browser} browser - Puppeteer Browser 實例
  * @param {number} expectedCount - 期望的書籍數量
  * @param {Object} [options] - 選項
- * @param {number} [options.timeout=30000] - 逾時毫秒數
+ * @param {number} [options.timeout=STORAGE_STABLE_TIMEOUT] - 逾時毫秒數
  * @param {number} [options.interval=500] - polling 間隔毫秒數
  * @returns {Promise<Array>} 達到期望數量的書籍陣列
  * @throws {Error} 逾時未達期望數量時拋錯（[SETUP] 前綴，屬環境/pipeline 前置問題）
  */
 async function waitForBooksStable (browser, expectedCount, options = {}) {
-  const timeout = options.timeout || 30000
+  const timeout = options.timeout || STORAGE_STABLE_TIMEOUT
   const interval = options.interval || 500
   const deadline = Date.now() + timeout
 

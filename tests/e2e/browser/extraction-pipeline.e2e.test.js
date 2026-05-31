@@ -26,13 +26,16 @@
 const ExtensionTestSetup = require('../setup/extension-setup')
 const { clearBooksStorage } = require('./helpers/storage-reader')
 const {
-  FIXTURE_URL,
   FIXTURE_BOOK_COUNT,
-  navigateToFixture,
-  waitForContentScriptReady,
   triggerExtraction,
-  runExtraction
+  runExtraction,
+  reExtract
 } = require('./helpers/extraction-flow')
+const {
+  DEFAULT_NAV_TIMEOUT,
+  OVERVIEW_RENDER_TIMEOUT,
+  JEST_TEST_TIMEOUT
+} = require('./helpers/timeouts')
 
 // v1.1 model readingStatus 6 狀態 enum
 const READING_STATUS_ENUM = ['unread', 'reading', 'finished', 'queued', 'abandoned', 'reference']
@@ -70,7 +73,7 @@ describe('提取-儲存-顯示 pipeline E2E (W1-008)', () => {
       // 保留 setup 錯誤，於各 test 中以 [SETUP] 前綴顯性呈現
       setupError = error
     }
-  }, 90000)
+  }, JEST_TEST_TIMEOUT)
 
   afterAll(async () => {
     await setup.cleanup()
@@ -172,15 +175,12 @@ describe('提取-儲存-顯示 pipeline E2E (W1-008)', () => {
         await dedupSetup.setup()
         await clearBooksStorage(dedupSetup.browser)
 
-        // 第 1 次提取
-        await navigateToFixture(dedupSetup)
-        const firstBooks = await triggerExtraction(dedupSetup)
+        // 第 1 次提取（含 navigateToFixture：interception + console 監聽 + 首次導航）
+        const { books: firstBooks } = await runExtraction(dedupSetup)
         expect(firstBooks.length).toBe(FIXTURE_BOOK_COUNT)
 
-        // 第 2 次提取：重新導航同一 fixture，等 content script 重新注入就緒後再觸發
-        await dedupSetup.page.goto(FIXTURE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
-        await waitForContentScriptReady(dedupSetup)
-        const secondBooks = await triggerExtraction(dedupSetup)
+        // 第 2 次提取：reExtract 封裝重新導航 + 等待 content script 就緒 + 觸發提取
+        const secondBooks = await reExtract(dedupSetup)
 
         // 書數仍為 5（無重複記錄）
         expect(secondBooks.length).toBe(FIXTURE_BOOK_COUNT)
@@ -191,7 +191,7 @@ describe('提取-儲存-顯示 pipeline E2E (W1-008)', () => {
       } finally {
         await dedupSetup.cleanup()
       }
-    }, 90000)
+    }, JEST_TEST_TIMEOUT)
   })
 
   // ========== G5：Overview 顯示斷言（UC-06 部分，§3.4）==========
@@ -202,10 +202,10 @@ describe('提取-儲存-顯示 pipeline E2E (W1-008)', () => {
       const overviewPage = await setup.browser.newPage()
       try {
         const overviewUrl = `chrome-extension://${setup.extensionId}/src/overview/overview.html`
-        await overviewPage.goto(overviewUrl, { waitUntil: 'domcontentloaded', timeout: 30000 })
+        await overviewPage.goto(overviewUrl, { waitUntil: 'domcontentloaded', timeout: DEFAULT_NAV_TIMEOUT })
 
         // 等待書籍清單渲染完成（#tableBody 至少一列 tr）
-        await overviewPage.waitForSelector('#tableBody tr', { timeout: 30000 })
+        await overviewPage.waitForSelector('#tableBody tr', { timeout: DEFAULT_NAV_TIMEOUT })
 
         // 書名 cell 以語意化 class 定位，避免位置選擇器隨欄位順序變動失效
         const titles = await overviewPage.$$eval(
@@ -218,6 +218,6 @@ describe('提取-儲存-顯示 pipeline E2E (W1-008)', () => {
       } finally {
         await overviewPage.close()
       }
-    }, 60000)
+    }, OVERVIEW_RENDER_TIMEOUT)
   })
 })

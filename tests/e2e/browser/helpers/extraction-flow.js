@@ -29,6 +29,7 @@
 const fs = require('fs')
 const path = require('path')
 const { waitForBooksStable, getServiceWorker } = require('./storage-reader')
+const { DEFAULT_NAV_TIMEOUT, CONTENT_SCRIPT_READY_TIMEOUT } = require('./timeouts')
 
 // fixture 服務的目標 URL（content script matches *://*.readmoo.com/* 會注入）
 const FIXTURE_URL = 'https://readmoo.com/library'
@@ -117,7 +118,7 @@ async function navigateToFixture (setup) {
   await setupReadmooInterception(page)
 
   try {
-    await page.goto(FIXTURE_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
+    await page.goto(FIXTURE_URL, { waitUntil: 'domcontentloaded', timeout: DEFAULT_NAV_TIMEOUT })
   } catch (error) {
     throw new Error(`[SETUP] 導航 fixture 失敗: ${error.message}`)
   }
@@ -144,13 +145,13 @@ async function navigateToFixture (setup) {
  *
  * @param {Object} setup - ExtensionTestSetup 測試環境
  * @param {Object} [options] - 選項
- * @param {number} [options.timeout=30000] - 逾時毫秒數
+ * @param {number} [options.timeout=CONTENT_SCRIPT_READY_TIMEOUT] - 逾時毫秒數
  * @param {number} [options.interval=500] - polling 間隔毫秒數
  * @returns {Promise<void>}
  * @throws {Error} content script 逾時未就緒時拋錯（[SETUP] 前綴）
  */
 async function waitForContentScriptReady (setup, options = {}) {
-  const timeout = options.timeout || 30000
+  const timeout = options.timeout || CONTENT_SCRIPT_READY_TIMEOUT
   const interval = options.interval || 500
   const deadline = Date.now() + timeout
   const worker = await getServiceWorker(setup.browser)
@@ -232,6 +233,33 @@ async function runExtraction (setup) {
   return { books, jsErrors }
 }
 
+/**
+ * 在 setup 已導航過 fixture 後再次重新導航並觸發提取
+ *
+ * 用於去重 regression 等需驗證「同一 setup 連續多次提取」的測試場景。與
+ * runExtraction 差異：
+ * - runExtraction 含 navigateToFixture（會 setupReadmooInterception + 註冊 console
+ *   error 監聽器），適用於 fresh setup 的首次提取。
+ * - reExtract 假設 setup 已完成首次 navigateToFixture，僅重新導航至 fixture URL、
+ *   等待 content script 重新注入就緒、觸發提取；不重複註冊 console 監聽器、不重設
+ *   request interception。
+ *
+ * @param {Object} setup - 已執行過 navigateToFixture 的 ExtensionTestSetup 測試環境
+ * @param {Object} [options] - 選項
+ * @param {number} [options.expectedCount=5] - 期望提取書數（傳給 triggerExtraction）
+ * @returns {Promise<Array>} 提取後 storage 中的書籍陣列
+ * @throws {Error} 導航或提取觸發失敗時拋錯（[SETUP] 前綴）
+ */
+async function reExtract (setup, options = {}) {
+  try {
+    await setup.page.goto(FIXTURE_URL, { waitUntil: 'domcontentloaded', timeout: DEFAULT_NAV_TIMEOUT })
+  } catch (error) {
+    throw new Error(`[SETUP] 二次導航 fixture 失敗: ${error.message}`)
+  }
+  await waitForContentScriptReady(setup)
+  return await triggerExtraction(setup, options)
+}
+
 module.exports = {
   FIXTURE_URL,
   FIXTURE_HTML_PATH,
@@ -241,5 +269,6 @@ module.exports = {
   navigateToFixture,
   waitForContentScriptReady,
   triggerExtraction,
-  runExtraction
+  runExtraction,
+  reExtract
 }
