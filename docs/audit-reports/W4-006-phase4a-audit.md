@@ -58,11 +58,11 @@ sage 的「補強而非取代」聲明成立。三 case 各自覆蓋既有測試
 
 ### 技術債項目
 
-| ID | 項目 | 優先級 | 說明 |
-|----|------|--------|------|
-| TD-1 | Case C 三選一 OR 斷言 | **P2** | `statusTextContent.includes('提取') \|\| .includes('完成') \|\| .includes('資料')` 等三組 OR 斷言過於寬鬆，任何含「提取」「完成」「資料」的文字都會通過。若 popup.js 的 updateStatus 邏輯回歸（例如誤傳錯誤訊息含「資料」二字），此斷言無法偵測。建議：待 W4-006.1/W4-006.2 完成後，收窄為精確終態斷言（`toBe('資料提取完成')` 或 `toContain('完成')`）。 |
-| TD-2 | `setTimeout(resolve, 0)` 硬編三次 | **P3** | 三次 `await new Promise(resolve => setTimeout(resolve, 0))` 作為 microtask flush 是 Jest jsdom 環境的常見 workaround，但硬編三次無語義說明「為何是三次」。建議抽為 `flushMicrotasks(n)` helper 並在 helper 註解說明 chained promise 深度對應。不影響正確性，屬可讀性改善。 |
-| TD-3 | popup.js 行號註解 | **P3** | Case C 註解 `(line 845)`、`(line 852)`、`(line 855)` 引用 popup.js 行號。行號隨任何修改即失效。建議改為函式/邏輯步驟描述（如「updateStatus 第一次呼叫」「sendMessage 回應處理」）。不影響測試行為，屬維護性改善。 |
+| ID | 項目 | 優先級 | Status | 說明 |
+|----|------|--------|--------|------|
+| TD-1 | Case C 三選一 OR 斷言 | **P2** | resolved (commit 9c439fe5) | `statusTextContent.includes('提取') \|\| .includes('完成') \|\| .includes('資料')` 等三組 OR 斷言過於寬鬆，任何含「提取」「完成」「資料」的文字都會通過。若 popup.js 的 updateStatus 邏輯回歸（例如誤傳錯誤訊息含「資料」二字），此斷言無法偵測。**已解決**：W4-006.3 將斷言收斂為精確終態 `statusText='資料提取完成'` / `extensionStatus='完成'` / `statusDot.className='status-dot ready'`，依賴 deterministic mock + flushMicrotasks 保證終態必達。 |
+| TD-2 | `setTimeout(resolve, 0)` 硬編三次 | **P3** | resolved (commit 9c439fe5) | 三次 `await new Promise(resolve => setTimeout(resolve, 0))` 作為 microtask flush 是 Jest jsdom 環境的常見 workaround，但硬編三次無語義說明「為何是三次」。**已解決**：W4-006.3 抽 `flushMicrotasks(n=3)` local helper，JSDoc 說明 `n=3` 對應 query+PING+START_EXTRACTION 三層 chained await 深度。 |
+| TD-3 | popup.js 行號註解 | **P3** | resolved (commit 9c439fe5) | Case C 註解 `(line 845)`、`(line 852)`、`(line 855)` 引用 popup.js 行號。行號隨任何修改即失效。**已解決**：W4-006.3 移除 `(line N)` 註解，改寫為邏輯步驟描述（過渡 updateStatus / sendMessage 等待回應 / 終態 updateStatus）；W4-006.2 bundle 重排後原行號已實際失效，本次修復根因。 |
 
 ---
 
