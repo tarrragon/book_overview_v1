@@ -20,6 +20,10 @@ related_specs: []
 **來源**: PROP-007 tag-based model 對齊
 **Ticket**: 0.17.2-W1-001
 
+> **[SUPERSEDED 為跨專案 SSOT] 2026-06-02（W4-031.3）**：跨專案匯入匯出的單一權威格式（SSOT）已升級為 `docs/spec/book-interchange-v1.md`（v2.0.0，unified canonical）。本規格降為**本專案內部 v2 格式**：detector 仍辨識本格式（book-interchange-v1 §12 優先序 2）以相容既有匯出檔，但**新的跨專案匯出改用 book-interchange-v1 canonical**。本專案 adapter（W4-031.2）負責 book-interchange-v1 ↔ 內部 v2 model 雙向轉換。
+>
+> **Why**：W4-031.3 reconciliation 確認本格式與 APP PROP-007 分類模型衝突，採方案 C 統一為 book-interchange-v1（含 CCL first-class、多尺寸 cover、progress 物件、cross-platform dedup）。本格式內部欄位定義仍有效，供本專案 v2 model 與 adapter 參考。
+
 ---
 
 ## 1. 概述
