@@ -229,7 +229,8 @@
       {
         "files": [
           "tests/mocks/**",
-          "tests/unit/storage/adapters/**"
+          "tests/unit/storage/adapters/**",
+          "tests/test-setup.js"
         ],
         "rules": {
           "n/no-callback-literal": "off"
