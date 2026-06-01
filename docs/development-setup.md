@@ -155,9 +155,11 @@ codegraph status
 | 動作 | 觸發時機 | 說明 |
 |------|---------|------|
 | `husky` 安裝 | `npm install` 自動執行 | `package.json` 的 `prepare` script 在 `npm install` 後自動執行 `husky`，初始化 `.husky/_/` 內部目錄並設定 `git config core.hooksPath` |
-| `.husky/pre-commit` 觸發 | `git commit` 前 | 執行 `npx lint-staged` 對 staged `*.{js,jsx,ts,tsx,mjs,cjs}` 跑 `eslint` |
+| `.husky/pre-commit` 觸發 | `git commit` 前 | 執行 `npx lint-staged` 對 staged `*.{js,jsx,ts,tsx,mjs,cjs}` 跑 `eslint --max-warnings=0` |
 
 **新成員 clone repo 後**：執行 `npm install --legacy-peer-deps` 即自動完成 husky 初始化，無需額外手動步驟。
+
+**設計理由**：husky 初始化綁定在 `prepare` script，是為了讓本機防線「零手動步驟」生效——新成員只要跑標準的 `npm install`，pre-commit hook 即自動就緒，不依賴任何人記得手動安裝。**Consequence**：若改為手動安裝，新 clone 的 repo 在首次 commit 前缺乏 lint 把關，正是 W4-009「違規靜默累積」的開口；自動初始化封閉了這個開口。
 
 ### Hook 行為速查
 
@@ -166,8 +168,11 @@ codegraph status
 | 場景 | 行為 |
 |------|------|
 | Staged 檔案有 ESLint errors | 阻擋 commit，顯示 errors 詳情 |
-| Staged 檔案僅有 warnings | 允許 commit（既有 warnings 屬 W4-018 範圍） |
+| Staged 檔案有 ESLint warnings | 阻擋 commit（`--max-warnings=0`，W4-024 後零違規基線確立，warning 與 error 一視同仁） |
+| Staged 檔案零違規（0 error / 0 warning） | 放行 commit |
 | 緊急豁免 | `git commit --no-verify`（git 內建機制） |
+
+**Consequence**：此速查表對應的阻擋行為若失效（hook 未初始化或被 `--no-verify` 慣性繞過），新違規會直接進入 main 分支，回到 W4-009「9 天累積 +26 違規」的失控狀態。**正向錨點**：只要 staged 檔案維持零違規，commit 不受任何阻擋——hook 對乾淨的變更完全透明。
 
 ### 驗證 husky 已正確初始化
 

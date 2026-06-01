@@ -148,15 +148,25 @@ npm run format:check
 
 ### Pre-commit Hook（ESLint 把關）
 
-本專案配置 `husky + lint-staged` 於 `git commit` 時自動對 staged JS/TS 檔案執行 ESLint 檢查。
+**核心原則**：pre-commit hook 是阻擋 ESLint 違規累積的本機第一道防線（local first line），CI lint job 是第二道安全網（safety net）。
+
+**Why**：commit 時若無 lint 把關，新引入的違規會靜默累積。W4-009 已暴露此根因——9 天內 ESLint 違規從 194 累積到 220（+26），因缺乏本機防線而無人即時攔截。
+
+**Consequence**：缺少本機防線會讓違規持續滲入 main 分支，清理成本隨累積量以指數增長（W4-018 範圍即由此擴大）。
+
+**Action**：日常 commit 一律走 hook（不加 `--no-verify`）；遇 hook 阻擋時，正確修復順序為——先用 `npm run lint:fix` 自動修復，再 manual 修正剩餘項並重新 `git add`，確認 `npm run lint` 全綠後再 commit。
+
+本專案配置 `husky + lint-staged` 於 `git commit` 時自動對 staged JS/TS 檔案執行 ESLint 檢查：
 
 | 行為 | 說明 |
 |------|------|
 | 觸發時機 | `git commit` 時觸發 `.husky/pre-commit` |
 | 檢查範圍 | staged 的 `*.{js,jsx,ts,tsx,mjs,cjs}` 檔案 |
-| 阻擋條件 | ESLint errors > 0 → 阻擋 commit（exit non-zero）並印出 errors 詳情 |
-| 不阻擋 | ESLint warnings 僅顯示不阻擋（與既有歷史違規分開處理，屬 W4-018） |
+| 阻擋條件 | ESLint errors > 0 或 warnings > 0 → 阻擋 commit（`--max-warnings=0`，exit non-zero）並印出詳情 |
+| 通過條件 | staged 檔案 ESLint 零違規（0 error / 0 warning）→ 放行 commit |
 | 自動安裝 | `npm install` 觸發 `prepare` script 自動執行 `husky` 初始化（含新 clone repo） |
+
+> **`--max-warnings=0` 設計理由**：W4-024 完成後本專案 `npm run lint` 已達零違規（0 error / 0 warning）。此時加入 `--max-warnings=0` 作為「warning 穿透防線」——任何新引入的 warning 同樣阻擋 commit，與 error 一視同仁。**正向錨點**：保持 staged 檔案零違規即可順利 commit，無需任何額外操作。
 
 **`--no-verify` 緊急豁免**：
 
@@ -164,17 +174,13 @@ npm run format:check
 git commit --no-verify -m "..."
 ```
 
-| 適用情境 | 不適用情境 |
+| 適用情境（豁免合理） | 不適用情境（請改走 hook） |
 |---------|-----------|
-| 緊急修復（hotfix）需立即合併但 lint errors 屬其他模組既有問題 | 日常 commit 為求方便 |
-| WIP / draft commit 但用戶明確知道後續會修補（例如 PR 流程中的階段性 push） | 規避自己引入的新 errors |
-| Phase 4 重構評估中的中間狀態 commit | 取代 `npm run lint:fix` 自動修復流程 |
+| 緊急修復（hotfix）需立即合併但 lint 違規屬其他模組既有問題 | 日常 commit 為求方便——應走 hook，遇阻擋用 `npm run lint:fix` |
+| WIP / draft commit 但用戶明確知道後續會修補（例如 PR 流程中的階段性 push） | 規避自己引入的新違規——應 manual 修正後重新 `git add` |
+| Phase 4 重構評估中的中間狀態 commit | 取代 `npm run lint:fix` 自動修復流程——應先跑 `lint:fix` |
 
-**Why**：pre-commit hook 是 local first line（防止新違規累積），CI lint job 是 safety net；`--no-verify` 提供緊急情境豁免，但不應成為預設行為。違反此原則會讓本機防線形同虛設，與 W4-009 暴露的「9 天 ESLint 違規從 194 累積到 220」根因相同。
-
-**Consequence**：濫用 `--no-verify` 會讓新引入的 ESLint errors 進入 main 分支，未來清理成本以指數增長（W4-018 範圍擴大）。
-
-**Action**：日常 commit 一律走 hook；遇 hook 阻擋時優先用 `npm run lint:fix` 自動修復，或 manual 修正後重新 `git add`，最後才考慮 `--no-verify`（且應在 commit message 明示理由）。
+**豁免使用守則**：`--no-verify` 是緊急情境的合法出口，但不應成為預設行為。違反此原則會讓本機防線形同虛設（與 W4-009 根因相同）。**正確做法**：確需豁免時，在 commit message 明示豁免理由，使後人可追溯；其餘情境一律走 hook。
 
 ---
 

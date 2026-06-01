@@ -56,7 +56,7 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,cjs}": "eslint"
+    "*.{js,jsx,ts,tsx,mjs,cjs}": "eslint --max-warnings=0"
   },
   "keywords": [
     "chrome-extension",
