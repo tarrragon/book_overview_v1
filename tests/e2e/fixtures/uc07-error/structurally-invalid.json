@@ -1,0 +1,7 @@
+{
+  "someUnexpectedKey": "this is valid JSON but not a recognizable book interchange structure",
+  "notBooks": [
+    { "randomField": 123 }
+  ],
+  "anotherField": true
+}

@@ -1,0 +1,30 @@
+{
+  "metadata": {
+    "formatVersion": "2.0.0",
+    "exportDate": "2026-06-02T00:00:00.000Z",
+    "source": "readmoo-book-extractor",
+    "schemaVersion": "3.0.0",
+    "totalBooks": 1,
+    "totalTags": 0,
+    "totalTagCategories": 0
+  },
+  "tagCategories": [],
+  "tags": [],
+  "books": [
+    {
+      "id": "uc07-quota-book-1",
+      "title": "配額測試書",
+      "readingStatus": "reading",
+      "authors": ["配額測試作者"],
+      "publisher": "UC07 出版社",
+      "progress": 50,
+      "type": "電子書",
+      "cover": "https://cdn.readmoo.com/cover/uc07-quota-book-1.jpg",
+      "tagIds": [],
+      "isManualStatus": false,
+      "extractedAt": "2026-06-01T08:00:00.000Z",
+      "updatedAt": "2026-06-01T10:00:00.000Z",
+      "source": "readmoo"
+    }
+  ]
+}

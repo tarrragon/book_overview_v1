@@ -1,0 +1,5 @@
+{
+  "metadata": { "formatVersion": "2.0.0", "source": "readmoo-book-extractor"
+  "books": [
+    { "id": "uc07-broken-1", "title": "語法損壞的書"
+  ]

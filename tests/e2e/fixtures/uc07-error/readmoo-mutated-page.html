@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readmoo 電子書 - 書庫測試頁面（結構變更模擬）</title>
+    <!--
+      UC-07 場景 B fixture（W4-001.3）：模擬 Readmoo 網站更新 DOM 結構後，
+      Extension content script 既有 selector 全部失效的情境。
+
+      與 readmoo-mock-page.html 的差異（刻意破壞所有提取錨點）：
+        - 書籍容器 class 由 .library-item 改名為 .shelf-card-v2（adapter SELECTORS.bookContainer 失效）
+        - 備用容器 class（.book-item / .book-card / .library-book）皆未使用
+        - reader 連結 href 由 /api/reader/{id} 改為 /v2/reader-app/{id}
+          （adapter SELECTORS.readerLink = a[href*="/api/reader/"] 失效，書籍 ID 來源消失）
+        - 書名 class 由 .title 改為 .book-name-v2（SELECTORS.bookTitle 失效）
+        - 封面 class 由 .cover-img 改為 .thumb-v2（SELECTORS.bookImage 失效）
+        - 進度條 class 由 .progress-bar 改為 .reading-meter-v2（SELECTORS.progressBar 失效）
+        - 屬性選擇器 fallback [class*="library-item"] 亦無法命中（無含 library-item 子字串的 class）
+        - LAST_RESORT 策略（從 readerLink 向上找祖先）因 readerLink 失效而無書可錨定
+
+      設計目的：所有 3 層提取策略（主選擇器 / alternativeContainers / readerLink 祖先回溯）
+      全數失效，使提取結果為 0 本書，驗證系統優雅降級（不崩潰、storage 不被污染）。
+
+      仍保留 5 個視覺上的書籍卡片（用 v2 命名），確認「頁面有內容但 selector 不匹配」
+      這一真實 DOM 變更情境，而非「空白頁」。
+    -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            margin: -20px -20px 20px -20px;
+        }
+        .shelf-card-v2 {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .thumb-v2 {
+            width: 60px;
+            height: 80px;
+            border-radius: 4px;
+            margin-right: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .book-name-v2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>我的書櫃</h1>
+        <p>Readmoo 電子書平台 - 書庫測試環境（新版結構）</p>
+    </div>
+
+    <div class="shelf-container-v2" id="shelfContainer">
+        <!-- 5 個書卡，全部使用 v2 命名，既有 selector 無一可命中 -->
+        <div class="shelf-card-v2">
+            <a href="/v2/reader-app/210001">
+                <img class="thumb-v2" src="https://cdn.readmoo.com/cover/test1.jpg" alt="測試書籍一">
+            </a>
+            <div class="book-info-v2">
+                <div class="book-name-v2">測試書籍一</div>
+                <div class="reading-meter-v2" style="width:0%"></div>
+            </div>
+        </div>
+
+        <div class="shelf-card-v2">
+            <a href="/v2/reader-app/210002">
+                <img class="thumb-v2" src="https://cdn.readmoo.com/cover/test2.jpg" alt="測試書籍二">
+            </a>
+            <div class="book-info-v2">
+                <div class="book-name-v2">測試書籍二</div>
+                <div class="reading-meter-v2" style="width:45%"></div>
+            </div>
+        </div>
+
+        <div class="shelf-card-v2">
+            <a href="/v2/reader-app/210003">
+                <img class="thumb-v2" src="https://cdn.readmoo.com/cover/test3.jpg" alt="測試書籍三">
+            </a>
+            <div class="book-info-v2">
+                <div class="book-name-v2">測試書籍三</div>
+                <div class="reading-meter-v2" style="width:99%"></div>
+            </div>
+        </div>
+
+        <div class="shelf-card-v2">
+            <a href="/v2/reader-app/210004">
+                <img class="thumb-v2" src="https://cdn.readmoo.com/cover/test4.jpg" alt="測試書籍四">
+            </a>
+            <div class="book-info-v2">
+                <div class="book-name-v2">測試書籍四</div>
+                <div class="reading-meter-v2" style="width:100%"></div>
+            </div>
+        </div>
+
+        <div class="shelf-card-v2">
+            <a href="/v2/reader-app/210005">
+                <img class="thumb-v2" src="https://cdn.readmoo.com/cover/test5.jpg" alt="測試書籍五">
+            </a>
+            <div class="book-info-v2">
+                <div class="book-name-v2">測試書籍五</div>
+                <div class="reading-meter-v2" style="width:30%"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
