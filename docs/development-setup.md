@@ -187,6 +187,38 @@ ls .husky/pre-commit
 
 ---
 
+## CI Lint（GitHub Actions）
+
+pre-commit hook 是本機第一道防線；`.github/workflows/lint.yml` 是遠端第二道防線（safety net），攔截 `--no-verify` 繞過本機 hook 後流入的 ESLint 違規。
+
+### Workflow 行為
+
+| 項目 | 說明 |
+|------|------|
+| Workflow 檔案 | `.github/workflows/lint.yml` |
+| Job 名稱 | `lint`（顯示為 `Lint / ESLint`） |
+| 觸發時機 | `push` 至 `main` / `feat/**` 分支；所有 `pull_request` |
+| 執行步驟 | `actions/checkout` → `actions/setup-node`（`lts/*` + npm cache）→ `npm ci --legacy-peer-deps` → `npm run lint` |
+| 阻擋條件 | `npm run lint`（`eslint src/ tests/`）errors > 0 → job 失敗 |
+| 並行控制 | 同 ref 新 push 會取消進行中的舊 run（`concurrency` + `cancel-in-progress`） |
+
+### PR 期望
+
+開 PR 後 GitHub Actions 自動觸發 `Lint / ESLint` job。job 失敗（ESLint errors > 0）時 PR 頁面顯示紅色 check，提示需修復後再合併。
+
+### 設為 required status check（repo admin 操作）
+
+workflow 檔案本身**無法**啟用「阻擋合併」效果——required status check 屬 GitHub branch protection 設定，需 repo admin 於 GitHub 介面操作：
+
+1. 進入 GitHub repo → Settings → Branches
+2. 在 `main` 的 Branch protection rule 中（無則新增）勾選 **Require status checks to pass before merging**
+3. 在 status checks 搜尋框輸入並選取 `ESLint`（首次需該 job 至少跑過一次才會出現在清單）
+4. 儲存後，PR 必須 `ESLint` job 通過才能合併
+
+> 在 admin 完成步驟 1-4 前，CI lint 僅提供「可見的紅燈提示」，不具強制阻擋合併能力。
+
+---
+
 ## Troubleshooting
 
 | 症狀 | 可能原因 | 排查方法 | 修復動作 |

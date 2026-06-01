@@ -182,6 +182,22 @@ git commit --no-verify -m "..."
 
 **豁免使用守則**：`--no-verify` 是緊急情境的合法出口，但不應成為預設行為。違反此原則會讓本機防線形同虛設（與 W4-009 根因相同）。**正確做法**：確需豁免時，在 commit message 明示豁免理由，使後人可追溯；其餘情境一律走 hook。
 
+### CI Lint（GitHub Actions safety net）
+
+**核心原則**：`.github/workflows/lint.yml` 是 CI 第二道防線（safety net）。pre-commit hook 是本機第一道防線，CI lint job 在遠端攔截 `--no-verify` 繞過本機 hook 後流入的 ESLint 違規。
+
+**Why**：`--no-verify` 提供緊急豁免出口，但繞過後本機已無防線。若無 CI 把關，被豁免的違規會直接流入 main 分支無人接住（W4-017 phase4 P-1 模式：文件宣稱有 safety net 但實作不存在）。
+
+| 項目 | 說明 |
+|------|------|
+| Workflow 檔案 | `.github/workflows/lint.yml` |
+| 觸發時機 | `push` 至 `main` / `feat/**` 分支；所有 `pull_request` |
+| 執行內容 | `npm ci --legacy-peer-deps` → `npm run lint`（`eslint src/ tests/`） |
+| 阻擋條件 | ESLint errors > 0 → job 失敗（exit non-zero） |
+| Node 版本 | `lts/*`（專案無 `.nvmrc` / `engines`） |
+
+**Action**：PR 合併前確認 `Lint / ESLint` job 通過。如需強制阻擋（required status check），由 repo admin 於 GitHub repo Settings → Branches → Branch protection rules 將 `ESLint` 設為 required（詳見 `docs/development-setup.md`）。
+
 ---
 
 ## 6. 專案特定規範

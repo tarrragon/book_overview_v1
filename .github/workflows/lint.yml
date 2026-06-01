@@ -1,0 +1,38 @@
+name: Lint
+
+# CI safety net（第二道防線）：pre-commit hook（lint-staged --max-warnings=0）為本機第一道防線，
+# 本 workflow 為遠端第二道防線——攔截 --no-verify 繞過本機 hook 後流入的 ESLint 違規。
+# 對應 CLAUDE.md §5「Pre-commit Hook」與 docs/development-setup.md「CI Lint（GitHub Actions）」。
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+  pull_request:
+
+# 同 ref 的新 push 取消舊的進行中 run，節省 CI 資源
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # 專案無 .nvmrc / package.json engines，採用 Node LTS
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run ESLint
+        run: npm run lint
