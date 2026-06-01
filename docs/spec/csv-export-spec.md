@@ -87,26 +87,28 @@ identifiers 和 progressInfo 兩個 nested object 採用 **JSON-in-cell** 策略
 
 ## 陣列序列化策略
 
-### 決策：管道符 `|` 分隔
+### 決策：分號加空格 `; ` 分隔
 
-authors 和 tagIds 兩個陣列欄位採用 **管道符 `|`** 作為分隔符。
+authors 和 tagIds 兩個陣列欄位採用 **分號加空格 `; `** 作為分隔符。
+
+> **SSOT 對齊（W4-030）**：本決策以 `docs/spec/export-interchange-format-v2.md`（status: approved, v2.0.0）§4.2 / §5.1 為單一權威來源。早期草案曾採管道符 `|`，但該決策從未進入實作；實作（`src/export/book-data-exporter.js` join `'; '` + `src/overview/import/content-parser.js` split `'; '`）與 approved interchange spec 一致採 `; `，故本文件對齊 `; `，廢止 `|` 草案。
 
 | 欄位 | 範例值（CSV cell 內容） |
 |------|----------------------|
-| authors | `作者A\|作者B` |
-| tagIds | `tag-001\|tag-002\|tag-003` |
+| authors | `作者A; 作者B` |
+| tagIds | `tag-001; tag-002; tag-003` |
+| tagNames（衍生） | `科幻; 中國文學; 必讀` |
+| tagCategories（衍生） | `自訂標籤; 自訂標籤; 閱讀清單` |
 
 **選擇理由**：
 
 | 分隔符 | 優點 | 缺點 |
 |--------|------|------|
 | 逗號 `,` | 直覺 | 與 CSV 欄位分隔符衝突，需額外引號處理 |
-| 分號 `;` | 不衝突 | 部分 locale 的 CSV 用 `;` 作欄位分隔符 |
-| 管道符 `\|`（採用） | 不與 CSV/locale 衝突、視覺明確 | 極少數書名含 `\|` 需 escape |
+| 分號加空格 `; `（採用） | 避免與書名逗號衝突；對齊 approved interchange spec | `;` locale 風險由標準 CSV cell 引號包覆化解（`; ` 在引號內不被視為欄位分隔符） |
+| 管道符 `\|`（草案，已廢止） | 視覺明確 | 從未實作；與 SSOT 不一致 |
 
-**escape 規則**：若值本身含 `|`，以 `\|` 表示（反斜線轉義）。
-
-**import 對稱性**：importer 對陣列欄做 `cell.split('|').map(s => s.replace(/\\\\|/g, '|'))`。
+**import 對稱性**：importer（`src/overview/import/content-parser.js`）對陣列欄做 `raw.split('; ').map(s => s.trim()).filter(s => s !== '')`，與 exporter join `'; '` 對稱。
 
 ---
 
@@ -117,7 +119,7 @@ CSV export 與 import 必須滿足 round-trip 一致性：
 | 匯出行為 | 匯入行為 | 驗證 |
 |---------|---------|------|
 | id 欄位必輸出 | import 以 id 做 dedup | export → import 不重複 |
-| 陣列用 `\|` 分隔 | import 用 `\|` split | 值含 `\|` 需 escape |
+| 陣列用 `; ` 分隔 | import 用 `; ` split | 對齊 export-interchange-format-v2 SSOT |
 | 物件用 JSON.stringify | import 用 JSON.parse | parse 失敗 fallback 空物件 |
 | boolean 輸出 `true`/`false` | import 用 `=== 'true'` | 不接受 0/1 |
 | 空陣列輸出空字串 `""` | import 視空字串為 `[]` | 非 null/undefined |
