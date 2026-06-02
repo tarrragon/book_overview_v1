@@ -26,6 +26,8 @@
 
 // 常數定義 - 分層組織架構
 const ErrorCodes = require('src/core/errors/ErrorCodes')
+// book-interchange-v1 canonical write 映射（foundation W4-031.2 純函式核心，消費 write 方向）
+const { mapV1BookToCanonical, buildTagTree } = require('src/export/book-interchange-v1-adapter')
 
 const CONSTANTS = {
   // 配置管理
@@ -408,6 +410,11 @@ class BookDataExporter {
     this.updateProgress(0)
 
     try {
+      // canonical 匯出路徑：formatVersion === '3.0.0'（book-interchange-v1 everything-as-tags）
+      if (options.formatVersion === '3.0.0') {
+        return this._exportToJSONCanonical(options, startTime)
+      }
+
       // v2 匯出路徑：formatVersion === '2.0.0'
       if (options.formatVersion === '2.0.0') {
         return this._exportToJSONv2(options, startTime)
@@ -541,6 +548,58 @@ class BookDataExporter {
     const jsonString = pretty
       ? JSON.stringify(v2Data, null, 2)
       : JSON.stringify(v2Data)
+
+    this.updateProgress(100)
+    this.recordExport('json', this.books.length, performance.now() - startTime)
+
+    return jsonString
+  }
+
+  /**
+   * canonical（book-interchange-v1 v3）JSON 匯出內部實作
+   *
+   * 產出 root 結構：format / formatVersion / metadata / books / tagTree（spec §3）。
+   * 逐書呼叫 foundation mapV1BookToCanonical（內部 v2 → canonical everything-as-tags，
+   * spec §4），再 buildTagTree 由 canonical books 聚合 ccl/custom 階層樹（spec §6）。
+   * metadata.totalBooks 由實際匯出書數推導（交叉驗證，spec §3）。
+   *
+   * @param {Object} options - 匯出選項
+   * @param {string} options.formatVersion - 固定 '3.0.0'
+   * @param {Object} [options.metadata] - 額外 metadata 欄位（覆蓋預設）
+   * @param {boolean} [options.pretty=true] - 是否美化輸出
+   * @param {number} startTime - 效能計時起點
+   * @returns {string} canonical JSON 字串
+   */
+  _exportToJSONCanonical (options, startTime) {
+    const pretty = options.pretty !== false
+
+    // 逐書映射為 canonical（everything-as-tags）；過濾非物件項
+    const canonicalBooks = this.books
+      .filter(book => book && typeof book === 'object')
+      .map(book => mapV1BookToCanonical(book))
+
+    this.updateProgress(50)
+
+    // 由 canonical books 聚合階層 tag 樹（ccl + custom，spec §6）
+    const tagTree = buildTagTree(canonicalBooks)
+
+    // 組裝 canonical root（spec §3）
+    const canonicalData = {
+      format: 'book-interchange-v1',
+      formatVersion: '3.0.0',
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        sourceApp: 'readmoo-book-extractor',
+        totalBooks: canonicalBooks.length, // 交叉驗證：等於 books 陣列長度
+        ...options.metadata
+      },
+      books: canonicalBooks,
+      tagTree
+    }
+
+    const jsonString = pretty
+      ? JSON.stringify(canonicalData, null, 2)
+      : JSON.stringify(canonicalData)
 
     this.updateProgress(100)
     this.recordExport('json', this.books.length, performance.now() - startTime)
