@@ -4,9 +4,9 @@
 
 ## last-reviewed
 
-**2.1.159**
+**2.1.160**
 
-（下次觸發時，只評估 2.1.159 之後的新版本）
+（下次觸發時，只評估 2.1.160 之後的新版本）
 
 ## 評估歷史
 
@@ -14,3 +14,4 @@
 |---------|------------|---------|
 | 2.1.157 | 0.19.0-W4-028 | 採用 worktree 解鎖清理 SOP + EnterWorktree mid-session 補註；OTEL tool_parameters 可選；agent 欄位不適用；plugin 三項不採用 |
 | 2.1.154 / 2.1.156 / 2.1.158 / 2.1.159 | 0.19.0-W4-029 | 建 release-note skill（本 skill）；AUQ 規則對齊（交用戶決策）；workflow 納入派發評估；MCP env 補記；2.1.156/158/159 無影響或不適用 |
+| 2.1.160 | （已決策無需建 ticket） | 27 項中 23 項 bug fix/不適用。2 項低價值採用項用戶決議跳過：Item 2（acceptEdits 寫 .npmrc/.pre-commit-config 前提示）—6 種觸發檔當前皆不存在，背景代理人新建時才有互動風險；Item 3（bash grep 滿足 read-before-edit）—框架已偏好 Grep 工具，邊際效益。取證確認：FAST_MODE_OVERRIDE env 未引用、框架未依賴 CC workflow 觸發詞、Item 24 SIGTERM 修復不解決 W1-048.10.1.4 代理人 premature-exit |
