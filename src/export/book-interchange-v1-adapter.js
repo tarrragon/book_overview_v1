@@ -16,7 +16,7 @@
  *   write 端優先讀 _passthrough 重建，達成 canonical 出發 round-trip 無損（C1）。
  */
 
-const { BookValidationError } = require('../core/errors/BookValidationError')
+const { isPlainObject, assertBookHasIdTitle } = require('./book-validation-helpers')
 
 // §7 readingStatus 六態正規化對照表（V1 ↔ canonical），一對一可逆
 const RS_V1_TO_CANONICAL = {
@@ -66,22 +66,6 @@ function normalizeReadingStatusFromCanonical (canonicalName) {
 // 內部小工具
 // =============================================================================
 
-function isPlainObject (value) {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-}
-
-function assertRequiredBook (book) {
-  if (!isPlainObject(book)) {
-    throw new BookValidationError(book, [{ field: 'book', message: 'Input must be an object' }])
-  }
-  if (!book.id || !book.title) {
-    const missing = []
-    if (!book.id) missing.push({ field: 'id', message: 'Required field missing' })
-    if (!book.title) missing.push({ field: 'title', message: 'Required field missing' })
-    throw new BookValidationError(book, missing)
-  }
-}
-
 // 由 name 衍生穩定 tag id（固定欄位 → 單元素 tag 用，避免每次取值不同的 race flaky）
 function genTagId (prefix, name) {
   return `${prefix}-${name}`
@@ -108,7 +92,7 @@ function deriveStableId (segments) {
  * @throws {BookValidationError} 非 object 或缺 id/title
  */
 function mapV1BookToCanonical (v1Book) {
-  assertRequiredBook(v1Book)
+  assertBookHasIdTitle(v1Book)
 
   const canonical = {
     id: v1Book.id, // 保留禁重生（C4）
@@ -248,7 +232,7 @@ function rebuildFromPassthrough (canonical, pt) {
  * @throws {BookValidationError} 非 object 或缺 id/title
  */
 function mapCanonicalToV1Book (canonical) {
-  assertRequiredBook(canonical)
+  assertBookHasIdTitle(canonical)
 
   const v1 = {
     id: canonical.id, // 保留禁重生（C4）

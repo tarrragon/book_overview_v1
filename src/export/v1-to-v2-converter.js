@@ -1,7 +1,7 @@
 'use strict'
 
 const BookSchemaV2 = require('../data-management/BookSchemaV2')
-const { BookValidationError } = require('../core/errors/BookValidationError')
+const { assertBookHasIdTitle } = require('./book-validation-helpers')
 const { COLORS } = require('../core/design-system/colors.js')
 const {
   normalizeReadingStatusFromCanonical
@@ -30,16 +30,7 @@ const APP_LEGACY_KNOWN_FIELDS = new Set([
  * @returns {Object} v2 格式書籍物件
  */
 function convertV1ToV2Book (v1Book, importTimestamp) {
-  if (!v1Book || typeof v1Book !== 'object') {
-    throw new BookValidationError(v1Book, [{ field: 'book', message: 'Input must be an object' }])
-  }
-
-  if (!v1Book.id || !v1Book.title) {
-    const missing = []
-    if (!v1Book.id) missing.push({ field: 'id', message: 'Required field missing' })
-    if (!v1Book.title) missing.push({ field: 'title', message: 'Required field missing' })
-    throw new BookValidationError(v1Book, missing)
-  }
+  assertBookHasIdTitle(v1Book)
 
   const timestamp = importTimestamp || new Date().toISOString()
   const progress = Math.max(0, Math.min(100, BookSchemaV2.normalizeV1Progress(v1Book.progress)))
@@ -243,15 +234,7 @@ function convertV1ToV2Data (v1Data) {
  * @throws {BookValidationError} 非 object 或缺 id/title
  */
 function convertAppLegacyToV2Book (appBook, importTimestamp) {
-  if (!appBook || typeof appBook !== 'object' || Array.isArray(appBook)) {
-    throw new BookValidationError(appBook, [{ field: 'book', message: 'Input must be an object' }])
-  }
-  if (!appBook.id || !appBook.title) {
-    const missing = []
-    if (!appBook.id) missing.push({ field: 'id', message: 'Required field missing' })
-    if (!appBook.title) missing.push({ field: 'title', message: 'Required field missing' })
-    throw new BookValidationError(appBook, missing)
-  }
+  assertBookHasIdTitle(appBook)
 
   const timestamp = importTimestamp || new Date().toISOString()
   const passthrough = {}
