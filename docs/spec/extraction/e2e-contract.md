@@ -565,7 +565,7 @@ grep -rln "readmoo_books" src/ tests/e2e/ --include="*.js" | sort -u
 | Content script START_EXTRACTION handler | `src/content/content-modular.js` | L296 | 提取觸發入口 |
 | Popup START_EXTRACTION sender | `src/background/messaging/popup-message-handler.js` | L630 | popup 觸發提取 |
 | SW SYSTEM.SHUTDOWN 廣播 | `src/background/messaging/content-message-handler.js` | L581 | SW 關閉時通知 content scripts |
-| 頁面檢測 console log | `src/content/detectors/page-detector.js` | L63 | `📍 頁面檢測:` 前綴 |
+| 頁面檢測 console log | `src/content/detectors/page-detector.js` | L63 | `[DETECT] 頁面檢測:` 前綴 |
 | URL 變更 console log | `src/content/detectors/page-detector.js` | L178 | `URL 變更檢測:` 前綴 |
 | 全域 SW 錯誤前綴 | `src/background/` | （多處） | `[SW] 未處理的 Promise 拒絕:` / `[SW] 未捕獲錯誤:` |
 | 提取診斷前綴 | `src/background/`、`tests/e2e/` | （多處） | `[DIAG] performActualExtraction 收到資料` 等 |
@@ -708,13 +708,11 @@ grep -rln "readmoo_books" src/ tests/e2e/ --include="*.js" | sort -u
 
 #### 3.4 結構化 Console Log 前綴規則
 
-**字元集豁免聲明**：本節表格與 §4 序列圖內出現的 emoji（U+1F4CD 圖釘符 / U+274C 叉號等）為 src code log 字面的機械引用，受 grep 對齊機制保護（修改字面即破壞契約驗證）。本豁免依據 `.claude/rules/core/language-constraints.md` §規則 3 豁免條款，三條件邊界：（1）檔案位置限 `docs/spec/**/*.md`；（2）引用語意限結構化前綴對應表內的 source-of-truth 機械引用；（3）字面與 src code 完全一致。
-
 E2E 觀察依賴的結構化前綴：
 
 | 前綴 | 模組 | 用途 | 範例 |
 |------|------|------|------|
-| `📍 頁面檢測:` | page-detector.js L63 | Readmoo 頁面偵測結果 | `📍 頁面檢測: Readmoo 頁面 (library)` |
+| `[DETECT] 頁面檢測:` | page-detector.js L63 | Readmoo 頁面偵測結果 | `[DETECT] 頁面檢測: Readmoo 頁面 (library)` |
 | `URL 變更檢測:` | page-detector.js L178 | SPA URL 變化 | `console.debug('URL 變更檢測:', { from, to, ... })` |
 | `[DIAG]` | extraction 流程多處 | 提取診斷訊息 | `[DIAG] performActualExtraction 收到資料` |
 | `[SW] 未處理的 Promise 拒絕:` | SW 全域 handler | unhandledrejection | `[SW] 未處理的 Promise 拒絕: <error>` |
@@ -725,11 +723,11 @@ E2E 觀察依賴的結構化前綴：
 | `[tag-storage-adapter]` | tag-storage-adapter.js | 配額與並發控制 | `[tag-storage-adapter] mergeAllData blocked: quota exceeded` |
 | `[UIDOMManager]` | UI DOM 管理 | DOM 操作失敗 | `[UIDOMManager] Failed to add event listener:` |
 | `[DiagnosticModule]` | DiagnosticModule | 健康報告 | `[DiagnosticModule] Failed to generate health report:` |
-| `❌ <名詞>失敗:` | 多處 console.error | 業務操作失敗 | `❌ 啟動提取流程失敗:` / `❌ URL 變更回調函數錯誤:` |
+| `[FAIL] <名詞>失敗:` | 多處 console.error | 業務操作失敗 | `[FAIL] 啟動提取流程失敗:` / `[FAIL] URL 變更回調函數錯誤:` |
 
 **契約**：
 
-- 結構化前綴必須**完全相等**（含 emoji、空格、冒號）才視為合法 E2E 觀察點
+- 結構化前綴必須**完全相等**（含前綴字元、空格、冒號）才視為合法 E2E 觀察點
 - 修改前綴文字時必須同步更新本表 + 所有相關 E2E 觀察測試
 - 新增前綴必須加入本表（避免散落硬編碼）
 
@@ -848,7 +846,7 @@ sequenceDiagram
     B->>CS: 注入 content-modular.js<br/>(manifest run_at: document_idle)
     CS->>CS: initializeContentScript() 九步驟<br/>(content-modular.js L63-135)
     CS->>CS: Step 1: createPageDetector()
-    CS->>CS: 偵測 isReadmooPage + pageType<br/>(log: 「📍 頁面檢測:」)
+    CS->>CS: 偵測 isReadmooPage + pageType<br/>(log: 「[DETECT] 頁面檢測:」)
     alt 非 Readmoo 頁面
         CS->>CS: Logger.info 跳過初始化 → 結束
     end
@@ -915,7 +913,7 @@ sequenceDiagram
 |------|---------|----------------|
 | 2.1 | 用戶導航至 readmoo.com 任何路徑 | （瀏覽器行為） |
 | 2.2 | Browser 注入 `content-modular.js`（`run_at: document_idle`） | `manifest.json` L18-30 |
-| 2.3-2.9 | `initializeContentScript()` 九步驟（含 §3.4「📍 頁面檢測:」log）| `content-modular.js` L63-126（檔內註解「第一步」~「第九步」明示順序） |
+| 2.3-2.9 | `initializeContentScript()` 九步驟（含 §3.4「[DETECT] 頁面檢測:」log）| `content-modular.js` L63-126（檔內註解「第一步」~「第九步」明示順序） |
 | — | CS → SW 轉發 5 種 EXTRACTION 事件 | `content-modular.js#setupModuleIntegration` L144-150（事件清單：EXTRACTION.STARTED / PROGRESS / COMPLETED / ERROR / CANCELLED） |
 
 ##### Phase 3: 用戶觸發提取
