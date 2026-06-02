@@ -28,7 +28,7 @@ versions:
     description: "測試重寫與品質恢復 + 框架基礎建設（982 ticket 完成，CHANGELOG 已補）"
 
   - version: "0.19.0"
-    status: active
+    status: completed
     description: "端到端驗證、打包與內測準備（實機測試 + 可分發打包 + 安裝指南）"
 
   - version: "0.19.1"
