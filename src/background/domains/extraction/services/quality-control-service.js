@@ -110,12 +110,12 @@ class QualityControlService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 品質控制服務已初始化')
+      this.logger.warn('[WARN] 品質控制服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔍 初始化品質控制服務')
+      this.logger.log('[CHECK] 初始化品質控制服務')
 
       // 初始化品質基準線
       await this.initializeQualityBaselines()
@@ -127,7 +127,7 @@ class QualityControlService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 品質控制服務初始化完成')
+      this.logger.log('[OK] 品質控制服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -137,7 +137,7 @@ class QualityControlService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化品質控制服務失敗:', error)
+      this.logger.error('[FAIL] 初始化品質控制服務失敗:', error)
       throw error
     }
   }
@@ -154,12 +154,12 @@ class QualityControlService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 品質控制服務已啟動')
+      this.logger.warn('[WARN] 品質控制服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動品質控制服務')
+      this.logger.log('[START] 啟動品質控制服務')
 
       this.state.active = true
       this.state.monitoring = true
@@ -170,7 +170,7 @@ class QualityControlService {
       // 啟動自動分析
       this.startAutomaticAnalysis()
 
-      this.logger.log('✅ 品質控制服務啟動完成')
+      this.logger.log('[OK] 品質控制服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -179,7 +179,7 @@ class QualityControlService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動品質控制服務失敗:', error)
+      this.logger.error('[FAIL] 啟動品質控制服務失敗:', error)
       throw error
     }
   }
@@ -189,12 +189,12 @@ class QualityControlService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 品質控制服務未啟動')
+      this.logger.warn('[WARN] 品質控制服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止品質控制服務')
+      this.logger.log('[STOP] 停止品質控制服務')
 
       // 停止監控機制
       this.stopMonitoringMechanisms()
@@ -205,7 +205,7 @@ class QualityControlService {
       this.state.active = false
       this.state.monitoring = false
 
-      this.logger.log('✅ 品質控制服務停止完成')
+      this.logger.log('[OK] 品質控制服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -215,7 +215,7 @@ class QualityControlService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止品質控制服務失敗:', error)
+      this.logger.error('[FAIL] 停止品質控制服務失敗:', error)
       throw error
     }
   }
@@ -303,7 +303,7 @@ class QualityControlService {
       threshold: this.config.qualityThresholds.processingSuccess
     })
 
-    this.logger.log(`✅ 初始化了 ${this.monitoringRules.size} 個品質規則`)
+    this.logger.log(`[OK] 初始化了 ${this.monitoringRules.size} 個品質規則`)
   }
 
   /**
@@ -326,7 +326,7 @@ class QualityControlService {
    */
   async analyzeDataQuality (data, metadata = {}) {
     try {
-      this.logger.log('📊 開始分析資料品質')
+      this.logger.log('[STATS] 開始分析資料品質')
 
       const analysisResult = {
         timestamp: Date.now(),
@@ -369,7 +369,7 @@ class QualityControlService {
             })
           }
         } catch (error) {
-          this.logger.error(`❌ 執行品質規則失敗 (${ruleId}):`, error)
+          this.logger.error(`[FAIL] 執行品質規則失敗 (${ruleId}):`, error)
         }
       }
 
@@ -388,7 +388,7 @@ class QualityControlService {
       // 檢查是否需要產生警報
       await this.checkForAlerts(analysisResult)
 
-      this.logger.log(`✅ 品質分析完成 - 整體分數: ${(analysisResult.overallScore * 100).toFixed(1)}%`)
+      this.logger.log(`[OK] 品質分析完成 - 整體分數: ${(analysisResult.overallScore * 100).toFixed(1)}%`)
 
       // 發送分析完成事件
       if (this.eventBus) {
@@ -401,7 +401,7 @@ class QualityControlService {
 
       return analysisResult
     } catch (error) {
-      this.logger.error('❌ 資料品質分析失敗:', error)
+      this.logger.error('[FAIL] 資料品質分析失敗:', error)
       throw error
     }
   }
@@ -432,7 +432,7 @@ class QualityControlService {
       this.qualityAlerts.set(alertKey, alert)
       this.stats.alertsGenerated++
 
-      this.logger.warn(`⚠️ 品質警報: ${issue.metric} - 分數: ${(issue.score * 100).toFixed(1)}%, 閾值: ${(issue.threshold * 100).toFixed(1)}%`)
+      this.logger.warn(`[WARN] 品質警報: ${issue.metric} - 分數: ${(issue.score * 100).toFixed(1)}%, 閾值: ${(issue.threshold * 100).toFixed(1)}%`)
 
       // 發送警報事件
       if (this.eventBus) {
@@ -511,7 +511,7 @@ class QualityControlService {
       })
     }
 
-    this.logger.log('✅ 品質基準線初始化完成')
+    this.logger.log('[OK] 品質基準線初始化完成')
   }
 
   /**
@@ -519,7 +519,7 @@ class QualityControlService {
    */
   async initializeMonitoringRules () {
     // 監控規則已在 initializeQualityRules 中設定
-    this.logger.log('✅ 監控規則初始化完成')
+    this.logger.log('[OK] 監控規則初始化完成')
   }
 
   /**
@@ -532,11 +532,11 @@ class QualityControlService {
       try {
         await this.performPeriodicAnalysis()
       } catch (error) {
-        this.logger.error('❌ 定期分析失敗:', error)
+        this.logger.error('[FAIL] 定期分析失敗:', error)
       }
     }, this.config.monitoringInterval)
 
-    this.logger.log('🔄 即時監控已啟動')
+    this.logger.log('即時監控已啟動')
   }
 
   /**
@@ -544,7 +544,7 @@ class QualityControlService {
    */
   startAutomaticAnalysis () {
     // 自動分析機制
-    this.logger.log('🤖 自動分析已啟動')
+    this.logger.log('自動分析已啟動')
   }
 
   /**
@@ -556,7 +556,7 @@ class QualityControlService {
       this.monitoringInterval = null
     }
 
-    this.logger.log('⏹️ 監控機制已停止')
+    this.logger.log('[STOP] 監控機制已停止')
   }
 
   /**
@@ -589,7 +589,7 @@ class QualityControlService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -611,7 +611,7 @@ class QualityControlService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -624,12 +624,12 @@ class QualityControlService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -647,7 +647,7 @@ class QualityControlService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理品質分析請求失敗:', error)
+      this.logger.error('[FAIL] 處理品質分析請求失敗:', error)
     }
   }
 
@@ -659,7 +659,7 @@ class QualityControlService {
       const { data } = event.data || {}
       await this.analyzeDataQuality(data)
     } catch (error) {
-      this.logger.error('❌ 處理資料品質檢查失敗:', error)
+      this.logger.error('[FAIL] 處理資料品質檢查失敗:', error)
     }
   }
 

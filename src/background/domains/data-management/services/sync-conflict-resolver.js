@@ -54,12 +54,12 @@ class SyncConflictResolver {
     if (this.state.initialized) return
 
     try {
-      this.logger.log('⚖️ 初始化衝突解決器')
+      this.logger.log('初始化衝突解決器')
       await this.registerEventListeners()
       this.state.initialized = true
-      this.logger.log('✅ 衝突解決器初始化完成')
+      this.logger.log('[OK] 衝突解決器初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化衝突解決器失敗:', error)
+      this.logger.error('[FAIL] 初始化衝突解決器失敗:', error)
       throw error
     }
   }
@@ -143,7 +143,7 @@ class SyncConflictResolver {
       }
     })
 
-    this.logger.log(`✅ 初始化了 ${this.conflictStrategies.size} 個衝突解決策略`)
+    this.logger.log(`[OK] 初始化了 ${this.conflictStrategies.size} 個衝突解決策略`)
   }
 
   async detectConflicts (localBooks, remoteBooks) {
@@ -176,7 +176,7 @@ class SyncConflictResolver {
       }
     }
 
-    this.logger.log(`🔍 檢測到 ${conflicts.length} 個衝突`)
+    this.logger.log(`[CHECK] 檢測到 ${conflicts.length} 個衝突`)
     return conflicts
   }
 
@@ -251,7 +251,7 @@ class SyncConflictResolver {
       throw error
     }
 
-    this.logger.log(`⚖️ 開始解決 ${conflicts.length} 個衝突，策略: ${strategy}`)
+    this.logger.log(`開始解決 ${conflicts.length} 個衝突，策略: ${strategy}`)
 
     for (const conflict of conflicts) {
       try {
@@ -288,7 +288,7 @@ class SyncConflictResolver {
           reason: resolutionResult.reason
         })
       } catch (error) {
-        this.logger.error(`❌ 解決衝突失敗 (${conflict.bookId}):`, error)
+        this.logger.error(`[FAIL] 解決衝突失敗 (${conflict.bookId}):`, error)
         resolutionResults.push({
           bookId: conflict.bookId,
           title: conflict.title,
@@ -299,7 +299,7 @@ class SyncConflictResolver {
       }
     }
 
-    this.logger.log(`✅ 衝突解決完成，已解決: ${resolutionResults.filter(r => r.resolution?.resolved).length}/${conflicts.length}`)
+    this.logger.log(`[OK] 衝突解決完成，已解決: ${resolutionResults.filter(r => r.resolution?.resolved).length}/${conflicts.length}`)
     return resolutionResults
   }
 
@@ -384,7 +384,7 @@ class SyncConflictResolver {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
     this.registeredListeners.clear()
@@ -392,14 +392,14 @@ class SyncConflictResolver {
 
   async handleConflictDetected (event) {
     try {
-      this.logger.log('⚠️ 檢測到衝突，準備自動解決')
+      this.logger.log('[WARN] 檢測到衝突，準備自動解決')
       const { conflicts, strategy } = event.data || {}
 
       if (conflicts && conflicts.length > 0) {
         await this.resolveConflicts(conflicts, strategy || 'keep_latest')
       }
     } catch (error) {
-      this.logger.error('❌ 處理衝突檢測事件失敗:', error)
+      this.logger.error('[FAIL] 處理衝突檢測事件失敗:', error)
     }
   }
 

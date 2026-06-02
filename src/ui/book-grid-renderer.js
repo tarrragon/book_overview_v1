@@ -504,7 +504,7 @@ class BookGridRenderer {
     container.classList.add(CLASSES.DEFAULT_COVER)
 
     // 使用書籍標題首字母或預設圖示
-    const displayText = book.title?.charAt(0)?.toUpperCase() || '📖'
+    const displayText = book.title?.charAt(0)?.toUpperCase() || ''
     container.textContent = displayText
   }
 

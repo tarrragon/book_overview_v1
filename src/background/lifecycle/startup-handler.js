@@ -50,7 +50,7 @@ class StartupHandler extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('🚀 初始化啟動處理器')
+    this.logger.log('[START] 初始化啟動處理器')
 
     // 初始化相關模組（但不啟動）
     const modules = [
@@ -65,13 +65,13 @@ class StartupHandler extends BaseModule {
         try {
           await module.initialize()
         } catch (error) {
-          this.logger.error(`❌ 模組初始化失敗: ${module.constructor?.name}`, error)
+          this.logger.error(`[FAIL] 模組初始化失敗: ${module.constructor?.name}`, error)
           // 記錄錯誤但繼續初始化其他模組
         }
       }
     }
 
-    this.logger.log('✅ 啟動處理器初始化完成')
+    this.logger.log('[OK] 啟動處理器初始化完成')
   }
 
   /**
@@ -80,7 +80,7 @@ class StartupHandler extends BaseModule {
    */
   async handleStartup () {
     if (this.startupInProgress) {
-      this.logger.warn('⚠️ 啟動處理已在進行中，跳過重複處理')
+      this.logger.warn('[WARN] 啟動處理已在進行中，跳過重複處理')
       return
     }
 
@@ -89,7 +89,7 @@ class StartupHandler extends BaseModule {
       this.startupStartTime = Date.now()
       this.startupAttempts++
 
-      this.logger.log(`🚀 開始處理 Service Worker 啟動 (嘗試 #${this.startupAttempts})`)
+      this.logger.log(`[START] 開始處理 Service Worker 啟動 (嘗試 #${this.startupAttempts})`)
 
       // 清理上次啟動的狀態
       await this.cleanupPreviousState()
@@ -107,7 +107,7 @@ class StartupHandler extends BaseModule {
       this.startupDuration = Date.now() - this.startupStartTime
       this.lastStartupSuccess = Date.now()
 
-      this.logger.log(`✅ Service Worker 啟動完成 (耗時: ${this.startupDuration}ms)`)
+      this.logger.log(`[OK] Service Worker 啟動完成 (耗時: ${this.startupDuration}ms)`)
     } catch (error) {
       this.startupErrors.push({
         error: error.message,
@@ -115,7 +115,7 @@ class StartupHandler extends BaseModule {
         attempt: this.startupAttempts
       })
 
-      this.logger.error('❌ Service Worker 啟動失敗:', error)
+      this.logger.error('[FAIL] Service Worker 啟動失敗:', error)
 
       // 觸發啟動失敗事件
       if (this.eventBus) {
@@ -143,7 +143,7 @@ class StartupHandler extends BaseModule {
    */
   async cleanupPreviousState () {
     try {
-      this.logger.log('🧹 清理上次啟動狀態')
+      this.logger.log('清理上次啟動狀態')
 
       // 清理可能殘留的全域變數
       if (globalThis.backgroundStartTime) {
@@ -163,9 +163,9 @@ class StartupHandler extends BaseModule {
         globalThis.chromeBridge = null
       }
 
-      this.logger.log('✅ 上次啟動狀態清理完成')
+      this.logger.log('[OK] 上次啟動狀態清理完成')
     } catch (error) {
-      this.logger.error('❌ 清理上次啟動狀態失敗:', error)
+      this.logger.error('[FAIL] 清理上次啟動狀態失敗:', error)
       // 不拋出錯誤，繼續啟動流程
     }
   }
@@ -176,18 +176,18 @@ class StartupHandler extends BaseModule {
    * @private
    */
   async startupModulesInSequence () {
-    this.logger.log('🔄 按順序啟動模組')
+    this.logger.log('按順序啟動模組')
 
     for (const moduleName of this.startupSequence) {
       const module = this[moduleName]
 
       if (!module) {
-        this.logger.warn(`⚠️ 模組不存在: ${moduleName}`)
+        this.logger.warn(`[WARN] 模組不存在: ${moduleName}`)
         continue
       }
 
       try {
-        this.logger.log(`▶️ 啟動模組: ${moduleName}`)
+        this.logger.log(`[START] 啟動模組: ${moduleName}`)
 
         if (typeof module.start === 'function') {
           await module.start()
@@ -195,7 +195,7 @@ class StartupHandler extends BaseModule {
           await module.initialize()
         }
 
-        this.logger.log(`✅ 模組啟動成功: ${moduleName}`)
+        this.logger.log(`[OK] 模組啟動成功: ${moduleName}`)
 
         // 觸發模組啟動事件
         if (this.eventBus) {
@@ -205,7 +205,7 @@ class StartupHandler extends BaseModule {
           })
         }
       } catch (error) {
-        this.logger.error(`❌ 模組啟動失敗: ${moduleName}`, error)
+        this.logger.error(`[FAIL] 模組啟動失敗: ${moduleName}`, error)
 
         // 觸發模組啟動失敗事件
         if (this.eventBus) {
@@ -226,7 +226,7 @@ class StartupHandler extends BaseModule {
       }
     }
 
-    this.logger.log('✅ 模組序列啟動完成')
+    this.logger.log('[OK] 模組序列啟動完成')
   }
 
   /**
@@ -247,7 +247,7 @@ class StartupHandler extends BaseModule {
    */
   async restoreSystemState () {
     try {
-      this.logger.log('🔄 恢復系統狀態')
+      this.logger.log('恢復系統狀態')
 
       // 檢查儲存的系統狀態
       const systemState = await chrome.storage.local.get([
@@ -256,11 +256,11 @@ class StartupHandler extends BaseModule {
         'last_extraction'
       ])
 
-      this.logger.log('📋 系統狀態:', systemState)
+      this.logger.log('系統狀態:', systemState)
 
       // 恢復關鍵配置
       if (systemState.isEnabled === false) {
-        this.logger.warn('⚠️ 系統處於停用狀態')
+        this.logger.warn('[WARN] 系統處於停用狀態')
       }
 
       // 觸發狀態恢復事件
@@ -271,9 +271,9 @@ class StartupHandler extends BaseModule {
         })
       }
 
-      this.logger.log('✅ 系統狀態恢復完成')
+      this.logger.log('[OK] 系統狀態恢復完成')
     } catch (error) {
-      this.logger.error('❌ 恢復系統狀態失敗:', error)
+      this.logger.error('[FAIL] 恢復系統狀態失敗:', error)
       // 不拋出錯誤，繼續啟動流程
     }
   }
@@ -285,7 +285,7 @@ class StartupHandler extends BaseModule {
    */
   async emitSystemReadyEvent () {
     try {
-      this.logger.log('🎯 觸發系統就緒事件')
+      this.logger.log('觸發系統就緒事件')
 
       // 設定全域啟動時間
       globalThis.backgroundStartTime = Date.now()
@@ -305,9 +305,9 @@ class StartupHandler extends BaseModule {
         })
       }
 
-      this.logger.log('✅ 系統就緒事件已觸發')
+      this.logger.log('[OK] 系統就緒事件已觸發')
     } catch (error) {
-      this.logger.error('❌ 觸發系統就緒事件失敗:', error)
+      this.logger.error('[FAIL] 觸發系統就緒事件失敗:', error)
       throw error
     }
   }
@@ -319,11 +319,11 @@ class StartupHandler extends BaseModule {
    */
   async attemptRecovery () {
     try {
-      this.logger.log('🔄 嘗試從啟動失敗中恢復')
+      this.logger.log('嘗試從啟動失敗中恢復')
 
       // 如果嘗試次數不多，可以重試
       if (this.startupAttempts < 3) {
-        this.logger.log(`🔄 準備重試啟動 (${this.startupAttempts}/3)`)
+        this.logger.log(`[RETRY] 準備重試啟動 (${this.startupAttempts}/3)`)
 
         // 等待短暫時間後重試
         await new Promise(resolve => setTimeout(resolve, 1000))
@@ -331,13 +331,13 @@ class StartupHandler extends BaseModule {
         // 遞迴重試
         await this.handleStartup()
       } else {
-        this.logger.error('❌ 啟動重試次數已達上限，啟用降級模式')
+        this.logger.error('[FAIL] 啟動重試次數已達上限，啟用降級模式')
 
         // 啟用降級模式
         await this.enableDegradedMode()
       }
     } catch (error) {
-      this.logger.error('❌ 恢復嘗試失敗:', error)
+      this.logger.error('[FAIL] 恢復嘗試失敗:', error)
       // 最後的錯誤處理
       await this.handleFinalFailure()
     }
@@ -350,7 +350,7 @@ class StartupHandler extends BaseModule {
    */
   async enableDegradedMode () {
     try {
-      this.logger.log('⚠️ 啟用系統降級模式')
+      this.logger.log('[WARN] 啟用系統降級模式')
 
       // 只啟動最基本的功能
       if (this.eventCoordinator && typeof this.eventCoordinator.start === 'function') {
@@ -369,9 +369,9 @@ class StartupHandler extends BaseModule {
         })
       }
 
-      this.logger.log('⚠️ 降級模式啟用完成')
+      this.logger.log('[WARN] 降級模式啟用完成')
     } catch (error) {
-      this.logger.error('❌ 啟用降級模式失敗:', error)
+      this.logger.error('[FAIL] 啟用降級模式失敗:', error)
       throw error
     }
   }
@@ -383,7 +383,7 @@ class StartupHandler extends BaseModule {
    */
   async handleFinalFailure () {
     try {
-      this.logger.error('💥 系統啟動最終失敗')
+      this.logger.error('系統啟動最終失敗')
 
       // 記錄詳細錯誤資訊
       const errorReport = {
@@ -397,9 +397,9 @@ class StartupHandler extends BaseModule {
         startup_failure_report: errorReport
       })
 
-      this.logger.error('💥 錯誤報告已儲存:', errorReport)
+      this.logger.error('錯誤報告已儲存:', errorReport)
     } catch (error) {
-      this.logger.error('❌ 處理最終失敗時發生錯誤:', error)
+      this.logger.error('[FAIL] 處理最終失敗時發生錯誤:', error)
     }
   }
 

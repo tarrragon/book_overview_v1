@@ -655,7 +655,7 @@ https://github.com/your-repo/readmoo-extractor/issues
    */
   generateErrorReportURL (diagnosticData) {
     const baseURL = 'https://github.com/your-repo/readmoo-extractor/issues/new'
-    const title = encodeURIComponent('🐛 Bug Report: Popup Error')
+    const title = encodeURIComponent('Bug Report: Popup Error')
 
     const body = encodeURIComponent(`
 ## 問題描述
@@ -696,8 +696,8 @@ ${JSON.stringify(diagnosticData, null, 2)}
     // 更新按鈕文字
     if (this.elements.diagnosticBtn) {
       this.elements.diagnosticBtn.textContent = this.diagnosticMode
-        ? '🔧 停用診斷'
-        : '🔧 診斷模式'
+        ? '[FIX] 停用診斷'
+        : '[FIX] 診斷模式'
     }
 
     // 通知錯誤系統

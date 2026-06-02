@@ -60,7 +60,7 @@ class EventCoordinator extends BaseModule {
     if (this.i18nManager) {
       this.logger.log(this.i18nManager.t('events.coordinator.initializing', { moduleName: this.moduleName }))
     } else {
-      this.logger.log('🎯 初始化事件系統協調器')
+      this.logger.log('初始化事件系統協調器')
     }
 
     // 初始化子組件
@@ -69,7 +69,7 @@ class EventCoordinator extends BaseModule {
     // 初始化事件系統
     await this.initializeEventSystem()
 
-    this.logger.log('✅ 事件系統協調器初始化完成')
+    this.logger.log('[OK] 事件系統協調器初始化完成')
   }
 
   /**
@@ -78,7 +78,7 @@ class EventCoordinator extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動事件系統協調器')
+    this.logger.log('[START] 啟動事件系統協調器')
 
     // 啟動子組件
     await this.startSubComponents()
@@ -89,7 +89,7 @@ class EventCoordinator extends BaseModule {
     // 標記事件系統就緒
     await this.markEventSystemReady()
 
-    this.logger.log('✅ 事件系統協調器啟動完成')
+    this.logger.log('[OK] 事件系統協調器啟動完成')
   }
 
   /**
@@ -98,7 +98,7 @@ class EventCoordinator extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止事件系統協調器')
+    this.logger.log('[STOP] 停止事件系統協調器')
 
     // 取消註冊核心監聽器
     await this.unregisterCoreListeners()
@@ -111,7 +111,7 @@ class EventCoordinator extends BaseModule {
     this.eventBusInstance = null
     this.chromeBridgeInstance = null
 
-    this.logger.log('✅ 事件系統協調器停止完成')
+    this.logger.log('[OK] 事件系統協調器停止完成')
   }
 
   /**
@@ -120,7 +120,7 @@ class EventCoordinator extends BaseModule {
    * @private
    */
   async initializeSubComponents () {
-    this.logger.log('🔧 初始化事件系統子組件')
+    this.logger.log('[FIX] 初始化事件系統子組件')
 
     const components = [
       this.eventSystemInitializer,
@@ -133,12 +133,12 @@ class EventCoordinator extends BaseModule {
         try {
           await component.initialize()
         } catch (error) {
-          this.logger.error(`❌ 事件系統子組件初始化失敗: ${component.constructor?.name}`, error)
+          this.logger.error(`[FAIL] 事件系統子組件初始化失敗: ${component.constructor?.name}`, error)
         }
       }
     }
 
-    this.logger.log('✅ 事件系統子組件初始化完成')
+    this.logger.log('[OK] 事件系統子組件初始化完成')
   }
 
   /**
@@ -148,7 +148,7 @@ class EventCoordinator extends BaseModule {
    */
   async initializeEventSystem () {
     try {
-      this.logger.log('📡 開始初始化事件系統')
+      this.logger.log('開始初始化事件系統')
 
       // 使用事件系統初始化器
       if (this.eventSystemInitializer) {
@@ -186,11 +186,11 @@ class EventCoordinator extends BaseModule {
         this.chromeBridgeInstance.eventBus = this.eventBusInstance
       }
 
-      this.logger.log('✅ 事件系統初始化完成')
-      this.logger.log('📊 EventBus 實例:', !!this.eventBusInstance)
-      this.logger.log('🌉 ChromeEventBridge 實例:', !!this.chromeBridgeInstance)
+      this.logger.log('[OK] 事件系統初始化完成')
+      this.logger.log('[STATS] EventBus 實例:', !!this.eventBusInstance)
+      this.logger.log('ChromeEventBridge 實例:', !!this.chromeBridgeInstance)
     } catch (error) {
-      this.logger.error('❌ 事件系統初始化失敗:', error)
+      this.logger.error('[FAIL] 事件系統初始化失敗:', error)
 
       // 提供降級方案
       globalThis.eventBus = null
@@ -208,7 +208,7 @@ class EventCoordinator extends BaseModule {
    * @private
    */
   async createSimpleEventSystem () {
-    this.logger.log('🔄 建立簡化事件系統')
+    this.logger.log('建立簡化事件系統')
 
     // 建立簡化 EventBus
     const eventBus = this.createSimpleEventBus()
@@ -319,7 +319,7 @@ class EventCoordinator extends BaseModule {
                 toRemove.push(wrapper)
               }
             } catch (error) {
-              this.logger?.error?.(`❌ 事件處理器錯誤 (${eventType}):`, error)
+              this.logger?.error?.(`[FAIL] 事件處理器錯誤 (${eventType}):`, error)
               results.push({ success: false, error })
 
               if (wrapper.once) {
@@ -345,7 +345,7 @@ class EventCoordinator extends BaseModule {
 
           return results
         } catch (error) {
-          this.logger?.error?.(`❌ 事件觸發失敗 (${eventType}):`, error)
+          this.logger?.error?.(`[FAIL] 事件觸發失敗 (${eventType}):`, error)
           return [{ success: false, error }]
         }
       },
@@ -437,7 +437,7 @@ class EventCoordinator extends BaseModule {
    * @private
    */
   async startSubComponents () {
-    this.logger.log('▶️ 啟動事件系統子組件')
+    this.logger.log('[START] 啟動事件系統子組件')
 
     const components = [
       this.eventSystemInitializer,
@@ -450,12 +450,12 @@ class EventCoordinator extends BaseModule {
         try {
           await component.start()
         } catch (error) {
-          this.logger.error(`❌ 事件系統子組件啟動失敗: ${component.constructor?.name}`, error)
+          this.logger.error(`[FAIL] 事件系統子組件啟動失敗: ${component.constructor?.name}`, error)
         }
       }
     }
 
-    this.logger.log('✅ 事件系統子組件啟動完成')
+    this.logger.log('[OK] 事件系統子組件啟動完成')
   }
 
   /**
@@ -465,17 +465,17 @@ class EventCoordinator extends BaseModule {
    */
   async registerCoreListeners () {
     if (!this.eventBusInstance) {
-      this.logger.error('❌ EventBus 實例不存在，無法註冊核心監聽器')
+      this.logger.error('[FAIL] EventBus 實例不存在，無法註冊核心監聽器')
       return
     }
 
     if (this.coreListenersRegistered) {
-      this.logger.warn('⚠️ 核心監聽器已註冊')
+      this.logger.warn('[WARN] 核心監聽器已註冊')
       return
     }
 
     try {
-      this.logger.log('🎯 註冊核心事件監聽器')
+      this.logger.log('註冊核心事件監聽器')
 
       // 註冊系統級監聽器
       await this.registerSystemListeners()
@@ -487,9 +487,9 @@ class EventCoordinator extends BaseModule {
       await this.registerErrorListeners()
 
       this.coreListenersRegistered = true
-      this.logger.log('✅ 核心事件監聽器註冊完成')
+      this.logger.log('[OK] 核心事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊核心監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊核心監聽器失敗:', error)
       throw error
     }
   }
@@ -502,7 +502,7 @@ class EventCoordinator extends BaseModule {
   async registerSystemListeners () {
     // 系統安裝監聽器
     const installedId = this.eventBusInstance.on(SYSTEM_EVENTS.INSTALLED, (event) => {
-      this.logger.log('🎉 系統安裝事件:', event.data)
+      this.logger.log('系統安裝事件:', event.data)
       this.eventStats.lastActivity = Date.now()
     }, { priority: EVENT_PRIORITIES.HIGH })
 
@@ -510,7 +510,7 @@ class EventCoordinator extends BaseModule {
 
     // 系統啟動監聽器
     const startupId = this.eventBusInstance.on(SYSTEM_EVENTS.STARTUP, (event) => {
-      this.logger.log('🔄 系統啟動事件:', event.data)
+      this.logger.log('系統啟動事件:', event.data)
       this.eventStats.lastActivity = Date.now()
     }, { priority: EVENT_PRIORITIES.HIGH })
 
@@ -518,13 +518,13 @@ class EventCoordinator extends BaseModule {
 
     // 系統就緒監聽器
     const readyId = this.eventBusInstance.on(SYSTEM_EVENTS.READY, (event) => {
-      this.logger.log('✅ 系統就緒事件:', event.data)
+      this.logger.log('[OK] 系統就緒事件:', event.data)
       this.eventStats.lastActivity = Date.now()
     }, { priority: EVENT_PRIORITIES.HIGH })
 
     this.registeredListeners.set(SYSTEM_EVENTS.READY, readyId)
 
-    this.logger.log('📝 系統事件監聽器註冊完成')
+    this.logger.log('[LOG] 系統事件監聽器註冊完成')
   }
 
   /**
@@ -535,8 +535,8 @@ class EventCoordinator extends BaseModule {
   async registerExtractionListeners () {
     // EXTRACTION.COMPLETED 監聽器
     const completedId = this.eventBusInstance.on('EXTRACTION.COMPLETED', async (event) => {
-      this.logger.log('📊 書籍提取完成事件被觸發!')
-      this.logger.log('📋 完整事件資料:', event)
+      this.logger.log('[STATS] 書籍提取完成事件被觸發!')
+      this.logger.log('完整事件資料:', event)
 
       try {
         let books = event.data?.booksData || event.data?.books
@@ -582,24 +582,24 @@ class EventCoordinator extends BaseModule {
             source: event.data?.source || 'readmoo'
           }
 
-          this.logger.log(`💾 準備儲存 ${books.length} 本書籍到 Chrome Storage`)
+          this.logger.log(`[SAVE] 準備儲存 ${books.length} 本書籍到 Chrome Storage`)
           await chrome.storage.local.set({ readmoo_books: storageData })
 
           const verifyData = await chrome.storage.local.get(['readmoo_books'])
-          this.logger.log('✅ 驗證儲存結果:', verifyData.readmoo_books ? `${verifyData.readmoo_books.books?.length || 0} 本書籍` : '無資料')
+          this.logger.log('[OK] 驗證儲存結果:', verifyData.readmoo_books ? `${verifyData.readmoo_books.books?.length || 0} 本書籍` : '無資料')
         } else {
-          this.logger.warn('⚠️ 提取完成事件中沒有有效的書籍資料')
+          this.logger.warn('[WARN] 提取完成事件中沒有有效的書籍資料')
         }
 
         this.eventStats.lastActivity = Date.now()
       } catch (error) {
-        this.logger.error('❌ 儲存書籍資料失敗:', error)
+        this.logger.error('[FAIL] 儲存書籍資料失敗:', error)
         this.eventStats.errorCount++
       }
     }, { priority: EVENT_PRIORITIES.URGENT })
 
     this.registeredListeners.set('EXTRACTION.COMPLETED', completedId)
-    this.logger.log('📝 EXTRACTION.COMPLETED 監聽器註冊完成')
+    this.logger.log('[LOG] EXTRACTION.COMPLETED 監聽器註冊完成')
   }
 
   /**
@@ -610,14 +610,14 @@ class EventCoordinator extends BaseModule {
   async registerErrorListeners () {
     // 系統錯誤監聽器
     const errorId = this.eventBusInstance.on(SYSTEM_EVENTS.ERROR, (event) => {
-      this.logger.error('💥 系統錯誤事件:', event.data)
+      this.logger.error('系統錯誤事件:', event.data)
       this.eventStats.errorCount++
       this.eventStats.lastActivity = Date.now()
     }, { priority: EVENT_PRIORITIES.URGENT })
 
     this.registeredListeners.set(SYSTEM_EVENTS.ERROR, errorId)
 
-    this.logger.log('📝 錯誤事件監聽器註冊完成')
+    this.logger.log('[LOG] 錯誤事件監聽器註冊完成')
   }
 
   /**
@@ -641,7 +641,7 @@ class EventCoordinator extends BaseModule {
       })
     }
 
-    this.logger.log('🎯 事件系統已標記為就緒')
+    this.logger.log('事件系統已標記為就緒')
   }
 
   /**
@@ -654,20 +654,20 @@ class EventCoordinator extends BaseModule {
       return
     }
 
-    this.logger.log('🔄 取消註冊核心事件監聽器')
+    this.logger.log('取消註冊核心事件監聽器')
 
     for (const [eventType, listenerId] of this.registeredListeners) {
       try {
         this.eventBusInstance.off(eventType, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊監聽器失敗: ${eventType}`, error)
+        this.logger.error(`[FAIL] 取消註冊監聽器失敗: ${eventType}`, error)
       }
     }
 
     this.registeredListeners.clear()
     this.coreListenersRegistered = false
 
-    this.logger.log('✅ 核心事件監聽器取消註冊完成')
+    this.logger.log('[OK] 核心事件監聽器取消註冊完成')
   }
 
   /**
@@ -676,7 +676,7 @@ class EventCoordinator extends BaseModule {
    * @private
    */
   async stopSubComponents () {
-    this.logger.log('⏹️ 停止事件系統子組件')
+    this.logger.log('[STOP] 停止事件系統子組件')
 
     const components = [
       this.listenerRegistry,
@@ -689,12 +689,12 @@ class EventCoordinator extends BaseModule {
         try {
           await component.stop()
         } catch (error) {
-          this.logger.error(`❌ 事件系統子組件停止失敗: ${component.constructor?.name}`, error)
+          this.logger.error(`[FAIL] 事件系統子組件停止失敗: ${component.constructor?.name}`, error)
         }
       }
     }
 
-    this.logger.log('✅ 事件系統子組件停止完成')
+    this.logger.log('[OK] 事件系統子組件停止完成')
   }
 
   /**

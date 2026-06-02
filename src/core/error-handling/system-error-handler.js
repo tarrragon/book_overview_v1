@@ -390,13 +390,13 @@ function generateRecoveryRecommendations (classifications) {
 
 function getErrorIcon (category) {
   const icons = {
-    NETWORK_ERROR: '🌐',
-    DATA_ERROR: '📊',
-    SYSTEM_ERROR: '⚙️',
-    DOM_ERROR: '🔧',
-    PLATFORM_ERROR: '🚀'
+    NETWORK_ERROR: '',
+    DATA_ERROR: '[STATS] ',
+    SYSTEM_ERROR: '',
+    DOM_ERROR: '[FIX] ',
+    PLATFORM_ERROR: '[START] '
   }
-  return icons[category] || '⚠️'
+  return icons[category] || '[WARN] '
 }
 
 function getErrorColor (severity) {

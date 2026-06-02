@@ -115,12 +115,12 @@ class ThemeManagementService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 主題管理服務已初始化')
+      this.logger.warn('[WARN] 主題管理服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化主題管理服務')
+      this.logger.log('初始化主題管理服務')
 
       // 檢測系統主題
       await this.detectSystemTheme()
@@ -135,7 +135,7 @@ class ThemeManagementService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 主題管理服務初始化完成')
+      this.logger.log('[OK] 主題管理服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -147,7 +147,7 @@ class ThemeManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化主題管理服務失敗:', error)
+      this.logger.error('[FAIL] 初始化主題管理服務失敗:', error)
       throw error
     }
   }
@@ -164,18 +164,18 @@ class ThemeManagementService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 主題管理服務已啟動')
+      this.logger.warn('[WARN] 主題管理服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動主題管理服務')
+      this.logger.log('[START] 啟動主題管理服務')
 
       // 應用初始主題
       await this.applyInitialTheme()
 
       this.state.active = true
-      this.logger.log('✅ 主題管理服務啟動完成')
+      this.logger.log('[OK] 主題管理服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -185,7 +185,7 @@ class ThemeManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動主題管理服務失敗:', error)
+      this.logger.error('[FAIL] 啟動主題管理服務失敗:', error)
       throw error
     }
   }
@@ -194,7 +194,7 @@ class ThemeManagementService {
    * 設定主題
    */
   async setTheme (theme) {
-    this.logger.log(`🎨 設定主題: ${theme}`)
+    this.logger.log(`設定主題: ${theme}`)
 
     try {
       // 驗證主題有效性
@@ -242,10 +242,10 @@ class ThemeManagementService {
         })
       }
 
-      this.logger.log(`✅ 主題設定完成: ${theme} (有效主題: ${this.effectiveTheme})`)
+      this.logger.log(`[OK] 主題設定完成: ${theme} (有效主題: ${this.effectiveTheme})`)
       return { success: true, theme, effectiveTheme: this.effectiveTheme }
     } catch (error) {
-      this.logger.error(`❌ 主題設定失敗: ${theme}`, error)
+      this.logger.error(`[FAIL] 主題設定失敗: ${theme}`, error)
       throw error
     }
   }
@@ -277,7 +277,7 @@ class ThemeManagementService {
    * 註冊主題提供者
    */
   registerThemeProvider (providerId, provider) {
-    this.logger.log(`🔗 註冊主題提供者: ${providerId}`)
+    this.logger.log(`註冊主題提供者: ${providerId}`)
 
     try {
       // 驗證提供者介面
@@ -296,7 +296,7 @@ class ThemeManagementService {
         provider.updateTheme(this.effectiveTheme, this.themeConfig[this.effectiveTheme])
       }
 
-      this.logger.log(`✅ 主題提供者註冊完成: ${providerId}`)
+      this.logger.log(`[OK] 主題提供者註冊完成: ${providerId}`)
 
       // 發送提供者註冊事件
       if (this.eventBus) {
@@ -306,7 +306,7 @@ class ThemeManagementService {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ 主題提供者註冊失敗: ${providerId}`, error)
+      this.logger.error(`[FAIL] 主題提供者註冊失敗: ${providerId}`, error)
       throw error
     }
   }
@@ -315,14 +315,14 @@ class ThemeManagementService {
    * 取消註冊主題提供者
    */
   unregisterThemeProvider (providerId) {
-    this.logger.log(`🔌 取消註冊主題提供者: ${providerId}`)
+    this.logger.log(`取消註冊主題提供者: ${providerId}`)
 
     const removed = this.themeProviders.delete(providerId)
 
     if (removed) {
-      this.logger.log(`✅ 主題提供者取消註冊完成: ${providerId}`)
+      this.logger.log(`[OK] 主題提供者取消註冊完成: ${providerId}`)
     } else {
-      this.logger.warn(`⚠️ 主題提供者不存在: ${providerId}`)
+      this.logger.warn(`[WARN] 主題提供者不存在: ${providerId}`)
     }
 
     return removed
@@ -344,9 +344,9 @@ class ThemeManagementService {
         this.systemTheme = await this.fallbackSystemThemeDetection()
       }
 
-      this.logger.log(`🔍 檢測到系統主題: ${this.systemTheme}`)
+      this.logger.log(`[CHECK] 檢測到系統主題: ${this.systemTheme}`)
     } catch (error) {
-      this.logger.error('❌ 檢測系統主題失敗:', error)
+      this.logger.error('[FAIL] 檢測系統主題失敗:', error)
       // 使用預設淺色主題
       this.systemTheme = 'light'
     }
@@ -361,11 +361,11 @@ class ThemeManagementService {
         const savedTheme = await this.storageService.get('user.theme.preference')
         if (savedTheme && this.isValidTheme(savedTheme)) {
           this.currentTheme = savedTheme
-          this.logger.log(`📖 載入使用者主題偏好: ${savedTheme}`)
+          this.logger.log(`載入使用者主題偏好: ${savedTheme}`)
         }
       }
     } catch (error) {
-      this.logger.error('❌ 載入使用者主題偏好失敗:', error)
+      this.logger.error('[FAIL] 載入使用者主題偏好失敗:', error)
       // 使用預設主題
       this.currentTheme = 'auto'
     }
@@ -385,10 +385,10 @@ class ThemeManagementService {
         }
 
         darkModeQuery.addEventListener('change', this.systemThemeListener)
-        this.logger.log('✅ 系統主題監聽器設定完成')
+        this.logger.log('[OK] 系統主題監聽器設定完成')
       }
     } catch (error) {
-      this.logger.error('❌ 設定系統主題監聽器失敗:', error)
+      this.logger.error('[FAIL] 設定系統主題監聽器失敗:', error)
     }
   }
 
@@ -396,7 +396,7 @@ class ThemeManagementService {
    * 處理系統主題變更
    */
   async handleSystemThemeChange (newSystemTheme) {
-    this.logger.log(`🔄 系統主題變更: ${this.systemTheme} → ${newSystemTheme}`)
+    this.logger.log(`系統主題變更: ${this.systemTheme} → ${newSystemTheme}`)
 
     const oldSystemTheme = this.systemTheme
     this.systemTheme = newSystemTheme
@@ -452,7 +452,7 @@ class ThemeManagementService {
    * 通知主題提供者
    */
   async notifyThemeProviders (effectiveTheme) {
-    this.logger.log(`📢 通知主題提供者: ${effectiveTheme}`)
+    this.logger.log(`通知主題提供者: ${effectiveTheme}`)
 
     const themeConfig = this.themeConfig[effectiveTheme]
     const results = []
@@ -463,12 +463,12 @@ class ThemeManagementService {
         results.push({ providerId, success: true })
         this.stats.providersNotified++
       } catch (error) {
-        this.logger.error(`❌ 通知主題提供者失敗 (${providerId}):`, error)
+        this.logger.error(`[FAIL] 通知主題提供者失敗 (${providerId}):`, error)
         results.push({ providerId, success: false, error: error.message })
       }
     }
 
-    this.logger.log(`✅ 主題提供者通知完成: ${results.filter(r => r.success).length}/${results.length}`)
+    this.logger.log(`[OK] 主題提供者通知完成: ${results.filter(r => r.success).length}/${results.length}`)
     return results
   }
 
@@ -482,7 +482,7 @@ class ThemeManagementService {
       await this.notifyThemeProviders(this.effectiveTheme)
     }
 
-    this.logger.log(`🎨 應用初始主題: ${this.currentTheme} (有效: ${this.effectiveTheme})`)
+    this.logger.log(`應用初始主題: ${this.currentTheme} (有效: ${this.effectiveTheme})`)
   }
 
   /**
@@ -492,10 +492,10 @@ class ThemeManagementService {
     try {
       if (this.storageService) {
         await this.storageService.set('user.theme.preference', theme)
-        this.logger.log(`💾 主題偏好已保存: ${theme}`)
+        this.logger.log(`[SAVE] 主題偏好已保存: ${theme}`)
       }
     } catch (error) {
-      this.logger.error('❌ 持久化主題偏好失敗:', error)
+      this.logger.error('[FAIL] 持久化主題偏好失敗:', error)
     }
   }
 
@@ -520,7 +520,7 @@ class ThemeManagementService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過主題事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過主題事件監聽器註冊')
       return
     }
 
@@ -544,7 +544,7 @@ class ThemeManagementService {
       }
     })
 
-    this.logger.log('✅ 主題事件監聽器註冊完成')
+    this.logger.log('[OK] 主題事件監聽器註冊完成')
   }
 
   /**
@@ -620,7 +620,7 @@ class ThemeManagementService {
     // 清空主題提供者
     this.themeProviders.clear()
 
-    this.logger.log('✅ 主題管理服務清理完成')
+    this.logger.log('[OK] 主題管理服務清理完成')
   }
 }
 

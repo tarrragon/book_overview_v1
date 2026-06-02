@@ -89,12 +89,12 @@ class PersonalizationService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 個人化服務已初始化')
+      this.logger.warn('[WARN] 個人化服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化個人化服務')
+      this.logger.log('初始化個人化服務')
 
       // 載入使用者檔案
       await this.loadUserProfile()
@@ -109,7 +109,7 @@ class PersonalizationService {
       await this.startLearningEngine()
 
       this.state.initialized = true
-      this.logger.log('✅ 個人化服務初始化完成')
+      this.logger.log('[OK] 個人化服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -119,7 +119,7 @@ class PersonalizationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化個人化服務失敗:', error)
+      this.logger.error('[FAIL] 初始化個人化服務失敗:', error)
       throw error
     }
   }
@@ -136,12 +136,12 @@ class PersonalizationService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 個人化服務已啟動')
+      this.logger.warn('[WARN] 個人化服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動個人化服務')
+      this.logger.log('[START] 啟動個人化服務')
 
       // 生成初始推薦
       await this.generateInitialRecommendations()
@@ -150,7 +150,7 @@ class PersonalizationService {
       this.startSessionTracking()
 
       this.state.active = true
-      this.logger.log('✅ 個人化服務啟動完成')
+      this.logger.log('[OK] 個人化服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -160,7 +160,7 @@ class PersonalizationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動個人化服務失敗:', error)
+      this.logger.error('[FAIL] 啟動個人化服務失敗:', error)
       throw error
     }
   }
@@ -173,7 +173,7 @@ class PersonalizationService {
       return
     }
 
-    this.logger.log(`📝 記錄使用者行為: ${action.type}`)
+    this.logger.log(`[LOG] 記錄使用者行為: ${action.type}`)
 
     try {
       // 統計行為記錄
@@ -210,9 +210,9 @@ class PersonalizationService {
         })
       }
 
-      this.logger.log(`✅ 使用者行為記錄完成: ${behaviorData.id}`)
+      this.logger.log(`[OK] 使用者行為記錄完成: ${behaviorData.id}`)
     } catch (error) {
-      this.logger.error('❌ 記錄使用者行為失敗:', error)
+      this.logger.error('[FAIL] 記錄使用者行為失敗:', error)
     }
   }
 
@@ -234,7 +234,7 @@ class PersonalizationService {
    * 更新個人化檔案
    */
   async updatePersonalizationProfile (updates) {
-    this.logger.log('🔄 更新個人化檔案')
+    this.logger.log('更新個人化檔案')
 
     try {
       // 統計檔案更新
@@ -263,9 +263,9 @@ class PersonalizationService {
         })
       }
 
-      this.logger.log('✅ 個人化檔案更新完成')
+      this.logger.log('[OK] 個人化檔案更新完成')
     } catch (error) {
-      this.logger.error('❌ 更新個人化檔案失敗:', error)
+      this.logger.error('[FAIL] 更新個人化檔案失敗:', error)
       throw error
     }
   }
@@ -274,7 +274,7 @@ class PersonalizationService {
    * 生成個人化推薦
    */
   async generatePersonalizedRecommendations () {
-    this.logger.log('🎯 生成個人化推薦')
+    this.logger.log('生成個人化推薦')
 
     try {
       const recommendations = []
@@ -308,10 +308,10 @@ class PersonalizationService {
         })
       }
 
-      this.logger.log(`✅ 生成了 ${recommendations.length} 個個人化推薦`)
+      this.logger.log(`[OK] 生成了 ${recommendations.length} 個個人化推薦`)
       return recommendations
     } catch (error) {
-      this.logger.error('❌ 生成個人化推薦失敗:', error)
+      this.logger.error('[FAIL] 生成個人化推薦失敗:', error)
       return []
     }
   }
@@ -320,7 +320,7 @@ class PersonalizationService {
    * 應用個人化建議
    */
   async applyPersonalizationSuggestion (suggestionId) {
-    this.logger.log(`🎯 應用個人化建議: ${suggestionId}`)
+    this.logger.log(`應用個人化建議: ${suggestionId}`)
 
     try {
       const suggestion = this.userProfile.recommendations.find(r => r.id === suggestionId)
@@ -367,10 +367,10 @@ class PersonalizationService {
         })
       }
 
-      this.logger.log(`✅ 個人化建議應用完成: ${suggestionId}`)
+      this.logger.log(`[OK] 個人化建議應用完成: ${suggestionId}`)
       return { success: true, suggestion, result }
     } catch (error) {
-      this.logger.error(`❌ 應用個人化建議失敗: ${suggestionId}`, error)
+      this.logger.error(`[FAIL] 應用個人化建議失敗: ${suggestionId}`, error)
       return { success: false, error: error.message }
     }
   }
@@ -404,11 +404,11 @@ class PersonalizationService {
             this.state.learningEnabled = savedProfile.learningEnabled
           }
 
-          this.logger.log('📖 使用者檔案載入完成')
+          this.logger.log('使用者檔案載入完成')
         }
       }
     } catch (error) {
-      this.logger.error('❌ 載入使用者檔案失敗:', error)
+      this.logger.error('[FAIL] 載入使用者檔案失敗:', error)
     }
   }
 
@@ -427,10 +427,10 @@ class PersonalizationService {
         }
 
         await this.storageService.set('user.personalization.profile', profileData)
-        this.logger.log('💾 使用者檔案保存完成')
+        this.logger.log('[SAVE] 使用者檔案保存完成')
       }
     } catch (error) {
-      this.logger.error('❌ 保存使用者檔案失敗:', error)
+      this.logger.error('[FAIL] 保存使用者檔案失敗:', error)
     }
   }
 
@@ -447,10 +447,10 @@ class PersonalizationService {
         }
       }
     } catch (error) {
-      this.logger.error('❌ 載入行為歷史失敗:', error)
+      this.logger.error('[FAIL] 載入行為歷史失敗:', error)
     }
 
-    this.logger.log('✅ 行為追蹤初始化完成')
+    this.logger.log('[OK] 行為追蹤初始化完成')
   }
 
   /**
@@ -458,7 +458,7 @@ class PersonalizationService {
    */
   async startLearningEngine () {
     if (!this.state.learningEnabled) {
-      this.logger.log('⚠️ 學習功能已禁用')
+      this.logger.log('[WARN] 學習功能已禁用')
       return
     }
 
@@ -467,7 +467,7 @@ class PersonalizationService {
       await this.performLearningUpdate()
     }, this.learningConfig.updateInterval)
 
-    this.logger.log('✅ 學習引擎啟動完成')
+    this.logger.log('[OK] 學習引擎啟動完成')
   }
 
   /**
@@ -491,9 +491,9 @@ class PersonalizationService {
       // 保存更新的檔案
       await this.saveUserProfile()
 
-      this.logger.log('🧠 學習更新完成')
+      this.logger.log('學習更新完成')
     } catch (error) {
-      this.logger.error('❌ 學習更新失敗:', error)
+      this.logger.error('[FAIL] 學習更新失敗:', error)
     }
   }
 
@@ -524,7 +524,7 @@ class PersonalizationService {
     this.userProfile.behaviorPatterns = patterns
     this.stats.patternsDetected = patterns.size
 
-    this.logger.log(`🔍 分析了 ${patterns.size} 個行為模式`)
+    this.logger.log(`[CHECK] 分析了 ${patterns.size} 個行為模式`)
   }
 
   /**
@@ -740,7 +740,7 @@ class PersonalizationService {
     if (this.behaviorHistory.length >= this.learningConfig.minDataPoints) {
       await this.generatePersonalizedRecommendations()
     } else {
-      this.logger.log('⚠️ 數據點不足，跳過初始推薦生成')
+      this.logger.log('[WARN] 數據點不足，跳過初始推薦生成')
     }
   }
 
@@ -752,7 +752,7 @@ class PersonalizationService {
     this.sessionData.startTime = Date.now()
     this.sessionData.actions = []
 
-    this.logger.log(`📊 開始會話追蹤: ${this.sessionData.sessionId}`)
+    this.logger.log(`[STATS] 開始會話追蹤: ${this.sessionData.sessionId}`)
   }
 
   /**
@@ -788,7 +788,7 @@ class PersonalizationService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過個人化事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過個人化事件監聽器註冊')
       return
     }
 
@@ -812,7 +812,7 @@ class PersonalizationService {
       }
     })
 
-    this.logger.log('✅ 個人化事件監聽器註冊完成')
+    this.logger.log('[OK] 個人化事件監聽器註冊完成')
   }
 
   /**

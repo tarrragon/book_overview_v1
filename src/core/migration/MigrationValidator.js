@@ -83,7 +83,7 @@ class MigrationValidator {
   async validateFile (filePath, migrationItems = []) {
     const normalizedPath = path.relative(this.projectRoot, filePath)
     // eslint-disable-next-line no-console
-    console.log(`🔍 開始驗證檔案: ${normalizedPath}`)
+    console.log(`[CHECK] 開始驗證檔案: ${normalizedPath}`)
 
     const validationResults = {
       filePath: normalizedPath,
@@ -120,11 +120,11 @@ class MigrationValidator {
       }
 
       // eslint-disable-next-line no-console
-      console.log(`✅ 檔案驗證完成: ${normalizedPath} (${validationResults.overall})`)
+      console.log(`[OK] 檔案驗證完成: ${normalizedPath} (${validationResults.overall})`)
       return validationResults
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error(`❌ 檔案驗證失敗: ${normalizedPath}`, error.message)
+      console.error(`[FAIL] 檔案驗證失敗: ${normalizedPath}`, error.message)
       validationResults.overall = VALIDATION_RESULT.FAIL
       validationResults.issues.push({
         type: 'validation_error',
@@ -140,7 +140,7 @@ class MigrationValidator {
    */
   async validateBatch (fileList) {
     // eslint-disable-next-line no-console
-    console.log(`📦 開始批量驗證: ${fileList.length} 個檔案`)
+    console.log(`開始批量驗證: ${fileList.length} 個檔案`)
 
     const batchResults = {
       timestamp: new Date().toISOString(),
@@ -180,13 +180,13 @@ class MigrationValidator {
         batchResults.summary.warningIssues += result.issues.filter(i => i.severity === 'warning').length
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error(`❌ 批量驗證錯誤: ${filePath}`, error.message)
+        console.error(`[FAIL] 批量驗證錯誤: ${filePath}`, error.message)
         batchResults.failedFiles++
       }
     }
 
     // eslint-disable-next-line no-console
-    console.log(`📊 批量驗證完成: ${batchResults.passedFiles} 通過, ${batchResults.failedFiles} 失敗, ${batchResults.warningFiles} 警告`)
+    console.log(`[STATS] 批量驗證完成: ${batchResults.passedFiles} 通過, ${batchResults.failedFiles} 失敗, ${batchResults.warningFiles} 警告`)
     return batchResults
   }
 
@@ -195,7 +195,7 @@ class MigrationValidator {
    */
   async validateProject () {
     // eslint-disable-next-line no-console
-    console.log('🏗 開始專案整體驗證')
+    console.log('開始專案整體驗證')
 
     const projectValidation = {
       timestamp: new Date().toISOString(),
@@ -220,11 +220,11 @@ class MigrationValidator {
       }
 
       // eslint-disable-next-line no-console
-      console.log(`✅ 專案驗證完成: ${projectValidation.overall}`)
+      console.log(`[OK] 專案驗證完成: ${projectValidation.overall}`)
       return projectValidation
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('❌ 專案驗證失敗:', error.message)
+      console.error('[FAIL] 專案驗證失敗:', error.message)
       projectValidation.overall = VALIDATION_RESULT.FAIL
       return projectValidation
     }

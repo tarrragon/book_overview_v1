@@ -35,20 +35,20 @@ const ErrorCodes = require('src/core/errors/ErrorCodes')
 
 // 初始化 Logger 實例
 const searchUIMessages = new MessageDictionary({
-  COMPONENT_INIT: '🔧 BookSearchFilterIntegrated 組件初始化',
-  EVENT_BUS_MISSING: '❌ 事件總線是必需的',
-  MODULAR_COMPONENTS_SUCCESS: '✅ 所有模組化組件初始化完成',
-  MODULAR_COMPONENTS_FAILED: '❌ 模組化組件初始化失敗: {error}',
-  BOOKS_DATA_UPDATE_WARNING: '⚠️ 更新書籍資料失敗：資料必須是陣列',
-  BOOKS_DATA_UPDATED: '✅ 書籍資料更新完成: {count} 本書籍',
-  BOOKS_DATA_UPDATE_ERROR: '❌ 書籍資料更新失敗: {error}',
-  SEARCH_EXECUTION_ERROR: '❌ 搜尋執行失敗: {error}',
-  FILTER_APPLICATION_ERROR: '❌ 篩選套用失敗: {error}',
-  SEARCH_CLEARED: '✅ 搜尋和篩選已清除',
-  SEARCH_CLEAR_ERROR: '❌ 清除搜尋和篩選失敗: {error}',
-  STATISTICS_ERROR: '❌ 獲取搜尋統計失敗: {error}',
-  CLEANUP_SUCCESS: '✅ BookSearchFilterIntegrated 資源清理完成',
-  CLEANUP_ERROR: '❌ 資源清理失敗: {error}'
+  COMPONENT_INIT: '[FIX] BookSearchFilterIntegrated 組件初始化',
+  EVENT_BUS_MISSING: '[FAIL] 事件總線是必需的',
+  MODULAR_COMPONENTS_SUCCESS: '[OK] 所有模組化組件初始化完成',
+  MODULAR_COMPONENTS_FAILED: '[FAIL] 模組化組件初始化失敗: {error}',
+  BOOKS_DATA_UPDATE_WARNING: '[WARN] 更新書籍資料失敗：資料必須是陣列',
+  BOOKS_DATA_UPDATED: '[OK] 書籍資料更新完成: {count} 本書籍',
+  BOOKS_DATA_UPDATE_ERROR: '[FAIL] 書籍資料更新失敗: {error}',
+  SEARCH_EXECUTION_ERROR: '[FAIL] 搜尋執行失敗: {error}',
+  FILTER_APPLICATION_ERROR: '[FAIL] 篩選套用失敗: {error}',
+  SEARCH_CLEARED: '[OK] 搜尋和篩選已清除',
+  SEARCH_CLEAR_ERROR: '[FAIL] 清除搜尋和篩選失敗: {error}',
+  STATISTICS_ERROR: '[FAIL] 獲取搜尋統計失敗: {error}',
+  CLEANUP_SUCCESS: '[OK] BookSearchFilterIntegrated 資源清理完成',
+  CLEANUP_ERROR: '[FAIL] 資源清理失敗: {error}'
 })
 
 const searchUILogger = new Logger('BookSearchFilterIntegrated', 'INFO', searchUIMessages)

@@ -92,12 +92,12 @@ class DiagnosticService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 診斷服務已初始化')
+      this.logger.warn('[WARN] 診斷服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔍 初始化診斷服務')
+      this.logger.log('[CHECK] 初始化診斷服務')
 
       // 收集系統基本資訊
       await this.collectSystemInfo()
@@ -109,7 +109,7 @@ class DiagnosticService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 診斷服務初始化完成')
+      this.logger.log('[OK] 診斷服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -119,7 +119,7 @@ class DiagnosticService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化診斷服務失敗:', error)
+      this.logger.error('[FAIL] 初始化診斷服務失敗:', error)
       throw error
     }
   }
@@ -138,12 +138,12 @@ class DiagnosticService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 診斷服務已啟動')
+      this.logger.warn('[WARN] 診斷服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動診斷服務')
+      this.logger.log('[START] 啟動診斷服務')
 
       // 開始資料收集
       this.startDataCollection()
@@ -151,7 +151,7 @@ class DiagnosticService {
       this.state.active = true
       this.state.collecting = true
 
-      this.logger.log('✅ 診斷服務啟動完成')
+      this.logger.log('[OK] 診斷服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -160,7 +160,7 @@ class DiagnosticService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動診斷服務失敗:', error)
+      this.logger.error('[FAIL] 啟動診斷服務失敗:', error)
       throw error
     }
   }
@@ -170,12 +170,12 @@ class DiagnosticService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 診斷服務未啟動')
+      this.logger.warn('[WARN] 診斷服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止診斷服務')
+      this.logger.log('[STOP] 停止診斷服務')
 
       // 停止資料收集
       this.stopDataCollection()
@@ -192,7 +192,7 @@ class DiagnosticService {
       this.state.active = false
       this.state.collecting = false
 
-      this.logger.log('✅ 診斷服務停止完成')
+      this.logger.log('[OK] 診斷服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -202,7 +202,7 @@ class DiagnosticService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止診斷服務失敗:', error)
+      this.logger.error('[FAIL] 停止診斷服務失敗:', error)
       throw error
     }
   }
@@ -223,9 +223,9 @@ class DiagnosticService {
         extensions: await this.getExtensionInfo()
       }
 
-      this.logger.log('✅ 系統資訊收集完成')
+      this.logger.log('[OK] 系統資訊收集完成')
     } catch (error) {
-      this.logger.error('❌ 收集系統資訊失敗:', error)
+      this.logger.error('[FAIL] 收集系統資訊失敗:', error)
     }
   }
 
@@ -331,7 +331,7 @@ class DiagnosticService {
       return issues
     })
 
-    this.logger.log(`✅ 初始化了 ${this.analyzers.size} 個分析器`)
+    this.logger.log(`[OK] 初始化了 ${this.analyzers.size} 個分析器`)
   }
 
   /**
@@ -387,7 +387,7 @@ class DiagnosticService {
     // 攔截和記錄日誌
     this.interceptLogs()
 
-    this.logger.log('📊 開始診斷資料收集')
+    this.logger.log('[STATS] 開始診斷資料收集')
   }
 
   /**
@@ -397,7 +397,7 @@ class DiagnosticService {
     // 清理日誌攔截
     this.cleanupLogInterception()
 
-    this.logger.log('⏹️ 停止診斷資料收集')
+    this.logger.log('[STOP] 停止診斷資料收集')
   }
 
   /**
@@ -454,7 +454,7 @@ class DiagnosticService {
 
       if (count > 3) {
         this.stats.patternsDetected++
-        this.logger.warn(`🔍 檢測到重複錯誤模式: ${pattern} (${count} 次)`)
+        this.logger.warn(`[CHECK] 檢測到重複錯誤模式: ${pattern} (${count} 次)`)
       }
     }
   }
@@ -534,10 +534,10 @@ class DiagnosticService {
         }
       }
 
-      this.logger.log(`✅ 診斷分析完成，發現 ${analysisResults.issues.length} 個問題`)
+      this.logger.log(`[OK] 診斷分析完成，發現 ${analysisResults.issues.length} 個問題`)
       return analysisResults
     } catch (error) {
-      this.logger.error('❌ 診斷分析失敗:', error)
+      this.logger.error('[FAIL] 診斷分析失敗:', error)
       throw error
     }
   }
@@ -575,7 +575,7 @@ class DiagnosticService {
 
       return report
     } catch (error) {
-      this.logger.error('❌ 生成診斷報告失敗:', error)
+      this.logger.error('[FAIL] 生成診斷報告失敗:', error)
       throw error
     }
   }
@@ -659,7 +659,7 @@ class DiagnosticService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -681,7 +681,7 @@ class DiagnosticService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -694,12 +694,12 @@ class DiagnosticService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -729,7 +729,7 @@ class DiagnosticService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理診斷請求失敗:', error)
+      this.logger.error('[FAIL] 處理診斷請求失敗:', error)
     }
   }
 

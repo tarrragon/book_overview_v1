@@ -63,20 +63,20 @@ class SyncStrategyProcessor {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 同步策略處理器已初始化')
+      this.logger.warn('[WARN] 同步策略處理器已初始化')
       return
     }
 
     try {
-      this.logger.log('🔄 初始化同步策略處理器')
+      this.logger.log('初始化同步策略處理器')
 
       // 設置預設策略
       this.setupDefaultStrategies()
 
       this.state.initialized = true
-      this.logger.log('✅ 同步策略處理器初始化完成')
+      this.logger.log('[OK] 同步策略處理器初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化同步策略處理器失敗:', error)
+      this.logger.error('[FAIL] 初始化同步策略處理器失敗:', error)
       throw error
     }
   }
@@ -104,7 +104,7 @@ class SyncStrategyProcessor {
       this.strategies.set(strategy.name, strategy)
     })
 
-    this.logger.log(`✅ 設置了 ${defaultStrategies.length} 個預設同步策略`)
+    this.logger.log(`[OK] 設置了 ${defaultStrategies.length} 個預設同步策略`)
   }
 
   /**
@@ -128,7 +128,7 @@ class SyncStrategyProcessor {
       const result = await strategy.processor(data)
       return result
     } catch (error) {
-      this.logger.error(`❌ 處理同步策略失敗 (${strategyName}):`, error)
+      this.logger.error(`[FAIL] 處理同步策略失敗 (${strategyName}):`, error)
       throw error
     }
   }

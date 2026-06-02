@@ -193,7 +193,7 @@
 </head>
 <body>
   <div class="header">
-    <h1>📚 Readmoo 書庫提取器</h1>
+    <h1>Readmoo 書庫提取器</h1>
     <p>專業書目管理工具</p>
   </div>
   
@@ -212,30 +212,30 @@
     <!-- 主要操作按鈕 -->
     <div class="status-card">
       <button class="button primary" id="extractBtn" disabled>
-        🚀 開始提取書庫資料
+        [START] 開始提取書庫資料
       </button>
       
       <button class="button secondary" id="settingsBtn">
-        ⚙️ 擴展設定
+        擴展設定
       </button>
       
       <button class="button secondary" id="helpBtn">
-        ❓ 使用說明
+        使用說明
       </button>
       
       <button class="button secondary" id="viewLibraryBtn" aria-label="開啟書庫總覽頁面檢視所有書籍">
-        📖 檢視書庫
+        檢視書庫
       </button>
       
       <button class="button secondary" id="diagnosticBtn" style="display: none;">
-        🔧 診斷模式
+        [FIX] 診斷模式
       </button>
     </div>
     
     <!-- 進度顯示區域 -->
     <div class="status-card" id="progressContainer" style="display: none;">
       <div class="progress-header">
-        <strong>📊 提取進度</strong>
+        <strong>[STATS] 提取進度</strong>
         <span id="progressPercentage">0%</span>
       </div>
       <div class="progress-bar-container">
@@ -251,7 +251,7 @@
     <!-- 結果展示區域 -->
     <div class="status-card" id="resultsContainer" style="display: none;">
       <div class="results-header">
-        <strong>📋 提取結果</strong>
+        <strong>提取結果</strong>
       </div>
       <div class="info-text">
         <strong>已提取書籍:</strong> <span id="extractedBookCount">0</span> 本<br>
@@ -260,10 +260,10 @@
       </div>
       <div class="action-buttons">
         <button class="button secondary small" id="exportBtn" disabled>
-          💾 匯出資料
+          [SAVE] 匯出資料
         </button>
         <button class="button secondary small" id="viewResultsBtn" disabled aria-label="查看詳細的提取結果">
-          👁️ 查看結果
+          查看結果
         </button>
       </div>
     </div>
@@ -271,17 +271,17 @@
     <!-- 系統初始載入錯誤 -->
     <div class="status-card error-card" id="initErrorContainer" style="display: none;">
       <div class="error-header">
-        <strong>🚨 系統初始化失敗</strong>
+        <strong>[ALERT] 系統初始化失敗</strong>
       </div>
       <div class="error-message" id="initErrorMessage">
         擴展初始化過程中發生錯誤
       </div>
       <div class="action-buttons">
         <button class="button primary small" id="forceReloadBtn">
-          🔃 強制重新載入擴展
+          強制重新載入擴展
         </button>
         <button class="button secondary small" id="openExtensionPageBtn">
-          🔧 開啟擴展管理頁面
+          [FIX] 開啟擴展管理頁面
         </button>
       </div>
     </div>
@@ -289,26 +289,26 @@
     <!-- 錯誤訊息區域 -->
     <div class="status-card error-card" id="errorContainer" style="display: none;">
       <div class="error-header">
-        <strong>⚠️ 錯誤訊息</strong>
+        <strong>[WARN] 錯誤訊息</strong>
       </div>
       <div class="error-message" id="errorMessage">
         發生未知錯誤
       </div>
       <div class="action-buttons">
         <button class="button secondary small" id="retryBtn">
-          🔄 重試
+          [RETRY] 重試
         </button>
         <button class="button secondary small" id="reloadExtensionBtn">
-          🔃 重新載入擴展
+          重新載入擴展
         </button>
         <button class="button info small" id="systemHealthCheckBtn">
-          ⚕️ 系統健康檢查
+          系統健康檢查
         </button>
         <button class="button secondary small" id="reportBtn">
-          📝 回報問題
+          [LOG] 回報問題
         </button>
         <button class="button info small" id="initReportBtn" style="display: none;">
-          📋 初始化報告
+          初始化報告
         </button>
       </div>
       <div class="error-suggestions" id="errorSuggestions" style="display: none;">

@@ -85,7 +85,7 @@ class PageDomainCoordinator {
       })
     }
 
-    this.logger.log(`🏗️ Page Domain 初始化了 ${this.services.size} 個微服務`)
+    this.logger.log(`Page Domain 初始化了 ${this.services.size} 個微服務`)
   }
 
   /**
@@ -93,21 +93,21 @@ class PageDomainCoordinator {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 頁面領域協調器已初始化')
+      this.logger.warn('[WARN] 頁面領域協調器已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化頁面領域協調器')
+      this.logger.log('初始化頁面領域協調器')
 
       // 初始化微服務
       for (const [serviceName, service] of this.services) {
         try {
           await service.initialize()
           this.serviceStates.get(serviceName).initialized = true
-          this.logger.log(`✅ ${serviceName} 初始化完成`)
+          this.logger.log(`[OK] ${serviceName} 初始化完成`)
         } catch (error) {
-          this.logger.error(`❌ ${serviceName} 初始化失敗:`, error)
+          this.logger.error(`[FAIL] ${serviceName} 初始化失敗:`, error)
           throw error
         }
       }
@@ -116,7 +116,7 @@ class PageDomainCoordinator {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 頁面領域協調器初始化完成')
+      this.logger.log('[OK] 頁面領域協調器初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -126,7 +126,7 @@ class PageDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化頁面領域協調器失敗:', error)
+      this.logger.error('[FAIL] 初始化頁面領域協調器失敗:', error)
       throw error
     }
   }
@@ -143,28 +143,28 @@ class PageDomainCoordinator {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 頁面領域協調器已啟動')
+      this.logger.warn('[WARN] 頁面領域協調器已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動頁面領域協調器')
+      this.logger.log('[START] 啟動頁面領域協調器')
 
       // 啟動微服務
       for (const [serviceName, service] of this.services) {
         try {
           await service.start()
           this.serviceStates.get(serviceName).active = true
-          this.logger.log(`✅ ${serviceName} 啟動完成`)
+          this.logger.log(`[OK] ${serviceName} 啟動完成`)
         } catch (error) {
-          this.logger.error(`❌ ${serviceName} 啟動失敗:`, error)
+          this.logger.error(`[FAIL] ${serviceName} 啟動失敗:`, error)
         }
       }
 
       this.state.active = true
       this.state.servicesReady = true
 
-      this.logger.log('✅ 頁面領域協調器啟動完成')
+      this.logger.log('[OK] 頁面領域協調器啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -173,7 +173,7 @@ class PageDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動頁面領域協調器失敗:', error)
+      this.logger.error('[FAIL] 啟動頁面領域協調器失敗:', error)
       throw error
     }
   }
@@ -183,21 +183,21 @@ class PageDomainCoordinator {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 頁面領域協調器未啟動')
+      this.logger.warn('[WARN] 頁面領域協調器未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止頁面領域協調器')
+      this.logger.log('[STOP] 停止頁面領域協調器')
 
       // 停止微服務
       for (const [serviceName, service] of this.services) {
         try {
           await service.stop()
           this.serviceStates.get(serviceName).active = false
-          this.logger.log(`✅ ${serviceName} 停止完成`)
+          this.logger.log(`[OK] ${serviceName} 停止完成`)
         } catch (error) {
-          this.logger.error(`❌ ${serviceName} 停止失敗:`, error)
+          this.logger.error(`[FAIL] ${serviceName} 停止失敗:`, error)
         }
       }
 
@@ -207,7 +207,7 @@ class PageDomainCoordinator {
       this.state.active = false
       this.state.servicesReady = false
 
-      this.logger.log('✅ 頁面領域協調器停止完成')
+      this.logger.log('[OK] 頁面領域協調器停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -216,7 +216,7 @@ class PageDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止頁面領域協調器失敗:', error)
+      this.logger.error('[FAIL] 停止頁面領域協調器失敗:', error)
       throw error
     }
   }
@@ -226,7 +226,7 @@ class PageDomainCoordinator {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -263,7 +263,7 @@ class PageDomainCoordinator {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ Page Domain 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] Page Domain 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -276,12 +276,12 @@ class PageDomainCoordinator {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -294,14 +294,14 @@ class PageDomainCoordinator {
 
       const { url, pageType } = event.data || {}
 
-      this.logger.log(`🔍 檢測到頁面: ${pageType} (${url})`)
+      this.logger.log(`[CHECK] 檢測到頁面: ${pageType} (${url})`)
 
       // 協調其他微服務的響應
       // 內容腳本服務會自動處理腳本注入
       // 分頁狀態服務會記錄頁面變化
       // 權限服務會檢查所需權限
     } catch (error) {
-      this.logger.error('❌ 處理 Readmoo 頁面檢測事件失敗:', error)
+      this.logger.error('[FAIL] 處理 Readmoo 頁面檢測事件失敗:', error)
     }
   }
 
@@ -313,7 +313,7 @@ class PageDomainCoordinator {
       this.stats.eventsHandled++
 
       const { url, tabId } = event.data || {}
-      this.logger.log(`🧭 頁面導航變更: ${url}`)
+      this.logger.log(`頁面導航變更: ${url}`)
 
       // 觸發重新檢測
       const detectionService = this.services.get('pageDetection')
@@ -321,7 +321,7 @@ class PageDomainCoordinator {
         await detectionService.detectPageType(url, '', tabId)
       }
     } catch (error) {
-      this.logger.error('❌ 處理頁面導航變更事件失敗:', error)
+      this.logger.error('[FAIL] 處理頁面導航變更事件失敗:', error)
     }
   }
 
@@ -334,9 +334,9 @@ class PageDomainCoordinator {
       this.stats.contentScriptCoordinations++
 
       const { url } = event.data || {}
-      this.logger.log(`📜 內容腳本就緒: ${url}`)
+      this.logger.log(`內容腳本就緒: ${url}`)
     } catch (error) {
-      this.logger.error('❌ 處理內容腳本就緒事件失敗:', error)
+      this.logger.error('[FAIL] 處理內容腳本就緒事件失敗:', error)
     }
   }
 
@@ -348,11 +348,11 @@ class PageDomainCoordinator {
       this.stats.eventsHandled++
 
       const { tabId } = event.data || {}
-      this.logger.log(`🔄 分頁啟動: ${tabId}`)
+      this.logger.log(`分頁啟動: ${tabId}`)
 
       // 可以在此觸發相關的頁面檢測或狀態更新
     } catch (error) {
-      this.logger.error('❌ 處理分頁啟動事件失敗:', error)
+      this.logger.error('[FAIL] 處理分頁啟動事件失敗:', error)
     }
   }
 
@@ -364,11 +364,11 @@ class PageDomainCoordinator {
       this.stats.eventsHandled++
 
       const { type, permissions } = event.data || {}
-      this.logger.log(`🔐 權限變更: ${type}`, permissions)
+      this.logger.log(`權限變更: ${type}`, permissions)
 
       // 根據權限變更調整服務行為
     } catch (error) {
-      this.logger.error('❌ 處理權限變更事件失敗:', error)
+      this.logger.error('[FAIL] 處理權限變更事件失敗:', error)
     }
   }
 

@@ -50,7 +50,7 @@ class MessageRouter extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('📨 初始化訊息路由器')
+    this.logger.log('初始化訊息路由器')
 
     // 初始化訊息處理器
     const handlers = [
@@ -64,7 +64,7 @@ class MessageRouter extends BaseModule {
         try {
           await handler.initialize()
         } catch (error) {
-          this.logger.error(`❌ 訊息處理器初始化失敗: ${handler.constructor?.name}`, error)
+          this.logger.error(`[FAIL] 訊息處理器初始化失敗: ${handler.constructor?.name}`, error)
         }
       }
     }
@@ -72,7 +72,7 @@ class MessageRouter extends BaseModule {
     // 設定訊息監聽器
     await this.setupMessageListener()
 
-    this.logger.log('✅ 訊息路由器初始化完成')
+    this.logger.log('[OK] 訊息路由器初始化完成')
   }
 
   /**
@@ -81,7 +81,7 @@ class MessageRouter extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動訊息路由器')
+    this.logger.log('[START] 啟動訊息路由器')
 
     // 開始接受訊息
     this.isAcceptingMessages = true
@@ -98,7 +98,7 @@ class MessageRouter extends BaseModule {
         try {
           await handler.start()
         } catch (error) {
-          this.logger.error(`❌ 訊息處理器啟動失敗: ${handler.constructor?.name}`, error)
+          this.logger.error(`[FAIL] 訊息處理器啟動失敗: ${handler.constructor?.name}`, error)
         }
       }
     }
@@ -106,7 +106,7 @@ class MessageRouter extends BaseModule {
     // 處理積壓的訊息
     await this.processQueuedMessages()
 
-    this.logger.log('✅ 訊息路由器啟動完成')
+    this.logger.log('[OK] 訊息路由器啟動完成')
   }
 
   /**
@@ -115,7 +115,7 @@ class MessageRouter extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止訊息路由器')
+    this.logger.log('[STOP] 停止訊息路由器')
 
     // 停止接受新訊息
     await this.stopAcceptingMessages()
@@ -135,12 +135,12 @@ class MessageRouter extends BaseModule {
         try {
           await handler.stop()
         } catch (error) {
-          this.logger.error(`❌ 訊息處理器停止失敗: ${handler.constructor?.name}`, error)
+          this.logger.error(`[FAIL] 訊息處理器停止失敗: ${handler.constructor?.name}`, error)
         }
       }
     }
 
-    this.logger.log('✅ 訊息路由器停止完成')
+    this.logger.log('[OK] 訊息路由器停止完成')
   }
 
   /**
@@ -150,7 +150,7 @@ class MessageRouter extends BaseModule {
    */
   async setupMessageListener () {
     try {
-      this.logger.log('🎧 設定 Chrome Extension 訊息監聽器')
+      this.logger.log('設定 Chrome Extension 訊息監聽器')
 
       // Manifest V3 關鍵修正：chrome.runtime.onMessage listener 必須同步回傳 true
       // 以保持訊息通道開啟，讓 async handler 可以稍後呼叫 sendResponse。
@@ -165,9 +165,9 @@ class MessageRouter extends BaseModule {
       // 註冊監聽器
       chrome.runtime.onMessage.addListener(this.chromeMessageListener)
 
-      this.logger.log('✅ Chrome Extension 訊息監聽器註冊完成')
+      this.logger.log('[OK] Chrome Extension 訊息監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 設定訊息監聽器失敗:', error)
+      this.logger.error('[FAIL] 設定訊息監聽器失敗:', error)
       throw error
     }
   }
@@ -198,7 +198,7 @@ class MessageRouter extends BaseModule {
       // 記錄訊息統計
       this.updateMessageStats(message, sender)
 
-      this.logger.log('📨 收到訊息:', {
+      this.logger.log('收到訊息:', {
         type: message.type,
         from: this.getMessageSource(sender),
         tabId: sender.tab?.id
@@ -210,7 +210,7 @@ class MessageRouter extends BaseModule {
       // 更新成功統計
       this.messageStats.success++
     } catch (error) {
-      this.logger.error('❌ 訊息處理錯誤:', error)
+      this.logger.error('[FAIL] 訊息處理錯誤:', error)
 
       // 更新失敗統計
       this.messageStats.failed++
@@ -272,7 +272,7 @@ class MessageRouter extends BaseModule {
           return await this.routeBySource(message, sender, sendResponse, source)
       }
     } catch (error) {
-      this.logger.error(`❌ 訊息路由失敗: ${messageType}`, error)
+      this.logger.error(`[FAIL] 訊息路由失敗: ${messageType}`, error)
       sendResponse({
         success: false,
         error: error.message,
@@ -311,7 +311,7 @@ class MessageRouter extends BaseModule {
         return await this.handleInternalMessage(message, sender, sendResponse)
 
       default:
-        this.logger.warn(`⚠️ 未知的訊息來源: ${source}`)
+        this.logger.warn(`[WARN] 未知的訊息來源: ${source}`)
         sendResponse({
           success: false,
           error: `未知的訊息來源: ${source}`,
@@ -321,7 +321,7 @@ class MessageRouter extends BaseModule {
     }
 
     // 如果沒有適當的處理器
-    this.logger.warn(`⚠️ 沒有處理器處理訊息類型: ${message.type}`)
+    this.logger.warn(`[WARN] 沒有處理器處理訊息類型: ${message.type}`)
     sendResponse({
       success: false,
       error: `沒有處理器處理訊息類型: ${message.type}`,
@@ -424,7 +424,7 @@ class MessageRouter extends BaseModule {
 
       return false
     } catch (error) {
-      this.logger.error('❌ 獲取狀態失敗:', error)
+      this.logger.error('[FAIL] 獲取狀態失敗:', error)
       sendResponse({
         success: false,
         error: error.message,
@@ -463,7 +463,7 @@ class MessageRouter extends BaseModule {
 
       return false
     } catch (error) {
-      this.logger.error('❌ 事件觸發失敗:', error)
+      this.logger.error('[FAIL] 事件觸發失敗:', error)
       sendResponse({
         success: false,
         error: error.message,
@@ -512,7 +512,7 @@ class MessageRouter extends BaseModule {
    * @private
    */
   async handleInternalMessage (message, sender, sendResponse) {
-    this.logger.log('🔄 處理內部訊息:', message.type)
+    this.logger.log('處理內部訊息:', message.type)
 
     // 內部訊息可以直接回應成功
     sendResponse({
@@ -529,7 +529,7 @@ class MessageRouter extends BaseModule {
    * @returns {Promise<void>}
    */
   async stopAcceptingMessages () {
-    this.logger.log('🚫 停止接受新訊息')
+    this.logger.log('停止接受新訊息')
     this.isAcceptingMessages = false
 
     // 觸發停止接受訊息事件
@@ -545,7 +545,7 @@ class MessageRouter extends BaseModule {
    * @returns {Promise<void>}
    */
   async finishPendingOperations () {
-    this.logger.log('⏳ 等待正在處理的訊息完成')
+    this.logger.log('[WAIT] 等待正在處理的訊息完成')
 
     // 等待當前訊息處理完成
     let attempts = 0
@@ -557,9 +557,9 @@ class MessageRouter extends BaseModule {
     }
 
     if (this.processingMessage) {
-      this.logger.warn('⚠️ 訊息處理超時')
+      this.logger.warn('[WARN] 訊息處理超時')
     } else {
-      this.logger.log('✅ 正在處理的訊息已完成')
+      this.logger.log('[OK] 正在處理的訊息已完成')
     }
   }
 
@@ -573,7 +573,7 @@ class MessageRouter extends BaseModule {
       return
     }
 
-    this.logger.log(`📋 處理佇列中的 ${this.messageQueue.length} 個訊息`)
+    this.logger.log(`處理佇列中的 ${this.messageQueue.length} 個訊息`)
 
     while (this.messageQueue.length > 0 && this.isAcceptingMessages) {
       const queuedMessage = this.messageQueue.shift()
@@ -585,11 +585,11 @@ class MessageRouter extends BaseModule {
           queuedMessage.sendResponse
         )
       } catch (error) {
-        this.logger.error('❌ 處理佇列訊息失敗:', error)
+        this.logger.error('[FAIL] 處理佇列訊息失敗:', error)
       }
     }
 
-    this.logger.log('✅ 佇列訊息處理完成')
+    this.logger.log('[OK] 佇列訊息處理完成')
   }
 
   /**

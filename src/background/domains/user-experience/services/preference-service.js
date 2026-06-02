@@ -80,12 +80,12 @@ class PreferenceService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 偏好設定服務已初始化')
+      this.logger.warn('[WARN] 偏好設定服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化偏好設定服務')
+      this.logger.log('初始化偏好設定服務')
 
       // 載入預設偏好
       await this.loadDefaultPreferences()
@@ -103,7 +103,7 @@ class PreferenceService {
       this.state.preferencesLoaded = true
       this.stats.preferencesLoaded = this.preferences.size
 
-      this.logger.log('✅ 偏好設定服務初始化完成')
+      this.logger.log('[OK] 偏好設定服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -114,7 +114,7 @@ class PreferenceService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化偏好設定服務失敗:', error)
+      this.logger.error('[FAIL] 初始化偏好設定服務失敗:', error)
       throw error
     }
   }
@@ -131,18 +131,18 @@ class PreferenceService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 偏好設定服務已啟動')
+      this.logger.warn('[WARN] 偏好設定服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動偏好設定服務')
+      this.logger.log('[START] 啟動偏好設定服務')
 
       // 執行偏好同步檢查
       await this.performPreferenceSync()
 
       this.state.active = true
-      this.logger.log('✅ 偏好設定服務啟動完成')
+      this.logger.log('[OK] 偏好設定服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -152,7 +152,7 @@ class PreferenceService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動偏好設定服務失敗:', error)
+      this.logger.error('[FAIL] 啟動偏好設定服務失敗:', error)
       throw error
     }
   }
@@ -161,7 +161,7 @@ class PreferenceService {
    * 設定偏好值
    */
   async setPreference (key, value) {
-    this.logger.log(`⚙️ 設定偏好: ${key}`)
+    this.logger.log(`設定偏好: ${key}`)
 
     try {
       // 驗證偏好鍵和值
@@ -202,10 +202,10 @@ class PreferenceService {
         })
       }
 
-      this.logger.log(`✅ 偏好設定完成: ${key}`)
+      this.logger.log(`[OK] 偏好設定完成: ${key}`)
       return { success: true, key, value, oldValue }
     } catch (error) {
-      this.logger.error(`❌ 偏好設定失敗: ${key}`, error)
+      this.logger.error(`[FAIL] 偏好設定失敗: ${key}`, error)
       throw error
     }
   }
@@ -232,7 +232,7 @@ class PreferenceService {
       // 返回提供的預設值或 null
       return defaultValue
     } catch (error) {
-      this.logger.error(`❌ 獲取偏好失敗: ${key}`, error)
+      this.logger.error(`[FAIL] 獲取偏好失敗: ${key}`, error)
       return defaultValue
     }
   }
@@ -262,7 +262,7 @@ class PreferenceService {
    * 重置偏好設定
    */
   async resetPreferences (category = null) {
-    this.logger.log(`🔄 重置偏好設定${category ? ` (分類: ${category})` : ''}`)
+    this.logger.log(`重置偏好設定${category ? ` (分類: ${category})` : ''}`)
 
     try {
       // 統計重置操作
@@ -310,10 +310,10 @@ class PreferenceService {
         })
       }
 
-      this.logger.log(`✅ 偏好設定重置完成 (${resetKeys.length} 項)`)
+      this.logger.log(`[OK] 偏好設定重置完成 (${resetKeys.length} 項)`)
       return { success: true, resetCount: resetKeys.length, resetKeys }
     } catch (error) {
-      this.logger.error('❌ 偏好設定重置失敗:', error)
+      this.logger.error('[FAIL] 偏好設定重置失敗:', error)
       throw error
     }
   }
@@ -327,7 +327,7 @@ class PreferenceService {
     }
 
     this.preferenceSubscribers.get(key).add(callback)
-    this.logger.log(`📝 訂閱偏好變更: ${key}`)
+    this.logger.log(`[LOG] 訂閱偏好變更: ${key}`)
 
     // 返回取消訂閱函數
     return () => {
@@ -349,7 +349,7 @@ class PreferenceService {
       }
     }
 
-    this.logger.log(`📝 取消訂閱偏好變更: ${key}`)
+    this.logger.log(`[LOG] 取消訂閱偏好變更: ${key}`)
   }
 
   /**
@@ -360,7 +360,7 @@ class PreferenceService {
       this.preferences.set(key, value)
     }
 
-    this.logger.log(`📖 載入了 ${this.defaultPreferences.size} 個預設偏好`)
+    this.logger.log(`載入了 ${this.defaultPreferences.size} 個預設偏好`)
   }
 
   /**
@@ -377,14 +377,14 @@ class PreferenceService {
             await this.validatePreference(key, value)
             this.preferences.set(key, value)
           } catch (error) {
-            this.logger.warn(`⚠️ 忽略無效的使用者偏好: ${key}`, error)
+            this.logger.warn(`[WARN] 忽略無效的使用者偏好: ${key}`, error)
           }
         }
 
-        this.logger.log(`📖 載入了 ${Object.keys(userPreferences).length} 個使用者偏好`)
+        this.logger.log(`載入了 ${Object.keys(userPreferences).length} 個使用者偏好`)
       }
     } catch (error) {
-      this.logger.error('❌ 載入使用者偏好失敗:', error)
+      this.logger.error('[FAIL] 載入使用者偏好失敗:', error)
     }
   }
 
@@ -398,7 +398,7 @@ class PreferenceService {
       try {
         await this.validatePreference(key, value)
       } catch (error) {
-        this.logger.warn(`⚠️ 偏好驗證失敗: ${key}`, error)
+        this.logger.warn(`[WARN] 偏好驗證失敗: ${key}`, error)
         invalidCount++
 
         // 重置為預設值
@@ -411,9 +411,9 @@ class PreferenceService {
     }
 
     if (invalidCount > 0) {
-      this.logger.warn(`⚠️ 修正了 ${invalidCount} 個無效偏好`)
+      this.logger.warn(`[WARN] 修正了 ${invalidCount} 個無效偏好`)
     } else {
-      this.logger.log('✅ 所有偏好驗證通過')
+      this.logger.log('[OK] 所有偏好驗證通過')
     }
   }
 
@@ -489,10 +489,10 @@ class PreferenceService {
         // 保存回存儲
         await this.storageService.set('user.preferences', userPreferences)
 
-        this.logger.log(`💾 偏好已持久化: ${key}`)
+        this.logger.log(`[SAVE] 偏好已持久化: ${key}`)
       }
     } catch (error) {
-      this.logger.error(`❌ 持久化偏好失敗: ${key}`, error)
+      this.logger.error(`[FAIL] 持久化偏好失敗: ${key}`, error)
     }
   }
 
@@ -500,11 +500,11 @@ class PreferenceService {
    * 執行偏好同步
    */
   async performPreferenceSync () {
-    this.logger.log('🔄 執行偏好同步檢查')
+    this.logger.log('執行偏好同步檢查')
 
     // 檢查是否有需要同步的偏好變更
     // 這裡可以實現跨設備同步邏輯
-    this.logger.log('✅ 偏好同步檢查完成')
+    this.logger.log('[OK] 偏好同步檢查完成')
   }
 
   /**
@@ -514,14 +514,14 @@ class PreferenceService {
     const subscribers = this.preferenceSubscribers.get(key)
 
     if (subscribers && subscribers.size > 0) {
-      this.logger.log(`📢 通知偏好訂閱者: ${key} (${subscribers.size} 個)`)
+      this.logger.log(`通知偏好訂閱者: ${key} (${subscribers.size} 個)`)
 
       for (const callback of subscribers) {
         try {
           await callback(key, newValue, oldValue)
           this.stats.subscribersNotified++
         } catch (error) {
-          this.logger.error(`❌ 通知偏好訂閱者失敗: ${key}`, error)
+          this.logger.error(`[FAIL] 通知偏好訂閱者失敗: ${key}`, error)
         }
       }
     }
@@ -639,7 +639,7 @@ class PreferenceService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過偏好事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過偏好事件監聽器註冊')
       return
     }
 
@@ -671,7 +671,7 @@ class PreferenceService {
       await this.resetPreferences(category)
     })
 
-    this.logger.log('✅ 偏好事件監聽器註冊完成')
+    this.logger.log('[OK] 偏好事件監聽器註冊完成')
   }
 
   /**

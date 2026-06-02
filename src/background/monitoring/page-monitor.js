@@ -140,7 +140,7 @@ class PageMonitor extends BaseModule {
     if (this.i18nManager) {
       this.logger.log(this.i18nManager.t('modules.operations.initialize', { moduleName: this.moduleName }))
     } else {
-      this.logger.log('📊 初始化頁面監控管理器')
+      this.logger.log('[STATS] 初始化頁面監控管理器')
     }
 
     // 初始化子模組
@@ -149,7 +149,7 @@ class PageMonitor extends BaseModule {
     // 初始化事件協調
     await this.initializeEventCoordination()
 
-    this.logger.log('✅ 頁面監控管理器初始化完成')
+    this.logger.log('[OK] 頁面監控管理器初始化完成')
   }
 
   /**
@@ -158,7 +158,7 @@ class PageMonitor extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動頁面監控管理器')
+    this.logger.log('[START] 啟動頁面監控管理器')
 
     // 啟動子模組
     await this.startSubModules()
@@ -172,7 +172,7 @@ class PageMonitor extends BaseModule {
     // 執行初始頁面檢測
     await this.performInitialPageDetection()
 
-    this.logger.log('✅ 頁面監控管理器啟動完成')
+    this.logger.log('[OK] 頁面監控管理器啟動完成')
   }
 
   /**
@@ -181,7 +181,7 @@ class PageMonitor extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止頁面監控管理器')
+    this.logger.log('[STOP] 停止頁面監控管理器')
 
     // 停止監控
     this.monitoringActive = false
@@ -196,7 +196,7 @@ class PageMonitor extends BaseModule {
     this.pageStateCache.clear()
     this.currentPageState = null
 
-    this.logger.log('✅ 頁面監控管理器停止完成')
+    this.logger.log('[OK] 頁面監控管理器停止完成')
   }
 
   /**
@@ -206,7 +206,7 @@ class PageMonitor extends BaseModule {
    */
   async initializeSubModules () {
     try {
-      this.logger.log('🔧 初始化頁面監控子模組')
+      this.logger.log('[FIX] 初始化頁面監控子模組')
 
       // 初始化頁面檢測器
       await this.pageDetector.initialize()
@@ -214,9 +214,9 @@ class PageMonitor extends BaseModule {
       // 初始化 Content Script 協調器
       await this.contentCoordinator.initialize()
 
-      this.logger.log('✅ 頁面監控子模組初始化完成')
+      this.logger.log('[OK] 頁面監控子模組初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化子模組失敗:', error)
+      this.logger.error('[FAIL] 初始化子模組失敗:', error)
       throw error
     }
   }
@@ -228,7 +228,7 @@ class PageMonitor extends BaseModule {
    */
   async startSubModules () {
     try {
-      this.logger.log('▶️ 啟動頁面監控子模組')
+      this.logger.log('[START] 啟動頁面監控子模組')
 
       // 啟動頁面檢測器
       await this.pageDetector.start()
@@ -236,9 +236,9 @@ class PageMonitor extends BaseModule {
       // 啟動 Content Script 協調器
       await this.contentCoordinator.start()
 
-      this.logger.log('✅ 頁面監控子模組啟動完成')
+      this.logger.log('[OK] 頁面監控子模組啟動完成')
     } catch (error) {
-      this.logger.error('❌ 啟動子模組失敗:', error)
+      this.logger.error('[FAIL] 啟動子模組失敗:', error)
       throw error
     }
   }
@@ -250,7 +250,7 @@ class PageMonitor extends BaseModule {
    */
   async stopSubModules () {
     try {
-      this.logger.log('⏹️ 停止頁面監控子模組')
+      this.logger.log('[STOP] 停止頁面監控子模組')
 
       // 停止 Content Script 協調器
       await this.contentCoordinator.stop()
@@ -258,9 +258,9 @@ class PageMonitor extends BaseModule {
       // 停止頁面檢測器
       await this.pageDetector.stop()
 
-      this.logger.log('✅ 頁面監控子模組停止完成')
+      this.logger.log('[OK] 頁面監控子模組停止完成')
     } catch (error) {
-      this.logger.error('❌ 停止子模組失敗:', error)
+      this.logger.error('[FAIL] 停止子模組失敗:', error)
     }
   }
 
@@ -271,7 +271,7 @@ class PageMonitor extends BaseModule {
    */
   async initializeEventCoordination () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 未初始化，跳過事件協調設定')
+      this.logger.warn('[WARN] EventBus 未初始化，跳過事件協調設定')
       return
     }
 
@@ -280,9 +280,9 @@ class PageMonitor extends BaseModule {
       this.pageDetector.eventBus = this.eventBus
       this.contentCoordinator.eventBus = this.eventBus
 
-      this.logger.log('🎯 頁面監控事件協調初始化完成')
+      this.logger.log('頁面監控事件協調初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化事件協調失敗:', error)
+      this.logger.error('[FAIL] 初始化事件協調失敗:', error)
     }
   }
 
@@ -328,9 +328,9 @@ class PageMonitor extends BaseModule {
         )
       )
 
-      this.logger.log('📝 頁面監控事件監聽器註冊完成')
+      this.logger.log('[LOG] 頁面監控事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊監控事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊監控事件監聽器失敗:', error)
     }
   }
 
@@ -353,9 +353,9 @@ class PageMonitor extends BaseModule {
       }
 
       this.monitoringListeners.clear()
-      this.logger.log('🔄 頁面監控事件監聽器取消註冊完成')
+      this.logger.log('頁面監控事件監聽器取消註冊完成')
     } catch (error) {
-      this.logger.error('❌ 取消註冊監控事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 取消註冊監控事件監聽器失敗:', error)
     }
   }
 
@@ -386,7 +386,7 @@ class PageMonitor extends BaseModule {
     try {
       const { tabId, pageType, features } = data
 
-      this.logger.log(`🎯 檢測到 Readmoo 頁面: Tab ${tabId}, 類型: ${pageType}`)
+      this.logger.log(`檢測到 Readmoo 頁面: Tab ${tabId}, 類型: ${pageType}`)
       this.monitoringStats.pageDetections++
 
       // 更新頁面狀態
@@ -404,7 +404,7 @@ class PageMonitor extends BaseModule {
       // 觸發頁面就緒檢查
       await this.checkPageReadiness(tabId)
     } catch (error) {
-      this.logger.error('❌ 處理 Readmoo 頁面檢測事件失敗:', error)
+      this.logger.error('[FAIL] 處理 Readmoo 頁面檢測事件失敗:', error)
       this.monitoringStats.errorEvents++
     }
   }
@@ -419,7 +419,7 @@ class PageMonitor extends BaseModule {
     try {
       const { tabId, newUrl, pageType } = data
 
-      this.logger.log(`🧭 頁面導航變更: Tab ${tabId} → ${newUrl}`)
+      this.logger.log(`頁面導航變更: Tab ${tabId} → ${newUrl}`)
       this.monitoringStats.stateChanges++
 
       // 更新頁面狀態
@@ -435,7 +435,7 @@ class PageMonitor extends BaseModule {
       // 重新檢查頁面就緒狀態
       await this.checkPageReadiness(tabId)
     } catch (error) {
-      this.logger.error('❌ 處理頁面導航變更事件失敗:', error)
+      this.logger.error('[FAIL] 處理頁面導航變更事件失敗:', error)
       this.monitoringStats.errorEvents++
     }
   }
@@ -450,7 +450,7 @@ class PageMonitor extends BaseModule {
     try {
       const { tabId } = data
 
-      this.logger.log(`📝 Content Script 已註冊: Tab ${tabId}`)
+      this.logger.log(`[LOG] Content Script 已註冊: Tab ${tabId}`)
       this.monitoringStats.contentScriptEvents++
 
       // 更新頁面狀態
@@ -465,7 +465,7 @@ class PageMonitor extends BaseModule {
       // 檢查頁面就緒狀態
       await this.checkPageReadiness(tabId)
     } catch (error) {
-      this.logger.error('❌ 處理 Content Script 註冊事件失敗:', error)
+      this.logger.error('[FAIL] 處理 Content Script 註冊事件失敗:', error)
       this.monitoringStats.errorEvents++
     }
   }
@@ -488,7 +488,7 @@ class PageMonitor extends BaseModule {
         await this.checkPageReadiness(tabId)
       }
     } catch (error) {
-      this.logger.error('❌ 處理標籤頁激活事件失敗:', error)
+      this.logger.error('[FAIL] 處理標籤頁激活事件失敗:', error)
     }
   }
 
@@ -536,7 +536,7 @@ class PageMonitor extends BaseModule {
       pageState.readinessNotified = true
       pageState.readyAt = Date.now()
 
-      this.logger.log(`✅ 頁面就緒通知已發送: Tab ${tabId}`)
+      this.logger.log(`[OK] 頁面就緒通知已發送: Tab ${tabId}`)
     } else if (!isReady && pageState.readinessNotified) {
       // 頁面不再就緒，重設通知狀態
       pageState.readinessNotified = false
@@ -549,7 +549,7 @@ class PageMonitor extends BaseModule {
         })
       }
 
-      this.logger.log(`⚠️ 頁面不再就緒: Tab ${tabId}`)
+      this.logger.log(`[WARN] 頁面不再就緒: Tab ${tabId}`)
     }
   }
 
@@ -560,13 +560,13 @@ class PageMonitor extends BaseModule {
    */
   async performInitialPageDetection () {
     try {
-      this.logger.log('🔍 執行初始頁面檢測')
+      this.logger.log('[CHECK] 執行初始頁面檢測')
 
       // 檢測當前活動標籤頁
       const detectionResult = await this.pageDetector.detectCurrentPage()
 
       if (detectionResult.isReadmoo) {
-        this.logger.log(`✅ 初始檢測發現 Readmoo 頁面: ${detectionResult.pageType}`)
+        this.logger.log(`[OK] 初始檢測發現 Readmoo 頁面: ${detectionResult.pageType}`)
 
         // 手動觸發頁面檢測事件
         await this.handleReadmooPageDetected({
@@ -575,10 +575,10 @@ class PageMonitor extends BaseModule {
           features: detectionResult.features
         })
       } else {
-        this.logger.log('ℹ️ 初始檢測未發現 Readmoo 頁面')
+        this.logger.log('[INFO] 初始檢測未發現 Readmoo 頁面')
       }
     } catch (error) {
-      this.logger.error('❌ 初始頁面檢測失敗:', error)
+      this.logger.error('[FAIL] 初始頁面檢測失敗:', error)
     }
   }
 

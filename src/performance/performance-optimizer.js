@@ -3,12 +3,12 @@
  * TDD 循環 #35: Chrome Extension 效能優化和最佳化
  *
  * 核心功能：
- * - 🚀 記憶體使用優化和管理
- * - ⚡ 載入速度和響應性提升
- * - 🔧 資源使用最佳化
- * - 📊 效能監控和基準建立
- * - 🧹 自動資源清理機制
- * - 🎯 Chrome Web Store 上架準備
+ * - [START] 記憶體使用優化和管理
+ * - 載入速度和響應性提升
+ * - [FIX] 資源使用最佳化
+ * - [STATS] 效能監控和基準建立
+ * - 自動資源清理機制
+ * - Chrome Web Store 上架準備
  *
  * 設計特點：
  * - 實時效能監控和分析
@@ -491,7 +491,7 @@ class PerformanceOptimizer {
     // 後備機制: console.warn 提供原生效能警告輸出
     // 監控需求: 效能問題需要立即提醒開發者注意
     // eslint-disable-next-line no-console
-    console.warn('⚠️ 效能警告:', warning)
+    console.warn('[WARN] 效能警告:', warning)
 
     // 可以透過事件系統發送警告
     if (typeof document !== 'undefined') {

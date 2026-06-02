@@ -75,12 +75,12 @@ class VersionControlService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 版本控制服務已初始化')
+      this.logger.warn('[WARN] 版本控制服務已初始化')
       return
     }
 
     try {
-      this.logger.log('📦 初始化版本控制服務')
+      this.logger.log('初始化版本控制服務')
 
       // 載入版本資訊
       await this.loadVersionInfo()
@@ -92,7 +92,7 @@ class VersionControlService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 版本控制服務初始化完成')
+      this.logger.log('[OK] 版本控制服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -103,7 +103,7 @@ class VersionControlService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化版本控制服務失敗:', error)
+      this.logger.error('[FAIL] 初始化版本控制服務失敗:', error)
       throw error
     }
   }
@@ -122,15 +122,15 @@ class VersionControlService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 版本控制服務已啟動')
+      this.logger.warn('[WARN] 版本控制服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動版本控制服務')
+      this.logger.log('[START] 啟動版本控制服務')
 
       this.state.active = true
-      this.logger.log('✅ 版本控制服務啟動完成')
+      this.logger.log('[OK] 版本控制服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -140,7 +140,7 @@ class VersionControlService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動版本控制服務失敗:', error)
+      this.logger.error('[FAIL] 啟動版本控制服務失敗:', error)
       throw error
     }
   }
@@ -150,12 +150,12 @@ class VersionControlService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 版本控制服務未啟動')
+      this.logger.warn('[WARN] 版本控制服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止版本控制服務')
+      this.logger.log('[STOP] 停止版本控制服務')
 
       // 保存版本資訊
       await this.saveVersionInfo()
@@ -164,7 +164,7 @@ class VersionControlService {
       await this.unregisterEventListeners()
 
       this.state.active = false
-      this.logger.log('✅ 版本控制服務停止完成')
+      this.logger.log('[OK] 版本控制服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -173,7 +173,7 @@ class VersionControlService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止版本控制服務失敗:', error)
+      this.logger.error('[FAIL] 停止版本控制服務失敗:', error)
       throw error
     }
   }
@@ -202,9 +202,9 @@ class VersionControlService {
         }
       }
 
-      this.logger.log(`✅ 版本資訊載入完成 - 當前: ${this.currentVersion}, 之前: ${this.previousVersion}`)
+      this.logger.log(`[OK] 版本資訊載入完成 - 當前: ${this.currentVersion}, 之前: ${this.previousVersion}`)
     } catch (error) {
-      this.logger.error('❌ 載入版本資訊失敗:', error)
+      this.logger.error('[FAIL] 載入版本資訊失敗:', error)
       // 設定預設值
       this.currentVersion = '0.0.0'
     }
@@ -227,12 +227,12 @@ class VersionControlService {
           [STORAGE_KEYS.VERSION_HISTORY]: this.versionHistory
         })
 
-        this.logger.log('✅ 版本資訊保存完成')
+        this.logger.log('[OK] 版本資訊保存完成')
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，無法保存版本資訊')
+        this.logger.warn('[WARN] Chrome storage API 不可用，無法保存版本資訊')
       }
     } catch (error) {
-      this.logger.error('❌ 保存版本資訊失敗:', error)
+      this.logger.error('[FAIL] 保存版本資訊失敗:', error)
     }
   }
 
@@ -249,7 +249,7 @@ class VersionControlService {
       // 在測試環境中的後備方案
       return '0.0.0'
     } catch (error) {
-      this.logger.error('❌ 無法獲取 manifest 版本:', error)
+      this.logger.error('[FAIL] 無法獲取 manifest 版本:', error)
       return '0.0.0'
     }
   }
@@ -264,7 +264,7 @@ class VersionControlService {
                               this.currentVersion !== this.previousVersion
 
     if (hasVersionChanged) {
-      this.logger.log(`🔄 檢測到版本變更: ${this.previousVersion} → ${this.currentVersion}`)
+      this.logger.log(`檢測到版本變更: ${this.previousVersion} → ${this.currentVersion}`)
 
       // 記錄版本變更歷史
       this.versionHistory.push({
@@ -300,7 +300,7 @@ class VersionControlService {
    */
   async executeVersionMigration (fromVersion, toVersion) {
     try {
-      this.logger.log(`🔄 執行版本遷移: ${fromVersion} → ${toVersion}`)
+      this.logger.log(`執行版本遷移: ${fromVersion} → ${toVersion}`)
 
       // 查找適用的遷移策略
       const migrationKey = this.findMigrationStrategy(fromVersion, toVersion)
@@ -311,7 +311,7 @@ class VersionControlService {
         this.stats.migrationsExecuted++
         await strategy(fromVersion, toVersion)
 
-        this.logger.log(`✅ 版本遷移完成: ${migrationKey}`)
+        this.logger.log(`[OK] 版本遷移完成: ${migrationKey}`)
 
         // 發送遷移完成事件
         if (this.eventBus) {
@@ -322,11 +322,11 @@ class VersionControlService {
           })
         }
       } else {
-        this.logger.log(`ℹ️ 未找到適用的遷移策略: ${fromVersion} → ${toVersion}`)
+        this.logger.log(`[INFO] 未找到適用的遷移策略: ${fromVersion} → ${toVersion}`)
       }
     } catch (error) {
       this.stats.migrationFailures++
-      this.logger.error('❌ 版本遷移失敗:', error)
+      this.logger.error('[FAIL] 版本遷移失敗:', error)
 
       // 發送遷移失敗事件
       if (this.eventBus) {
@@ -377,7 +377,7 @@ class VersionControlService {
   initializeDefaultMigrationStrategies () {
     // 0.8.x -> 0.9.x 遷移策略
     this.migrationStrategies.set('0.8.x->0.9.x', async (fromVersion, toVersion) => {
-      this.logger.log('🔄 執行 0.8.x -> 0.9.x 遷移')
+      this.logger.log('執行 0.8.x -> 0.9.x 遷移')
 
       // 遷移系統設定格式
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
@@ -389,14 +389,14 @@ class VersionControlService {
             [STORAGE_KEYS.SYSTEM_CONFIG]: newConfig
           })
           await chrome.storage.local.remove(['oldSystemConfig'])
-          this.logger.log('✅ 系統設定格式遷移完成')
+          this.logger.log('[OK] 系統設定格式遷移完成')
         }
       }
     })
 
     // 0.9.x -> 1.0.x 遷移策略
     this.migrationStrategies.set('0.9.x->1.0.x', async (fromVersion, toVersion) => {
-      this.logger.log('🔄 執行 0.9.x -> 1.0.x 遷移')
+      this.logger.log('執行 0.9.x -> 1.0.x 遷移')
 
       // 重建索引和快取
       if (this.eventBus) {
@@ -413,7 +413,7 @@ class VersionControlService {
         })
       }
 
-      this.logger.log('✅ 索引和快取重建完成')
+      this.logger.log('[OK] 索引和快取重建完成')
     })
   }
 
@@ -447,7 +447,7 @@ class VersionControlService {
     }
 
     this.migrationStrategies.set(key, strategy)
-    this.logger.log(`✅ 註冊遷移策略: ${key}`)
+    this.logger.log(`[OK] 註冊遷移策略: ${key}`)
   }
 
   /**
@@ -482,7 +482,7 @@ class VersionControlService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -499,7 +499,7 @@ class VersionControlService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -512,12 +512,12 @@ class VersionControlService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -539,7 +539,7 @@ class VersionControlService {
         }
       }
     } catch (error) {
-      this.logger.error('❌ 處理版本檢查請求失敗:', error)
+      this.logger.error('[FAIL] 處理版本檢查請求失敗:', error)
     }
   }
 

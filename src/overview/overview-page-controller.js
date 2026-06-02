@@ -47,7 +47,7 @@ const CONSTANTS = {
   MESSAGES: {
     DEFAULT_LOAD: '載入中...',
     RELOAD: '重新載入書籍資料...',
-    EMPTY_BOOKS: '📚 目前沒有書籍資料',
+    EMPTY_BOOKS: '目前沒有書籍資料',
     NO_DATA_EXPORT: '沒有資料可以匯出',
     FILE_PARSE_ERROR: '檔案解析失敗',
     FILE_READ_ERROR: '檔案讀取失敗',
@@ -58,7 +58,7 @@ const CONSTANTS = {
   TABLE: {
     COLUMNS: 8,
     COVER_SIZE: { WIDTH: 50, HEIGHT: 75 },
-    DEFAULT_COVER: '📚',
+    DEFAULT_COVER: '',
     // 作者欄位 placeholder（W1-061 ANA 結論：Readmoo library 頁 DOM 不提供作者，屬 source data limitation）
     AUTHOR_PLACEHOLDER: '— 待補',
     AUTHOR_TOOLTIP: 'Readmoo 來源頁不提供作者欄位，可手動編輯（v0.20.0 將支援標籤化編輯）'
@@ -476,7 +476,7 @@ class OverviewPageController extends EventHandlerClass {
         // 後備機制: console.log 提供資料時間戳記錄，便於除錯
         // 使用場景: 顯示書籍資料的提取時間，幫助用戶了解資料新舊程度
         // eslint-disable-next-line no-console
-        console.log(`📅 提取時間: ${new Date(timestamp).toLocaleString()}`)
+        console.log(`提取時間: ${new Date(timestamp).toLocaleString()}`)
 
         this._updateBooksData(books)
         this.updateDisplay()
@@ -486,7 +486,7 @@ class OverviewPageController extends EventHandlerClass {
         // 後備機制: console.log 提供資料載入狀態的可見性
         // 使用場景: Chrome Storage 無書籍資料時的狀態說明
         // eslint-disable-next-line no-console
-        console.log('📂 Chrome Storage 中沒有書籍資料')
+        console.log('Chrome Storage 中沒有書籍資料')
         this.hideLoading()
         // 顯示空資料狀態，但不顯示錯誤
         this.renderBooksTable([])

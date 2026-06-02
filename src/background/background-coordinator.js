@@ -105,7 +105,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async _doInitialize () {
     this.initializationStartTime = Date.now()
-    this.logger.log('🚀 開始初始化 Background Service Worker 協調器')
+    this.logger.log('[START] 開始初始化 Background Service Worker 協調器')
 
     try {
       // 1. 初始化核心依賴
@@ -126,10 +126,10 @@ class BackgroundCoordinator extends BaseModule {
       this.coordinatorStats.initializationDuration = Date.now() - this.initializationStartTime
       this.coordinatorReady = true
 
-      this.logger.log('✅ Background Service Worker 協調器初始化完成')
+      this.logger.log('[OK] Background Service Worker 協調器初始化完成')
       this.logInitializationSummary()
     } catch (error) {
-      this.logger.error('❌ 協調器初始化失敗:', error)
+      this.logger.error('[FAIL] 協調器初始化失敗:', error)
       throw error
     }
   }
@@ -141,7 +141,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async _doStart () {
     const startTime = Date.now()
-    this.logger.log('▶️ 啟動 Background Service Worker 協調器')
+    this.logger.log('[START] 啟動 Background Service Worker 協調器')
 
     try {
       // 按順序啟動所有模組
@@ -153,7 +153,7 @@ class BackgroundCoordinator extends BaseModule {
       this.coordinatorStats.startupDuration = Date.now() - startTime
       this.allModulesReady = true
 
-      this.logger.log('✅ Background Service Worker 協調器啟動完成')
+      this.logger.log('[OK] Background Service Worker 協調器啟動完成')
       this.logStartupSummary()
 
       // 觸發系統就緒事件
@@ -165,7 +165,7 @@ class BackgroundCoordinator extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 協調器啟動失敗:', error)
+      this.logger.error('[FAIL] 協調器啟動失敗:', error)
       throw error
     }
   }
@@ -176,7 +176,7 @@ class BackgroundCoordinator extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止 Background Service Worker 協調器')
+    this.logger.log('[STOP] 停止 Background Service Worker 協調器')
 
     try {
       // 反序停止所有模組
@@ -186,9 +186,9 @@ class BackgroundCoordinator extends BaseModule {
       this.coordinatorReady = false
       this.allModulesReady = false
 
-      this.logger.log('✅ Background Service Worker 協調器停止完成')
+      this.logger.log('[OK] Background Service Worker 協調器停止完成')
     } catch (error) {
-      this.logger.error('❌ 協調器停止失敗:', error)
+      this.logger.error('[FAIL] 協調器停止失敗:', error)
     }
   }
 
@@ -199,7 +199,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async initializeCoreDependencies () {
     try {
-      this.logger.log('🔧 初始化核心依賴')
+      this.logger.log('[FIX] 初始化核心依賴')
 
       // 1. 初始化多語言管理器
       this.i18nManager = new I18nManager()
@@ -217,9 +217,9 @@ class BackgroundCoordinator extends BaseModule {
       this.eventBus = this.eventCoordinator.eventBusInstance
       this.chromeBridge = this.eventCoordinator.chromeBridgeInstance
 
-      this.logger.log('✅ 核心依賴初始化完成')
+      this.logger.log('[OK] 核心依賴初始化完成')
     } catch (error) {
-      this.logger.error('❌ 核心依賴初始化失敗:', error)
+      this.logger.error('[FAIL] 核心依賴初始化失敗:', error)
       throw error
     }
   }
@@ -231,7 +231,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async createFunctionalModules () {
     try {
-      this.logger.log('🏗️ 建立功能模組')
+      this.logger.log('建立功能模組')
 
       const commonDependencies = {
         eventBus: this.eventBus,
@@ -270,9 +270,9 @@ class BackgroundCoordinator extends BaseModule {
       ]
 
       this.coordinatorStats.modulesLoaded = this.modules.size
-      this.logger.log(`✅ 功能模組建立完成 (${this.modules.size} 個模組)`)
+      this.logger.log(`[OK] 功能模組建立完成 (${this.modules.size} 個模組)`)
     } catch (error) {
-      this.logger.error('❌ 功能模組建立失敗:', error)
+      this.logger.error('[FAIL] 功能模組建立失敗:', error)
       throw error
     }
   }
@@ -284,7 +284,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async createDomainCoordinators () {
     try {
-      this.logger.log('🎭 建立領域協調器')
+      this.logger.log('建立領域協調器')
 
       const commonDependencies = {
         eventBus: this.eventBus,
@@ -310,9 +310,9 @@ class BackgroundCoordinator extends BaseModule {
 
       // 更新總模組數量
       this.coordinatorStats.modulesLoaded = this.modules.size
-      this.logger.log(`✅ 領域協調器建立完成 (總共 ${this.modules.size} 個模組)`)
+      this.logger.log(`[OK] 領域協調器建立完成 (總共 ${this.modules.size} 個模組)`)
     } catch (error) {
-      this.logger.error('❌ 領域協調器建立失敗:', error)
+      this.logger.error('[FAIL] 領域協調器建立失敗:', error)
       throw error
     }
   }
@@ -324,7 +324,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async registerModulesForMonitoring () {
     try {
-      this.logger.log('📊 註冊模組到監控系統')
+      this.logger.log('[STATS] 註冊模組到監控系統')
 
       // 註冊所有模組到錯誤處理器進行健康監控
       for (const [moduleName, module] of this.modules) {
@@ -336,9 +336,9 @@ class BackgroundCoordinator extends BaseModule {
       // 註冊協調器自身
       this.errorHandler.registerModuleForMonitoring('backgroundCoordinator', this)
 
-      this.logger.log('✅ 模組監控註冊完成')
+      this.logger.log('[OK] 模組監控註冊完成')
     } catch (error) {
-      this.logger.error('❌ 模組監控註冊失敗:', error)
+      this.logger.error('[FAIL] 模組監控註冊失敗:', error)
       throw error
     }
   }
@@ -350,13 +350,13 @@ class BackgroundCoordinator extends BaseModule {
    */
   async initializeAllModules () {
     try {
-      this.logger.log('🔧 開始初始化所有模組')
+      this.logger.log('[FIX] 開始初始化所有模組')
 
       // 先初始化功能模組（按載入順序）
       for (const moduleName of this.moduleLoadOrder) {
         const module = this.modules.get(moduleName)
         if (module) {
-          this.logger.log(`🔧 初始化模組: ${moduleName}`)
+          this.logger.log(`[FIX] 初始化模組: ${moduleName}`)
           await module.initialize()
           this.coordinatorStats.modulesInitialized++
         }
@@ -373,15 +373,15 @@ class BackgroundCoordinator extends BaseModule {
       for (const domainName of domainCoordinators) {
         const domain = this.modules.get(domainName)
         if (domain) {
-          this.logger.log(`🎭 初始化領域協調器: ${domainName}`)
+          this.logger.log(`初始化領域協調器: ${domainName}`)
           await domain.initialize()
           this.coordinatorStats.modulesInitialized++
         }
       }
 
-      this.logger.log(`✅ 所有模組初始化完成 (${this.coordinatorStats.modulesInitialized}/${this.modules.size})`)
+      this.logger.log(`[OK] 所有模組初始化完成 (${this.coordinatorStats.modulesInitialized}/${this.modules.size})`)
     } catch (error) {
-      this.logger.error('❌ 模組初始化失敗:', error)
+      this.logger.error('[FAIL] 模組初始化失敗:', error)
       throw error
     }
   }
@@ -393,7 +393,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async startAllModules () {
     try {
-      this.logger.log('▶️ 開始啟動所有模組')
+      this.logger.log('[START] 開始啟動所有模組')
 
       // 啟動順序：核心模組 -> 功能模組 -> 領域處理器
       const startupOrder = [
@@ -417,15 +417,15 @@ class BackgroundCoordinator extends BaseModule {
       for (const moduleName of startupOrder) {
         const module = this.modules.get(moduleName)
         if (module) {
-          this.logger.log(`▶️ 啟動模組: ${moduleName}`)
+          this.logger.log(`[START] 啟動模組: ${moduleName}`)
           await module.start()
           this.coordinatorStats.modulesStarted++
         }
       }
 
-      this.logger.log(`✅ 所有模組啟動完成 (${this.coordinatorStats.modulesStarted}/${this.modules.size})`)
+      this.logger.log(`[OK] 所有模組啟動完成 (${this.coordinatorStats.modulesStarted}/${this.modules.size})`)
     } catch (error) {
-      this.logger.error('❌ 模組啟動失敗:', error)
+      this.logger.error('[FAIL] 模組啟動失敗:', error)
       throw error
     }
   }
@@ -437,7 +437,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async stopAllModules () {
     try {
-      this.logger.log('⏹️ 開始停止所有模組')
+      this.logger.log('[STOP] 開始停止所有模組')
 
       // 反序停止（與啟動順序相反）
       const stopOrder = [...this.moduleStartOrder].reverse()
@@ -446,17 +446,17 @@ class BackgroundCoordinator extends BaseModule {
         const module = this.modules.get(moduleName)
         if (module && typeof module.stop === 'function') {
           try {
-            this.logger.log(`⏹️ 停止模組: ${moduleName}`)
+            this.logger.log(`[STOP] 停止模組: ${moduleName}`)
             await module.stop()
           } catch (error) {
-            this.logger.error(`❌ 停止模組失敗: ${moduleName}`, error)
+            this.logger.error(`[FAIL] 停止模組失敗: ${moduleName}`, error)
           }
         }
       }
 
-      this.logger.log('✅ 所有模組停止完成')
+      this.logger.log('[OK] 所有模組停止完成')
     } catch (error) {
-      this.logger.error('❌ 模組停止失敗:', error)
+      this.logger.error('[FAIL] 模組停止失敗:', error)
     }
   }
 
@@ -467,7 +467,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async verifyAllModulesHealthy () {
     try {
-      this.logger.log('🔍 驗證模組健康狀態')
+      this.logger.log('[CHECK] 驗證模組健康狀態')
 
       // 設計意圖：直接檢查 modules Map 中各模組的狀態，
       // 不依賴 SystemMonitor 的報告。原因有二：
@@ -494,12 +494,12 @@ class BackgroundCoordinator extends BaseModule {
       }
 
       if (unhealthyModules.length > 0) {
-        this.logger.warn('⚠️ 檢測到不健康的模組:', unhealthyModules)
+        this.logger.warn('[WARN] 檢測到不健康的模組:', unhealthyModules)
       } else {
-        this.logger.log('✅ 所有模組狀態健康')
+        this.logger.log('[OK] 所有模組狀態健康')
       }
     } catch (error) {
-      this.logger.error('❌ 健康狀態驗證失敗:', error)
+      this.logger.error('[FAIL] 健康狀態驗證失敗:', error)
     }
   }
 
@@ -559,7 +559,7 @@ class BackgroundCoordinator extends BaseModule {
       模組列表: Array.from(this.modules.keys())
     }
 
-    this.logger.log('📊 初始化摘要:', summary)
+    this.logger.log('[STATS] 初始化摘要:', summary)
   }
 
   /**
@@ -574,7 +574,7 @@ class BackgroundCoordinator extends BaseModule {
       系統狀態: '就緒'
     }
 
-    this.logger.log('📊 啟動摘要:', summary)
+    this.logger.log('[STATS] 啟動摘要:', summary)
   }
 
   /**
@@ -583,7 +583,7 @@ class BackgroundCoordinator extends BaseModule {
    */
   async restart () {
     try {
-      this.logger.log('🔄 重啟 Background Service Worker 協調器')
+      this.logger.log('重啟 Background Service Worker 協調器')
 
       this.coordinatorStats.restartCount++
 
@@ -597,9 +597,9 @@ class BackgroundCoordinator extends BaseModule {
       await this.initialize()
       await this.start()
 
-      this.logger.log('✅ Background Service Worker 協調器重啟完成')
+      this.logger.log('[OK] Background Service Worker 協調器重啟完成')
     } catch (error) {
-      this.logger.error('❌ 協調器重啟失敗:', error)
+      this.logger.error('[FAIL] 協調器重啟失敗:', error)
       throw error
     }
   }

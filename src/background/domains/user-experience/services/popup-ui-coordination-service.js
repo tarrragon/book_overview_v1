@@ -82,12 +82,12 @@ class PopupUICoordinationService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ Popup UI 協調服務已初始化')
+      this.logger.warn('[WARN] Popup UI 協調服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化 Popup UI 協調服務')
+      this.logger.log('初始化 Popup UI 協調服務')
 
       // 初始化 Popup 狀態管理器
       await this.initializePopupStateManager()
@@ -102,7 +102,7 @@ class PopupUICoordinationService {
       await this.registerBackgroundEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ Popup UI 協調服務初始化完成')
+      this.logger.log('[OK] Popup UI 協調服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -112,7 +112,7 @@ class PopupUICoordinationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化 Popup UI 協調服務失敗:', error)
+      this.logger.error('[FAIL] 初始化 Popup UI 協調服務失敗:', error)
       throw error
     }
   }
@@ -129,18 +129,18 @@ class PopupUICoordinationService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ Popup UI 協調服務已啟動')
+      this.logger.warn('[WARN] Popup UI 協調服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動 Popup UI 協調服務')
+      this.logger.log('[START] 啟動 Popup UI 協調服務')
 
       // 準備模組載入環境
       await this.prepareModuleEnvironment()
 
       this.state.active = true
-      this.logger.log('✅ Popup UI 協調服務啟動完成')
+      this.logger.log('[OK] Popup UI 協調服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -150,7 +150,7 @@ class PopupUICoordinationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動 Popup UI 協調服務失敗:', error)
+      this.logger.error('[FAIL] 啟動 Popup UI 協調服務失敗:', error)
       throw error
     }
   }
@@ -159,7 +159,7 @@ class PopupUICoordinationService {
    * 協調 Popup 狀態
    */
   async coordinateState (newState) {
-    this.logger.log('🖼️ 協調 Popup 狀態')
+    this.logger.log('協調 Popup 狀態')
 
     try {
       // 統計狀態協調
@@ -187,10 +187,10 @@ class PopupUICoordinationService {
         })
       }
 
-      this.logger.log('✅ Popup 狀態協調完成')
+      this.logger.log('[OK] Popup 狀態協調完成')
       return coordinationResult
     } catch (error) {
-      this.logger.error('❌ Popup 狀態協調失敗:', error)
+      this.logger.error('[FAIL] Popup 狀態協調失敗:', error)
       throw error
     }
   }
@@ -200,12 +200,12 @@ class PopupUICoordinationService {
    */
   async loadPopupModules () {
     if (this.state.modulesLoaded) {
-      this.logger.warn('⚠️ Popup 模組已載入')
+      this.logger.warn('[WARN] Popup 模組已載入')
       return
     }
 
     try {
-      this.logger.log('🔄 載入 Popup 模組')
+      this.logger.log('載入 Popup 模組')
 
       // 載入核心 UI 模組
       await this.loadModule('dom-manager', 'PopupDOMManager')
@@ -228,7 +228,7 @@ class PopupUICoordinationService {
       this.state.modulesLoaded = true
       this.stats.modulesManaged = this.popupModules.size
 
-      this.logger.log(`✅ 載入了 ${this.popupModules.size} 個 Popup 模組`)
+      this.logger.log(`[OK] 載入了 ${this.popupModules.size} 個 Popup 模組`)
 
       // 發送模組載入完成事件
       if (this.eventBus) {
@@ -238,7 +238,7 @@ class PopupUICoordinationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 載入 Popup 模組失敗:', error)
+      this.logger.error('[FAIL] 載入 Popup 模組失敗:', error)
       throw error
     }
   }
@@ -250,7 +250,7 @@ class PopupUICoordinationService {
     try {
       // 檢查模組是否已載入
       if (this.popupModules.has(moduleId)) {
-        this.logger.warn(`⚠️ 模組已載入: ${moduleId}`)
+        this.logger.warn(`[WARN] 模組已載入: ${moduleId}`)
         return
       }
 
@@ -286,9 +286,9 @@ class PopupUICoordinationService {
         lastUpdate: Date.now()
       })
 
-      this.logger.log(`✅ 模組載入成功: ${moduleId}`)
+      this.logger.log(`[OK] 模組載入成功: ${moduleId}`)
     } catch (error) {
-      this.logger.error(`❌ 模組載入失敗: ${moduleId}`, error)
+      this.logger.error(`[FAIL] 模組載入失敗: ${moduleId}`, error)
 
       // 記錄載入失敗狀態
       this.moduleStates.set(moduleId, {
@@ -307,7 +307,7 @@ class PopupUICoordinationService {
    * 協調提取請求
    */
   async coordinateExtractionRequest (options) {
-    this.logger.log('📥 協調提取請求')
+    this.logger.log('協調提取請求')
 
     try {
       // 統計提取協調
@@ -342,10 +342,10 @@ class PopupUICoordinationService {
         })
       }
 
-      this.logger.log('✅ 提取請求協調完成')
+      this.logger.log('[OK] 提取請求協調完成')
       return result
     } catch (error) {
-      this.logger.error('❌ 提取請求協調失敗:', error)
+      this.logger.error('[FAIL] 提取請求協調失敗:', error)
       throw error
     }
   }
@@ -354,7 +354,7 @@ class PopupUICoordinationService {
    * 更新主題
    */
   async updateTheme (theme) {
-    this.logger.log(`🎨 更新 Popup 主題: ${theme}`)
+    this.logger.log(`更新 Popup 主題: ${theme}`)
 
     try {
       // 統計主題更新
@@ -376,9 +376,9 @@ class PopupUICoordinationService {
         timestamp: Date.now()
       })
 
-      this.logger.log(`✅ Popup 主題更新完成: ${theme}`)
+      this.logger.log(`[OK] Popup 主題更新完成: ${theme}`)
     } catch (error) {
-      this.logger.error(`❌ Popup 主題更新失敗: ${theme}`, error)
+      this.logger.error(`[FAIL] Popup 主題更新失敗: ${theme}`, error)
       throw error
     }
   }
@@ -387,7 +387,7 @@ class PopupUICoordinationService {
    * 更新偏好設定
    */
   async updatePreference (key, value) {
-    this.logger.log(`⚙️ 更新 Popup 偏好設定: ${key}`)
+    this.logger.log(`更新 Popup 偏好設定: ${key}`)
 
     try {
       // 通知相關模組偏好變更
@@ -404,9 +404,9 @@ class PopupUICoordinationService {
         await this.updateExtractionPreference(key, value)
       }
 
-      this.logger.log(`✅ Popup 偏好設定更新完成: ${key}`)
+      this.logger.log(`[OK] Popup 偏好設定更新完成: ${key}`)
     } catch (error) {
-      this.logger.error(`❌ Popup 偏好設定更新失敗: ${key}`, error)
+      this.logger.error(`[FAIL] Popup 偏好設定更新失敗: ${key}`, error)
       throw error
     }
   }
@@ -417,7 +417,7 @@ class PopupUICoordinationService {
   async initializePopupStateManager () {
     this.popupState = new PopupStateManager()
     await this.popupState.initialize()
-    this.logger.log('✅ Popup 狀態管理器初始化完成')
+    this.logger.log('[OK] Popup 狀態管理器初始化完成')
   }
 
   /**
@@ -426,7 +426,7 @@ class PopupUICoordinationService {
   async initializePopupEventBus () {
     this.popupEventBus = new PopupEventBus()
     await this.popupEventBus.initialize()
-    this.logger.log('✅ Popup 事件總線初始化完成')
+    this.logger.log('[OK] Popup 事件總線初始化完成')
   }
 
   /**
@@ -442,7 +442,7 @@ class PopupUICoordinationService {
       await this.coordinateExtractionRequest(event.data.options)
     })
 
-    this.logger.log('✅ 模組協調機制設定完成')
+    this.logger.log('[OK] 模組協調機制設定完成')
   }
 
   /**
@@ -473,7 +473,7 @@ class PopupUICoordinationService {
       }
     })
 
-    this.logger.log('✅ 模組間互聯設定完成')
+    this.logger.log('[OK] 模組間互聯設定完成')
   }
 
   /**
@@ -481,7 +481,7 @@ class PopupUICoordinationService {
    */
   async registerBackgroundEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過 Background 事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過 Background 事件監聽器註冊')
       return
     }
 
@@ -494,7 +494,7 @@ class PopupUICoordinationService {
       await this.coordinateState(event.data.state)
     })
 
-    this.logger.log('✅ Background 事件監聽器註冊完成')
+    this.logger.log('[OK] Background 事件監聽器註冊完成')
   }
 
   /**
@@ -549,7 +549,7 @@ class PopupUICoordinationService {
    */
   async prepareModuleEnvironment () {
     // 確保模組載入環境準備就緒
-    this.logger.log('🔧 準備 Popup 模組載入環境')
+    this.logger.log('[FIX] 準備 Popup 模組載入環境')
   }
 
   /**
@@ -626,7 +626,7 @@ class PopupUICoordinationService {
    */
   async updateUIPreference (key, value) {
     // 根據具體的 UI 偏好進行相應更新
-    this.logger.log(`🎨 更新 UI 偏好: ${key} = ${value}`)
+    this.logger.log(`更新 UI 偏好: ${key} = ${value}`)
   }
 
   /**
@@ -634,7 +634,7 @@ class PopupUICoordinationService {
    */
   async updateExtractionPreference (key, value) {
     // 根據具體的提取偏好進行相應更新
-    this.logger.log(`📥 更新提取偏好: ${key} = ${value}`)
+    this.logger.log(`更新提取偏好: ${key} = ${value}`)
   }
 
   /**

@@ -4,11 +4,11 @@ const { Logger } = require('src/core/logging/Logger')
  * TDD 循環 #35: 將效能優化整合到現有 Extension 架構
  *
  * 核心功能：
- * - 🔧 整合效能優化到現有模組
- * - ⚡ 自動啟動效能監控和優化
- * - 📊 提供統一的效能管理介面
- * - 🎯 針對不同模組的特定優化策略
- * - 🚀 Chrome Extension 環境最佳化
+ * - [FIX] 整合效能優化到現有模組
+ * - 自動啟動效能監控和優化
+ * - [STATS] 提供統一的效能管理介面
+ * - 針對不同模組的特定優化策略
+ * - [START] Chrome Extension 環境最佳化
  *
  * 設計特點：
  * - 非侵入性的效能監控整合

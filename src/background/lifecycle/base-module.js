@@ -45,7 +45,7 @@ class BaseModule {
     this.moduleName = this.constructor.name
     this.moduleId = `${this.moduleName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-    this.logger.log(`📦 ${this.moduleName} 模組建立，ID: ${this.moduleId}`)
+    this.logger.log(`${this.moduleName} 模組建立，ID: ${this.moduleId}`)
   }
 
   /**
@@ -55,19 +55,19 @@ class BaseModule {
    */
   async initialize () {
     if (this.isInitialized) {
-      this.logger.warn(`⚠️ ${this.moduleName} 模組已初始化，跳過重複初始化`)
+      this.logger.warn(`[WARN] ${this.moduleName} 模組已初始化，跳過重複初始化`)
       return
     }
 
     try {
-      this.logger.log(`🚀 開始初始化 ${this.moduleName} 模組`)
+      this.logger.log(`[START] 開始初始化 ${this.moduleName} 模組`)
 
       // 子類別可覆寫的初始化邏輯
       await this._doInitialize()
 
       this.isInitialized = true
       this.initializationError = null
-      this.logger.log(`✅ ${this.moduleName} 模組初始化完成`)
+      this.logger.log(`[OK] ${this.moduleName} 模組初始化完成`)
 
       // 觸發初始化完成事件
       if (this.eventBus) {
@@ -79,7 +79,7 @@ class BaseModule {
       }
     } catch (error) {
       this.initializationError = error
-      this.logger.error(`❌ ${this.moduleName} 模組初始化失敗:`, error)
+      this.logger.error(`[FAIL] ${this.moduleName} 模組初始化失敗:`, error)
 
       // 觸發初始化失敗事件
       if (this.eventBus) {
@@ -113,18 +113,18 @@ class BaseModule {
     }
 
     if (this.isRunning) {
-      this.logger.warn(`⚠️ ${this.moduleName} 模組已啟動，跳過重複啟動`)
+      this.logger.warn(`[WARN] ${this.moduleName} 模組已啟動，跳過重複啟動`)
       return
     }
 
     try {
-      this.logger.log(`▶️ 開始啟動 ${this.moduleName} 模組`)
+      this.logger.log(`[START] 開始啟動 ${this.moduleName} 模組`)
 
       // 子類別可覆寫的啟動邏輯
       await this._doStart()
 
       this.isRunning = true
-      this.logger.log(`✅ ${this.moduleName} 模組啟動完成`)
+      this.logger.log(`[OK] ${this.moduleName} 模組啟動完成`)
 
       // 觸發啟動完成事件
       if (this.eventBus) {
@@ -135,7 +135,7 @@ class BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ ${this.moduleName} 模組啟動失敗:`, error)
+      this.logger.error(`[FAIL] ${this.moduleName} 模組啟動失敗:`, error)
 
       // 觸發啟動失敗事件
       if (this.eventBus) {
@@ -158,18 +158,18 @@ class BaseModule {
    */
   async stop () {
     if (!this.isRunning) {
-      this.logger.warn(`⚠️ ${this.moduleName} 模組未啟動，跳過停止`)
+      this.logger.warn(`[WARN] ${this.moduleName} 模組未啟動，跳過停止`)
       return
     }
 
     try {
-      this.logger.log(`⏹️ 開始停止 ${this.moduleName} 模組`)
+      this.logger.log(`[STOP] 開始停止 ${this.moduleName} 模組`)
 
       // 子類別可覆寫的停止邏輯
       await this._doStop()
 
       this.isRunning = false
-      this.logger.log(`✅ ${this.moduleName} 模組停止完成`)
+      this.logger.log(`[OK] ${this.moduleName} 模組停止完成`)
 
       // 觸發停止完成事件
       if (this.eventBus) {
@@ -180,7 +180,7 @@ class BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ ${this.moduleName} 模組停止失敗:`, error)
+      this.logger.error(`[FAIL] ${this.moduleName} 模組停止失敗:`, error)
 
       // 觸發停止失敗事件
       if (this.eventBus) {
@@ -203,7 +203,7 @@ class BaseModule {
    */
   async cleanup () {
     try {
-      this.logger.log(`🧹 開始清理 ${this.moduleName} 模組`)
+      this.logger.log(`開始清理 ${this.moduleName} 模組`)
 
       // 先停止模組
       if (this.isRunning) {
@@ -219,7 +219,7 @@ class BaseModule {
       this.initializationError = null
       this.lastHealthCheck = null
 
-      this.logger.log(`✅ ${this.moduleName} 模組清理完成`)
+      this.logger.log(`[OK] ${this.moduleName} 模組清理完成`)
 
       // 觸發清理完成事件
       if (this.eventBus) {
@@ -230,7 +230,7 @@ class BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ ${this.moduleName} 模組清理失敗:`, error)
+      this.logger.error(`[FAIL] ${this.moduleName} 模組清理失敗:`, error)
       throw error
     }
   }

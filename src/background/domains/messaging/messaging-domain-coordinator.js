@@ -99,7 +99,7 @@ class MessagingDomainCoordinator {
       })
     }
 
-    this.logger.log(`🏗️ 初始化了 ${this.services.size} 個通訊微服務`)
+    this.logger.log(`初始化了 ${this.services.size} 個通訊微服務`)
   }
 
   /**
@@ -119,12 +119,12 @@ class MessagingDomainCoordinator {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 通訊領域協調器已初始化')
+      this.logger.warn('[WARN] 通訊領域協調器已初始化')
       return
     }
 
     try {
-      this.logger.log('💬 初始化通訊領域協調器')
+      this.logger.log('初始化通訊領域協調器')
 
       // 按依賴順序初始化微服務
       await this.initializeServicesInOrder()
@@ -136,7 +136,7 @@ class MessagingDomainCoordinator {
       await this.setupServiceCommunication()
 
       this.state.initialized = true
-      this.logger.log('✅ 通訊領域協調器初始化完成')
+      this.logger.log('[OK] 通訊領域協調器初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -147,7 +147,7 @@ class MessagingDomainCoordinator {
         }, EVENT_PRIORITIES.NORMAL)
       }
     } catch (error) {
-      this.logger.error('❌ 初始化通訊領域協調器失敗:', error)
+      this.logger.error('[FAIL] 初始化通訊領域協調器失敗:', error)
       throw error
     }
   }
@@ -164,12 +164,12 @@ class MessagingDomainCoordinator {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 通訊領域協調器已啟動')
+      this.logger.warn('[WARN] 通訊領域協調器已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動通訊領域協調器')
+      this.logger.log('[START] 啟動通訊領域協調器')
 
       // 按依賴順序啟動微服務
       await this.startServicesInOrder()
@@ -180,7 +180,7 @@ class MessagingDomainCoordinator {
       this.state.active = true
       this.state.servicesReady = true
 
-      this.logger.log('✅ 通訊領域協調器啟動完成')
+      this.logger.log('[OK] 通訊領域協調器啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -190,7 +190,7 @@ class MessagingDomainCoordinator {
         }, EVENT_PRIORITIES.NORMAL)
       }
     } catch (error) {
-      this.logger.error('❌ 啟動通訊領域協調器失敗:', error)
+      this.logger.error('[FAIL] 啟動通訊領域協調器失敗:', error)
       throw error
     }
   }
@@ -200,12 +200,12 @@ class MessagingDomainCoordinator {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 通訊領域協調器未啟動')
+      this.logger.warn('[WARN] 通訊領域協調器未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止通訊領域協調器')
+      this.logger.log('[STOP] 停止通訊領域協調器')
 
       // 反序停止微服務
       await this.stopServicesInReverseOrder()
@@ -219,7 +219,7 @@ class MessagingDomainCoordinator {
       this.state.active = false
       this.state.servicesReady = false
 
-      this.logger.log('✅ 通訊領域協調器停止完成')
+      this.logger.log('[OK] 通訊領域協調器停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -229,7 +229,7 @@ class MessagingDomainCoordinator {
         }, EVENT_PRIORITIES.NORMAL)
       }
     } catch (error) {
-      this.logger.error('❌ 停止通訊領域協調器失敗:', error)
+      this.logger.error('[FAIL] 停止通訊領域協調器失敗:', error)
       throw error
     }
   }
@@ -242,15 +242,15 @@ class MessagingDomainCoordinator {
 
     for (const serviceName of initializationOrder) {
       try {
-        this.logger.log(`🔄 初始化通訊服務: ${serviceName}`)
+        this.logger.log(`初始化通訊服務: ${serviceName}`)
 
         const service = this.services.get(serviceName)
         await service.initialize()
 
         this.serviceStates.get(serviceName).initialized = true
-        this.logger.log(`✅ 通訊服務初始化完成: ${serviceName}`)
+        this.logger.log(`[OK] 通訊服務初始化完成: ${serviceName}`)
       } catch (error) {
-        this.logger.error(`❌ 通訊服務初始化失敗: ${serviceName}`, error)
+        this.logger.error(`[FAIL] 通訊服務初始化失敗: ${serviceName}`, error)
         const newError = new Error(`微服務 ${serviceName} 初始化失敗: ${error.message}`)
         newError.code = ErrorCodes.CONFIG_ERROR
         newError.details = { category: 'general' }
@@ -258,7 +258,7 @@ class MessagingDomainCoordinator {
       }
     }
 
-    this.logger.log('✅ 所有通訊微服務初始化完成')
+    this.logger.log('[OK] 所有通訊微服務初始化完成')
   }
 
   /**
@@ -269,21 +269,21 @@ class MessagingDomainCoordinator {
 
     for (const serviceName of startOrder) {
       try {
-        this.logger.log(`🚀 啟動通訊服務: ${serviceName}`)
+        this.logger.log(`[START] 啟動通訊服務: ${serviceName}`)
 
         const service = this.services.get(serviceName)
         await service.start()
 
         this.serviceStates.get(serviceName).active = true
-        this.logger.log(`✅ 通訊服務啟動完成: ${serviceName}`)
+        this.logger.log(`[OK] 通訊服務啟動完成: ${serviceName}`)
       } catch (error) {
-        this.logger.error(`❌ 通訊服務啟動失敗: ${serviceName}`, error)
+        this.logger.error(`[FAIL] 通訊服務啟動失敗: ${serviceName}`, error)
         // 嘗試優雅降級
         await this.handleServiceStartupFailure(serviceName, error)
       }
     }
 
-    this.logger.log('✅ 所有通訊微服務啟動完成')
+    this.logger.log('[OK] 所有通訊微服務啟動完成')
   }
 
   /**
@@ -294,20 +294,20 @@ class MessagingDomainCoordinator {
 
     for (const serviceName of stopOrder) {
       try {
-        this.logger.log(`🛑 停止通訊服務: ${serviceName}`)
+        this.logger.log(`[STOP] 停止通訊服務: ${serviceName}`)
 
         const service = this.services.get(serviceName)
         await service.stop()
 
         this.serviceStates.get(serviceName).active = false
-        this.logger.log(`✅ 通訊服務停止完成: ${serviceName}`)
+        this.logger.log(`[OK] 通訊服務停止完成: ${serviceName}`)
       } catch (error) {
-        this.logger.error(`❌ 通訊服務停止失敗: ${serviceName}`, error)
+        this.logger.error(`[FAIL] 通訊服務停止失敗: ${serviceName}`, error)
         // 繼續停止其他服務
       }
     }
 
-    this.logger.log('✅ 所有通訊微服務停止完成')
+    this.logger.log('[OK] 所有通訊微服務停止完成')
   }
 
   /**
@@ -343,7 +343,7 @@ class MessagingDomainCoordinator {
    * 執行就緒檢查
    */
   async performReadinessCheck () {
-    this.logger.log('🔍 執行通訊系統就緒檢查')
+    this.logger.log('[CHECK] 執行通訊系統就緒檢查')
 
     const issues = []
 
@@ -363,9 +363,9 @@ class MessagingDomainCoordinator {
     }
 
     if (issues.length > 0) {
-      this.logger.warn('⚠️ 通訊系統就緒檢查發現問題:', issues)
+      this.logger.warn('[WARN] 通訊系統就緒檢查發現問題:', issues)
     } else {
-      this.logger.log('✅ 通訊系統就緒檢查通過')
+      this.logger.log('[OK] 通訊系統就緒檢查通過')
     }
 
     return { ready: issues.length === 0, issues }
@@ -375,7 +375,7 @@ class MessagingDomainCoordinator {
    * 處理服務啟動失敗
    */
   async handleServiceStartupFailure (serviceName, error) {
-    this.logger.error(`💥 通訊服務啟動失敗處理: ${serviceName}`, error)
+    this.logger.error(`通訊服務啟動失敗處理: ${serviceName}`, error)
 
     const serviceState = this.serviceStates.get(serviceName)
     serviceState.restartCount++
@@ -383,19 +383,19 @@ class MessagingDomainCoordinator {
 
     // 如果重試次數未超限，嘗試重啟
     if (serviceState.restartCount < 3) {
-      this.logger.log(`🔄 嘗試重啟通訊服務: ${serviceName} (第 ${serviceState.restartCount} 次)`)
+      this.logger.log(`嘗試重啟通訊服務: ${serviceName} (第 ${serviceState.restartCount} 次)`)
 
       try {
         const service = this.services.get(serviceName)
         await service.start()
 
         serviceState.active = true
-        this.logger.log(`✅ 通訊服務重啟成功: ${serviceName}`)
+        this.logger.log(`[OK] 通訊服務重啟成功: ${serviceName}`)
       } catch (retryError) {
-        this.logger.error(`❌ 通訊服務重啟失敗: ${serviceName}`, retryError)
+        this.logger.error(`[FAIL] 通訊服務重啟失敗: ${serviceName}`, retryError)
       }
     } else {
-      this.logger.error(`🚫 通訊服務 ${serviceName} 重試次數超限，標記為失敗`)
+      this.logger.error(`通訊服務 ${serviceName} 重試次數超限，標記為失敗`)
       serviceState.healthy = false
     }
   }
@@ -405,7 +405,7 @@ class MessagingDomainCoordinator {
    */
   async setupServiceCommunication () {
     // 設定通訊服務間的事件路由和協調
-    this.logger.log('🔗 設定通訊服務間通訊')
+    this.logger.log('設定通訊服務間通訊')
 
     // 路由服務與其他服務的協調
     const routingService = this.services.get('routing')
@@ -468,7 +468,7 @@ class MessagingDomainCoordinator {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -500,7 +500,7 @@ class MessagingDomainCoordinator {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -513,12 +513,12 @@ class MessagingDomainCoordinator {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -534,7 +534,7 @@ class MessagingDomainCoordinator {
         await routingService.handleMessage(event.data)
       }
     } catch (error) {
-      this.logger.error('❌ 處理訊息接收事件失敗:', error)
+      this.logger.error('[FAIL] 處理訊息接收事件失敗:', error)
     }
   }
 
@@ -550,7 +550,7 @@ class MessagingDomainCoordinator {
         await routingService.handleContentMessage(event.data)
       }
     } catch (error) {
-      this.logger.error('❌ 處理 Content Script 訊息失敗:', error)
+      this.logger.error('[FAIL] 處理 Content Script 訊息失敗:', error)
     }
   }
 
@@ -572,7 +572,7 @@ class MessagingDomainCoordinator {
         await routingService.handlePopupMessage(event.data)
       }
     } catch (error) {
-      this.logger.error('❌ 處理 Popup 訊息失敗:', error)
+      this.logger.error('[FAIL] 處理 Popup 訊息失敗:', error)
     }
   }
 
@@ -581,12 +581,12 @@ class MessagingDomainCoordinator {
    */
   async handleSystemShutdown (event) {
     try {
-      this.logger.log('🔄 處理系統關閉事件')
+      this.logger.log('處理系統關閉事件')
       if (this.state.active) {
         await this.stop()
       }
     } catch (error) {
-      this.logger.error('❌ 處理系統關閉事件失敗:', error)
+      this.logger.error('[FAIL] 處理系統關閉事件失敗:', error)
     }
   }
 

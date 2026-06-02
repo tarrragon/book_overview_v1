@@ -88,12 +88,12 @@ class TabStateTrackingService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 分頁狀態追蹤服務已初始化')
+      this.logger.warn('[WARN] 分頁狀態追蹤服務已初始化')
       return
     }
 
     try {
-      this.logger.log('📊 初始化分頁狀態追蹤服務')
+      this.logger.log('[STATS] 初始化分頁狀態追蹤服務')
 
       // 載入持久化狀態
       await this.loadPersistedState()
@@ -108,14 +108,14 @@ class TabStateTrackingService {
       await this.initializeExistingTabs()
 
       this.state.initialized = true
-      this.logger.log('✅ 分頁狀態追蹤服務初始化完成')
+      this.logger.log('[OK] 分頁狀態追蹤服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.TAB_STATE.INITIALIZED')
       }
     } catch (error) {
-      this.logger.error('❌ 初始化分頁狀態追蹤服務失敗:', error)
+      this.logger.error('[FAIL] 初始化分頁狀態追蹤服務失敗:', error)
       throw error
     }
   }
@@ -134,12 +134,12 @@ class TabStateTrackingService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 分頁狀態追蹤服務已啟動')
+      this.logger.warn('[WARN] 分頁狀態追蹤服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動分頁狀態追蹤服務')
+      this.logger.log('[START] 啟動分頁狀態追蹤服務')
 
       // 開始定時任務
       this.startPeriodicTasks()
@@ -147,14 +147,14 @@ class TabStateTrackingService {
       this.state.active = true
       this.state.tracking = true
 
-      this.logger.log('✅ 分頁狀態追蹤服務啟動完成')
+      this.logger.log('[OK] 分頁狀態追蹤服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.TAB_STATE.STARTED')
       }
     } catch (error) {
-      this.logger.error('❌ 啟動分頁狀態追蹤服務失敗:', error)
+      this.logger.error('[FAIL] 啟動分頁狀態追蹤服務失敗:', error)
       throw error
     }
   }
@@ -164,12 +164,12 @@ class TabStateTrackingService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 分頁狀態追蹤服務未啟動')
+      this.logger.warn('[WARN] 分頁狀態追蹤服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止分頁狀態追蹤服務')
+      this.logger.log('[STOP] 停止分頁狀態追蹤服務')
 
       // 停止定時任務
       this.stopPeriodicTasks()
@@ -184,14 +184,14 @@ class TabStateTrackingService {
       this.state.active = false
       this.state.tracking = false
 
-      this.logger.log('✅ 分頁狀態追蹤服務停止完成')
+      this.logger.log('[OK] 分頁狀態追蹤服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.TAB_STATE.STOPPED')
       }
     } catch (error) {
-      this.logger.error('❌ 停止分頁狀態追蹤服務失敗:', error)
+      this.logger.error('[FAIL] 停止分頁狀態追蹤服務失敗:', error)
       throw error
     }
   }
@@ -208,12 +208,12 @@ class TabStateTrackingService {
 
         if (result.tabStates) {
           this.tabStates = new Map(Object.entries(result.tabStates))
-          this.logger.log(`📂 載入了 ${this.tabStates.size} 個分頁狀態`)
+          this.logger.log(`載入了 ${this.tabStates.size} 個分頁狀態`)
         }
 
         if (result.tabHistory) {
           this.tabHistory = new Map(Object.entries(result.tabHistory))
-          this.logger.log(`📜 載入了 ${this.tabHistory.size} 個分頁歷史`)
+          this.logger.log(`載入了 ${this.tabHistory.size} 個分頁歷史`)
         }
       }
     } catch (error) {
@@ -235,7 +235,7 @@ class TabStateTrackingService {
         }
 
         await chrome.storage.local.set(data)
-        this.logger.log('💾 分頁狀態已保存')
+        this.logger.log('[SAVE] 分頁狀態已保存')
       }
     } catch (error) {
       this.logger.warn('保存持久化狀態失敗:', error)
@@ -247,7 +247,7 @@ class TabStateTrackingService {
    */
   async registerChromeListeners () {
     if (typeof chrome === 'undefined' || !chrome.tabs) {
-      this.logger.warn('⚠️ Chrome Tabs API 不可用')
+      this.logger.warn('[WARN] Chrome Tabs API 不可用')
       return
     }
 
@@ -272,9 +272,9 @@ class TabStateTrackingService {
       chrome.tabs.onCreated.addListener(onCreatedListener)
       this.chromeListeners.set('onCreated', onCreatedListener)
 
-      this.logger.log('✅ Chrome 分頁事件監聽器註冊完成')
+      this.logger.log('[OK] Chrome 分頁事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊 Chrome 監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊 Chrome 監聽器失敗:', error)
       throw error
     }
   }
@@ -304,9 +304,9 @@ class TabStateTrackingService {
       }
 
       this.chromeListeners.clear()
-      this.logger.log('✅ Chrome 分頁事件監聽器取消註冊完成')
+      this.logger.log('[OK] Chrome 分頁事件監聽器取消註冊完成')
     } catch (error) {
-      this.logger.error('❌ 取消註冊 Chrome 監聽器失敗:', error)
+      this.logger.error('[FAIL] 取消註冊 Chrome 監聽器失敗:', error)
     }
   }
 
@@ -322,10 +322,10 @@ class TabStateTrackingService {
           await this.createTabState(tab)
         }
 
-        this.logger.log(`🔄 初始化了 ${tabs.length} 個現有分頁`)
+        this.logger.log(`初始化了 ${tabs.length} 個現有分頁`)
       }
     } catch (error) {
-      this.logger.error('❌ 初始化現有分頁失敗:', error)
+      this.logger.error('[FAIL] 初始化現有分頁失敗:', error)
     }
   }
 
@@ -343,7 +343,7 @@ class TabStateTrackingService {
       this.performStateUpdate()
     }, this.config.stateUpdateInterval)
 
-    this.logger.log('⏰ 定時任務已啟動')
+    this.logger.log('[TIMER] 定時任務已啟動')
   }
 
   /**
@@ -360,7 +360,7 @@ class TabStateTrackingService {
       this.stateUpdateTimer = null
     }
 
-    this.logger.log('⏰ 定時任務已停止')
+    this.logger.log('[TIMER] 定時任務已停止')
   }
 
   /**
@@ -386,7 +386,7 @@ class TabStateTrackingService {
 
       if (expiredTabIds.length > 0) {
         this.stats.cleanupOperations++
-        this.logger.log(`🧹 清理了 ${expiredTabIds.length} 個過期分頁狀態`)
+        this.logger.log(`清理了 ${expiredTabIds.length} 個過期分頁狀態`)
       }
 
       // 定期保存狀態
@@ -394,7 +394,7 @@ class TabStateTrackingService {
         await this.savePersistedState()
       }
     } catch (error) {
-      this.logger.error('❌ 執行清理操作失敗:', error)
+      this.logger.error('[FAIL] 執行清理操作失敗:', error)
     }
   }
 
@@ -412,7 +412,7 @@ class TabStateTrackingService {
 
       this.stats.stateUpdates++
     } catch (error) {
-      this.logger.error('❌ 執行狀態更新失敗:', error)
+      this.logger.error('[FAIL] 執行狀態更新失敗:', error)
     }
   }
 
@@ -447,7 +447,7 @@ class TabStateTrackingService {
         }
       }
     } catch (error) {
-      this.logger.error(`❌ 處理分頁更新事件失敗 (${tabId}):`, error)
+      this.logger.error(`[FAIL] 處理分頁更新事件失敗 (${tabId}):`, error)
     }
   }
 
@@ -474,7 +474,7 @@ class TabStateTrackingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理分頁啟動事件失敗:', error)
+      this.logger.error('[FAIL] 處理分頁啟動事件失敗:', error)
     }
   }
 
@@ -504,7 +504,7 @@ class TabStateTrackingService {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ 處理分頁移除事件失敗 (${tabId}):`, error)
+      this.logger.error(`[FAIL] 處理分頁移除事件失敗 (${tabId}):`, error)
     }
   }
 
@@ -526,7 +526,7 @@ class TabStateTrackingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理分頁創建事件失敗:', error)
+      this.logger.error('[FAIL] 處理分頁創建事件失敗:', error)
     }
   }
 
@@ -651,7 +651,7 @@ class TabStateTrackingService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -673,7 +673,7 @@ class TabStateTrackingService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -686,12 +686,12 @@ class TabStateTrackingService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -716,7 +716,7 @@ class TabStateTrackingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理狀態請求失敗:', error)
+      this.logger.error('[FAIL] 處理狀態請求失敗:', error)
     }
   }
 
@@ -739,7 +739,7 @@ class TabStateTrackingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理歷史請求失敗:', error)
+      this.logger.error('[FAIL] 處理歷史請求失敗:', error)
     }
   }
 

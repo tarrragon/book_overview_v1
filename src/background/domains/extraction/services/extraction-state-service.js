@@ -91,12 +91,12 @@ class ExtractionStateService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 提取狀態服務已初始化')
+      this.logger.warn('[WARN] 提取狀態服務已初始化')
       return
     }
 
     try {
-      this.logger.log('📊 初始化提取狀態服務')
+      this.logger.log('[STATS] 初始化提取狀態服務')
 
       // 初始化作業調度器
       await this.initializeJobScheduler()
@@ -108,7 +108,7 @@ class ExtractionStateService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 提取狀態服務初始化完成')
+      this.logger.log('[OK] 提取狀態服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -118,7 +118,7 @@ class ExtractionStateService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化提取狀態服務失敗:', error)
+      this.logger.error('[FAIL] 初始化提取狀態服務失敗:', error)
       throw error
     }
   }
@@ -135,12 +135,12 @@ class ExtractionStateService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 提取狀態服務已啟動')
+      this.logger.warn('[WARN] 提取狀態服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動提取狀態服務')
+      this.logger.log('[START] 啟動提取狀態服務')
 
       this.state.active = true
       this.state.tracking = true
@@ -151,7 +151,7 @@ class ExtractionStateService {
       // 啟動清理機制
       this.startCleanupMechanism()
 
-      this.logger.log('✅ 提取狀態服務啟動完成')
+      this.logger.log('[OK] 提取狀態服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -160,7 +160,7 @@ class ExtractionStateService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動提取狀態服務失敗:', error)
+      this.logger.error('[FAIL] 啟動提取狀態服務失敗:', error)
       throw error
     }
   }
@@ -170,12 +170,12 @@ class ExtractionStateService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 提取狀態服務未啟動')
+      this.logger.warn('[WARN] 提取狀態服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止提取狀態服務')
+      this.logger.log('[STOP] 停止提取狀態服務')
 
       // 停止所有活動作業
       await this.cancelAllActiveJobs()
@@ -189,7 +189,7 @@ class ExtractionStateService {
       this.state.active = false
       this.state.tracking = false
 
-      this.logger.log('✅ 提取狀態服務停止完成')
+      this.logger.log('[OK] 提取狀態服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -199,7 +199,7 @@ class ExtractionStateService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止提取狀態服務失敗:', error)
+      this.logger.error('[FAIL] 停止提取狀態服務失敗:', error)
       throw error
     }
   }
@@ -236,7 +236,7 @@ class ExtractionStateService {
       this.extractionJobs.set(jobId, job)
       this.stats.totalJobs++
 
-      this.logger.log(`📝 創建提取作業: ${jobId} (${job.type})`)
+      this.logger.log(`[LOG] 創建提取作業: ${jobId} (${job.type})`)
 
       // 發送作業創建事件
       if (this.eventBus) {
@@ -249,7 +249,7 @@ class ExtractionStateService {
 
       return jobId
     } catch (error) {
-      this.logger.error('❌ 創建提取作業失敗:', error)
+      this.logger.error('[FAIL] 創建提取作業失敗:', error)
       throw error
     }
   }
@@ -292,7 +292,7 @@ class ExtractionStateService {
       // 設定超時處理
       this.setJobTimeout(jobId)
 
-      this.logger.log(`▶️ 開始執行提取作業: ${jobId}`)
+      this.logger.log(`[START] 開始執行提取作業: ${jobId}`)
 
       // 發送作業開始事件
       if (this.eventBus) {
@@ -305,7 +305,7 @@ class ExtractionStateService {
 
       return true
     } catch (error) {
-      this.logger.error(`❌ 啟動提取作業失敗 (${jobId}):`, error)
+      this.logger.error(`[FAIL] 啟動提取作業失敗 (${jobId}):`, error)
       throw error
     }
   }
@@ -343,7 +343,7 @@ class ExtractionStateService {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ 更新作業進度失敗 (${jobId}):`, error)
+      this.logger.error(`[FAIL] 更新作業進度失敗 (${jobId}):`, error)
     }
   }
 
@@ -379,7 +379,7 @@ class ExtractionStateService {
       // 移動到歷史記錄
       this.moveJobToHistory(jobId)
 
-      this.logger.log(`✅ 提取作業完成: ${jobId} (${completionTime}ms)`)
+      this.logger.log(`[OK] 提取作業完成: ${jobId} (${completionTime}ms)`)
 
       // 發送作業完成事件
       if (this.eventBus) {
@@ -391,7 +391,7 @@ class ExtractionStateService {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ 完成提取作業失敗 (${jobId}):`, error)
+      this.logger.error(`[FAIL] 完成提取作業失敗 (${jobId}):`, error)
       throw error
     }
   }
@@ -425,7 +425,7 @@ class ExtractionStateService {
         this.scheduleJobRetry(jobId)
         this.stats.retriedJobs++
 
-        this.logger.log(`🔄 安排重試提取作業: ${jobId} (嘗試 ${job.attempts}/${job.maxAttempts})`)
+        this.logger.log(`[RETRY] 安排重試提取作業: ${jobId} (嘗試 ${job.attempts}/${job.maxAttempts})`)
       } else {
         job.state = this.JOB_STATES.FAILED
         job.completedAt = Date.now()
@@ -435,7 +435,7 @@ class ExtractionStateService {
         // 移動到歷史記錄
         this.moveJobToHistory(jobId)
 
-        this.logger.error(`❌ 提取作業失敗: ${jobId}`, error)
+        this.logger.error(`[FAIL] 提取作業失敗: ${jobId}`, error)
       }
 
       // 發送作業失敗事件
@@ -448,7 +448,7 @@ class ExtractionStateService {
         })
       }
     } catch (err) {
-      this.logger.error(`❌ 處理作業失敗時發生錯誤 (${jobId}):`, err)
+      this.logger.error(`[FAIL] 處理作業失敗時發生錯誤 (${jobId}):`, err)
     }
   }
 
@@ -471,7 +471,7 @@ class ExtractionStateService {
       this.activeJobs.delete(jobId)
       this.moveJobToHistory(jobId)
 
-      this.logger.log(`🚫 取消提取作業: ${jobId}`)
+      this.logger.log(`取消提取作業: ${jobId}`)
 
       // 發送作業取消事件
       if (this.eventBus) {
@@ -481,7 +481,7 @@ class ExtractionStateService {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ 取消提取作業失敗 (${jobId}):`, error)
+      this.logger.error(`[FAIL] 取消提取作業失敗 (${jobId}):`, error)
       throw error
     }
   }
@@ -495,7 +495,7 @@ class ExtractionStateService {
       try {
         await this.cancelExtractionJob(jobId)
       } catch (error) {
-        this.logger.error(`❌ 取消活動作業失敗 (${jobId}):`, error)
+        this.logger.error(`[FAIL] 取消活動作業失敗 (${jobId}):`, error)
       }
     }
   }
@@ -549,7 +549,7 @@ class ExtractionStateService {
    */
   async initializeJobScheduler () {
     // 初始化調度器邏輯
-    this.logger.log('⚙️ 作業調度器初始化完成')
+    this.logger.log('作業調度器初始化完成')
   }
 
   /**
@@ -557,7 +557,7 @@ class ExtractionStateService {
    */
   async loadJobHistory () {
     // 從持久化儲存載入歷史記錄
-    this.logger.log('📚 歷史作業記錄載入完成')
+    this.logger.log('歷史作業記錄載入完成')
   }
 
   /**
@@ -613,7 +613,7 @@ class ExtractionStateService {
         this.jobHistory.delete(jobId)
       })
 
-      this.logger.log(`🧹 清理了 ${toRemove.length} 個舊作業記錄`)
+      this.logger.log(`清理了 ${toRemove.length} 個舊作業記錄`)
     }
   }
 
@@ -668,7 +668,7 @@ class ExtractionStateService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -705,7 +705,7 @@ class ExtractionStateService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -718,12 +718,12 @@ class ExtractionStateService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -742,7 +742,7 @@ class ExtractionStateService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理作業創建請求失敗:', error)
+      this.logger.error('[FAIL] 處理作業創建請求失敗:', error)
     }
   }
 
@@ -762,7 +762,7 @@ class ExtractionStateService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理作業啟動請求失敗:', error)
+      this.logger.error('[FAIL] 處理作業啟動請求失敗:', error)
     }
   }
 
@@ -774,7 +774,7 @@ class ExtractionStateService {
       const { jobId, progress } = event.data || {}
       await this.updateJobProgress(jobId, progress)
     } catch (error) {
-      this.logger.error('❌ 處理進度更新失敗:', error)
+      this.logger.error('[FAIL] 處理進度更新失敗:', error)
     }
   }
 
@@ -786,7 +786,7 @@ class ExtractionStateService {
       const { jobId, result } = event.data || {}
       await this.completeExtractionJob(jobId, result)
     } catch (error) {
-      this.logger.error('❌ 處理作業完成請求失敗:', error)
+      this.logger.error('[FAIL] 處理作業完成請求失敗:', error)
     }
   }
 
@@ -801,7 +801,7 @@ class ExtractionStateService {
       newError.details = { category: 'general' }
       await this.failExtractionJob(jobId, newError)
     } catch (error) {
-      this.logger.error('❌ 處理作業失敗請求失敗:', error)
+      this.logger.error('[FAIL] 處理作業失敗請求失敗:', error)
     }
   }
 

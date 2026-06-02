@@ -102,7 +102,7 @@ class SystemMonitor extends BaseModule {
     if (this.i18nManager) {
       this.logger.log(this.i18nManager.t('modules.operations.initialize', { moduleName: this.moduleName }))
     } else {
-      this.logger.log('📊 初始化系統監控器')
+      this.logger.log('[STATS] 初始化系統監控器')
     }
 
     // 初始化監控系統
@@ -111,7 +111,7 @@ class SystemMonitor extends BaseModule {
     // 載入歷史資料
     await this.loadHistoricalData()
 
-    this.logger.log('✅ 系統監控器初始化完成')
+    this.logger.log('[OK] 系統監控器初始化完成')
   }
 
   /**
@@ -120,7 +120,7 @@ class SystemMonitor extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動系統監控器')
+    this.logger.log('[START] 啟動系統監控器')
 
     // 註冊事件監聽器
     await this.registerEventListeners()
@@ -136,7 +136,7 @@ class SystemMonitor extends BaseModule {
     // 執行初始健康檢查
     await this.performInitialHealthCheck()
 
-    this.logger.log('✅ 系統監控器啟動完成')
+    this.logger.log('[OK] 系統監控器啟動完成')
   }
 
   /**
@@ -145,7 +145,7 @@ class SystemMonitor extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止系統監控器')
+    this.logger.log('[STOP] 停止系統監控器')
 
     // 停止所有監控
     this.stopHealthMonitoring()
@@ -157,7 +157,7 @@ class SystemMonitor extends BaseModule {
     // 保存歷史資料
     await this.saveHistoricalData()
 
-    this.logger.log('✅ 系統監控器停止完成')
+    this.logger.log('[OK] 系統監控器停止完成')
   }
 
   /**
@@ -176,9 +176,9 @@ class SystemMonitor extends BaseModule {
       this.moduleHealthHistory.clear()
       this.alerts.active.clear()
 
-      this.logger.log('🔧 監控系統初始化完成')
+      this.logger.log('[FIX] 監控系統初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化監控系統失敗:', error)
+      this.logger.error('[FAIL] 初始化監控系統失敗:', error)
       throw error
     }
   }
@@ -190,7 +190,7 @@ class SystemMonitor extends BaseModule {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 未初始化，跳過事件監聽器設定')
+      this.logger.warn('[WARN] EventBus 未初始化，跳過事件監聽器設定')
       return
     }
 
@@ -213,9 +213,9 @@ class SystemMonitor extends BaseModule {
         { priority: EVENT_PRIORITIES.LOW }
       )
 
-      this.logger.log('📝 系統監控事件監聽器註冊完成')
+      this.logger.log('[LOG] 系統監控事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊事件監聽器失敗:', error)
     }
   }
 
@@ -242,9 +242,9 @@ class SystemMonitor extends BaseModule {
         }
       }
 
-      this.logger.log('🔄 系統監控事件監聽器取消註冊完成')
+      this.logger.log('系統監控事件監聽器取消註冊完成')
     } catch (error) {
-      this.logger.error('❌ 取消註冊事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 取消註冊事件監聽器失敗:', error)
     }
   }
 
@@ -268,9 +268,9 @@ class SystemMonitor extends BaseModule {
       // 初始化健康歷史
       this.moduleHealthHistory.set(moduleName, [])
 
-      this.logger.log(`📋 註冊模組監控: ${moduleName}`)
+      this.logger.log(`註冊模組監控: ${moduleName}`)
     } catch (error) {
-      this.logger.error(`❌ 註冊模組監控失敗: ${moduleName}`, error)
+      this.logger.error(`[FAIL] 註冊模組監控失敗: ${moduleName}`, error)
     }
   }
 
@@ -284,9 +284,9 @@ class SystemMonitor extends BaseModule {
       this.monitoredModules.delete(moduleName)
       this.moduleHealthHistory.delete(moduleName)
 
-      this.logger.log(`🗑️ 取消註冊模組監控: ${moduleName}`)
+      this.logger.log(`取消註冊模組監控: ${moduleName}`)
     } catch (error) {
-      this.logger.error(`❌ 取消註冊模組監控失敗: ${moduleName}`, error)
+      this.logger.error(`[FAIL] 取消註冊模組監控失敗: ${moduleName}`, error)
     }
   }
 
@@ -303,7 +303,7 @@ class SystemMonitor extends BaseModule {
       await this.performHealthCheck()
     }, this.config.healthCheckInterval)
 
-    this.logger.log('💓 系統健康監控已啟動')
+    this.logger.log('系統健康監控已啟動')
   }
 
   /**
@@ -316,7 +316,7 @@ class SystemMonitor extends BaseModule {
       this.healthCheckInterval = null
     }
 
-    this.logger.log('💓 系統健康監控已停止')
+    this.logger.log('系統健康監控已停止')
   }
 
   /**
@@ -332,7 +332,7 @@ class SystemMonitor extends BaseModule {
       await this.collectSystemMetrics()
     }, this.config.metricCollectionInterval)
 
-    this.logger.log('📈 系統效能監控已啟動')
+    this.logger.log('系統效能監控已啟動')
   }
 
   /**
@@ -345,7 +345,7 @@ class SystemMonitor extends BaseModule {
       this.metricsCollectionInterval = null
     }
 
-    this.logger.log('📈 系統效能監控已停止')
+    this.logger.log('系統效能監控已停止')
   }
 
   /**
@@ -401,7 +401,7 @@ class SystemMonitor extends BaseModule {
 
           this.moduleHealthHistory.set(moduleName, healthHistory)
         } catch (error) {
-          this.logger.error(`❌ 檢查模組健康失敗: ${moduleName}`, error)
+          this.logger.error(`[FAIL] 檢查模組健康失敗: ${moduleName}`, error)
           this.stats.healthCheckFailures++
           unhealthyModules++
         }
@@ -434,7 +434,7 @@ class SystemMonitor extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 執行健康檢查失敗:', error)
+      this.logger.error('[FAIL] 執行健康檢查失敗:', error)
       this.stats.healthCheckFailures++
     }
   }
@@ -553,7 +553,7 @@ class SystemMonitor extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 收集系統指標失敗:', error)
+      this.logger.error('[FAIL] 收集系統指標失敗:', error)
     }
   }
 
@@ -598,7 +598,7 @@ class SystemMonitor extends BaseModule {
         }
       }
     } catch (error) {
-      this.logger.error('❌ 檢查警報條件失敗:', error)
+      this.logger.error('[FAIL] 檢查警報條件失敗:', error)
     }
   }
 
@@ -649,7 +649,7 @@ class SystemMonitor extends BaseModule {
       this.stats.alertsTriggered++
 
       // 記錄警報
-      this.logger.warn(`🚨 系統警報觸發: ${alertType} - ${alertData.message}`)
+      this.logger.warn(`[ALERT] 系統警報觸發: ${alertType} - ${alertData.message}`)
 
       // 觸發警報事件
       if (this.eventBus) {
@@ -659,7 +659,7 @@ class SystemMonitor extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 觸發警報失敗:', error)
+      this.logger.error('[FAIL] 觸發警報失敗:', error)
     }
   }
 
@@ -728,7 +728,7 @@ class SystemMonitor extends BaseModule {
    * @private
    */
   async performInitialHealthCheck () {
-    this.logger.log('🔍 執行初始系統健康檢查')
+    this.logger.log('[CHECK] 執行初始系統健康檢查')
     await this.performHealthCheck()
   }
 
@@ -753,10 +753,10 @@ class SystemMonitor extends BaseModule {
           this.systemMetrics.restartCount = (historicalData.systemMetrics.restartCount || 0) + 1
         }
 
-        this.logger.log('📚 載入了歷史監控資料')
+        this.logger.log('載入了歷史監控資料')
       }
     } catch (error) {
-      this.logger.error('❌ 載入歷史資料失敗:', error)
+      this.logger.error('[FAIL] 載入歷史資料失敗:', error)
     }
   }
 
@@ -777,9 +777,9 @@ class SystemMonitor extends BaseModule {
       }
 
       await chrome.storage.local.set({ system_monitor_data: dataToSave })
-      this.logger.log('💾 系統監控資料已保存')
+      this.logger.log('[SAVE] 系統監控資料已保存')
     } catch (error) {
-      this.logger.error('❌ 保存歷史資料失敗:', error)
+      this.logger.error('[FAIL] 保存歷史資料失敗:', error)
     }
   }
 
@@ -896,7 +896,7 @@ class SystemMonitor extends BaseModule {
       alert.acknowledged = true
       alert.acknowledgedAt = Date.now()
 
-      this.logger.log(`✅ 警報已確認: ${alertType}`)
+      this.logger.log(`[OK] 警報已確認: ${alertType}`)
       return true
     }
     return false
@@ -920,7 +920,7 @@ class SystemMonitor extends BaseModule {
       this.alerts.suppressions.delete(alertType)
     }, duration)
 
-    this.logger.log(`🔇 警報已抑制: ${alertType} (${duration}ms)`)
+    this.logger.log(`警報已抑制: ${alertType} (${duration}ms)`)
   }
 
   /**

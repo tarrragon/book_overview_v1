@@ -59,19 +59,19 @@ class SyncProgressTracker {
     if (this.state.initialized) return
 
     try {
-      this.logger.log('📊 初始化進度追蹤器')
+      this.logger.log('[STATS] 初始化進度追蹤器')
       await this.registerEventListeners()
       this.state.initialized = true
-      this.logger.log('✅ 進度追蹤器初始化完成')
+      this.logger.log('[OK] 進度追蹤器初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化進度追蹤器失敗:', error)
+      this.logger.error('[FAIL] 初始化進度追蹤器失敗:', error)
       throw error
     }
   }
 
   async startTracking (syncId, options = {}) {
     if (this.activeTracking.has(syncId)) {
-      this.logger.warn(`⚠️ 同步作業 ${syncId} 已在追蹤中`)
+      this.logger.warn(`[WARN] 同步作業 ${syncId} 已在追蹤中`)
       return false
     }
 
@@ -105,7 +105,7 @@ class SyncProgressTracker {
     this.activeTracking.set(syncId, trackingData)
     this.state.tracking = true
 
-    this.logger.log(`📊 開始追蹤同步作業: ${syncId}`)
+    this.logger.log(`[STATS] 開始追蹤同步作業: ${syncId}`)
 
     await this.emitProgressEvent(SYNC_EVENTS.SYNC_PROGRESS, {
       syncId,
@@ -121,7 +121,7 @@ class SyncProgressTracker {
   async updatePhase (syncId, phase, progressData = {}) {
     const tracking = this.activeTracking.get(syncId)
     if (!tracking) {
-      this.logger.warn(`⚠️ 未找到同步作業追蹤: ${syncId}`)
+      this.logger.warn(`[WARN] 未找到同步作業追蹤: ${syncId}`)
       return false
     }
 
@@ -164,7 +164,7 @@ class SyncProgressTracker {
       duration: now - tracking.startTime
     })
 
-    this.logger.log(`📊 更新同步進度 ${syncId}: ${phase} (${overallPercentage}%)`)
+    this.logger.log(`[STATS] 更新同步進度 ${syncId}: ${phase} (${overallPercentage}%)`)
 
     await this.emitProgressEvent(SYNC_EVENTS.SYNC_PROGRESS, {
       syncId,
@@ -290,7 +290,7 @@ class SyncProgressTracker {
       this.state.tracking = false
     }
 
-    this.logger.log(`✅ 完成追蹤同步作業 ${syncId}，耗時: ${duration}ms`)
+    this.logger.log(`[OK] 完成追蹤同步作業 ${syncId}，耗時: ${duration}ms`)
 
     await this.emitProgressEvent(SYNC_EVENTS.SYNC_PROGRESS, {
       syncId,
@@ -347,7 +347,7 @@ class SyncProgressTracker {
       this.state.tracking = false
     }
 
-    this.logger.error(`❌ 同步追蹤失敗 ${syncId}:`, error)
+    this.logger.error(`[FAIL] 同步追蹤失敗 ${syncId}:`, error)
 
     await this.emitProgressEvent(SYNC_EVENTS.SYNC_FAILED, {
       syncId,
@@ -430,7 +430,7 @@ class SyncProgressTracker {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
     this.registeredListeners.clear()

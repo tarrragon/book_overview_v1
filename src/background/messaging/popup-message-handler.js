@@ -63,7 +63,7 @@ class PopupMessageHandler extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('🎨 初始化 Popup 訊息處理器')
+    this.logger.log('初始化 Popup 訊息處理器')
 
     // 清理可能存在的舊會話
     this.activePopupSessions.clear()
@@ -72,7 +72,7 @@ class PopupMessageHandler extends BaseModule {
     // 重置統計
     this.resetStats()
 
-    this.logger.log('✅ Popup 訊息處理器初始化完成')
+    this.logger.log('[OK] Popup 訊息處理器初始化完成')
   }
 
   /**
@@ -81,7 +81,7 @@ class PopupMessageHandler extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動 Popup 訊息處理器')
+    this.logger.log('[START] 啟動 Popup 訊息處理器')
 
     // 觸發處理器啟動事件
     if (this.eventBus) {
@@ -90,7 +90,7 @@ class PopupMessageHandler extends BaseModule {
       })
     }
 
-    this.logger.log('✅ Popup 訊息處理器啟動完成')
+    this.logger.log('[OK] Popup 訊息處理器啟動完成')
   }
 
   /**
@@ -99,7 +99,7 @@ class PopupMessageHandler extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止 Popup 訊息處理器')
+    this.logger.log('[STOP] 停止 Popup 訊息處理器')
 
     // 通知所有 Popup 會話系統即將關閉
     await this.notifyPopupSessionsShutdown()
@@ -108,7 +108,7 @@ class PopupMessageHandler extends BaseModule {
     this.activePopupSessions.clear()
     this.currentPopupConnection = null
 
-    this.logger.log('✅ Popup 訊息處理器停止完成')
+    this.logger.log('[OK] Popup 訊息處理器停止完成')
   }
 
   /**
@@ -120,7 +120,7 @@ class PopupMessageHandler extends BaseModule {
    */
   async handleMessage (message, sender, sendResponse) {
     try {
-      this.logger.log('🎨 處理 Popup 訊息:', {
+      this.logger.log('處理 Popup 訊息:', {
         type: message?.type,
         sessionId: message?.sessionId
       })
@@ -153,7 +153,7 @@ class PopupMessageHandler extends BaseModule {
 
       return result
     } catch (error) {
-      this.logger.error('❌ Popup 訊息處理失敗:', error)
+      this.logger.error('[FAIL] Popup 訊息處理失敗:', error)
 
       // 更新失敗統計
       this.popupStats.failed++
@@ -284,7 +284,7 @@ class PopupMessageHandler extends BaseModule {
    * @private
    */
   async handlePopupToBackgroundMessage (message, sender, sendResponse) {
-    this.logger.log('🎨 處理 Popup 一般訊息:', message.data)
+    this.logger.log('處理 Popup 一般訊息:', message.data)
 
     // 觸發內部事件
     if (this.eventBus) {
@@ -353,7 +353,7 @@ class PopupMessageHandler extends BaseModule {
       sendResponse(response)
       return false
     } catch (error) {
-      this.logger.error('❌ 獲取狀態失敗:', error)
+      this.logger.error('[FAIL] 獲取狀態失敗:', error)
       sendResponse({
         success: false,
         error: error.message,
@@ -376,7 +376,7 @@ class PopupMessageHandler extends BaseModule {
       this.popupStats.dataQueries++
 
       const dataType = message.data?.type
-      this.logger.log(`📊 處理 Popup 資料請求: ${dataType}`)
+      this.logger.log(`[STATS] 處理 Popup 資料請求: ${dataType}`)
 
       let responseData = {}
 
@@ -429,7 +429,7 @@ class PopupMessageHandler extends BaseModule {
 
       return false
     } catch (error) {
-      this.logger.error('❌ 處理資料請求失敗:', error)
+      this.logger.error('[FAIL] 處理資料請求失敗:', error)
       sendResponse({
         success: false,
         error: error.message,
@@ -454,7 +454,7 @@ class PopupMessageHandler extends BaseModule {
       const operation = message.data?.operation
       const params = message.data?.params || {}
 
-      this.logger.log(`🔧 處理 Popup 操作請求: ${operation}`)
+      this.logger.log(`[FIX] 處理 Popup 操作請求: ${operation}`)
 
       // 檢查操作權限
       await this.checkOperationPermissions(operation, params)
@@ -498,7 +498,7 @@ class PopupMessageHandler extends BaseModule {
 
       return false
     } catch (error) {
-      this.logger.error('❌ 處理操作請求失敗:', error)
+      this.logger.error('[FAIL] 處理操作請求失敗:', error)
       sendResponse({
         success: false,
         error: error.message,
@@ -519,7 +519,7 @@ class PopupMessageHandler extends BaseModule {
   async handlePopupSessionStart (message, sender, sendResponse) {
     const sessionId = message.sessionId || `popup_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-    this.logger.log(`🎪 開始 Popup 會話: ${sessionId}`)
+    this.logger.log(`開始 Popup 會話: ${sessionId}`)
 
     // 建立會話
     const sessionInfo = {
@@ -566,7 +566,7 @@ class PopupMessageHandler extends BaseModule {
   async handlePopupSessionEnd (message, sender, sendResponse) {
     const sessionId = message.sessionId
 
-    this.logger.log(`🎪 結束 Popup 會話: ${sessionId}`)
+    this.logger.log(`結束 Popup 會話: ${sessionId}`)
 
     // 清理會話
     if (this.activePopupSessions.has(sessionId)) {
@@ -623,7 +623,7 @@ class PopupMessageHandler extends BaseModule {
         throw error
       }
 
-      this.logger.log('🚀 開始從 Popup 觸發的提取操作')
+      this.logger.log('[START] 開始從 Popup 觸發的提取操作')
 
       // 發送訊息到 Content Script 開始提取
       const response = await chrome.tabs.sendMessage(activeTab.id, {
@@ -652,7 +652,7 @@ class PopupMessageHandler extends BaseModule {
 
       return false
     } catch (error) {
-      this.logger.error('❌ 開始提取操作失敗:', error)
+      this.logger.error('[FAIL] 開始提取操作失敗:', error)
       sendResponse({
         success: false,
         error: error.message,
@@ -675,7 +675,7 @@ class PopupMessageHandler extends BaseModule {
       const exportType = message.data?.type
       const options = message.data?.options || {}
 
-      this.logger.log(`📤 處理 Popup 匯出請求: ${exportType}`)
+      this.logger.log(`處理 Popup 匯出請求: ${exportType}`)
 
       // 觸發匯出事件
       if (this.eventBus) {
@@ -697,7 +697,7 @@ class PopupMessageHandler extends BaseModule {
 
       return false
     } catch (error) {
-      this.logger.error('❌ 處理匯出請求失敗:', error)
+      this.logger.error('[FAIL] 處理匯出請求失敗:', error)
       sendResponse({
         success: false,
         error: error.message,
@@ -777,7 +777,7 @@ class PopupMessageHandler extends BaseModule {
    * @private
    */
   async handleSystemReload (params) {
-    this.logger.log('🔄 處理系統重新載入')
+    this.logger.log('處理系統重新載入')
 
     // 觸發系統重新載入事件
     if (this.eventBus) {
@@ -802,7 +802,7 @@ class PopupMessageHandler extends BaseModule {
    * @private
    */
   async handleStorageClear (params) {
-    this.logger.log('🗑️ 處理儲存清除')
+    this.logger.log('處理儲存清除')
 
     const clearType = params.type || 'all'
     const clearedItems = []
@@ -854,7 +854,7 @@ class PopupMessageHandler extends BaseModule {
    * @private
    */
   async handleConfigUpdate (params) {
-    this.logger.log('⚙️ 處理配置更新')
+    this.logger.log('處理配置更新')
 
     const updates = params.updates || {}
     await chrome.storage.local.set(updates)
@@ -889,7 +889,7 @@ class PopupMessageHandler extends BaseModule {
       throw error
     }
 
-    this.logger.log(`🧭 處理標籤頁導航: ${url}`)
+    this.logger.log(`處理標籤頁導航: ${url}`)
 
     const activeTab = await this.getCurrentActiveTab()
     if (activeTab) {
@@ -911,7 +911,7 @@ class PopupMessageHandler extends BaseModule {
       const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true })
       return activeTab || null
     } catch (error) {
-      this.logger.error('❌ 獲取活躍標籤頁失敗:', error)
+      this.logger.error('[FAIL] 獲取活躍標籤頁失敗:', error)
       return null
     }
   }

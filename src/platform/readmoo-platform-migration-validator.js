@@ -38,27 +38,27 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 // 初始化 Logger 實例
 const validatorMessages = new MessageDictionary({
-  VALIDATOR_INIT: '🔧 Readmoo 平台遷移驗證器初始化',
-  DEPENDENCY_MISSING: '❌ 缺少必要依賴項: {dependency}',
-  DEPENDENCY_INTERFACE_INVALID: '❌ {dependency} 必須實作 {methods} 方法',
-  CONFIG_VALIDATION_FAILED: '❌ 配置驗證失敗: {field} 必須介於 {min} 和 {max} 之間',
-  VALIDATION_START: '🚀 開始完整 Readmoo 平台遷移驗證',
-  VALIDATION_CACHE_HIT: '⚡ 驗證快取命中 (快取時間: {cacheAge}ms)',
-  VALIDATION_TIMEOUT: '⏰ 驗證超時 ({timeout}ms)',
-  VALIDATION_SUCCESS: '✅ 驗證成功完成',
-  VALIDATION_FAILED: '❌ 驗證失敗',
-  PLATFORM_DETECTION_START: '🔍 開始平台檢測驗證',
-  PLATFORM_DETECTION_FAILED: '❌ 平台檢測失敗: 檢測到 {platform} 平台',
-  PLATFORM_CONFIDENCE_LOW: '⚠️ 檢測信心度過低: {confidence} (最低要求: {required})',
-  DATA_EXTRACTION_START: '📊 開始資料提取驗證',
-  DATA_EXTRACTION_EMPTY: '⚠️ 未從 Readmoo 平台提取到資料',
-  DATA_VALIDATION_FAILED: '❌ 資料格式驗證失敗',
-  EVENT_SYSTEM_START: '🔄 開始事件系統整合驗證',
-  EVENT_EMIT_FAILED: '⚠️ 事件發送失敗 {eventType}: {error}',
-  VALIDATION_RETRY: '🔄 驗證重試 (第 {attempt} 次)',
-  CACHE_CLEANUP: '🧹 執行快取清理 (當前大小: {size}/{max})',
-  PERFORMANCE_WARNING: '⚠️ 效能警告: 驗證耗時 {time}ms (閾值: {threshold}ms)',
-  ERROR_CATEGORIZED: '📊 錯誤分類: {category} ({count} 個錯誤)'
+  VALIDATOR_INIT: '[FIX] Readmoo 平台遷移驗證器初始化',
+  DEPENDENCY_MISSING: '[FAIL] 缺少必要依賴項: {dependency}',
+  DEPENDENCY_INTERFACE_INVALID: '[FAIL] {dependency} 必須實作 {methods} 方法',
+  CONFIG_VALIDATION_FAILED: '[FAIL] 配置驗證失敗: {field} 必須介於 {min} 和 {max} 之間',
+  VALIDATION_START: '[START] 開始完整 Readmoo 平台遷移驗證',
+  VALIDATION_CACHE_HIT: '驗證快取命中 (快取時間: {cacheAge}ms)',
+  VALIDATION_TIMEOUT: '[TIMER] 驗證超時 ({timeout}ms)',
+  VALIDATION_SUCCESS: '[OK] 驗證成功完成',
+  VALIDATION_FAILED: '[FAIL] 驗證失敗',
+  PLATFORM_DETECTION_START: '[CHECK] 開始平台檢測驗證',
+  PLATFORM_DETECTION_FAILED: '[FAIL] 平台檢測失敗: 檢測到 {platform} 平台',
+  PLATFORM_CONFIDENCE_LOW: '[WARN] 檢測信心度過低: {confidence} (最低要求: {required})',
+  DATA_EXTRACTION_START: '[STATS] 開始資料提取驗證',
+  DATA_EXTRACTION_EMPTY: '[WARN] 未從 Readmoo 平台提取到資料',
+  DATA_VALIDATION_FAILED: '[FAIL] 資料格式驗證失敗',
+  EVENT_SYSTEM_START: '開始事件系統整合驗證',
+  EVENT_EMIT_FAILED: '[WARN] 事件發送失敗 {eventType}: {error}',
+  VALIDATION_RETRY: '[RETRY] 驗證重試 (第 {attempt} 次)',
+  CACHE_CLEANUP: '執行快取清理 (當前大小: {size}/{max})',
+  PERFORMANCE_WARNING: '[WARN] 效能警告: 驗證耗時 {time}ms (閾值: {threshold}ms)',
+  ERROR_CATEGORIZED: '[STATS] 錯誤分類: {category} ({count} 個錯誤)'
 })
 
 const validatorLogger = new Logger('ReadmooMigrationValidator', 'INFO', validatorMessages)

@@ -67,7 +67,7 @@ class ContentCoordinator extends BaseModule {
     if (this.i18nManager) {
       this.logger.log(this.i18nManager.t('modules.operations.initialize', { moduleName: this.moduleName }))
     } else {
-      this.logger.log('📡 初始化 Content Script 協調器')
+      this.logger.log('初始化 Content Script 協調器')
     }
 
     // 清理現有狀態
@@ -76,7 +76,7 @@ class ContentCoordinator extends BaseModule {
     // 初始化訊息監聽器
     await this.initializeMessageListeners()
 
-    this.logger.log('✅ Content Script 協調器初始化完成')
+    this.logger.log('[OK] Content Script 協調器初始化完成')
   }
 
   /**
@@ -85,7 +85,7 @@ class ContentCoordinator extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動 Content Script 協調器')
+    this.logger.log('[START] 啟動 Content Script 協調器')
 
     // 註冊事件監聽器
     await this.registerEventListeners()
@@ -96,7 +96,7 @@ class ContentCoordinator extends BaseModule {
     // 標記協調器就緒
     this.coordinatorReady = true
 
-    this.logger.log('✅ Content Script 協調器啟動完成')
+    this.logger.log('[OK] Content Script 協調器啟動完成')
   }
 
   /**
@@ -105,7 +105,7 @@ class ContentCoordinator extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止 Content Script 協調器')
+    this.logger.log('[STOP] 停止 Content Script 協調器')
 
     this.shutdownInProgress = true
     this.coordinatorReady = false
@@ -122,7 +122,7 @@ class ContentCoordinator extends BaseModule {
     // 清理所有連接
     await this.clearAllConnections()
 
-    this.logger.log('✅ Content Script 協調器停止完成')
+    this.logger.log('[OK] Content Script 協調器停止完成')
   }
 
   /**
@@ -132,7 +132,7 @@ class ContentCoordinator extends BaseModule {
    */
   async initializeMessageListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 未初始化，跳過訊息監聽器設定')
+      this.logger.warn('[WARN] EventBus 未初始化，跳過訊息監聽器設定')
       return
     }
 
@@ -152,9 +152,9 @@ class ContentCoordinator extends BaseModule {
         (event) => this.handleContentScriptError(event.data)
       )
 
-      this.logger.log('📝 Content Script 訊息監聽器初始化完成')
+      this.logger.log('[LOG] Content Script 訊息監聽器初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化訊息監聽器失敗:', error)
+      this.logger.error('[FAIL] 初始化訊息監聽器失敗:', error)
       throw error
     }
   }
@@ -180,9 +180,9 @@ class ContentCoordinator extends BaseModule {
         (event) => this.handleTabUpdated(event.data)
       )
 
-      this.logger.log('📝 事件監聽器註冊完成')
+      this.logger.log('[LOG] 事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊事件監聽器失敗:', error)
     }
   }
 
@@ -211,9 +211,9 @@ class ContentCoordinator extends BaseModule {
         }
       }
 
-      this.logger.log('🔄 事件監聽器取消註冊完成')
+      this.logger.log('事件監聽器取消註冊完成')
     } catch (error) {
-      this.logger.error('❌ 取消註冊事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 取消註冊事件監聽器失敗:', error)
     }
   }
 
@@ -227,7 +227,7 @@ class ContentCoordinator extends BaseModule {
     try {
       const { tabId, scriptInfo } = data
 
-      this.logger.log(`📝 Content Script 註冊: Tab ${tabId}`)
+      this.logger.log(`[LOG] Content Script 註冊: Tab ${tabId}`)
 
       // 建立 Content Script 記錄
       const contentScript = {
@@ -257,9 +257,9 @@ class ContentCoordinator extends BaseModule {
         })
       }
 
-      this.logger.log(`✅ Content Script 註冊完成: Tab ${tabId}`)
+      this.logger.log(`[OK] Content Script 註冊完成: Tab ${tabId}`)
     } catch (error) {
-      this.logger.error('❌ 處理 Content Script 註冊失敗:', error)
+      this.logger.error('[FAIL] 處理 Content Script 註冊失敗:', error)
     }
   }
 
@@ -274,7 +274,7 @@ class ContentCoordinator extends BaseModule {
       const { tabId, status, details } = data
 
       if (!this.contentScripts.has(tabId)) {
-        this.logger.warn(`⚠️ 收到未註冊的 Content Script 狀態更新: Tab ${tabId}`)
+        this.logger.warn(`[WARN] 收到未註冊的 Content Script 狀態更新: Tab ${tabId}`)
         return
       }
 
@@ -289,12 +289,12 @@ class ContentCoordinator extends BaseModule {
         contentScript.details = details
       }
 
-      this.logger.log(`📊 Content Script 狀態更新: Tab ${tabId} → ${status}`)
+      this.logger.log(`[STATS] Content Script 狀態更新: Tab ${tabId} → ${status}`)
 
       // 處理狀態變更
       await this.handleStatusChange(tabId, previousStatus, status)
     } catch (error) {
-      this.logger.error('❌ 處理 Content Script 狀態更新失敗:', error)
+      this.logger.error('[FAIL] 處理 Content Script 狀態更新失敗:', error)
     }
   }
 
@@ -308,7 +308,7 @@ class ContentCoordinator extends BaseModule {
     try {
       const { tabId, error, errorType } = data
 
-      this.logger.error(`❌ Content Script 錯誤: Tab ${tabId}`, error)
+      this.logger.error(`[FAIL] Content Script 錯誤: Tab ${tabId}`, error)
 
       if (this.contentScripts.has(tabId)) {
         const contentScript = this.contentScripts.get(tabId)
@@ -324,7 +324,7 @@ class ContentCoordinator extends BaseModule {
         await this.attemptReconnection(tabId)
       }
     } catch (error) {
-      this.logger.error('❌ 處理 Content Script 錯誤失敗:', error)
+      this.logger.error('[FAIL] 處理 Content Script 錯誤失敗:', error)
     }
   }
 
@@ -339,7 +339,7 @@ class ContentCoordinator extends BaseModule {
       const { tabId } = data
 
       if (this.contentScripts.has(tabId)) {
-        this.logger.log(`🗂️ 清理已關閉標籤頁的 Content Script: Tab ${tabId}`)
+        this.logger.log(`清理已關閉標籤頁的 Content Script: Tab ${tabId}`)
 
         // 停止健康檢查
         await this.stopTabHealthCheck(tabId)
@@ -349,7 +349,7 @@ class ContentCoordinator extends BaseModule {
         this.stats.activeConnections--
       }
     } catch (error) {
-      this.logger.error('❌ 處理標籤頁關閉事件失敗:', error)
+      this.logger.error('[FAIL] 處理標籤頁關閉事件失敗:', error)
     }
   }
 
@@ -372,10 +372,10 @@ class ContentCoordinator extends BaseModule {
         contentScript.healthCheckFailures = 0
         contentScript.lastActivity = Date.now()
 
-        this.logger.log(`🔄 標籤頁 URL 變更，重設 Content Script 狀態: Tab ${tabId}`)
+        this.logger.log(`標籤頁 URL 變更，重設 Content Script 狀態: Tab ${tabId}`)
       }
     } catch (error) {
-      this.logger.error('❌ 處理標籤頁更新事件失敗:', error)
+      this.logger.error('[FAIL] 處理標籤頁更新事件失敗:', error)
     }
   }
 
@@ -392,7 +392,7 @@ class ContentCoordinator extends BaseModule {
       // 狀態轉換為離線時的處理
       if (currentStatus === CONTENT_SCRIPT_STATES.OFFLINE &&
           previousStatus !== CONTENT_SCRIPT_STATES.OFFLINE) {
-        this.logger.warn(`⚠️ Content Script 離線: Tab ${tabId}`)
+        this.logger.warn(`[WARN] Content Script 離線: Tab ${tabId}`)
 
         if (this.config.autoReconnect) {
           await this.scheduleReconnection(tabId)
@@ -402,7 +402,7 @@ class ContentCoordinator extends BaseModule {
       // 狀態轉換為就緒時的處理
       if (currentStatus === CONTENT_SCRIPT_STATES.READY &&
           previousStatus !== CONTENT_SCRIPT_STATES.READY) {
-        this.logger.log(`✅ Content Script 恢復連接: Tab ${tabId}`)
+        this.logger.log(`[OK] Content Script 恢復連接: Tab ${tabId}`)
 
         // 重設錯誤計數
         const contentScript = this.contentScripts.get(tabId)
@@ -412,7 +412,7 @@ class ContentCoordinator extends BaseModule {
         }
       }
     } catch (error) {
-      this.logger.error('❌ 處理狀態變更失敗:', error)
+      this.logger.error('[FAIL] 處理狀態變更失敗:', error)
     }
   }
 
@@ -432,7 +432,7 @@ class ContentCoordinator extends BaseModule {
       }
     }, this.config.healthCheckInterval)
 
-    this.logger.log('💓 Content Script 全域健康監控已啟動')
+    this.logger.log('Content Script 全域健康監控已啟動')
   }
 
   /**
@@ -451,7 +451,7 @@ class ContentCoordinator extends BaseModule {
       await this.stopTabHealthCheck(tabId)
     }
 
-    this.logger.log('💓 Content Script 健康監控已停止')
+    this.logger.log('Content Script 健康監控已停止')
   }
 
   /**
@@ -494,13 +494,13 @@ class ContentCoordinator extends BaseModule {
   async performGlobalHealthCheck () {
     try {
       const activeScripts = Array.from(this.contentScripts.keys())
-      this.logger.log(`💓 執行全域健康檢查，檢查 ${activeScripts.length} 個 Content Scripts`)
+      this.logger.log(`執行全域健康檢查，檢查 ${activeScripts.length} 個 Content Scripts`)
 
       for (const tabId of activeScripts) {
         await this.performTabHealthCheck(tabId)
       }
     } catch (error) {
-      this.logger.error('❌ 全域健康檢查失敗:', error)
+      this.logger.error('[FAIL] 全域健康檢查失敗:', error)
     }
   }
 
@@ -542,7 +542,7 @@ class ContentCoordinator extends BaseModule {
 
       if (contentScript.healthCheckFailures >= this.config.maxRetries) {
         contentScript.status = CONTENT_SCRIPT_STATES.OFFLINE
-        this.logger.warn(`⚠️ Content Script 健康檢查失敗，標記為離線: Tab ${tabId}`)
+        this.logger.warn(`[WARN] Content Script 健康檢查失敗，標記為離線: Tab ${tabId}`)
 
         if (this.config.autoReconnect) {
           await this.attemptReconnection(tabId)
@@ -565,7 +565,7 @@ class ContentCoordinator extends BaseModule {
     const contentScript = this.contentScripts.get(tabId)
 
     if (contentScript.retryCount >= this.config.maxRetries) {
-      this.logger.error(`❌ Content Script 重連次數已達上限: Tab ${tabId}`)
+      this.logger.error(`[FAIL] Content Script 重連次數已達上限: Tab ${tabId}`)
       return
     }
 
@@ -573,7 +573,7 @@ class ContentCoordinator extends BaseModule {
       contentScript.retryCount++
       this.stats.reconnectAttempts++
 
-      this.logger.log(`🔄 嘗試重新連接 Content Script: Tab ${tabId} (${contentScript.retryCount}/${this.config.maxRetries})`)
+      this.logger.log(`[RETRY] 嘗試重新連接 Content Script: Tab ${tabId} (${contentScript.retryCount}/${this.config.maxRetries})`)
 
       // 嘗試重新注入 Content Script
       await chrome.scripting.executeScript({
@@ -584,7 +584,7 @@ class ContentCoordinator extends BaseModule {
       // 等待重新註冊
       await new Promise(resolve => setTimeout(resolve, 2000))
     } catch (error) {
-      this.logger.error(`❌ 重新連接 Content Script 失敗: Tab ${tabId}`, error)
+      this.logger.error(`[FAIL] 重新連接 Content Script 失敗: Tab ${tabId}`, error)
       contentScript.status = CONTENT_SCRIPT_STATES.ERROR
     }
   }
@@ -612,7 +612,7 @@ class ContentCoordinator extends BaseModule {
   async notifyContentScriptsShutdown () {
     const activeScripts = Array.from(this.contentScripts.keys())
 
-    this.logger.log(`📢 通知 ${activeScripts.length} 個 Content Scripts 系統即將關閉`)
+    this.logger.log(`通知 ${activeScripts.length} 個 Content Scripts 系統即將關閉`)
 
     const notifications = activeScripts.map(async (tabId) => {
       try {

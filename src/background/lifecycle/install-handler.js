@@ -54,7 +54,7 @@ class InstallHandler extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('📦 初始化安裝處理器')
+    this.logger.log('初始化安裝處理器')
 
     // 設定當前版本
     const manifest = chrome.runtime.getManifest()
@@ -83,7 +83,7 @@ class InstallHandler extends BaseModule {
       await this.migrationService.initialize()
     }
 
-    this.logger.log('✅ 安裝處理器初始化完成')
+    this.logger.log('[OK] 安裝處理器初始化完成')
   }
 
   /**
@@ -95,7 +95,7 @@ class InstallHandler extends BaseModule {
    */
   async handleInstall (details) {
     if (this.installationInProgress) {
-      this.logger.warn('⚠️ 安裝處理已在進行中，跳過重複處理')
+      this.logger.warn('[WARN] 安裝處理已在進行中，跳過重複處理')
       return
     }
 
@@ -104,7 +104,7 @@ class InstallHandler extends BaseModule {
       this.installationStartTime = Date.now()
       this.lastInstallDetails = details
 
-      this.logger.log(`📦 開始處理安裝事件: ${details.reason}`)
+      this.logger.log(`開始處理安裝事件: ${details.reason}`)
 
       // 根據安裝原因執行不同處理
       switch (details.reason) {
@@ -125,7 +125,7 @@ class InstallHandler extends BaseModule {
           break
 
         default:
-          this.logger.warn(`⚠️ 未知的安裝原因: ${details.reason}`)
+          this.logger.warn(`[WARN] 未知的安裝原因: ${details.reason}`)
           await this.handleUnknownInstall(details)
       }
 
@@ -140,9 +140,9 @@ class InstallHandler extends BaseModule {
         })
       }
 
-      this.logger.log(`✅ 安裝事件處理完成: ${details.reason}`)
+      this.logger.log(`[OK] 安裝事件處理完成: ${details.reason}`)
     } catch (error) {
-      this.logger.error('❌ 安裝事件處理失敗:', error)
+      this.logger.error('[FAIL] 安裝事件處理失敗:', error)
 
       // 觸發安裝失敗事件
       if (this.eventBus) {
@@ -167,7 +167,7 @@ class InstallHandler extends BaseModule {
    * @private
    */
   async handleNewInstall (details) {
-    this.logger.log('🆕 處理全新安裝')
+    this.logger.log('處理全新安裝')
 
     // 設定預設配置
     await this.setupDefaultConfiguration()
@@ -183,7 +183,7 @@ class InstallHandler extends BaseModule {
       })
     }
 
-    this.logger.log('✅ 全新安裝處理完成')
+    this.logger.log('[OK] 全新安裝處理完成')
   }
 
   /**
@@ -193,7 +193,7 @@ class InstallHandler extends BaseModule {
    * @private
    */
   async handleUpdate (details) {
-    this.logger.log(`🔄 處理擴展更新: ${details.previousVersion} → ${chrome.runtime.getManifest().version}`)
+    this.logger.log(`處理擴展更新: ${details.previousVersion} → ${chrome.runtime.getManifest().version}`)
 
     // 執行版本遷移
     if (this.migrationService) {
@@ -212,7 +212,7 @@ class InstallHandler extends BaseModule {
       })
     }
 
-    this.logger.log('✅ 擴展更新處理完成')
+    this.logger.log('[OK] 擴展更新處理完成')
   }
 
   /**
@@ -222,7 +222,7 @@ class InstallHandler extends BaseModule {
    * @private
    */
   async handleChromeUpdate (details) {
-    this.logger.log('🌐 處理 Chrome 瀏覽器更新')
+    this.logger.log('處理 Chrome 瀏覽器更新')
 
     // 檢查相容性
     await this.checkCompatibility()
@@ -234,7 +234,7 @@ class InstallHandler extends BaseModule {
       })
     }
 
-    this.logger.log('✅ Chrome 瀏覽器更新處理完成')
+    this.logger.log('[OK] Chrome 瀏覽器更新處理完成')
   }
 
   /**
@@ -244,7 +244,7 @@ class InstallHandler extends BaseModule {
    * @private
    */
   async handleSharedModuleUpdate (details) {
-    this.logger.log('🔗 處理共享模組更新')
+    this.logger.log('處理共享模組更新')
 
     // 重新初始化相關服務
     await this.reinitializeServices()
@@ -256,7 +256,7 @@ class InstallHandler extends BaseModule {
       })
     }
 
-    this.logger.log('✅ 共享模組更新處理完成')
+    this.logger.log('[OK] 共享模組更新處理完成')
   }
 
   /**
@@ -266,7 +266,7 @@ class InstallHandler extends BaseModule {
    * @private
    */
   async handleUnknownInstall (details) {
-    this.logger.log(`❓ 處理未知安裝原因: ${details.reason}`)
+    this.logger.log(`處理未知安裝原因: ${details.reason}`)
 
     // 執行基本初始化
     await this.setupDefaultConfiguration()
@@ -279,7 +279,7 @@ class InstallHandler extends BaseModule {
       })
     }
 
-    this.logger.log('✅ 未知安裝原因處理完成')
+    this.logger.log('[OK] 未知安裝原因處理完成')
   }
 
   /**
@@ -289,16 +289,16 @@ class InstallHandler extends BaseModule {
    */
   async setupDefaultConfiguration () {
     try {
-      this.logger.log('⚙️ 設定預設配置')
+      this.logger.log('設定預設配置')
 
       // 使用 Chrome Storage API 直接設定
       await chrome.storage.local.set(this.defaultConfig)
 
       // 驗證配置是否正確設定
       const savedConfig = await chrome.storage.local.get(Object.keys(this.defaultConfig))
-      this.logger.log('✅ 預設配置設定完成:', savedConfig)
+      this.logger.log('[OK] 預設配置設定完成:', savedConfig)
     } catch (error) {
-      this.logger.error('❌ 設定預設配置失敗:', error)
+      this.logger.error('[FAIL] 設定預設配置失敗:', error)
       throw error
     }
   }
@@ -310,7 +310,7 @@ class InstallHandler extends BaseModule {
    */
   async initializeStorage () {
     try {
-      this.logger.log('💾 初始化儲存系統')
+      this.logger.log('[SAVE] 初始化儲存系統')
 
       // 如果有儲存服務，使用它初始化
       if (this.storageService && typeof this.storageService.initialize === 'function') {
@@ -336,12 +336,12 @@ class InstallHandler extends BaseModule {
 
       if (Object.keys(toSet).length > 0) {
         await chrome.storage.local.set(toSet)
-        this.logger.log('✅ 儲存系統初始化完成:', toSet)
+        this.logger.log('[OK] 儲存系統初始化完成:', toSet)
       } else {
-        this.logger.log('✅ 儲存系統已存在，跳過初始化')
+        this.logger.log('[OK] 儲存系統已存在，跳過初始化')
       }
     } catch (error) {
-      this.logger.error('❌ 初始化儲存系統失敗:', error)
+      this.logger.error('[FAIL] 初始化儲存系統失敗:', error)
       throw error
     }
   }
@@ -353,15 +353,15 @@ class InstallHandler extends BaseModule {
    */
   async updateConfigurationVersion () {
     try {
-      this.logger.log('🔄 更新配置版本號')
+      this.logger.log('更新配置版本號')
 
       await chrome.storage.local.set({
         version: chrome.runtime.getManifest().version
       })
 
-      this.logger.log('✅ 配置版本號更新完成')
+      this.logger.log('[OK] 配置版本號更新完成')
     } catch (error) {
-      this.logger.error('❌ 更新配置版本號失敗:', error)
+      this.logger.error('[FAIL] 更新配置版本號失敗:', error)
       throw error
     }
   }
@@ -373,12 +373,12 @@ class InstallHandler extends BaseModule {
    */
   async checkCompatibility () {
     try {
-      this.logger.log('🔍 檢查相容性')
+      this.logger.log('[CHECK] 檢查相容性')
 
       // 檢查 Manifest V3 支援
       const manifest = chrome.runtime.getManifest()
       if (manifest.manifest_version !== 3) {
-        this.logger.warn('⚠️ 非 Manifest V3 環境')
+        this.logger.warn('[WARN] 非 Manifest V3 環境')
       }
 
       // 檢查必要的 API
@@ -396,9 +396,9 @@ class InstallHandler extends BaseModule {
         throw error
       }
 
-      this.logger.log('✅ 相容性檢查通過')
+      this.logger.log('[OK] 相容性檢查通過')
     } catch (error) {
-      this.logger.error('❌ 相容性檢查失敗:', error)
+      this.logger.error('[FAIL] 相容性檢查失敗:', error)
       throw error
     }
   }
@@ -410,7 +410,7 @@ class InstallHandler extends BaseModule {
    */
   async reinitializeServices () {
     try {
-      this.logger.log('🔄 重新初始化服務')
+      this.logger.log('重新初始化服務')
 
       // 重新初始化相關服務
       const services = [this.storageService, this.configService, this.migrationService]
@@ -423,9 +423,9 @@ class InstallHandler extends BaseModule {
         }
       }
 
-      this.logger.log('✅ 服務重新初始化完成')
+      this.logger.log('[OK] 服務重新初始化完成')
     } catch (error) {
-      this.logger.error('❌ 服務重新初始化失敗:', error)
+      this.logger.error('[FAIL] 服務重新初始化失敗:', error)
       throw error
     }
   }
@@ -470,7 +470,7 @@ class InstallHandler extends BaseModule {
     } catch (creationError) {
       // 建立失敗不阻斷 background 啟動；後續 onUpdated 走無 migration 路徑
       this.logger.warn && this.logger.warn(
-        `⚠️ 預設 MigrationService 建立失敗，將略過 schema migration: ${creationError.message}`
+        `[WARN] 預設 MigrationService 建立失敗，將略過 schema migration: ${creationError.message}`
       )
       return null
     }

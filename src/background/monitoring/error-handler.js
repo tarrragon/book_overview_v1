@@ -79,7 +79,7 @@ class ErrorHandler extends BaseModule {
     if (this.i18nManager) {
       this.logger.log(this.i18nManager.t('modules.operations.initialize', { moduleName: this.moduleName }))
     } else {
-      this.logger.log('🛠️ 初始化錯誤處理器')
+      this.logger.log('初始化錯誤處理器')
     }
 
     // 初始化子模組
@@ -91,7 +91,7 @@ class ErrorHandler extends BaseModule {
     // 初始化恢復策略
     await this.initializeRecoveryStrategies()
 
-    this.logger.log('✅ 錯誤處理器初始化完成')
+    this.logger.log('[OK] 錯誤處理器初始化完成')
   }
 
   /**
@@ -100,7 +100,7 @@ class ErrorHandler extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動錯誤處理器')
+    this.logger.log('[START] 啟動錯誤處理器')
 
     // 啟動子模組
     await this.startSubModules()
@@ -111,7 +111,7 @@ class ErrorHandler extends BaseModule {
     // 開始處理
     this.processingActive = true
 
-    this.logger.log('✅ 錯誤處理器啟動完成')
+    this.logger.log('[OK] 錯誤處理器啟動完成')
   }
 
   /**
@@ -120,7 +120,7 @@ class ErrorHandler extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止錯誤處理器')
+    this.logger.log('[STOP] 停止錯誤處理器')
 
     // 停止處理
     this.processingActive = false
@@ -134,7 +134,7 @@ class ErrorHandler extends BaseModule {
     // 停止子模組
     await this.stopSubModules()
 
-    this.logger.log('✅ 錯誤處理器停止完成')
+    this.logger.log('[OK] 錯誤處理器停止完成')
   }
 
   /**
@@ -144,7 +144,7 @@ class ErrorHandler extends BaseModule {
    */
   async initializeSubModules () {
     try {
-      this.logger.log('🔧 初始化錯誤處理子模組')
+      this.logger.log('[FIX] 初始化錯誤處理子模組')
 
       // 初始化錯誤收集器
       await this.errorCollector.initialize()
@@ -156,9 +156,9 @@ class ErrorHandler extends BaseModule {
       this.systemMonitor.registerModule('errorCollector', this.errorCollector)
       this.systemMonitor.registerModule('systemMonitor', this.systemMonitor)
 
-      this.logger.log('✅ 錯誤處理子模組初始化完成')
+      this.logger.log('[OK] 錯誤處理子模組初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化子模組失敗:', error)
+      this.logger.error('[FAIL] 初始化子模組失敗:', error)
       throw error
     }
   }
@@ -170,7 +170,7 @@ class ErrorHandler extends BaseModule {
    */
   async startSubModules () {
     try {
-      this.logger.log('▶️ 啟動錯誤處理子模組')
+      this.logger.log('[START] 啟動錯誤處理子模組')
 
       // 啟動錯誤收集器
       await this.errorCollector.start()
@@ -178,9 +178,9 @@ class ErrorHandler extends BaseModule {
       // 啟動系統監控器
       await this.systemMonitor.start()
 
-      this.logger.log('✅ 錯誤處理子模組啟動完成')
+      this.logger.log('[OK] 錯誤處理子模組啟動完成')
     } catch (error) {
-      this.logger.error('❌ 啟動子模組失敗:', error)
+      this.logger.error('[FAIL] 啟動子模組失敗:', error)
       throw error
     }
   }
@@ -192,7 +192,7 @@ class ErrorHandler extends BaseModule {
    */
   async stopSubModules () {
     try {
-      this.logger.log('⏹️ 停止錯誤處理子模組')
+      this.logger.log('[STOP] 停止錯誤處理子模組')
 
       // 停止系統監控器
       await this.systemMonitor.stop()
@@ -200,9 +200,9 @@ class ErrorHandler extends BaseModule {
       // 停止錯誤收集器
       await this.errorCollector.stop()
 
-      this.logger.log('✅ 錯誤處理子模組停止完成')
+      this.logger.log('[OK] 錯誤處理子模組停止完成')
     } catch (error) {
-      this.logger.error('❌ 停止子模組失敗:', error)
+      this.logger.error('[FAIL] 停止子模組失敗:', error)
     }
   }
 
@@ -215,7 +215,7 @@ class ErrorHandler extends BaseModule {
     try {
       // 系統錯誤處理策略
       this.errorHandlingStrategies.set('system', async (errorInfo) => {
-        this.logger.error('🚨 系統錯誤處理:', errorInfo.message)
+        this.logger.error('[ALERT] 系統錯誤處理:', errorInfo.message)
 
         // 觸發系統錯誤事件
         if (this.eventBus) {
@@ -235,7 +235,7 @@ class ErrorHandler extends BaseModule {
 
       // 模組錯誤處理策略
       this.errorHandlingStrategies.set('module', async (errorInfo) => {
-        this.logger.warn('⚠️ 模組錯誤處理:', errorInfo.message)
+        this.logger.warn('[WARN] 模組錯誤處理:', errorInfo.message)
 
         // 通知系統監控器
         if (this.eventBus) {
@@ -255,7 +255,7 @@ class ErrorHandler extends BaseModule {
 
       // Content Script 錯誤處理策略
       this.errorHandlingStrategies.set('content', async (errorInfo) => {
-        this.logger.warn('📄 Content Script 錯誤處理:', errorInfo.message)
+        this.logger.warn('Content Script 錯誤處理:', errorInfo.message)
 
         // 觸發 Content Script 重新連接
         if (errorInfo.context?.tabId) {
@@ -265,15 +265,15 @@ class ErrorHandler extends BaseModule {
 
       // 網路錯誤處理策略
       this.errorHandlingStrategies.set('network', async (errorInfo) => {
-        this.logger.warn('🌐 網路錯誤處理:', errorInfo.message)
+        this.logger.warn('網路錯誤處理:', errorInfo.message)
 
         // 實現重試機制
         await this.triggerRecoveryStrategy('network', errorInfo)
       })
 
-      this.logger.log('🔧 錯誤處理策略初始化完成')
+      this.logger.log('[FIX] 錯誤處理策略初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化處理策略失敗:', error)
+      this.logger.error('[FAIL] 初始化處理策略失敗:', error)
     }
   }
 
@@ -286,7 +286,7 @@ class ErrorHandler extends BaseModule {
     try {
       // 系統恢復策略
       this.recoveryStrategies.set('system', async (errorInfo) => {
-        this.logger.log('🔄 執行系統恢復策略')
+        this.logger.log('執行系統恢復策略')
 
         try {
           // 系統狀態檢查
@@ -294,13 +294,13 @@ class ErrorHandler extends BaseModule {
 
           // 如果有太多不健康的模組，嘗試重啟它們
           if (systemStatus.functionality?.unhealthyModules > 2) {
-            this.logger.log('🔄 檢測到多個不健康模組，嘗試恢復')
+            this.logger.log('檢測到多個不健康模組，嘗試恢復')
             // 這裡可以實現模組重啟邏輯
           }
 
           return { success: true, action: 'system_recovery_attempted' }
         } catch (error) {
-          this.logger.error('❌ 系統恢復失敗:', error)
+          this.logger.error('[FAIL] 系統恢復失敗:', error)
           return { success: false, error: error.message }
         }
       })
@@ -308,7 +308,7 @@ class ErrorHandler extends BaseModule {
       // 模組恢復策略
       this.recoveryStrategies.set('module', async (errorInfo) => {
         const moduleName = errorInfo.context?.moduleName
-        this.logger.log(`🔄 執行模組恢復策略: ${moduleName}`)
+        this.logger.log(`執行模組恢復策略: ${moduleName}`)
 
         try {
           // 嘗試重新初始化模組
@@ -322,7 +322,7 @@ class ErrorHandler extends BaseModule {
 
           return { success: true, action: 'module_recovery_requested' }
         } catch (error) {
-          this.logger.error(`❌ 模組恢復失敗: ${moduleName}`, error)
+          this.logger.error(`[FAIL] 模組恢復失敗: ${moduleName}`, error)
           return { success: false, error: error.message }
         }
       })
@@ -330,7 +330,7 @@ class ErrorHandler extends BaseModule {
       // Content Script 恢復策略
       this.recoveryStrategies.set('content', async (errorInfo) => {
         const tabId = errorInfo.context?.tabId
-        this.logger.log(`🔄 執行 Content Script 恢復策略: Tab ${tabId}`)
+        this.logger.log(`執行 Content Script 恢復策略: Tab ${tabId}`)
 
         try {
           // 觸發 Content Script 重新連接
@@ -344,14 +344,14 @@ class ErrorHandler extends BaseModule {
 
           return { success: true, action: 'content_script_recovery_requested' }
         } catch (error) {
-          this.logger.error(`❌ Content Script 恢復失敗: Tab ${tabId}`, error)
+          this.logger.error(`[FAIL] Content Script 恢復失敗: Tab ${tabId}`, error)
           return { success: false, error: error.message }
         }
       })
 
       // 網路恢復策略
       this.recoveryStrategies.set('network', async (errorInfo) => {
-        this.logger.log('🔄 執行網路恢復策略')
+        this.logger.log('執行網路恢復策略')
 
         try {
           // 實現網路重試邏輯
@@ -373,14 +373,14 @@ class ErrorHandler extends BaseModule {
             return { success: false, reason: 'max_retries_exceeded' }
           }
         } catch (error) {
-          this.logger.error('❌ 網路恢復失敗:', error)
+          this.logger.error('[FAIL] 網路恢復失敗:', error)
           return { success: false, error: error.message }
         }
       })
 
-      this.logger.log('🔧 恢復策略初始化完成')
+      this.logger.log('[FIX] 恢復策略初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化恢復策略失敗:', error)
+      this.logger.error('[FAIL] 初始化恢復策略失敗:', error)
     }
   }
 
@@ -391,7 +391,7 @@ class ErrorHandler extends BaseModule {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 未初始化，跳過事件監聽器設定')
+      this.logger.warn('[WARN] EventBus 未初始化，跳過事件監聽器設定')
       return
     }
 
@@ -414,9 +414,9 @@ class ErrorHandler extends BaseModule {
         { priority: EVENT_PRIORITIES.URGENT }
       )
 
-      this.logger.log('📝 錯誤處理事件監聽器註冊完成')
+      this.logger.log('[LOG] 錯誤處理事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊事件監聽器失敗:', error)
     }
   }
 
@@ -443,9 +443,9 @@ class ErrorHandler extends BaseModule {
         }
       }
 
-      this.logger.log('🔄 錯誤處理事件監聽器取消註冊完成')
+      this.logger.log('錯誤處理事件監聽器取消註冊完成')
     } catch (error) {
-      this.logger.error('❌ 取消註冊事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 取消註冊事件監聽器失敗:', error)
     }
   }
 
@@ -484,7 +484,7 @@ class ErrorHandler extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理錯誤收集事件失敗:', error)
+      this.logger.error('[FAIL] 處理錯誤收集事件失敗:', error)
     }
   }
 
@@ -498,7 +498,7 @@ class ErrorHandler extends BaseModule {
     try {
       const { pattern, category, occurrences } = data
 
-      this.logger.warn(`🔍 檢測到錯誤模式: ${pattern} (${occurrences} 次)`)
+      this.logger.warn(`[CHECK] 檢測到錯誤模式: ${pattern} (${occurrences} 次)`)
 
       // 根據錯誤模式類型執行不同的處理策略
       if (category === 'content' && occurrences >= 10) {
@@ -517,7 +517,7 @@ class ErrorHandler extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理錯誤模式檢測事件失敗:', error)
+      this.logger.error('[FAIL] 處理錯誤模式檢測事件失敗:', error)
     }
   }
 
@@ -531,7 +531,7 @@ class ErrorHandler extends BaseModule {
     try {
       const { alert } = data
 
-      this.logger.warn(`🚨 系統警報: ${alert.type} - ${alert.message}`)
+      this.logger.warn(`[ALERT] 系統警報: ${alert.type} - ${alert.message}`)
 
       // 根據警報類型執行不同的處理邏輯
       switch (alert.severity) {
@@ -546,7 +546,7 @@ class ErrorHandler extends BaseModule {
           break
       }
     } catch (error) {
-      this.logger.error('❌ 處理系統警報事件失敗:', error)
+      this.logger.error('[FAIL] 處理系統警報事件失敗:', error)
     }
   }
 
@@ -557,7 +557,7 @@ class ErrorHandler extends BaseModule {
    * @private
    */
   async handleCriticalAlert (alert) {
-    this.logger.error(`🚨 處理嚴重警報: ${alert.type}`)
+    this.logger.error(`[ALERT] 處理嚴重警報: ${alert.type}`)
 
     // 立即觸發恢復策略
     if (alert.type === 'SYSTEM_UNHEALTHY') {
@@ -576,7 +576,7 @@ class ErrorHandler extends BaseModule {
    * @private
    */
   async handleHighSeverityAlert (alert) {
-    this.logger.warn(`⚠️ 處理高嚴重度警報: ${alert.type}`)
+    this.logger.warn(`[WARN] 處理高嚴重度警報: ${alert.type}`)
 
     // 延遲觸發恢復策略
     setTimeout(async () => {
@@ -598,7 +598,7 @@ class ErrorHandler extends BaseModule {
    * @private
    */
   async handleMediumSeverityAlert (alert) {
-    this.logger.log(`ℹ️ 處理中等嚴重度警報: ${alert.type}`)
+    this.logger.log(`[INFO] 處理中等嚴重度警報: ${alert.type}`)
 
     // 記錄警報，不立即採取行動
     // 可以在這裡實現更複雜的邏輯，如累積警報評估
@@ -610,7 +610,7 @@ class ErrorHandler extends BaseModule {
    * @private
    */
   async handleCriticalErrorThresholdExceeded () {
-    this.logger.error(`🚨 嚴重錯誤閾值超出: ${this.handlingStats.criticalErrors}/${this.config.criticalErrorThreshold}`)
+    this.logger.error(`[ALERT] 嚴重錯誤閾值超出: ${this.handlingStats.criticalErrors}/${this.config.criticalErrorThreshold}`)
 
     // 觸發系統級恢復
     await this.triggerRecoveryStrategy('system', {
@@ -635,7 +635,7 @@ class ErrorHandler extends BaseModule {
    */
   async triggerRecoveryStrategy (strategyType, errorInfo) {
     if (!this.config.enableAutoRecovery) {
-      this.logger.log('🔄 自動恢復已停用，跳過恢復策略')
+      this.logger.log('自動恢復已停用，跳過恢復策略')
       return { success: false, reason: 'auto_recovery_disabled' }
     }
 
@@ -644,24 +644,24 @@ class ErrorHandler extends BaseModule {
 
       const strategy = this.recoveryStrategies.get(strategyType)
       if (!strategy) {
-        this.logger.warn(`⚠️ 找不到恢復策略: ${strategyType}`)
+        this.logger.warn(`[WARN] 找不到恢復策略: ${strategyType}`)
         return { success: false, reason: 'strategy_not_found' }
       }
 
-      this.logger.log(`🔄 執行恢復策略: ${strategyType}`)
+      this.logger.log(`執行恢復策略: ${strategyType}`)
 
       const result = await strategy(errorInfo)
 
       if (result.success) {
         this.handlingStats.successfulRecoveries++
-        this.logger.log(`✅ 恢復策略執行成功: ${strategyType}`)
+        this.logger.log(`[OK] 恢復策略執行成功: ${strategyType}`)
       } else {
-        this.logger.error(`❌ 恢復策略執行失敗: ${strategyType}`, result)
+        this.logger.error(`[FAIL] 恢復策略執行失敗: ${strategyType}`, result)
       }
 
       return result
     } catch (error) {
-      this.logger.error(`❌ 執行恢復策略失敗: ${strategyType}`, error)
+      this.logger.error(`[FAIL] 執行恢復策略失敗: ${strategyType}`, error)
       return { success: false, error: error.message }
     }
   }
@@ -673,7 +673,7 @@ class ErrorHandler extends BaseModule {
    */
   async processRemainingErrors () {
     if (this.processingQueue.length > 0) {
-      this.logger.log(`🔄 處理剩餘的 ${this.processingQueue.length} 個錯誤`)
+      this.logger.log(`處理剩餘的 ${this.processingQueue.length} 個錯誤`)
 
       // 批次處理剩餘錯誤
       while (this.processingQueue.length > 0) {

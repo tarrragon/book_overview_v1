@@ -162,7 +162,7 @@ function createContentEventBus () {
             }
           } catch (error) {
             // eslint-disable-next-line no-console
-            console.error(`❌ Content Script 事件處理器錯誤 (${eventType}):`, error)
+            console.error(`[FAIL] Content Script 事件處理器錯誤 (${eventType}):`, error)
             results.push({
               success: false,
               error: error.message,
@@ -205,7 +205,7 @@ function createContentEventBus () {
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error(`❌ Content Script 事件觸發失敗 (${eventType}):`, error)
+        console.error(`[FAIL] Content Script 事件觸發失敗 (${eventType}):`, error)
         return {
           success: false,
           error: error.message,

@@ -57,25 +57,25 @@ class NotificationService {
     // 通知配置
     this.notificationTypes = {
       info: {
-        icon: 'ℹ️',
+        icon: '[INFO] ',
         color: COLORS.primary,
         priority: 1,
         defaultDuration: 5000
       },
       success: {
-        icon: '✅',
+        icon: '[OK] ',
         color: COLORS.success,
         priority: 2,
         defaultDuration: 3000
       },
       warning: {
-        icon: '⚠️',
+        icon: '[WARN] ',
         color: COLORS.warning,
         priority: 3,
         defaultDuration: 7000
       },
       error: {
-        icon: '❌',
+        icon: '[FAIL] ',
         color: COLORS.error,
         priority: 4,
         defaultDuration: 10000
@@ -107,12 +107,12 @@ class NotificationService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 通知管理服務已初始化')
+      this.logger.warn('[WARN] 通知管理服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化通知管理服務')
+      this.logger.log('初始化通知管理服務')
 
       // 註冊事件監聽器
       await this.registerEventListeners()
@@ -121,7 +121,7 @@ class NotificationService {
       await this.initializeNotificationCleanup()
 
       this.state.initialized = true
-      this.logger.log('✅ 通知管理服務初始化完成')
+      this.logger.log('[OK] 通知管理服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -131,7 +131,7 @@ class NotificationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化通知管理服務失敗:', error)
+      this.logger.error('[FAIL] 初始化通知管理服務失敗:', error)
       throw error
     }
   }
@@ -148,18 +148,18 @@ class NotificationService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 通知管理服務已啟動')
+      this.logger.warn('[WARN] 通知管理服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動通知管理服務')
+      this.logger.log('[START] 啟動通知管理服務')
 
       // 處理隊列中的通知
       await this.processNotificationQueue()
 
       this.state.active = true
-      this.logger.log('✅ 通知管理服務啟動完成')
+      this.logger.log('[OK] 通知管理服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -169,7 +169,7 @@ class NotificationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動通知管理服務失敗:', error)
+      this.logger.error('[FAIL] 啟動通知管理服務失敗:', error)
       throw error
     }
   }
@@ -178,7 +178,7 @@ class NotificationService {
    * 顯示通知
    */
   async showNotification (notification) {
-    this.logger.log(`📢 顯示通知: ${notification.type}`)
+    this.logger.log(`顯示通知: ${notification.type}`)
 
     try {
       // 檢查用戶通知偏好
@@ -224,10 +224,10 @@ class NotificationService {
         })
       }
 
-      this.logger.log(`✅ 通知顯示完成: ${processedNotification.id}`)
+      this.logger.log(`[OK] 通知顯示完成: ${processedNotification.id}`)
       return result
     } catch (error) {
-      this.logger.error('❌ 顯示通知失敗:', error)
+      this.logger.error('[FAIL] 顯示通知失敗:', error)
       return { shown: false, reason: 'error', error: error.message }
     }
   }
@@ -236,7 +236,7 @@ class NotificationService {
    * 清除通知
    */
   async clearNotification (notificationId) {
-    this.logger.log(`🗑️ 清除通知: ${notificationId}`)
+    this.logger.log(`清除通知: ${notificationId}`)
 
     try {
       if (this.activeNotifications.has(notificationId)) {
@@ -266,14 +266,14 @@ class NotificationService {
           })
         }
 
-        this.logger.log(`✅ 通知清除完成: ${notificationId}`)
+        this.logger.log(`[OK] 通知清除完成: ${notificationId}`)
         return { cleared: true, notificationId }
       } else {
-        this.logger.warn(`⚠️ 通知不存在: ${notificationId}`)
+        this.logger.warn(`[WARN] 通知不存在: ${notificationId}`)
         return { cleared: false, reason: 'not_found' }
       }
     } catch (error) {
-      this.logger.error(`❌ 清除通知失敗: ${notificationId}`, error)
+      this.logger.error(`[FAIL] 清除通知失敗: ${notificationId}`, error)
       return { cleared: false, reason: 'error', error: error.message }
     }
   }
@@ -282,7 +282,7 @@ class NotificationService {
    * 清除所有通知
    */
   async clearAllNotifications () {
-    this.logger.log('🗑️ 清除所有通知')
+    this.logger.log('清除所有通知')
 
     try {
       const clearedCount = this.activeNotifications.size
@@ -307,10 +307,10 @@ class NotificationService {
         })
       }
 
-      this.logger.log(`✅ 清除所有通知完成 (${clearedCount} 個)`)
+      this.logger.log(`[OK] 清除所有通知完成 (${clearedCount} 個)`)
       return { cleared: true, count: clearedCount }
     } catch (error) {
-      this.logger.error('❌ 清除所有通知失敗:', error)
+      this.logger.error('[FAIL] 清除所有通知失敗:', error)
       return { cleared: false, reason: 'error', error: error.message }
     }
   }
@@ -356,7 +356,7 @@ class NotificationService {
       // 預設啟用通知
       return true
     } catch (error) {
-      this.logger.error('❌ 檢查通知偏好失敗:', error)
+      this.logger.error('[FAIL] 檢查通知偏好失敗:', error)
       return true
     }
   }
@@ -461,7 +461,7 @@ class NotificationService {
         duration: notification.duration
       }
     } catch (error) {
-      this.logger.error(`❌ 顯示通知失敗: ${notification.id}`, error)
+      this.logger.error(`[FAIL] 顯示通知失敗: ${notification.id}`, error)
       throw error
     }
   }
@@ -478,7 +478,7 @@ class NotificationService {
       })
     }
 
-    this.logger.log(`🎨 渲染通知: ${notification.type} - ${notification.title}`)
+    this.logger.log(`渲染通知: ${notification.type} - ${notification.title}`)
   }
 
   /**
@@ -488,13 +488,13 @@ class NotificationService {
     if (this.notificationQueue.length >= this.maxQueueSize) {
       // 移除最舊的通知
       this.notificationQueue.shift()
-      this.logger.warn('⚠️ 通知隊列已滿，移除最舊通知')
+      this.logger.warn('[WARN] 通知隊列已滿，移除最舊通知')
     }
 
     this.notificationQueue.push(notification)
     this.stats.notificationsQueued++
 
-    this.logger.log(`📤 通知已加入隊列: ${notification.id}`)
+    this.logger.log(`通知已加入隊列: ${notification.id}`)
 
     // 發送隊列更新事件
     if (this.eventBus) {
@@ -513,7 +513,7 @@ class NotificationService {
     if (this.notificationQueue.length > 0 && this.activeNotifications.size < this.maxActiveNotifications) {
       const nextNotification = this.notificationQueue.shift()
 
-      this.logger.log(`📥 處理隊列通知: ${nextNotification.id}`)
+      this.logger.log(`處理隊列通知: ${nextNotification.id}`)
 
       // 重新顯示通知
       await this.displayNotification(nextNotification)
@@ -556,7 +556,7 @@ class NotificationService {
       this.cleanupExpiredNotifications()
     }, 60000) // 每分鐘檢查一次
 
-    this.logger.log('✅ 通知清理機制初始化完成')
+    this.logger.log('[OK] 通知清理機制初始化完成')
   }
 
   /**
@@ -580,7 +580,7 @@ class NotificationService {
     }
 
     if (expiredNotifications.length > 0) {
-      this.logger.log(`🧹 清理了 ${expiredNotifications.length} 個過期通知`)
+      this.logger.log(`清理了 ${expiredNotifications.length} 個過期通知`)
     }
   }
 
@@ -589,7 +589,7 @@ class NotificationService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過通知事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過通知事件監聽器註冊')
       return
     }
 
@@ -614,7 +614,7 @@ class NotificationService {
       await this.clearAllNotifications()
     })
 
-    this.logger.log('✅ 通知事件監聽器註冊完成')
+    this.logger.log('[OK] 通知事件監聽器註冊完成')
   }
 
   /**

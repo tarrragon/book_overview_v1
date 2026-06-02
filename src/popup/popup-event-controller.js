@@ -557,14 +557,14 @@ class PopupEventController extends EventHandler {
     } else {
       // 備用方案：使用 alert 顯示說明
       const helpText = [
-        '📚 Readmoo 書庫提取器使用說明',
+        'Readmoo 書庫提取器使用說明',
         '',
         '1. 前往 Readmoo 書庫頁面',
         '2. 點擊「開始提取書庫資料」按鈕',
         '3. 等待資料提取完成',
         '4. 選擇匯出格式並下載',
         '',
-        '💡 提示：確保已登入 Readmoo 帳號'
+        '提示：確保已登入 Readmoo 帳號'
       ].join('\n')
       alert(helpText)
     }
@@ -723,7 +723,7 @@ class PopupEventController extends EventHandler {
       }
     } catch (error) {
       this.extractionInProgress = false
-      this.updateButtonState(false, '🚀 開始提取書庫資料')
+      this.updateButtonState(false, '[START] 開始提取書庫資料')
       throw error
     }
   }
@@ -854,7 +854,7 @@ class PopupEventController extends EventHandler {
     }
 
     this.hideProgress()
-    this.updateButtonState(false, '🚀 開始提取書庫資料')
+    this.updateButtonState(false, '[START] 開始提取書庫資料')
     this.updateStatus('失敗', '提取失敗', message, this.STATUS_TYPES.ERROR)
 
     if (error) {

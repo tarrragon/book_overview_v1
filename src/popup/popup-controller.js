@@ -546,7 +546,7 @@ class PopupController {
     } catch (error) {
       // 初始化檢查失敗
       // eslint-disable-next-line no-console
-      console.error('❌ Initialization checks failed:', error)
+      console.error('[FAIL] Initialization checks failed:', error)
       throw error
     }
   }

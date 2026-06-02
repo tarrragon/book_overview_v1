@@ -76,12 +76,12 @@ class ContentScriptCoordinatorService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 內容腳本協調服務已初始化')
+      this.logger.warn('[WARN] 內容腳本協調服務已初始化')
       return
     }
 
     try {
-      this.logger.log('📜 初始化內容腳本協調服務')
+      this.logger.log('初始化內容腳本協調服務')
 
       // 註冊事件監聽器
       await this.registerEventListeners()
@@ -90,7 +90,7 @@ class ContentScriptCoordinatorService {
       await this.processExistingTabs()
 
       this.state.initialized = true
-      this.logger.log('✅ 內容腳本協調服務初始化完成')
+      this.logger.log('[OK] 內容腳本協調服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -100,7 +100,7 @@ class ContentScriptCoordinatorService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化內容腳本協調服務失敗:', error)
+      this.logger.error('[FAIL] 初始化內容腳本協調服務失敗:', error)
       throw error
     }
   }
@@ -117,17 +117,17 @@ class ContentScriptCoordinatorService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 內容腳本協調服務已啟動')
+      this.logger.warn('[WARN] 內容腳本協調服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動內容腳本協調服務')
+      this.logger.log('[START] 啟動內容腳本協調服務')
 
       this.state.active = true
       this.state.coordinating = true
 
-      this.logger.log('✅ 內容腳本協調服務啟動完成')
+      this.logger.log('[OK] 內容腳本協調服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -136,7 +136,7 @@ class ContentScriptCoordinatorService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動內容腳本協調服務失敗:', error)
+      this.logger.error('[FAIL] 啟動內容腳本協調服務失敗:', error)
       throw error
     }
   }
@@ -146,12 +146,12 @@ class ContentScriptCoordinatorService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 內容腳本協調服務未啟動')
+      this.logger.warn('[WARN] 內容腳本協調服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止內容腳本協調服務')
+      this.logger.log('[STOP] 停止內容腳本協調服務')
 
       // 清理所有注入的腳本
       await this.cleanupAllInjectedScripts()
@@ -162,7 +162,7 @@ class ContentScriptCoordinatorService {
       this.state.active = false
       this.state.coordinating = false
 
-      this.logger.log('✅ 內容腳本協調服務停止完成')
+      this.logger.log('[OK] 內容腳本協調服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -172,7 +172,7 @@ class ContentScriptCoordinatorService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止內容腳本協調服務失敗:', error)
+      this.logger.error('[FAIL] 停止內容腳本協調服務失敗:', error)
       throw error
     }
   }
@@ -229,7 +229,7 @@ class ContentScriptCoordinatorService {
       dependencies: ['readmoo_common_utils']
     })
 
-    this.logger.log(`✅ 初始化了 ${this.scriptConfigs.size} 個腳本配置`)
+    this.logger.log(`[OK] 初始化了 ${this.scriptConfigs.size} 個腳本配置`)
   }
 
   /**
@@ -246,10 +246,10 @@ class ContentScriptCoordinatorService {
           }
         }
 
-        this.logger.log(`🔄 處理了 ${tabs.length} 個現有分頁`)
+        this.logger.log(`處理了 ${tabs.length} 個現有分頁`)
       }
     } catch (error) {
-      this.logger.error('❌ 處理現有分頁失敗:', error)
+      this.logger.error('[FAIL] 處理現有分頁失敗:', error)
     }
   }
 
@@ -278,7 +278,7 @@ class ContentScriptCoordinatorService {
     if (!this.state.coordinating) return
 
     try {
-      this.logger.log(`🔄 處理分頁更新: ${tabId} - ${url}`)
+      this.logger.log(`處理分頁更新: ${tabId} - ${url}`)
 
       // 檢測頁面類型
       if (!pageType) {
@@ -291,7 +291,7 @@ class ContentScriptCoordinatorService {
         await this.removeScriptsFromTab(tabId)
       }
     } catch (error) {
-      this.logger.error(`❌ 處理分頁更新失敗 (${tabId}):`, error)
+      this.logger.error(`[FAIL] 處理分頁更新失敗 (${tabId}):`, error)
     }
   }
 
@@ -319,7 +319,7 @@ class ContentScriptCoordinatorService {
     }
 
     if (scriptsToInject.length === 0) {
-      this.logger.log(`📜 頁面類型 ${pageType} 無需注入腳本`)
+      this.logger.log(`頁面類型 ${pageType} 無需注入腳本`)
       return
     }
 
@@ -331,7 +331,7 @@ class ContentScriptCoordinatorService {
       await this.injectScript(tabId, config)
     }
 
-    this.logger.log(`✅ 為分頁 ${tabId} (${pageType}) 注入了 ${sortedScripts.length} 個腳本`)
+    this.logger.log(`[OK] 為分頁 ${tabId} (${pageType}) 注入了 ${sortedScripts.length} 個腳本`)
   }
 
   /**
@@ -405,7 +405,7 @@ class ContentScriptCoordinatorService {
       this.injectedScripts.get(tabId).add(config.id)
 
       this.stats.scriptsInjected++
-      this.logger.log(`✅ 腳本注入成功: ${config.id} -> 分頁 ${tabId}`)
+      this.logger.log(`[OK] 腳本注入成功: ${config.id} -> 分頁 ${tabId}`)
 
       // 發送注入成功事件
       if (this.eventBus) {
@@ -416,7 +416,7 @@ class ContentScriptCoordinatorService {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ 腳本注入失敗: ${config.id} -> 分頁 ${tabId}`, error)
+      this.logger.error(`[FAIL] 腳本注入失敗: ${config.id} -> 分頁 ${tabId}`, error)
 
       this.scriptStates.set(scriptKey, {
         tabId,
@@ -443,13 +443,13 @@ class ContentScriptCoordinatorService {
     if (attempts < this.maxRetryAttempts) {
       this.retryAttempts.set(retryKey, attempts + 1)
 
-      this.logger.log(`🔄 準備重試注入腳本: ${config.id} (第 ${attempts + 1} 次)`)
+      this.logger.log(`[RETRY] 準備重試注入腳本: ${config.id} (第 ${attempts + 1} 次)`)
 
       setTimeout(async () => {
         await this.injectScript(tabId, config)
       }, this.retryDelay * (attempts + 1))
     } else {
-      this.logger.error(`🚫 腳本注入重試次數已達上限: ${config.id}`)
+      this.logger.error(`腳本注入重試次數已達上限: ${config.id}`)
       this.retryAttempts.delete(retryKey)
     }
   }
@@ -468,7 +468,7 @@ class ContentScriptCoordinatorService {
     }
 
     this.injectedScripts.delete(tabId)
-    this.logger.log(`🗑️ 從分頁 ${tabId} 移除了 ${injectedScripts.size} 個腳本`)
+    this.logger.log(`從分頁 ${tabId} 移除了 ${injectedScripts.size} 個腳本`)
   }
 
   /**
@@ -484,7 +484,7 @@ class ContentScriptCoordinatorService {
     this.scriptStates.clear()
     this.retryAttempts.clear()
 
-    this.logger.log('🧹 清理了所有注入的腳本')
+    this.logger.log('清理了所有注入的腳本')
   }
 
   /**
@@ -492,7 +492,7 @@ class ContentScriptCoordinatorService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -524,7 +524,7 @@ class ContentScriptCoordinatorService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -537,12 +537,12 @@ class ContentScriptCoordinatorService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -558,7 +558,7 @@ class ContentScriptCoordinatorService {
         await this.handleTabUpdate(tabId, url, pageType)
       }
     } catch (error) {
-      this.logger.error('❌ 處理頁面檢測事件失敗:', error)
+      this.logger.error('[FAIL] 處理頁面檢測事件失敗:', error)
     }
   }
 
@@ -575,7 +575,7 @@ class ContentScriptCoordinatorService {
         await this.handleTabUpdate(tabId, url)
       }
     } catch (error) {
-      this.logger.error('❌ 處理導航變更事件失敗:', error)
+      this.logger.error('[FAIL] 處理導航變更事件失敗:', error)
     }
   }
 
@@ -587,9 +587,9 @@ class ContentScriptCoordinatorService {
       this.stats.communicationEvents++
 
       const { tabId, scriptId } = event.data || {}
-      this.logger.log(`📜 內容腳本就緒: ${scriptId} (分頁 ${tabId})`)
+      this.logger.log(`內容腳本就緒: ${scriptId} (分頁 ${tabId})`)
     } catch (error) {
-      this.logger.error('❌ 處理內容腳本就緒事件失敗:', error)
+      this.logger.error('[FAIL] 處理內容腳本就緒事件失敗:', error)
     }
   }
 
@@ -599,7 +599,7 @@ class ContentScriptCoordinatorService {
   async handleContentScriptError (event) {
     try {
       const { tabId, scriptId, error } = event.data || {}
-      this.logger.error(`❌ 內容腳本錯誤: ${scriptId} (分頁 ${tabId})`, error)
+      this.logger.error(`[FAIL] 內容腳本錯誤: ${scriptId} (分頁 ${tabId})`, error)
 
       // 標記腳本為失敗狀態
       const scriptKey = `${tabId}_${scriptId}`
@@ -611,7 +611,7 @@ class ContentScriptCoordinatorService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理內容腳本錯誤事件失敗:', error)
+      this.logger.error('[FAIL] 處理內容腳本錯誤事件失敗:', error)
     }
   }
 

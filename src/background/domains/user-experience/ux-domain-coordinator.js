@@ -103,7 +103,7 @@ class UXDomainCoordinator {
       })
     }
 
-    this.logger.log(`🎨 初始化了 ${this.services.size} 個 UX 服務`)
+    this.logger.log(`初始化了 ${this.services.size} 個 UX 服務`)
   }
 
   /**
@@ -124,12 +124,12 @@ class UXDomainCoordinator {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ UX 領域協調器已初始化')
+      this.logger.warn('[WARN] UX 領域協調器已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化 UX 領域協調器')
+      this.logger.log('初始化 UX 領域協調器')
 
       // 按依賴順序初始化 UX 服務
       await this.initializeServicesInOrder()
@@ -144,7 +144,7 @@ class UXDomainCoordinator {
       await this.initializeDefaultTheme()
 
       this.state.initialized = true
-      this.logger.log('✅ UX 領域協調器初始化完成')
+      this.logger.log('[OK] UX 領域協調器初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -155,7 +155,7 @@ class UXDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化 UX 領域協調器失敗:', error)
+      this.logger.error('[FAIL] 初始化 UX 領域協調器失敗:', error)
       throw error
     }
   }
@@ -172,12 +172,12 @@ class UXDomainCoordinator {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ UX 領域協調器已啟動')
+      this.logger.warn('[WARN] UX 領域協調器已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動 UX 領域協調器')
+      this.logger.log('[START] 啟動 UX 領域協調器')
 
       // 按依賴順序啟動 UX 服務
       await this.startServicesInOrder()
@@ -188,7 +188,7 @@ class UXDomainCoordinator {
       this.state.active = true
       this.state.servicesReady = true
 
-      this.logger.log('✅ UX 領域協調器啟動完成')
+      this.logger.log('[OK] UX 領域協調器啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -199,7 +199,7 @@ class UXDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動 UX 領域協調器失敗:', error)
+      this.logger.error('[FAIL] 啟動 UX 領域協調器失敗:', error)
       throw error
     }
   }
@@ -208,7 +208,7 @@ class UXDomainCoordinator {
    * 協調主題變更
    */
   async coordinateThemeChange (theme) {
-    this.logger.log(`🎨 協調主題變更: ${theme}`)
+    this.logger.log(`協調主題變更: ${theme}`)
 
     try {
       // 統計主題變更
@@ -234,10 +234,10 @@ class UXDomainCoordinator {
         })
       }
 
-      this.logger.log(`✅ 主題變更協調完成: ${theme}`)
+      this.logger.log(`[OK] 主題變更協調完成: ${theme}`)
       return { success: true, theme }
     } catch (error) {
-      this.logger.error(`❌ 主題變更協調失敗: ${theme}`, error)
+      this.logger.error(`[FAIL] 主題變更協調失敗: ${theme}`, error)
       throw error
     }
   }
@@ -246,7 +246,7 @@ class UXDomainCoordinator {
    * 協調 Popup 狀態
    */
   async coordinatePopupState (popupState) {
-    this.logger.log('🖼️ 協調 Popup 狀態')
+    this.logger.log('協調 Popup 狀態')
 
     try {
       // 統計 Popup 協調
@@ -278,10 +278,10 @@ class UXDomainCoordinator {
         })
       }
 
-      this.logger.log('✅ Popup 狀態協調完成')
+      this.logger.log('[OK] Popup 狀態協調完成')
       return result
     } catch (error) {
-      this.logger.error('❌ Popup 狀態協調失敗:', error)
+      this.logger.error('[FAIL] Popup 狀態協調失敗:', error)
       throw error
     }
   }
@@ -290,7 +290,7 @@ class UXDomainCoordinator {
    * 協調偏好設定更新
    */
   async coordinatePreferenceUpdate (key, value) {
-    this.logger.log(`⚙️ 協調偏好設定更新: ${key}`)
+    this.logger.log(`協調偏好設定更新: ${key}`)
 
     try {
       // 統計偏好更新
@@ -320,10 +320,10 @@ class UXDomainCoordinator {
         })
       }
 
-      this.logger.log(`✅ 偏好設定協調完成: ${key}`)
+      this.logger.log(`[OK] 偏好設定協調完成: ${key}`)
       return { success: true, key, value }
     } catch (error) {
-      this.logger.error(`❌ 偏好設定協調失敗: ${key}`, error)
+      this.logger.error(`[FAIL] 偏好設定協調失敗: ${key}`, error)
       throw error
     }
   }
@@ -336,15 +336,15 @@ class UXDomainCoordinator {
 
     for (const serviceName of initializationOrder) {
       try {
-        this.logger.log(`🔄 初始化 UX 服務: ${serviceName}`)
+        this.logger.log(`初始化 UX 服務: ${serviceName}`)
 
         const service = this.services.get(serviceName)
         await service.initialize()
 
         this.serviceStates.get(serviceName).initialized = true
-        this.logger.log(`✅ UX 服務初始化完成: ${serviceName}`)
+        this.logger.log(`[OK] UX 服務初始化完成: ${serviceName}`)
       } catch (error) {
-        this.logger.error(`❌ UX 服務初始化失敗: ${serviceName}`, error)
+        this.logger.error(`[FAIL] UX 服務初始化失敗: ${serviceName}`, error)
         const newError = new Error(`UX 服務 ${serviceName} 初始化失敗: ${error.message}`)
         newError.code = ErrorCodes.OPERATION_ERROR
         newError.details = { category: 'general' }
@@ -352,7 +352,7 @@ class UXDomainCoordinator {
       }
     }
 
-    this.logger.log('✅ 所有 UX 服務初始化完成')
+    this.logger.log('[OK] 所有 UX 服務初始化完成')
   }
 
   /**
@@ -363,21 +363,21 @@ class UXDomainCoordinator {
 
     for (const serviceName of startOrder) {
       try {
-        this.logger.log(`🚀 啟動 UX 服務: ${serviceName}`)
+        this.logger.log(`[START] 啟動 UX 服務: ${serviceName}`)
 
         const service = this.services.get(serviceName)
         await service.start()
 
         this.serviceStates.get(serviceName).active = true
-        this.logger.log(`✅ UX 服務啟動完成: ${serviceName}`)
+        this.logger.log(`[OK] UX 服務啟動完成: ${serviceName}`)
       } catch (error) {
-        this.logger.error(`❌ UX 服務啟動失敗: ${serviceName}`, error)
+        this.logger.error(`[FAIL] UX 服務啟動失敗: ${serviceName}`, error)
         // UX 服務可以部分降級運行
         await this.handleServiceStartupFailure(serviceName, error)
       }
     }
 
-    this.logger.log('✅ 所有 UX 服務啟動完成')
+    this.logger.log('[OK] 所有 UX 服務啟動完成')
   }
 
   /**
@@ -413,7 +413,7 @@ class UXDomainCoordinator {
    * 設定跨服務協調
    */
   async setupCrossServiceCoordination () {
-    this.logger.log('🔗 設定 UX 跨服務協調')
+    this.logger.log('設定 UX 跨服務協調')
 
     // 設定主題變更協調
     if (this.eventBus) {
@@ -440,9 +440,9 @@ class UXDomainCoordinator {
       const savedTheme = await preferenceService.getPreference('theme', 'auto')
 
       await this.coordinateThemeChange(savedTheme)
-      this.logger.log(`🎨 載入預設主題: ${savedTheme}`)
+      this.logger.log(`載入預設主題: ${savedTheme}`)
     } catch (error) {
-      this.logger.error('❌ 初始化預設主題失敗:', error)
+      this.logger.error('[FAIL] 初始化預設主題失敗:', error)
       // 使用 auto 主題作為後備
       await this.coordinateThemeChange('auto')
     }
@@ -452,7 +452,7 @@ class UXDomainCoordinator {
    * 執行 UX 就緒檢查
    */
   async performUXReadinessCheck () {
-    this.logger.log('🔍 執行 UX 就緒檢查')
+    this.logger.log('[CHECK] 執行 UX 就緒檢查')
 
     const issues = []
 
@@ -475,9 +475,9 @@ class UXDomainCoordinator {
     }
 
     if (issues.length > 0) {
-      this.logger.warn('⚠️ UX 就緒檢查發現問題:', issues)
+      this.logger.warn('[WARN] UX 就緒檢查發現問題:', issues)
     } else {
-      this.logger.log('✅ UX 就緒檢查通過')
+      this.logger.log('[OK] UX 就緒檢查通過')
     }
 
     return { ready: issues.length === 0, issues }
@@ -487,13 +487,13 @@ class UXDomainCoordinator {
    * 處理服務啟動失敗
    */
   async handleServiceStartupFailure (serviceName, error) {
-    this.logger.error(`💥 UX 服務啟動失敗處理: ${serviceName}`, error)
+    this.logger.error(`UX 服務啟動失敗處理: ${serviceName}`, error)
 
     const serviceState = this.serviceStates.get(serviceName)
     serviceState.restartCount++
 
     // UX 服務可以降級運行，不影響整體功能
-    this.logger.warn(`⚠️ UX 服務 ${serviceName} 以降級模式運行`)
+    this.logger.warn(`[WARN] UX 服務 ${serviceName} 以降級模式運行`)
     serviceState.active = false
     serviceState.healthy = false
   }
@@ -503,7 +503,7 @@ class UXDomainCoordinator {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過 UX 事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過 UX 事件監聽器註冊')
       return
     }
 
@@ -530,7 +530,7 @@ class UXDomainCoordinator {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個 UX 事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個 UX 事件監聽器`)
   }
 
   /**
@@ -547,7 +547,7 @@ class UXDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理 UX 狀態請求失敗:', error)
+      this.logger.error('[FAIL] 處理 UX 狀態請求失敗:', error)
     }
   }
 
@@ -559,7 +559,7 @@ class UXDomainCoordinator {
       const { theme } = event.data || {}
       await this.coordinateThemeChange(theme)
     } catch (error) {
-      this.logger.error('❌ 處理主題變更請求失敗:', error)
+      this.logger.error('[FAIL] 處理主題變更請求失敗:', error)
     }
   }
 
@@ -571,7 +571,7 @@ class UXDomainCoordinator {
       const { state } = event.data || {}
       await this.coordinatePopupState(state)
     } catch (error) {
-      this.logger.error('❌ 處理 Popup 協調請求失敗:', error)
+      this.logger.error('[FAIL] 處理 Popup 協調請求失敗:', error)
     }
   }
 

@@ -293,7 +293,7 @@ class PopupDiagnosticEnhancer {
         check.details.push(`儲存使用量: ${usageKB} KB`)
 
         if (usageKB > 5000) { // 5MB
-          check.details.push('⚠️ 儲存使用量較高')
+          check.details.push('[WARN] 儲存使用量較高')
           check.recommendation = '建議清理舊資料或匯出備份'
         }
       })
