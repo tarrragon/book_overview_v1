@@ -50,7 +50,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     delete global.console
   })
 
-  describe('🔧 基本結構和初始化', () => {
+  describe('[FIX] 基本結構和初始化', () => {
     test('應該能夠創建 MessageTracker 實例', () => {
       // eslint-disable-next-line no-unused-vars
       const MessageTracker = require('src/error-handling/message-tracker')
@@ -112,7 +112,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
   })
 
-  describe('📨 訊息追蹤核心功能', () => {
+  describe('訊息追蹤核心功能', () => {
     test('應該處理 MESSAGE.SENT 事件', async () => {
       // eslint-disable-next-line no-unused-vars
       const MessageTracker = require('src/error-handling/message-tracker')
@@ -365,7 +365,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
   })
 
-  describe('📊 統計和記憶體管理', () => {
+  describe('[STATS] 統計和記憶體管理', () => {
     test('應該正確計算處理時間', async () => {
       // eslint-disable-next-line no-unused-vars
       const MessageTracker = require('src/error-handling/message-tracker')
@@ -466,7 +466,7 @@ describe('MessageTracker - TDD 循環 #33', () => {
     })
   })
 
-  describe('⚙️ 配置和控制', () => {
+  describe('配置和控制', () => {
     test('應該能夠啟用/停用追蹤', async () => {
       // eslint-disable-next-line no-unused-vars
       const MessageTracker = require('src/error-handling/message-tracker')

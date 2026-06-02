@@ -279,7 +279,7 @@ describe('Content Script 注入整合測試', () => {
 
         // 調試信息
         // eslint-disable-next-line no-console
-        console.log(`🔧 Scenario ${scenario.name}: errorHandled=${injectionResult.errorHandled}, injected=${injectionResult.injected}, errorMessage="${injectionResult.errorMessage}"`)
+        console.log(`[FIX] Scenario ${scenario.name}: errorHandled=${injectionResult.errorHandled}, injected=${injectionResult.injected}, errorMessage="${injectionResult.errorMessage}"`)
 
         // 清理錯誤狀態
         await scriptValidator.clearSimulatedErrors()

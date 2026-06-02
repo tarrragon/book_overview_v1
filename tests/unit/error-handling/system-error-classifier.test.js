@@ -22,7 +22,7 @@
  * - CRITICAL: 系統無法使用，需要技術支援
  */
 
-describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
+describe('系統錯誤分類器測試 (v0.9.32)', () => {
   // eslint-disable-next-line no-unused-vars
   let SystemErrorClassifier
 
@@ -39,7 +39,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     }
   })
 
-  describe('🌐 NETWORK 錯誤分類測試', () => {
+  describe('NETWORK 錯誤分類測試', () => {
     test('應該正確分類網路連接失敗錯誤', () => {
       // Given: 網路連接失敗錯誤
       // eslint-disable-next-line no-unused-vars
@@ -111,7 +111,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     })
   })
 
-  describe('📊 DATA 錯誤分類測試', () => {
+  describe('[STATS] DATA 錯誤分類測試', () => {
     test('應該正確分類JSON格式錯誤', () => {
       // Given: JSON語法錯誤
       // eslint-disable-next-line no-unused-vars
@@ -188,7 +188,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     })
   })
 
-  describe('⚙️ SYSTEM 錯誤分類測試', () => {
+  describe('SYSTEM 錯誤分類測試', () => {
     test('應該正確分類權限錯誤', () => {
       // Given: 權限被拒錯誤
       // eslint-disable-next-line no-unused-vars
@@ -247,7 +247,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     })
   })
 
-  describe('🏗️ DOM 錯誤分類測試', () => {
+  describe('DOM 錯誤分類測試', () => {
     test('應該正確分類元素不存在錯誤', () => {
       // Given: DOM元素不存在
       // eslint-disable-next-line no-unused-vars
@@ -305,7 +305,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     })
   })
 
-  describe('🔧 PLATFORM 錯誤分類測試', () => {
+  describe('[FIX] PLATFORM 錯誤分類測試', () => {
     test('應該分類Chrome Extension API錯誤', () => {
       // Given: Chrome Extension API錯誤
       // eslint-disable-next-line no-unused-vars
@@ -445,7 +445,7 @@ describe('🏷️ 系統錯誤分類器測試 (v0.9.32)', () => {
     })
   })
 
-  describe('📈 錯誤分類效能測試', () => {
+  describe('錯誤分類效能測試', () => {
     test('應該在合理時間內完成錯誤分類', () => {
       // Given: 大量錯誤需要分類
       // eslint-disable-next-line no-unused-vars

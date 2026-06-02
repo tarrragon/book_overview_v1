@@ -19,7 +19,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     PageDetectionUtils.clearCache()
   })
 
-  describe('🌐 網域檢測功能', () => {
+  describe('網域檢測功能', () => {
     test('應該正確檢測 Readmoo 主網域', () => {
       expect(PageDetectionUtils.isReadmooDomain('https://readmoo.com/library')).toBe(true)
       expect(PageDetectionUtils.isReadmooDomain('https://www.readmoo.com/shelf')).toBe(true)
@@ -52,7 +52,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📄 頁面類型識別', () => {
+  describe('頁面類型識別', () => {
     test('應該正確識別書庫頁面', () => {
       expect(PageDetectionUtils.getPageType('https://readmoo.com/library')).toBe('library')
       expect(PageDetectionUtils.getPageType('https://readmoo.com/library/bought')).toBe('library')
@@ -93,7 +93,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📚 可提取性檢查', () => {
+  describe('可提取性檢查', () => {
     test('應該確認書庫頁面可提取', () => {
       expect(PageDetectionUtils.isExtractablePage('library')).toBe(true)
     })
@@ -121,7 +121,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🔍 URL 路徑分析', () => {
+  describe('[CHECK] URL 路徑分析', () => {
     test('應該正確解析完整的 Readmoo URL', () => {
       // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/library/bought?page=2&sort=date')
@@ -213,7 +213,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('💾 快取機制測試', () => {
+  describe('[SAVE] 快取機制測試', () => {
     test('應該支援快取檢測結果', () => {
       // 清空快取
       PageDetectionUtils.clearCache()
@@ -282,7 +282,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理和邊界情況', () => {
+  describe('[WARN] 錯誤處理和邊界情況', () => {
     test('應該安全處理各種錯誤輸入', () => {
       // eslint-disable-next-line no-unused-vars
       const errorInputs = [
@@ -367,7 +367,7 @@ describe('PageDetectionUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🔄 整合測試場景', () => {
+  describe('整合測試場景', () => {
     test('完整 Readmoo 書庫檢測流程', () => {
       // eslint-disable-next-line no-unused-vars
       const libraryUrl = 'https://readmoo.com/library/bought?page=1'

@@ -444,7 +444,7 @@ describe('PopupController 通訊服務整合測試', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理測試', () => {
+  describe('[WARN] 錯誤處理測試', () => {
     test('應該能夠清理訊息監聽器', async () => {
       // Given: 已初始化的控制器
       // eslint-disable-next-line no-unused-vars

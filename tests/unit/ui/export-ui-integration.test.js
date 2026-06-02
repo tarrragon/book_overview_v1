@@ -700,7 +700,7 @@ describe('ExportUIIntegration', () => {
       }, 20, { testName: 'ui-resource-cleanup' })
 
       // eslint-disable-next-line no-console
-      console.log('🧹 UI 資源清理記憶體分析:')
+      console.log('UI 資源清理記憶體分析:')
       // eslint-disable-next-line no-console
       console.log(`  平均每清理操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
       // eslint-disable-next-line no-console
@@ -713,17 +713,17 @@ describe('ExportUIIntegration', () => {
       const memoryPerOp = analysis.leakDetection.averageMemoryPerOperation || 0
 
       // eslint-disable-next-line no-console
-      console.log(`📊 記憶體變化分析: ${analysis.leakDetection.formattedAverageGrowth}/操作`)
+      console.log(`[STATS] 記憶體變化分析: ${analysis.leakDetection.formattedAverageGrowth}/操作`)
 
       // Red 階段測試中，輕微的記憶體增長是可接受的（因為測試設定和錯誤處理）
       // 主要檢查沒有嚴重的記憶體洩漏（>100KB/操作）
       if (memoryPerOp > 100 * 1024) { // 100KB/操作是嚴重洩漏警告線
         // eslint-disable-next-line no-console
-        console.warn(`⚠️ 檢測到潛在記憶體洩漏: ${analysis.leakDetection.formattedAverageGrowth}/操作`)
+        console.warn(`[WARN] 檢測到潛在記憶體洩漏: ${analysis.leakDetection.formattedAverageGrowth}/操作`)
         expect(analysis.hasMemoryLeak).toBe(false)
       } else {
         // eslint-disable-next-line no-console
-        console.log(`✅ 記憶體使用在可接受範圍內: ${analysis.leakDetection.formattedAverageGrowth}/操作`)
+        console.log(`[OK] 記憶體使用在可接受範圍內: ${analysis.leakDetection.formattedAverageGrowth}/操作`)
       }
 
       // 記憶體增長應該在合理範圍內（Red 階段測試容許較寬鬆的限制）

@@ -36,7 +36,7 @@ global.chrome = mockChrome
 // Mock DOM
 const { JSDOM } = require('jsdom')
 
-describe('⚡ Popup Refactor Performance Tests (TDD循環 #39)', () => {
+describe('Popup Refactor Performance Tests (TDD循環 #39)', () => {
   let dom
   let document
 

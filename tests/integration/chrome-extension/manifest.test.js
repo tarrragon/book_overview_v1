@@ -38,7 +38,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     manifest = JSON.parse(manifestContent)
   })
 
-  describe('🔧 基本 Manifest 格式驗證', () => {
+  describe('[FIX] 基本 Manifest 格式驗證', () => {
     test('應該使用 Manifest V3 版本', () => {
       expect(manifest.manifest_version).toBe(3)
     })
@@ -67,7 +67,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
   })
 
-  describe('🔧 Service Worker 配置正確性', () => {
+  describe('[FIX] Service Worker 配置正確性', () => {
     test('應該配置 background service worker', () => {
       expect(manifest.background).toBeDefined()
       expect(manifest.background.service_worker).toBeDefined()
@@ -91,7 +91,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
   })
 
-  describe('🔧 Content Scripts 注入規則', () => {
+  describe('[FIX] Content Scripts 注入規則', () => {
     test('應該配置 content scripts', () => {
       expect(manifest.content_scripts).toBeDefined()
       expect(Array.isArray(manifest.content_scripts)).toBe(true)
@@ -123,7 +123,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
   })
 
-  describe('🔧 權限配置完整性', () => {
+  describe('[FIX] 權限配置完整性', () => {
     test('應該包含基本擴展權限', () => {
       expect(manifest.permissions).toBeDefined()
       expect(Array.isArray(manifest.permissions)).toBe(true)
@@ -158,7 +158,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
   })
 
-  describe('🔧 事件系統 API 可用性', () => {
+  describe('[FIX] 事件系統 API 可用性', () => {
     test('應該包含事件系統所需的 Chrome API 權限', () => {
       // eslint-disable-next-line no-unused-vars
       const requiredPermissions = ['storage']
@@ -175,7 +175,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
   })
 
-  describe('🔧 Popup 界面配置', () => {
+  describe('[FIX] Popup 界面配置', () => {
     test('應該配置 action popup', () => {
       expect(manifest.action).toBeDefined()
       expect(manifest.action.default_popup).toBeDefined()
@@ -198,7 +198,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     })
   })
 
-  describe('🔧 開發與生產環境配置', () => {
+  describe('[FIX] 開發與生產環境配置', () => {
     test('應該適當配置開發環境設定', () => {
       // 在開發階段，可能需要額外的權限或配置
       if (process.env.NODE_ENV === 'development') {

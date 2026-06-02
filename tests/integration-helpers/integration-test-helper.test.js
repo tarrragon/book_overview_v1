@@ -28,7 +28,7 @@ describe('IntegrationTestHelper', () => {
     }
   })
 
-  describe('🔧 基礎初始化和配置', () => {
+  describe('[FIX] 基礎初始化和配置', () => {
     test('應該成功初始化測試輔助工具', () => {
       expect(testHelper).toBeInstanceOf(IntegrationTestHelper)
       expect(typeof testHelper.setupIntegrationTest).toBe('function')
@@ -47,7 +47,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('🏗️ 測試環境設定', () => {
+  describe('測試環境設定', () => {
     test('應該成功設定整合測試環境', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
@@ -95,7 +95,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('📊 效能監控功能', () => {
+  describe('[STATS] 效能監控功能', () => {
     test('應該追蹤測試執行效能', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
@@ -127,7 +127,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('🔄 模組間通訊測試', () => {
+  describe('模組間通訊測試', () => {
     test('應該記錄模組間訊息', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
@@ -168,7 +168,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('🎭 使用者互動模擬', () => {
+  describe('使用者互動模擬', () => {
     test('應該模擬點擊操作', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
@@ -219,7 +219,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('⏱️ 等待和同步功能', () => {
+  describe('[TIME] 等待和同步功能', () => {
     test('應該支援條件等待', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
@@ -252,7 +252,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('📊 測試資料工廠整合', () => {
+  describe('[STATS] 測試資料工廠整合', () => {
     test('應該提供測試資料工廠', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
@@ -281,7 +281,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('🔍 狀態驗證和錯誤處理', () => {
+  describe('[CHECK] 狀態驗證和錯誤處理', () => {
     test('應該記錄模組錯誤', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
@@ -326,7 +326,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('🧹 清理和重置功能', () => {
+  describe('清理和重置功能', () => {
     test('應該正確清理測試環境', async () => {
       await testHelper.setupIntegrationTest()
 
@@ -358,7 +358,7 @@ describe('IntegrationTestHelper', () => {
     })
   })
 
-  describe('🔗 完整整合場景測試', () => {
+  describe('完整整合場景測試', () => {
     test('應該支援完整的Chrome Extension工作流程測試', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({

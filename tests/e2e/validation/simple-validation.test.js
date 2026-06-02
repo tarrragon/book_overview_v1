@@ -32,7 +32,7 @@ const fs = require('fs')
 // eslint-disable-next-line no-unused-vars
 const path = require('path')
 
-describe('🔧 簡化版端對端測試環境驗證', () => {
+describe('[FIX] 簡化版端對端測試環境驗證', () => {
   // eslint-disable-next-line no-unused-vars
   const projectRoot = path.resolve(__dirname, '../../..')
   // eslint-disable-next-line no-unused-vars
@@ -40,7 +40,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
   // eslint-disable-next-line no-unused-vars
   const e2eTestsPath = path.join(projectRoot, 'tests/e2e')
 
-  describe('📁 基本檔案檢查', () => {
+  describe('基本檔案檢查', () => {
     test('應該存在端對端測試目錄結構', () => {
       // eslint-disable-next-line no-unused-vars
       const expectedDirectories = [
@@ -59,7 +59,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
         const dirPath = path.join(e2eTestsPath, dir)
         expect(fs.existsSync(dirPath)).toBe(true)
         // eslint-disable-next-line no-console
-        console.log(`✅ 目錄存在: ${dir}`)
+        console.log(`[OK] 目錄存在: ${dir}`)
       })
     })
 
@@ -79,7 +79,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
         const filePath = path.join(e2eTestsPath, file)
         expect(fs.existsSync(filePath)).toBe(true)
         // eslint-disable-next-line no-console
-        console.log(`✅ 檔案存在: ${file}`)
+        console.log(`[OK] 檔案存在: ${file}`)
       })
     })
 
@@ -99,12 +99,12 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
         const filePath = path.join(buildPath, file)
         expect(fs.existsSync(filePath)).toBe(true)
         // eslint-disable-next-line no-console
-        console.log(`✅ 建置檔案存在: ${file}`)
+        console.log(`[OK] 建置檔案存在: ${file}`)
       })
     })
   })
 
-  describe('📋 Manifest V3 配置驗證', () => {
+  describe('Manifest V3 配置驗證', () => {
     let manifest
 
     beforeAll(() => {
@@ -116,7 +116,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     test('應該使用 Manifest V3', () => {
       expect(manifest.manifest_version).toBe(3)
       // eslint-disable-next-line no-console
-      console.log('✅ Manifest V3 配置正確')
+      console.log('[OK] Manifest V3 配置正確')
     })
 
     test('應該有必要的基本資訊', () => {
@@ -129,7 +129,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(manifest.description.length).toBeGreaterThan(10)
 
       // eslint-disable-next-line no-console
-      console.log(`✅ Extension 基本資訊: ${manifest.name} v${manifest.version}`)
+      console.log(`[OK] Extension 基本資訊: ${manifest.name} v${manifest.version}`)
     })
 
     test('應該有正確的 Service Worker 配置', () => {
@@ -141,7 +141,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(fs.existsSync(serviceWorkerPath)).toBe(true)
 
       // eslint-disable-next-line no-console
-      console.log(`✅ Service Worker: ${manifest.background.service_worker}`)
+      console.log(`[OK] Service Worker: ${manifest.background.service_worker}`)
     })
 
     test('應該有合理的權限配置', () => {
@@ -155,7 +155,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       })
 
       // eslint-disable-next-line no-console
-      console.log(`✅ 權限配置合理: ${manifest.permissions.join(', ')}`)
+      console.log(`[OK] 權限配置合理: ${manifest.permissions.join(', ')}`)
     })
 
     test('應該有完整的圖示配置', () => {
@@ -172,11 +172,11 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       })
 
       // eslint-disable-next-line no-console
-      console.log('✅ 圖示配置完整')
+      console.log('[OK] 圖示配置完整')
     })
   })
 
-  describe('🎭 模擬測試資料驗證', () => {
+  describe('模擬測試資料驗證', () => {
     // W1-008：readmoo-mock-page.html 已重寫為真實瀏覽器 E2E fixture，DOM 結構對齊
     // readmoo-adapter.js 的 SELECTORS（.library-item / .title / a[href*="/api/reader/"]
     // / .cover-img / .progress-bar / .label.rendition），由真實 content script DOM
@@ -193,7 +193,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
       expect(mockPageContent).toContain('progress-bar')
 
       // eslint-disable-next-line no-console
-      console.log('✅ 模擬 Readmoo 頁面結構正確')
+      console.log('[OK] 模擬 Readmoo 頁面結構正確')
     })
 
     test('測試資料應該包含完整的書籍資訊', () => {
@@ -255,7 +255,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
     })
   })
 
-  describe('📊 建置品質檢查', () => {
+  describe('[STATS] 建置品質檢查', () => {
     test('JavaScript 檔案應該沒有語法錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const jsFiles = [
@@ -277,7 +277,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
           // 檢查是否有明顯的語法問題
 
           // eslint-disable-next-line no-console
-          console.log(`✅ ${file} 語法檢查通過 (${content.length} 字符)`)
+          console.log(`[OK] ${file} 語法檢查通過 (${content.length} 字符)`)
         }
       })
     })
@@ -299,7 +299,7 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
           expect(content).toContain('<body>')
 
           // eslint-disable-next-line no-console
-          console.log(`✅ ${file} HTML 結構正確`)
+          console.log(`[OK] ${file} HTML 結構正確`)
         }
       })
     })
@@ -321,13 +321,13 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
           expect(stats.size).toBeLessThan(maxSize)
 
           // eslint-disable-next-line no-console
-          console.log(`✅ ${file} 大小合理: ${(stats.size / 1024).toFixed(2)}KB`)
+          console.log(`[OK] ${file} 大小合理: ${(stats.size / 1024).toFixed(2)}KB`)
         }
       })
     })
   })
 
-  describe('📈 測試準備度評估', () => {
+  describe('測試準備度評估', () => {
     test('端對端測試環境準備度檢查', () => {
       // eslint-disable-next-line no-unused-vars
       const checklist = {
@@ -348,21 +348,21 @@ describe('🔧 簡化版端對端測試環境驗證', () => {
 
       Object.entries(checklist).forEach(([check, passed]) => {
         // eslint-disable-next-line no-console
-        console.log(`  ${passed ? '✅' : '❌'} ${check}`)
+        console.log(`  ${passed ? '[OK] ' : '[FAIL] '} ${check}`)
       })
 
       // eslint-disable-next-line no-console
-      console.log(`\n🎯 總體準備度: ${readinessPercentage.toFixed(1)}% (${passedChecks}/${totalChecks})`)
+      console.log(`\n總體準備度: ${readinessPercentage.toFixed(1)}% (${passedChecks}/${totalChecks})`)
 
       // 至少 80% 準備度才算合格
       expect(readinessPercentage).toBeGreaterThanOrEqual(80)
 
       if (readinessPercentage === 100) {
         // eslint-disable-next-line no-console
-        console.log('🎉 所有檢查項目通過！準備進行完整端對端測試')
+        console.log('所有檢查項目通過！準備進行完整端對端測試')
       } else {
         // eslint-disable-next-line no-console
-        console.log('⚠️ 部分檢查未通過，請檢查失敗項目')
+        console.log('[WARN] 部分檢查未通過，請檢查失敗項目')
       }
     })
   })

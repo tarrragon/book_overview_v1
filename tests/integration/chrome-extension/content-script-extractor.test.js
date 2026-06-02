@@ -102,7 +102,7 @@ describe('Content Script Extractor Integration', () => {
     }
   })
 
-  describe('🔧 Content Script 載入和初始化', () => {
+  describe('[FIX] Content Script 載入和初始化', () => {
     test('應該成功載入 content script', async () => {
       // 檢查 content-modular.js 檔案存在 (用於整合測試)
       // eslint-disable-next-line no-unused-vars
@@ -155,7 +155,7 @@ describe('Content Script Extractor Integration', () => {
     })
   })
 
-  describe('🔧 BookDataExtractor 整合', () => {
+  describe('[FIX] BookDataExtractor 整合', () => {
     test('應該成功整合 BookDataExtractor', async () => {
       await loadContentScript()
 
@@ -289,7 +289,7 @@ describe('Content Script Extractor Integration', () => {
     })
   })
 
-  describe('🔧 ReadmooAdapter DOM 操作', () => {
+  describe('[FIX] ReadmooAdapter DOM 操作', () => {
     test('應該成功整合 ReadmooAdapter', async () => {
       await loadContentScript()
 
@@ -391,7 +391,7 @@ describe('Content Script Extractor Integration', () => {
     })
   })
 
-  describe('🔧 跨上下文事件通訊', () => {
+  describe('[FIX] 跨上下文事件通訊', () => {
     test('應該能夠發送訊息到 Background', async () => {
       await loadContentScript()
 
@@ -545,7 +545,7 @@ describe('Content Script Extractor Integration', () => {
     })
   })
 
-  describe('🔧 完整提取流程測試', () => {
+  describe('[FIX] 完整提取流程測試', () => {
     test('應該能夠執行完整的書籍提取流程', async () => {
       await loadContentScript()
 
@@ -702,7 +702,7 @@ describe('Content Script Extractor Integration', () => {
     })
   })
 
-  describe('🔧 頁面生命週期相容性', () => {
+  describe('[FIX] 頁面生命週期相容性', () => {
     test('應該處理頁面載入完成事件', async () => {
       await loadContentScript()
 
@@ -796,7 +796,7 @@ describe('Content Script Extractor Integration', () => {
     })
   })
 
-  describe('🔧 錯誤處理和恢復機制', () => {
+  describe('[FIX] 錯誤處理和恢復機制', () => {
     test('應該處理 DOM 不存在的情況', async () => {
       // 清空 DOM
       document.body.innerHTML = ''

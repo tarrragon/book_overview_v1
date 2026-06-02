@@ -11,7 +11,7 @@
 // eslint-disable-next-line no-unused-vars
 const DiagnosticModule = require('src/popup/diagnostic-module')
 
-describe('🔧 DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
+describe('[FIX] DiagnosticModule Enhancement Tests (TDD循環 #43)', () => {
   let diagnostic
 
   beforeEach(() => {

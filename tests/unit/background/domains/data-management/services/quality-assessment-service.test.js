@@ -57,7 +57,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗️ 服務初始化', () => {
+  describe('服務初始化', () => {
     test('應該正確初始化品質評估服務', () => {
       expect(assessor).toBeInstanceOf(QualityAssessmentService)
       expect(assessor.eventBus).toBe(mockEventBus)
@@ -83,7 +83,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     })
   })
 
-  describe('📖 單本書籍品質評估', () => {
+  describe('單本書籍品質評估', () => {
     test('assessDataQuality() 應該評估完整書籍資料', () => {
       // eslint-disable-next-line no-unused-vars
       const book = {
@@ -208,7 +208,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     })
   })
 
-  describe('📊 驗證報告品質評估', () => {
+  describe('[STATS] 驗證報告品質評估', () => {
     test('calculateQualityScore() 應該計算完美報告分數', () => {
       // eslint-disable-next-line no-unused-vars
       const report = {
@@ -285,7 +285,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     })
   })
 
-  describe('🎯 品質等級判定', () => {
+  describe('品質等級判定', () => {
     test('determineQualityLevel() 應該判定高品質', () => {
       expect(assessor.determineQualityLevel(95)).toBe('HIGH')
       expect(assessor.determineQualityLevel(90)).toBe('HIGH')
@@ -307,7 +307,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     })
   })
 
-  describe('📋 批次品質評估', () => {
+  describe('批次品質評估', () => {
     test('assessBatchQuality() 應該評估多本書籍品質', () => {
       // eslint-disable-next-line no-unused-vars
       const books = [
@@ -363,7 +363,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     })
   })
 
-  describe('📊 品質改善建議', () => {
+  describe('[STATS] 品質改善建議', () => {
     test('generateQualityRecommendations() 應該提供改善建議', () => {
       // eslint-disable-next-line no-unused-vars
       const assessment = {
@@ -400,7 +400,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     })
   })
 
-  describe('📊 統計與監控', () => {
+  describe('[STATS] 統計與監控', () => {
     test('getQualityStatistics() 應該提供品質統計', () => {
       // eslint-disable-next-line no-unused-vars
       const books = [
@@ -435,7 +435,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     })
   })
 
-  describe('🔧 品質配置管理', () => {
+  describe('[FIX] 品質配置管理', () => {
     test('updateQualityThresholds() 應該更新品質門檻', () => {
       // eslint-disable-next-line no-unused-vars
       const newThresholds = {
@@ -467,7 +467,7 @@ describe('QualityAssessmentService - 品質評估服務', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         // eslint-disable-next-line no-unused-vars

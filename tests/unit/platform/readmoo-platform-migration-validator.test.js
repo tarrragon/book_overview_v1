@@ -612,11 +612,11 @@ describe('Validator Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', 
   // 重現 src/platform/readmoo-platform-migration-validator.js:40-62 的 local dict 內容
   function createValidatorLocalDict () {
     return new MessageDictionary({
-      VALIDATOR_INIT: '🔧 Readmoo 平台遷移驗證器初始化',
-      VALIDATION_START: '🚀 開始完整 Readmoo 平台遷移驗證',
-      VALIDATION_TIMEOUT: '⏰ 驗證超時 ({timeout}ms)',
-      PLATFORM_DETECTION_FAILED: '❌ 平台檢測失敗: 檢測到 {platform} 平台',
-      PLATFORM_CONFIDENCE_LOW: '⚠️ 檢測信心度過低: {confidence} (最低要求: {required})'
+      VALIDATOR_INIT: '[FIX] Readmoo 平台遷移驗證器初始化',
+      VALIDATION_START: '[START] 開始完整 Readmoo 平台遷移驗證',
+      VALIDATION_TIMEOUT: '[TIMER] 驗證超時 ({timeout}ms)',
+      PLATFORM_DETECTION_FAILED: '[FAIL] 平台檢測失敗: 檢測到 {platform} 平台',
+      PLATFORM_CONFIDENCE_LOW: '[WARN] 檢測信心度過低: {confidence} (最低要求: {required})'
     })
   }
 
@@ -643,7 +643,7 @@ describe('Validator Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', 
     logger.info('VALIDATOR_INIT')
 
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('🔧 Readmoo 平台遷移驗證器初始化')
+    expect(output).toContain('[FIX] Readmoo 平台遷移驗證器初始化')
     expect(output).not.toContain('[Missing: VALIDATOR_INIT]')
   })
 
@@ -654,7 +654,7 @@ describe('Validator Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', 
     logger.info('VALIDATION_START')
 
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('🚀 開始完整 Readmoo 平台遷移驗證')
+    expect(output).toContain('[START] 開始完整 Readmoo 平台遷移驗證')
     expect(output).not.toContain('[Missing: VALIDATION_START]')
   })
 
@@ -665,7 +665,7 @@ describe('Validator Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', 
     logger.warn('VALIDATION_TIMEOUT', { timeout: 5000 })
 
     const output = warnSpy.mock.calls[0][0]
-    expect(output).toContain('⏰ 驗證超時 (5000ms)')
+    expect(output).toContain('[TIMER] 驗證超時 (5000ms)')
     expect(output).not.toContain('{timeout}')
     expect(output).not.toContain('[Missing: VALIDATION_TIMEOUT]')
   })
@@ -677,7 +677,7 @@ describe('Validator Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', 
     logger.warn('PLATFORM_CONFIDENCE_LOW', { confidence: 0.3, required: 0.8 })
 
     const output = warnSpy.mock.calls[0][0]
-    expect(output).toContain('⚠️ 檢測信心度過低: 0.3 (最低要求: 0.8)')
+    expect(output).toContain('[WARN] 檢測信心度過低: 0.3 (最低要求: 0.8)')
     expect(output).not.toContain('{confidence}')
     expect(output).not.toContain('{required}')
     expect(output).not.toContain('[Missing: PLATFORM_CONFIDENCE_LOW]')

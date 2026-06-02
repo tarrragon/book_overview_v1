@@ -537,7 +537,7 @@ describe('Popup Interface 整合測試', () => {
   })
 
   // ==================== TDD Cycle #14: 提取控制界面 ====================
-  describe('🚀 TDD Cycle #14: 提取控制界面', () => {
+  describe('[START] TDD Cycle #14: 提取控制界面', () => {
     describe('🟢 綠燈階段 - 提取觸發按鈕高級功能', () => {
       test('應該能檢測提取按鈕的狀態管理', () => {
         loadPopupInterface()
@@ -566,7 +566,7 @@ describe('Popup Interface 整合測試', () => {
         // 測試按鈕狀態更新功能
         if (window.updateButtonState) {
           // 模擬提取中狀態 - 傳入禁用狀態和新文字
-          window.updateButtonState(true, '⏳ 提取中...')
+          window.updateButtonState(true, '[WAIT] 提取中...')
 
           expect(extractBtn.disabled).toBe(true)
           expect(extractBtn.textContent).toContain('提取中')
@@ -947,10 +947,10 @@ describe('Popup Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () =
   //       測試補入此 key 以涵蓋完整 5 個 popup-specific key 的解析行為
   function createPopupLocalDict () {
     return new MessageDictionary({
-      POPUP_INTERFACE_LOADED: '🎨 Popup Interface 載入完成',
-      POPUP_SCRIPT_LOADED: '✅ Popup Script 載入完成',
-      POPUP_INIT_START: '🚀 開始初始化 Popup Interface',
-      POPUP_INIT_COMPLETE: '✅ Popup Interface 初始化完成',
+      POPUP_INTERFACE_LOADED: 'Popup Interface 載入完成',
+      POPUP_SCRIPT_LOADED: '[OK] Popup Script 載入完成',
+      POPUP_INIT_START: '[START] 開始初始化 Popup Interface',
+      POPUP_INIT_COMPLETE: '[OK] Popup Interface 初始化完成',
       INITIALIZATION_COMPLETE: '初始化流程完成'
     })
   }
@@ -973,7 +973,7 @@ describe('Popup Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () =
 
     expect(infoSpy).toHaveBeenCalledTimes(1)
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('🎨 Popup Interface 載入完成')
+    expect(output).toContain('Popup Interface 載入完成')
     expect(output).not.toContain('[Missing: POPUP_INTERFACE_LOADED]')
   })
 
@@ -984,7 +984,7 @@ describe('Popup Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () =
     popupLogger.info('POPUP_SCRIPT_LOADED')
 
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('✅ Popup Script 載入完成')
+    expect(output).toContain('[OK] Popup Script 載入完成')
     expect(output).not.toContain('[Missing: POPUP_SCRIPT_LOADED]')
   })
 
@@ -995,7 +995,7 @@ describe('Popup Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () =
     popupLogger.info('POPUP_INIT_START')
 
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('🚀 開始初始化 Popup Interface')
+    expect(output).toContain('[START] 開始初始化 Popup Interface')
     expect(output).not.toContain('[Missing: POPUP_INIT_START]')
   })
 
@@ -1006,7 +1006,7 @@ describe('Popup Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-116)', () =
     popupLogger.info('POPUP_INIT_COMPLETE')
 
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('✅ Popup Interface 初始化完成')
+    expect(output).toContain('[OK] Popup Interface 初始化完成')
     expect(output).not.toContain('[Missing: POPUP_INIT_COMPLETE]')
   })
 

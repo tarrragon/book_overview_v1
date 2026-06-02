@@ -29,7 +29,7 @@ const { UC01ErrorFactory } = require('src/core/errors/UC01ErrorFactory')
 const { UC02ErrorFactory } = require('src/core/errors/UC02ErrorFactory')
 const { UC03ErrorFactory } = require('src/core/errors/UC03ErrorFactory')
 
-describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
+describe('ErrorCodes 記憶體使用基準測試', () => {
   let memoryMonitor
   let performanceTracker
   let baselineMemory
@@ -145,7 +145,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
     performanceTracker.timings = []
   })
 
-  describe('📏 單一錯誤物件記憶體使用測量', () => {
+  describe('單一錯誤物件記憶體使用測量', () => {
     test('應該測量 ErrorCodes 錯誤物件的記憶體佔用量', () => {
       memoryMonitor.setBaseline('single_error_start')
 
@@ -249,7 +249,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
     })
   })
 
-  describe('📈 大量錯誤處理記憶體累積測試', () => {
+  describe('大量錯誤處理記憶體累積測試', () => {
     test('應該測量 1000 個錯誤物件的累積記憶體使用', () => {
       memoryMonitor.setBaseline('batch_errors_start')
       // eslint-disable-next-line no-unused-vars
@@ -422,7 +422,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
     })
   })
 
-  describe('⚖️ ErrorCodes vs StandardError 記憶體效率比較', () => {
+  describe('ErrorCodes vs StandardError 記憶體效率比較', () => {
     test('應該比較 ErrorCodes 與 StandardError 的記憶體使用效率', () => {
       // eslint-disable-next-line no-unused-vars
       const comparisonResults = {
@@ -527,7 +527,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
         // 如果有改善，記錄實際改善程度
         if (memoryImprovement > 0) {
           // eslint-disable-next-line no-console
-          console.log(`✅ ErrorCodes 記憶體效率優於 StandardError ${(memoryImprovement * 100).toFixed(1)}%`)
+          console.log(`[OK] ErrorCodes 記憶體效率優於 StandardError ${(memoryImprovement * 100).toFixed(1)}%`)
         }
       }
 
@@ -548,7 +548,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
     })
   })
 
-  describe('🔍 記憶體洩漏檢測', () => {
+  describe('[CHECK] 記憶體洩漏檢測', () => {
     test('應該檢測潛在的記憶體洩漏模式', async () => {
       // eslint-disable-next-line no-unused-vars
       const leakDetector = {
@@ -683,10 +683,10 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
       // 如果記憶體增長很小，認為沒有洩漏
       if (trend.totalGrowth < 100000) { // 小於 100KB
         // eslint-disable-next-line no-console
-        console.log('✅ 沒有檢測到明顯的記憶體洩漏')
+        console.log('[OK] 沒有檢測到明顯的記憶體洩漏')
       } else {
         // eslint-disable-next-line no-console
-        console.warn('⚠️ 檢測到潛在的記憶體增長，需要進一步調查')
+        console.warn('[WARN] 檢測到潛在的記憶體增長，需要進一步調查')
       }
     })
   })
@@ -694,7 +694,7 @@ describe('🧠 ErrorCodes 記憶體使用基準測試', () => {
   afterAll(() => {
     // 輸出完整的記憶體分析報告
     // eslint-disable-next-line no-console
-    console.log('\n📊 ErrorCodes 記憶體基準測試完整報告:')
+    console.log('\n[STATS] ErrorCodes 記憶體基準測試完整報告:')
     // eslint-disable-next-line no-console
     console.log('========================================')
 

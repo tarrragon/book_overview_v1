@@ -63,7 +63,7 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
     }
   })
 
-  describe('🔧 EventNamingUpgradeCoordinator 整合測試', () => {
+  describe('[FIX] EventNamingUpgradeCoordinator 整合測試', () => {
     describe('事件轉換準確性驗證', () => {
       test('應該正確轉換所有 Legacy 事件到 Modern 格式', async () => {
         // eslint-disable-next-line no-unused-vars
@@ -270,7 +270,7 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
     })
   })
 
-  describe('🔧 EventPriorityManager 整合測試', () => {
+  describe('[FIX] EventPriorityManager 整合測試', () => {
     describe('優先級分配準確性驗證', () => {
       test('應該為不同類別的事件分配正確的優先級', async () => {
         // eslint-disable-next-line no-unused-vars
@@ -415,7 +415,7 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
     })
   })
 
-  describe('🔧 EventTypeDefinitions 整合測試', () => {
+  describe('[FIX] EventTypeDefinitions 整合測試', () => {
     describe('事件類型驗證系統測試', () => {
       test('應該正確驗證 v2.0 事件格式', async () => {
         // eslint-disable-next-line no-unused-vars
@@ -576,7 +576,7 @@ describe('🧪 事件系統 v2.0 核心整合測試', () => {
     })
   })
 
-  describe('🔧 三大核心組件協作整合測試', () => {
+  describe('[FIX] 三大核心組件協作整合測試', () => {
     describe('完整事件處理流程測試', () => {
       test('應該完整處理從 Legacy 到 Modern 的事件流程', async () => {
         // eslint-disable-next-line no-unused-vars

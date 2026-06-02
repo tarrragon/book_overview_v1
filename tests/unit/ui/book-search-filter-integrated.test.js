@@ -550,13 +550,13 @@ describe('BookSearchFilter Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-
   // 重現 src/ui/book-search-filter-integrated.js:37-52 的 local dict 內容
   function createSearchFilterLocalDict () {
     return new MessageDictionary({
-      COMPONENT_INIT: '🔧 BookSearchFilterIntegrated 組件初始化',
-      EVENT_BUS_MISSING: '❌ 事件總線是必需的',
-      MODULAR_COMPONENTS_SUCCESS: '✅ 所有模組化組件初始化完成',
-      SEARCH_EXECUTION_ERROR: '❌ 搜尋執行失敗: {error}',
-      FILTER_APPLICATION_ERROR: '❌ 篩選套用失敗: {error}',
-      SEARCH_CLEARED: '✅ 搜尋和篩選已清除',
-      BOOKS_DATA_UPDATED: '✅ 書籍資料更新完成: {count} 本書籍'
+      COMPONENT_INIT: '[FIX] BookSearchFilterIntegrated 組件初始化',
+      EVENT_BUS_MISSING: '[FAIL] 事件總線是必需的',
+      MODULAR_COMPONENTS_SUCCESS: '[OK] 所有模組化組件初始化完成',
+      SEARCH_EXECUTION_ERROR: '[FAIL] 搜尋執行失敗: {error}',
+      FILTER_APPLICATION_ERROR: '[FAIL] 篩選套用失敗: {error}',
+      SEARCH_CLEARED: '[OK] 搜尋和篩選已清除',
+      BOOKS_DATA_UPDATED: '[OK] 書籍資料更新完成: {count} 本書籍'
     })
   }
 
@@ -580,7 +580,7 @@ describe('BookSearchFilter Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-
     logger.info('COMPONENT_INIT')
 
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('🔧 BookSearchFilterIntegrated 組件初始化')
+    expect(output).toContain('[FIX] BookSearchFilterIntegrated 組件初始化')
     expect(output).not.toContain('[Missing: COMPONENT_INIT]')
   })
 
@@ -591,7 +591,7 @@ describe('BookSearchFilter Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-
     logger.error('SEARCH_EXECUTION_ERROR', { error: '索引建立失敗' })
 
     const output = errorSpy.mock.calls[0][0]
-    expect(output).toContain('❌ 搜尋執行失敗: 索引建立失敗')
+    expect(output).toContain('[FAIL] 搜尋執行失敗: 索引建立失敗')
     expect(output).not.toContain('{error}')
     expect(output).not.toContain('[Missing: SEARCH_EXECUTION_ERROR]')
   })
@@ -603,7 +603,7 @@ describe('BookSearchFilter Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-
     logger.error('FILTER_APPLICATION_ERROR', { error: 'status 欄位缺失' })
 
     const output = errorSpy.mock.calls[0][0]
-    expect(output).toContain('❌ 篩選套用失敗: status 欄位缺失')
+    expect(output).toContain('[FAIL] 篩選套用失敗: status 欄位缺失')
     expect(output).not.toContain('[Missing: FILTER_APPLICATION_ERROR]')
   })
 
@@ -614,7 +614,7 @@ describe('BookSearchFilter Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-
     logger.info('SEARCH_CLEARED')
 
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('✅ 搜尋和篩選已清除')
+    expect(output).toContain('[OK] 搜尋和篩選已清除')
     expect(output).not.toContain('[Missing: SEARCH_CLEARED]')
   })
 
@@ -625,7 +625,7 @@ describe('BookSearchFilter Logger ↔ MessageDictionary 真實整合 (0.19.0-W1-
     logger.info('BOOKS_DATA_UPDATED', { count: 128 })
 
     const output = infoSpy.mock.calls[0][0]
-    expect(output).toContain('✅ 書籍資料更新完成: 128 本書籍')
+    expect(output).toContain('[OK] 書籍資料更新完成: 128 本書籍')
     expect(output).not.toContain('[Missing: BOOKS_DATA_UPDATED]')
   })
 })

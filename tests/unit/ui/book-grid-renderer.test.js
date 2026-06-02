@@ -128,7 +128,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗 基本結構和初始化', () => {
+  describe('基本結構和初始化', () => {
     test('應該能夠創建 BookGridRenderer 實例', () => {
       expect(() => {
         // eslint-disable-next-line no-unused-vars
@@ -264,7 +264,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
   })
 
-  describe('🖼 書籍卡片渲染', () => {
+  describe('書籍卡片渲染', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
@@ -359,7 +359,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
   })
 
-  describe('📱 響應式設計', () => {
+  describe('響應式設計', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
@@ -425,7 +425,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
   })
 
-  describe('🔄 虛擬滾動功能', () => {
+  describe('虛擬滾動功能', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
@@ -492,7 +492,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
   })
 
-  describe('📊 資料更新和重新渲染', () => {
+  describe('[STATS] 資料更新和重新渲染', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
@@ -559,7 +559,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
   })
 
-  describe('⚡ 效能優化', () => {
+  describe('效能優化', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
@@ -634,7 +634,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
   })
 
-  describe('🔧 錯誤處理', () => {
+  describe('[FIX] 錯誤處理', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')
@@ -686,7 +686,7 @@ describe('BookGridRenderer - TDD 循環 #27', () => {
     })
   })
 
-  describe('🎯 邊界條件測試', () => {
+  describe('邊界條件測試', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const BookGridRenderer = require('src/ui/book-grid-renderer')

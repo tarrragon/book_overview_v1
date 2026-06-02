@@ -127,7 +127,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
     }
   })
 
-  describe('📋 類別初始化和配置', () => {
+  describe('類別初始化和配置', () => {
     test('應該使用預設配置成功初始化', () => {
       const defaultAssessment = new PerformanceAssessment()
 
@@ -177,7 +177,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
     })
   })
 
-  describe('🔍 完整效能評估功能', () => {
+  describe('[CHECK] 完整效能評估功能', () => {
     test('應該成功執行完整效能評估', async () => {
       const options = {
         includeMemory: true,
@@ -241,7 +241,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
     })
   })
 
-  describe('⏱️ 即時監控功能', () => {
+  describe('[TIME] 即時監控功能', () => {
     test('應該成功啟動即時監控', () => {
       const callbacks = {
         onMetricsUpdate: jest.fn(),
@@ -299,7 +299,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
     })
   })
 
-  describe('📊 效能報告生成', () => {
+  describe('[STATS] 效能報告生成', () => {
     test('應該生成結構化效能報告', () => {
       const mockMetrics = {
         memory: {
@@ -411,7 +411,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
     })
   })
 
-  describe('⚡ 效能分析算法', () => {
+  describe('效能分析算法', () => {
     test('應該正確計算記憶體效能分數', () => {
       const mockMetrics = {
         heapUsed: 40 * 1024 * 1024, // 40MB (低於 80MB 閾值)
@@ -471,7 +471,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
     })
   })
 
-  describe('🚨 錯誤處理和邊界條件', () => {
+  describe('[ALERT] 錯誤處理和邊界條件', () => {
     test('應該處理 Chrome API 不可用的情況', async () => {
       // 暫時移除 chrome 物件
       const originalChrome = global.chrome
@@ -532,7 +532,7 @@ describe('PerformanceAssessment 系統效能評估', () => {
     })
   })
 
-  describe('🔧 整合測試', () => {
+  describe('[FIX] 整合測試', () => {
     test('應該正確整合 MetricsCollector', async () => {
       expect(assessment.metricsCollector).toBeDefined()
 

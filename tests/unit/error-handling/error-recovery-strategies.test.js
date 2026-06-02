@@ -18,7 +18,7 @@ const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-co
  * - ROLLBACK: 回滾到穩定狀態
  */
 
-describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
+describe('錯誤恢復策略測試 (v0.9.32)', () => {
   // eslint-disable-next-line no-unused-vars
   let ErrorRecoveryManager
   // eslint-disable-next-line no-unused-vars
@@ -351,7 +351,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     })
   })
 
-  describe('🎯 優雅降級策略測試', () => {
+  describe('優雅降級策略測試', () => {
     test('應該實現功能級別的降級', () => {
       // Given: 功能模組故障
       // eslint-disable-next-line no-unused-vars
@@ -413,7 +413,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     })
   })
 
-  describe('🔄 組件重啟策略測試', () => {
+  describe('組件重啟策略測試', () => {
     test('應該能重啟故障的組件', async () => {
       // Given: 故障的組件
       // eslint-disable-next-line no-unused-vars
@@ -477,7 +477,7 @@ describe('🔄 錯誤恢復策略測試 (v0.9.32)', () => {
     })
   })
 
-  describe('📊 恢復策略效能測試', () => {
+  describe('[STATS] 恢復策略效能測試', () => {
     test('應該在合理時間內完成恢復', async () => {
       // Given: 需要恢復的錯誤情境
       // eslint-disable-next-line no-unused-vars

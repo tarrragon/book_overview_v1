@@ -119,7 +119,7 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
     await new Promise(resolve => setTimeout(resolve, 100))
   })
 
-  describe('🔧 記憶體使用和穩定性驗證', () => {
+  describe('[FIX] 記憶體使用和穩定性驗證', () => {
     // 記憶體斷言策略（W1-017）：
     // Jest 在單一進程內依序執行所有 suite，process.memoryUsage().heapUsed 含其他
     // suite 殘留與 V8 GC 時序影響，且預設環境無 global.gc() 可強制回收。
@@ -433,7 +433,7 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
     })
   })
 
-  describe('🔧 長時間運行穩定性測試', () => {
+  describe('[FIX] 長時間運行穩定性測試', () => {
     describe('24小時運行模擬', () => {
       test('應該在模擬長時間運行中保持穩定', async () => {
         // eslint-disable-next-line no-unused-vars
@@ -742,7 +742,7 @@ describe('🧪 事件系統 v2.0 穩定性和功能正確性整合測試', () =>
     })
   })
 
-  describe('🔧 併發事件處理和系統負載測試', () => {
+  describe('[FIX] 併發事件處理和系統負載測試', () => {
     describe('高併發事件處理', () => {
       test('應該正確處理大量併發事件', async () => {
         // eslint-disable-next-line no-unused-vars

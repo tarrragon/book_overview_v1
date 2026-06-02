@@ -54,7 +54,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     }
   })
 
-  describe('📊 記憶體監控和分析', () => {
+  describe('[STATS] 記憶體監控和分析', () => {
     test('應該取得當前記憶體使用狀況（fallback模式）', () => {
       // eslint-disable-next-line no-unused-vars
       const memoryInfo = MemoryUtils.getMemoryInfo()
@@ -142,7 +142,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('💾 快取管理策略', () => {
+  describe('[SAVE] 快取管理策略', () => {
     test('應該註冊和管理不同類型的快取', () => {
       // eslint-disable-next-line no-unused-vars
       const cacheConfig = {
@@ -247,7 +247,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🔍 記憶體洩漏檢測', () => {
+  describe('[CHECK] 記憶體洩漏檢測', () => {
     test('應該檢測潛在的記憶體洩漏', () => {
       // 模擬記憶體快照序列
       for (let i = 0; i < 10; i++) {
@@ -329,7 +329,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('⚡ 效能最佳化', () => {
+  describe('效能最佳化', () => {
     test('應該監控執行時間', () => {
       MemoryUtils.startTimer('test-operation')
 
@@ -434,7 +434,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📈 統計和報告', () => {
+  describe('統計和報告', () => {
     test('應該產生記憶體使用報告', () => {
       // 建立一些資料
       MemoryUtils.recordMemorySnapshot('report-test-1')
@@ -509,7 +509,7 @@ describe('MemoryUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理和邊界情況', () => {
+  describe('[WARN] 錯誤處理和邊界情況', () => {
     test('應該處理不支援 performance.memory 的環境', () => {
       // 暫時移除 performance.memory
       // eslint-disable-next-line no-unused-vars

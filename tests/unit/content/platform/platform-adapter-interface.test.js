@@ -23,7 +23,7 @@ describe('PlatformAdapterInterface', () => {
     adapter = new PlatformAdapterInterface()
   })
 
-  describe('🔌 抽象介面定義', () => {
+  describe('抽象介面定義', () => {
     test('應該是一個可實例化的類別', () => {
       expect(adapter).toBeInstanceOf(PlatformAdapterInterface)
       expect(typeof PlatformAdapterInterface).toBe('function')
@@ -40,7 +40,7 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
-  describe('📋 頁面檢測方法契約', () => {
+  describe('頁面檢測方法契約', () => {
     test('getPageType() 應該拋出未實作錯誤', async () => {
       await expect(adapter.getPageType()).rejects.toThrow()
     })
@@ -58,7 +58,7 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
-  describe('🔍 元素查找方法契約', () => {
+  describe('[CHECK] 元素查找方法契約', () => {
     test('getBookElements() 應該拋出未實作錯誤', () => {
       expect(() => adapter.getBookElements()).toThrow()
     })
@@ -72,7 +72,7 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
-  describe('📚 資料提取方法契約', () => {
+  describe('資料提取方法契約', () => {
     test('parseBookElement() 應該拋出未實作錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('div')
@@ -90,7 +90,7 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
-  describe('🧹 工具方法契約', () => {
+  describe('工具方法契約', () => {
     test('sanitizeData() 應該拋出未實作錯誤', () => {
       expect(() => adapter.sanitizeData({})).toThrow()
     })
@@ -104,7 +104,7 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理測試', () => {
+  describe('[WARN] 錯誤處理測試', () => {
     test('抽象方法應該提供清楚的錯誤訊息', async () => {
       // eslint-disable-next-line no-unused-vars
       const errorChecks = [
@@ -141,7 +141,7 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
-  describe('🔄 介面繼承測試', () => {
+  describe('介面繼承測試', () => {
     test('應該支援類別繼承', () => {
       class MockAdapter extends PlatformAdapterInterface {
         constructor () {
@@ -180,7 +180,7 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
-  describe('📊 介面契約驗證', () => {
+  describe('[STATS] 介面契約驗證', () => {
     test('應該定義所有必需的抽象方法', () => {
       // eslint-disable-next-line no-unused-vars
       const requiredMethods = [
@@ -212,7 +212,7 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
-  describe('🔧 工具方法行為', () => {
+  describe('[FIX] 工具方法行為', () => {
     test('toString() 應該回傳平台資訊', () => {
       // eslint-disable-next-line no-unused-vars
       const result = adapter.toString()

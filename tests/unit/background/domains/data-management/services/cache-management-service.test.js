@@ -46,7 +46,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     cacheService.clearAllCaches()
   })
 
-  describe('🏗️ 服務初始化', () => {
+  describe('服務初始化', () => {
     test('應該正確初始化快取管理服務', () => {
       expect(cacheService).toBeInstanceOf(CacheManagementService)
       expect(cacheService.eventBus).toBe(mockEventBus)
@@ -128,7 +128,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
   })
 
-  describe('💾 基本快取操作', () => {
+  describe('[SAVE] 基本快取操作', () => {
     test('setCacheValue() 應該儲存快取值', () => {
       // eslint-disable-next-line no-unused-vars
       const cacheKey = 'test_key'
@@ -179,7 +179,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
   })
 
-  describe('⏰ TTL (Time To Live) 管理', () => {
+  describe('[TIMER] TTL (Time To Live) 管理', () => {
     test('應該在 TTL 過期後自動清除快取', async () => {
       // 使用短 TTL 進行測試
       cacheService.config.cacheTTL = 100 // 100ms
@@ -224,7 +224,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
   })
 
-  describe('📊 快取大小限制', () => {
+  describe('[STATS] 快取大小限制', () => {
     test('應該在達到大小限制時移除最舊項目', () => {
       // 設置小的快取大小
       cacheService.config.cacheSize = 3
@@ -248,7 +248,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
   })
 
-  describe('🧹 快取清理功能', () => {
+  describe('快取清理功能', () => {
     beforeEach(() => {
       // 設置一些測試快取
       cacheService.setCacheValue('validation_key', { result: 'validation' }, 'validation')
@@ -289,7 +289,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
   })
 
-  describe('📊 快取統計', () => {
+  describe('[STATS] 快取統計', () => {
     test('getCacheStatistics() 應該提供詳細統計資訊', () => {
       // 生成一些統計資料
       cacheService.setCacheValue('key1', { value: 1 }, 'validation')
@@ -329,7 +329,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
   })
 
-  describe('🔄 批次快取操作', () => {
+  describe('批次快取操作', () => {
     test('setCacheValueBatch() 應該批次設置快取', () => {
       // eslint-disable-next-line no-unused-vars
       const batchData = [
@@ -363,7 +363,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
   })
 
-  describe('🔧 快取配置管理', () => {
+  describe('[FIX] 快取配置管理', () => {
     test('updateCacheConfig() 應該更新快取配置', () => {
       // eslint-disable-next-line no-unused-vars
       const newConfig = {
@@ -415,7 +415,7 @@ describe('CacheManagementService - 快取管理服務', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         // eslint-disable-next-line no-new

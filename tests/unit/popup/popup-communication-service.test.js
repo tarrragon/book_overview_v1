@@ -52,7 +52,7 @@ describe('PopupCommunicationService 核心功能', () => {
     mockChrome.runtime.lastError = null
   })
 
-  describe('📡 Background Service Worker 通訊', () => {
+  describe('Background Service Worker 通訊', () => {
     test('應該正確檢查 Background 狀態', async () => {
       // Given: 在測試環境中，應該直接返回測試模式結果
       // eslint-disable-next-line no-unused-vars
@@ -136,7 +136,7 @@ describe('PopupCommunicationService 核心功能', () => {
     })
   })
 
-  describe('📋 Content Script 通訊', () => {
+  describe('Content Script 通訊', () => {
     test('應該正確發送提取開始訊息', async () => {
       // Given: 有效的標籤頁資料
       // eslint-disable-next-line no-unused-vars
@@ -223,7 +223,7 @@ describe('PopupCommunicationService 核心功能', () => {
     })
   })
 
-  describe('📨 訊息監聽和處理', () => {
+  describe('訊息監聽和處理', () => {
     test('應該正確註冊訊息監聽器', () => {
       // Given: 通訊服務
       // eslint-disable-next-line no-unused-vars
@@ -305,7 +305,7 @@ describe('PopupCommunicationService 核心功能', () => {
     })
   })
 
-  describe('🔧 工具方法和輔助功能', () => {
+  describe('[FIX] 工具方法和輔助功能', () => {
     test('應該正確檢測 Readmoo 頁面', () => {
       // Given: 通訊服務
       // eslint-disable-next-line no-unused-vars

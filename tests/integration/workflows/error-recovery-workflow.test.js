@@ -519,7 +519,7 @@ describe.skip('錯誤恢復工作流程整合測試', () => {
       expect(result.success).toBe(true)
       expect(result.extractedCount).toBe(80)
 
-      // 📊 重要修復：強健且精確的重試邏輯驗證
+      // [STATS] 重要修復：強健且精確的重試邏輯驗證
       // 解決原始問題：不應該因為測試不穩定就降低驗證標準
 
       // 1. 核心業務邏輯驗證 - 這些必須100%可靠
@@ -566,7 +566,7 @@ describe.skip('錯誤恢復工作流程整合測試', () => {
 
       if (actualRetryCount < expectedMinRetries) {
         // eslint-disable-next-line no-console
-        console.warn(`⚠️ 測試品質提醒: 期望至少 ${expectedMinRetries} 次重試，實際 ${actualRetryCount} 次`)
+        console.warn(`[WARN] 測試品質提醒: 期望至少 ${expectedMinRetries} 次重試，實際 ${actualRetryCount} 次`)
         // eslint-disable-next-line no-console
         console.warn('這可能表示：1) 模擬環境時序問題 2) 重試邏輯需要改進')
         // 不讓測試失敗，但記錄問題供後續分析

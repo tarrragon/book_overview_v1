@@ -126,7 +126,7 @@ class EventSystemV2IntegrationTestRunner {
   }
 
   async validateEnvironment () {
-    this.log('🔍 驗證測試環境...')
+    this.log('[CHECK] 驗證測試環境...')
 
     // 檢查必要的依賴
     const requiredModules = [
@@ -164,11 +164,11 @@ class EventSystemV2IntegrationTestRunner {
       this.verbose(`✓ ${suite.file} 存在`)
     }
 
-    this.log('✅ 測試環境驗證完成')
+    this.log('[OK] 測試環境驗證完成')
   }
 
   async executeTestPhases () {
-    this.log('🚀 開始執行整合測試階段...')
+    this.log('[START] 開始執行整合測試階段...')
 
     const activeTestSuites = this.testSuites.filter(suite => {
       if (suite.condition) {
@@ -177,7 +177,7 @@ class EventSystemV2IntegrationTestRunner {
       return true
     })
 
-    this.log(`📋 將執行 ${activeTestSuites.length} 個測試套件`)
+    this.log(`將執行 ${activeTestSuites.length} 個測試套件`)
 
     for (const suite of activeTestSuites) {
       await this.executeTestSuite(suite)
@@ -186,8 +186,8 @@ class EventSystemV2IntegrationTestRunner {
 
   async executeTestSuite (suite) {
     this.log(`\n🧪 Phase ${suite.phase}: ${suite.name}`)
-    this.log(`📁 檔案: ${suite.file}`)
-    this.log(`⏱️ 預估時間: ${suite.estimatedTime}`)
+    this.log(`檔案: ${suite.file}`)
+    this.log(`[TIME] 預估時間: ${suite.estimatedTime}`)
     this.log('─'.repeat(60))
 
     const phaseResult = {
@@ -222,12 +222,12 @@ class EventSystemV2IntegrationTestRunner {
       if (testResult.success) {
         phaseResult.status = 'passed'
         phaseResult.tests = testResult.testResults
-        this.log(`✅ Phase ${suite.phase} 完成 - 所有測試通過`)
+        this.log(`[OK] Phase ${suite.phase} 完成 - 所有測試通過`)
       } else {
         phaseResult.status = 'failed'
         phaseResult.tests = testResult.testResults
         phaseResult.errors = testResult.errors
-        this.logError(`❌ Phase ${suite.phase} 失敗`, testResult.errors)
+        this.logError(`[FAIL] Phase ${suite.phase} 失敗`, testResult.errors)
 
         if (suite.required) {
           throw (() => { const error = new Error('error occurred'); error.code = ErrorCodes.TEST_ERROR; error.details = { category: 'testing' }; return error })()
@@ -237,7 +237,7 @@ class EventSystemV2IntegrationTestRunner {
       phaseResult.endTime = Date.now()
       phaseResult.status = 'error'
       phaseResult.errors.push(error.message)
-      this.logError(`💥 Phase ${suite.phase} 執行錯誤`, error)
+      this.logError(`Phase ${suite.phase} 執行錯誤`, error)
 
       if (suite.required) {
         throw error
@@ -373,7 +373,7 @@ class EventSystemV2IntegrationTestRunner {
       ? (phaseResult.performance.memoryAfter.heapUsed - phaseResult.performance.memoryBefore.heapUsed) / 1024 / 1024
       : 0
 
-    this.log(`📊 Phase ${phaseResult.phase} 結果:`)
+    this.log(`[STATS] Phase ${phaseResult.phase} 結果:`)
     this.log(`   狀態: ${this.getStatusIcon(phaseResult.status)} ${phaseResult.status}`)
     this.log(`   測試: ${phaseResult.tests.passed}/${phaseResult.tests.total} 通過`)
     this.log(`   時間: ${duration}s`)
@@ -391,9 +391,9 @@ class EventSystemV2IntegrationTestRunner {
       : 0
 
     this.log('\n')
-    this.log('🏁 事件系統 v2.0 整合測試完成')
+    this.log('事件系統 v2.0 整合測試完成')
     this.log('═══════════════════════════════════════════════════════════════')
-    this.log('📊 總體結果:')
+    this.log('[STATS] 總體結果:')
     this.log(`   測試套件: ${this.results.phases.length} 個`)
     this.log(`   總測試數: ${this.results.summary.totalTests}`)
     this.log(`   通過測試: ${this.results.summary.passedTests}`)
@@ -403,7 +403,7 @@ class EventSystemV2IntegrationTestRunner {
     this.log(`   總時間: ${totalTime}s`)
 
     // 顯示各階段結果
-    this.log('\n📋 階段摘要:')
+    this.log('\n階段摘要:')
     for (const phase of this.results.phases) {
       const duration = (phase.performance.executionTime / 1000).toFixed(1)
       this.log(`   Phase ${phase.phase}: ${this.getStatusIcon(phase.status)} ${phase.name} (${duration}s)`)
@@ -412,7 +412,7 @@ class EventSystemV2IntegrationTestRunner {
     // 效能摘要
     if (this.results.performance.testTimes.length > 0) {
       const avgTime = this.results.performance.testTimes.reduce((sum, t) => sum + t.time, 0) / this.results.performance.testTimes.length
-      this.log('\n⚡ 效能指標:')
+      this.log('\n效能指標:')
       this.log(`   平均階段時間: ${(avgTime / 1000).toFixed(2)}s`)
 
       const totalMemoryChange = this.results.performance.memoryUsage.reduce((total, usage) => {
@@ -426,14 +426,14 @@ class EventSystemV2IntegrationTestRunner {
 
     // 最終狀態
     if (this.results.summary.failedTests === 0) {
-      this.log('\n✅ 所有整合測試通過！事件系統 v2.0 準備就緒。')
+      this.log('\n[OK] 所有整合測試通過！事件系統 v2.0 準備就緒。')
     } else {
-      this.log('\n❌ 部分測試失敗，請檢查錯誤並修復後重新測試。')
+      this.log('\n[FAIL] 部分測試失敗，請檢查錯誤並修復後重新測試。')
     }
   }
 
   async generateReport () {
-    this.log('\n📄 生成詳細測試報告...')
+    this.log('\n生成詳細測試報告...')
 
     const reportData = {
       ...this.results,
@@ -457,7 +457,7 @@ class EventSystemV2IntegrationTestRunner {
 
     try {
       fs.writeFileSync(reportPath, JSON.stringify(reportData, null, 2))
-      this.log(`✅ 報告已儲存至: ${reportPath}`)
+      this.log(`[OK] 報告已儲存至: ${reportPath}`)
     } catch (error) {
       this.logError('無法儲存測試報告', error)
     }
@@ -507,13 +507,13 @@ class EventSystemV2IntegrationTestRunner {
 
   getStatusIcon (status) {
     const icons = {
-      passed: '✅',
-      failed: '❌',
-      error: '💥',
-      running: '🔄',
-      skipped: '⏭️'
+      passed: '[OK] ',
+      failed: '[FAIL] ',
+      error: '',
+      running: '',
+      skipped: '[SKIP] '
     }
-    return icons[status] || '❓'
+    return icons[status] || ''
   }
 
   log (message) {
@@ -527,7 +527,7 @@ class EventSystemV2IntegrationTestRunner {
   }
 
   logError (message, error) {
-    console.error(`❌ ${message}`)
+    console.error(`[FAIL] ${message}`)
     if (error) {
       if (this.options.verbose) {
         console.error(error)

@@ -36,7 +36,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     }
   })
 
-  describe('🏷️ 錯誤分類和嚴重性', () => {
+  describe('錯誤分類和嚴重性', () => {
     test('應該正確分類 DOM 相關錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const domError = new Error('Cannot read property \'querySelector\' of null')
@@ -113,7 +113,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📝 錯誤訊息格式化', () => {
+  describe('[LOG] 錯誤訊息格式化', () => {
     test('應該格式化 Error 物件', () => {
       // eslint-disable-next-line no-unused-vars
       const error = new Error('Test error message')
@@ -184,7 +184,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📊 錯誤記錄和統計', () => {
+  describe('[STATS] 錯誤記錄和統計', () => {
     test('應該記錄錯誤到歷史記錄', () => {
       // eslint-disable-next-line no-unused-vars
       const error = new Error('Recorded error')
@@ -259,7 +259,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🔄 重試機制', () => {
+  describe('[RETRY] 重試機制', () => {
     test('應該實作指數退避重試', async () => {
       // eslint-disable-next-line no-unused-vars
       let attempts = 0
@@ -339,7 +339,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🚨 Content Script 特定錯誤處理', () => {
+  describe('[ALERT] Content Script 特定錯誤處理', () => {
     test('應該處理 DOM 查詢失敗', () => {
       // eslint-disable-next-line no-unused-vars
       const domQueryError = () => document.querySelector('.non-existent')
@@ -396,7 +396,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('⚙️ 錯誤恢復策略', () => {
+  describe('錯誤恢復策略', () => {
     test('應該建議 DOM 錯誤的恢復策略', () => {
       // eslint-disable-next-line no-unused-vars
       const domError = new Error('Cannot read property \'textContent\' of null')
@@ -441,7 +441,7 @@ describe('ErrorHandlingUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📈 錯誤報告和通知', () => {
+  describe('錯誤報告和通知', () => {
     test('應該產生詳細的錯誤報告', () => {
       // 記錄一些錯誤
       ErrorHandlingUtils.recordError(new Error('Error 1'), 'CONTEXT_1')

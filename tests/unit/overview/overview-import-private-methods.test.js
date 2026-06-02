@@ -1,5 +1,5 @@
 /**
- * 📄 Overview 資料匯入功能 - 私有方法單元測試
+ * Overview 資料匯入功能 - 私有方法單元測試
  *
  * 目標：提升測試覆蓋率從 49.66% 至 90%
  * 重點：測試重構後的 20 個私有方法
@@ -9,7 +9,7 @@
 
 const { JSDOM } = require('jsdom')
 
-describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => {
+describe('[FIX] 私有方法單元測試 - FileReader 資料匯入功能', () => {
   let dom
   let document
   let window
@@ -150,16 +150,16 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
 
           <!-- 操作按鈕區域 -->
           <div class="actions">
-            <button class="export-btn" id="importJSONBtn">📥 匯入 JSON</button>
-            <button class="export-btn" id="reloadBtn">🔄 重新載入</button>
+            <button class="export-btn" id="importJSONBtn">匯入 JSON</button>
+            <button class="export-btn" id="reloadBtn">重新載入</button>
           </div>
 
           <!-- 檔案載入區域 -->
           <div id="fileUploader" style="display: none;">
             <div class="file-uploader">
-              <h3>📁 載入書籍 JSON 檔案</h3>
+              <h3>載入書籍 JSON 檔案</h3>
               <input type="file" id="jsonFileInput" accept=".json,application/json">
-              <button class="export-btn" id="loadFileBtn">📂 載入檔案</button>
+              <button class="export-btn" id="loadFileBtn">載入檔案</button>
             </div>
           </div>
 
@@ -293,8 +293,8 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     delete require.cache[require.resolve('@/overview/overview-page-controller')]
   })
 
-  // 🔧 目標 1: 檔案處理層私有方法測試
-  describe('📁 檔案處理層私有方法測試', () => {
+  // [FIX] 目標 1: 檔案處理層私有方法測試
+  describe('檔案處理層私有方法測試', () => {
     // W1-048.1 Stage C.3：原 _validateFileBasics() 直呼測試已透過 handleFileLoad 走 public
     // validate()（Stage B 切換）。本 describe 行為斷言保留（VALIDATION_ERROR 訊息與檔案
     // 拒絕邊界）；不再直呼底線方法。
@@ -438,8 +438,8 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     })
   })
 
-  // ⚙️ 目標 2: FileReader 操作層私有方法測試
-  describe('📡 FileReader 操作層私有方法測試', () => {
+  // 目標 2: FileReader 操作層私有方法測試
+  describe('FileReader 操作層私有方法測試', () => {
     describe('_createFileReader() FileReader 建立', () => {
       test('應該建立新的 FileReader 實例', async () => {
         // Given: 有效檔案
@@ -575,8 +575,8 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
     })
   })
 
-  // 🧹 目標 3: 內容處理層私有方法測試
-  describe('🧹 內容處理層私有方法測試', () => {
+  // 目標 3: 內容處理層私有方法測試
+  describe('內容處理層私有方法測試', () => {
     describe('_validateAndCleanContent() 內容驗證與清理', () => {
       test('應該通過有效內容驗證', async () => {
         // Given: 有效 JSON 內容
@@ -750,7 +750,7 @@ describe('🔧 私有方法單元測試 - FileReader 資料匯入功能', () => 
         // eslint-disable-next-line no-unused-vars
         const specialBook = {
           ...testDataSets.validBook,
-          title: '特殊字符📚測試\n"引號"\'單引號\''
+          title: '特殊字符測試\n"引號"\'單引號\''
         }
         // eslint-disable-next-line no-unused-vars
         const specialJSON = JSON.stringify([specialBook])

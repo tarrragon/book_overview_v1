@@ -69,7 +69,7 @@ describe('StorageCompletionHandler', () => {
     jest.clearAllMocks()
   })
 
-  describe('🔧 基本結構測試', () => {
+  describe('[FIX] 基本結構測試', () => {
     test('應該正確繼承 EventHandler', () => {
       handler = new StorageCompletionHandler(mockEventBus, mockStorageAdapter)
       expect(handler).toBeInstanceOf(EventHandler)
@@ -98,7 +98,7 @@ describe('StorageCompletionHandler', () => {
     })
   })
 
-  describe('🔧 事件支援測試', () => {
+  describe('[FIX] 事件支援測試', () => {
     beforeEach(() => {
       handler = new StorageCompletionHandler(mockEventBus, mockStorageAdapter)
     })
@@ -132,7 +132,7 @@ describe('StorageCompletionHandler', () => {
     })
   })
 
-  describe('🔧 儲存完成處理測試', () => {
+  describe('[FIX] 儲存完成處理測試', () => {
     beforeEach(() => {
       handler = new StorageCompletionHandler(mockEventBus, mockStorageAdapter)
     })
@@ -236,7 +236,7 @@ describe('StorageCompletionHandler', () => {
     })
   })
 
-  describe('🔧 錯誤處理測試', () => {
+  describe('[FIX] 錯誤處理測試', () => {
     beforeEach(() => {
       handler = new StorageCompletionHandler(mockEventBus, mockStorageAdapter)
     })
@@ -337,7 +337,7 @@ describe('StorageCompletionHandler', () => {
     })
   })
 
-  describe('🔧 事件驗證測試', () => {
+  describe('[FIX] 事件驗證測試', () => {
     beforeEach(() => {
       handler = new StorageCompletionHandler(mockEventBus, mockStorageAdapter)
     })
@@ -391,7 +391,7 @@ describe('StorageCompletionHandler', () => {
     })
   })
 
-  describe('🔧 統計和效能測試', () => {
+  describe('[FIX] 統計和效能測試', () => {
     beforeEach(() => {
       handler = new StorageCompletionHandler(mockEventBus, mockStorageAdapter)
     })
@@ -474,7 +474,7 @@ describe('StorageCompletionHandler', () => {
     })
   })
 
-  describe('🔧 恢復策略測試', () => {
+  describe('[FIX] 恢復策略測試', () => {
     beforeEach(() => {
       handler = new StorageCompletionHandler(mockEventBus, mockStorageAdapter)
     })

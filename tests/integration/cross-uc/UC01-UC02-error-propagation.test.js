@@ -24,7 +24,7 @@ const { UC02ErrorAdapter } = require('src/core/errors/UC02ErrorAdapter')
 const { UC01ErrorFactory } = require('src/core/errors/UC01ErrorFactory')
 const { UC02ErrorFactory } = require('src/core/errors/UC02ErrorFactory')
 
-describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
+describe('UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
   // eslint-disable-next-line no-unused-vars
   let mockChrome
   // eslint-disable-next-line no-unused-vars
@@ -93,7 +93,7 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
     jest.clearAllMocks()
   })
 
-  describe('🚨 UC-01 初始化失敗 → UC-02 錯誤適應', () => {
+  describe('[ALERT] UC-01 初始化失敗 → UC-02 錯誤適應', () => {
     test('應該正確處理 DOM_READMOO_PAGE_NOT_DETECTED 從 UC-01 到 UC-02 的傳播', async () => {
       // Arrange: UC-01 頁面檢測失敗
       // eslint-disable-next-line no-unused-vars
@@ -193,7 +193,7 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
     })
   })
 
-  describe('🔄 統一錯誤恢復機制驗證', () => {
+  describe('統一錯誤恢復機制驗證', () => {
     test('應該正確應用 4 級嚴重程度的恢復策略', async () => {
       // eslint-disable-next-line no-unused-vars
       const testCases = [
@@ -353,7 +353,7 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
     })
   })
 
-  describe('🌐 Chrome Extension 實際環境驗證', () => {
+  describe('Chrome Extension 實際環境驗證', () => {
     test('應該正確處理 Service Worker 環境中的跨 UC 錯誤序列化', async () => {
       // Arrange: 模擬 Background Script 環境
       // eslint-disable-next-line no-unused-vars
@@ -481,7 +481,7 @@ describe('🔗 UC-01→UC-02 跨 UC 錯誤傳播整合測試', () => {
     })
   })
 
-  describe('📊 整合測試結果驗證', () => {
+  describe('[STATS] 整合測試結果驗證', () => {
     test('應該達成跨 UC 錯誤傳播 100% 場景覆蓋', async () => {
       // Arrange: 定義所有需要測試的錯誤傳播場景
       // eslint-disable-next-line no-unused-vars

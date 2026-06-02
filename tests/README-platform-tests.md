@@ -4,20 +4,20 @@
 **建立日期**: 2025-08-13  
 **維護者**: sage-test-architect (TDD 測試設計專家)
 
-## 📋 測試概覽
+## 測試概覽
 
 本文件說明 Platform Domain v2.0 的完整測試設計和執行方式，包含單元測試、整合測試、效能基準測試等。
 
-### 🎯 測試目標
+### 測試目標
 
 - **100% 單元測試覆蓋** - 涵蓋所有可測試程式碼路徑
 - **95%+ 整合測試覆蓋** - 確保服務間協作正確
 - **效能基準達標** - 符合 Platform Domain v2.0 效能要求
 - **向後相容性保證** - 確保 Readmoo 平台無縫遷移
 
-### 📊 測試覆蓋範圍
+### [STATS] 測試覆蓋範圍
 
-#### 已實現測試 ✅
+#### 已實現測試 [OK] 
 
 1. **Platform Detection Service** (平台檢測服務)
    - 單元測試: 67 個測試案例
@@ -25,14 +25,14 @@
    - 效能測試: 12 個基準測試
    - 覆蓋率目標: 100%
 
-#### 待實現測試 📝
+#### 待實現測試 [LOG] 
 
 2. **Platform Registry Service** (平台註冊服務) - 待開發
 3. **Adapter Factory Service** (適配器工廠服務) - 待開發
 4. **Platform Switcher Service** (平台切換服務) - 待開發
 5. **Platform Domain Coordinator** (領域協調器) - 待開發
 
-## 🚀 快速開始
+## [START] 快速開始
 
 ### 執行所有 Platform Domain 測試
 
@@ -73,7 +73,7 @@ npm run test:coverage -- --testPathPattern="platform"
 open coverage/index.html
 ```
 
-## 📁 測試檔案結構
+## 測試檔案結構
 
 ```
 tests/
@@ -158,7 +158,7 @@ tests/
 - 並發檢測效能基準 (2 個測試)
 - 效能回歸測試 (1 個測試)
 
-## 🛠️ 測試工具和模擬物件
+## 測試工具和模擬物件
 
 ### 模擬資料 (`platform-detection.mock.js`)
 
@@ -195,7 +195,7 @@ tests/
 - `toContainFeatures(features)` - 驗證平台特徵
 - `toCompleteWithin(time)` - 驗證效能時間
 
-## 📊 測試執行和報告
+## [STATS] 測試執行和報告
 
 ### 測試執行統計
 
@@ -216,9 +216,9 @@ Platform Domain Test Suite
 
 Test Summary:
   Total Tests: 67 implemented + 36 pending
-  Unit Tests: 67 ✅
-  Integration Tests: 24 ✅
-  Performance Tests: 12 ✅
+  Unit Tests: 67 [OK] 
+  Integration Tests: 24 [OK] 
+  Performance Tests: 12 [OK] 
 ```
 
 ### 效能基準報告
@@ -239,7 +239,7 @@ Metrics:
 All benchmarks passed!
 ```
 
-## 🔧 測試環境配置
+## [FIX] 測試環境配置
 
 ### Jest 配置調整
 
@@ -281,7 +281,7 @@ NODE_OPTIONS="--expose-gc" npm test
 NODE_ENV=performance-test npm test
 ```
 
-## 📝 測試維護指引
+## [LOG] 測試維護指引
 
 ### 新增測試案例
 
@@ -313,7 +313,7 @@ NODE_ENV=performance-test npm test
 3. **效能問題除錯**: 使用 `console.log` 輸出詳細的效能測量資料
 4. **記憶體洩漏檢查**: 開啟 `--expose-gc` 選項並檢查記憶體使用
 
-## 🚨 重要注意事項
+## [ALERT] 重要注意事項
 
 ### 不可測試程式碼標註
 

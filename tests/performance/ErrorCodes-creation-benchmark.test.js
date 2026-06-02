@@ -47,7 +47,7 @@ const { UC01ErrorAdapter } = require('src/core/errors/UC01ErrorAdapter')
 // eslint-disable-next-line no-unused-vars
 const { UC02ErrorAdapter } = require('src/core/errors/UC02ErrorAdapter')
 
-describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
+describe('ErrorCodes 錯誤建立效能基準測試', () => {
   let performanceBenchmark
   let statisticsCollector
 
@@ -216,7 +216,7 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
     }
   })
 
-  describe('🚀 單一錯誤建立效能測試', () => {
+  describe('[START] 單一錯誤建立效能測試', () => {
     test('應該測量基本 ErrorCodes 錯誤建立時間', () => {
       // 預熱
       performanceBenchmark.warmup(() => {
@@ -321,7 +321,7 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
     })
   })
 
-  describe('📦 CommonErrors 預編譯效能測試', () => {
+  describe('CommonErrors 預編譯效能測試', () => {
     test('應該比較 CommonErrors 與動態建立的效能差異', () => {
       // 預熱兩種方式
       performanceBenchmark.warmup(() => CommonErrors.EMAIL_REQUIRED)
@@ -641,7 +641,7 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
     })
   })
 
-  describe('📊 效能回歸檢測', () => {
+  describe('[STATS] 效能回歸檢測', () => {
     test('應該建立效能基準線並檢測回歸', () => {
       // eslint-disable-next-line no-unused-vars
       const baselineTest = () => {
@@ -707,14 +707,14 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
       if (Math.abs(regression.improvement) > regressionThreshold) {
         if (regression.improvement < 0) {
           // eslint-disable-next-line no-console
-          console.warn(`⚠️ 檢測到效能回歸: ${(Math.abs(regression.improvement) * 100).toFixed(1)}%`)
+          console.warn(`[WARN] 檢測到效能回歸: ${(Math.abs(regression.improvement) * 100).toFixed(1)}%`)
         } else {
           // eslint-disable-next-line no-console
-          console.log(`✅ 檢測到效能改善: ${(regression.improvement * 100).toFixed(1)}%`)
+          console.log(`[OK] 檢測到效能改善: ${(regression.improvement * 100).toFixed(1)}%`)
         }
       } else {
         // eslint-disable-next-line no-console
-        console.log('✅ 效能穩定，無顯著變化')
+        console.log('[OK] 效能穩定，無顯著變化')
       }
 
       // 驗證效能沒有嚴重回歸
@@ -732,12 +732,12 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
     const report = statisticsCollector.generateReport()
 
     // eslint-disable-next-line no-console
-    console.log('\n⚡ ErrorCodes 錯誤建立效能基準測試完整報告:')
+    console.log('\nErrorCodes 錯誤建立效能基準測試完整報告:')
     // eslint-disable-next-line no-console
     console.log('================================================')
 
     // eslint-disable-next-line no-console
-    console.log('\n📊 效能摘要:')
+    console.log('\n[STATS] 效能摘要:')
     Object.entries(report.summary).forEach(([testName, summary]) => {
       // eslint-disable-next-line no-console
       console.log(`  ${testName}:`)
@@ -750,7 +750,7 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
     })
 
     // eslint-disable-next-line no-console
-    console.log('\n🎯 基準達成狀況:')
+    console.log('\n基準達成狀況:')
     // eslint-disable-next-line no-unused-vars
     const baselineTargets = {
       basic_error_creation: { target: 0.5, description: '基本錯誤建立 (目標: < 0.5ms)' },
@@ -765,14 +765,14 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
         // eslint-disable-next-line no-unused-vars
         const achieved = result.averageDuration <= baseline.target
         // eslint-disable-next-line no-unused-vars
-        const status = achieved ? '✅' : '❌'
+        const status = achieved ? '[OK] ' : '[FAIL] '
         // eslint-disable-next-line no-console
         console.log(`  ${status} ${baseline.description}: ${result.averageDuration.toFixed(3)} ms`)
       }
     })
 
     // eslint-disable-next-line no-console
-    console.log('\n🔄 效能比較:')
+    console.log('\n效能比較:')
     // eslint-disable-next-line no-unused-vars
     const comparisons = [
       { test1: 'common_errors', test2: 'dynamic_creation', description: 'CommonErrors vs 動態建立' },
@@ -792,7 +792,7 @@ describe('⚡ ErrorCodes 錯誤建立效能基準測試', () => {
     })
 
     // eslint-disable-next-line no-console
-    console.log('\n📈 建議:')
+    console.log('\n建議:')
     // eslint-disable-next-line no-console
     console.log('  1. 盡可能使用 CommonErrors 預編譯錯誤以獲得最佳效能')
     // eslint-disable-next-line no-console

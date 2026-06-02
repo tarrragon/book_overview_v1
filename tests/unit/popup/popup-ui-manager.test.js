@@ -35,7 +35,7 @@ global.chrome = mockChrome
 // Mock DOM
 const { JSDOM } = require('jsdom')
 
-describe('🎨 PopupUIManager Refactor Tests (TDD循環 #36)', () => {
+describe('PopupUIManager Refactor Tests (TDD循環 #36)', () => {
   let PopupUIManager
   let uiManager
   let dom

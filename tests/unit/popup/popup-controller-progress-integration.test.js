@@ -335,7 +335,7 @@ describe('PopupController 進度管理整合測試', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理測試', () => {
+  describe('[WARN] 錯誤處理測試', () => {
     test('應該優雅處理 UI 更新失敗', async () => {
       // Given: 已初始化的控制器
       // eslint-disable-next-line no-unused-vars

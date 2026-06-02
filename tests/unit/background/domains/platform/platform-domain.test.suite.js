@@ -35,22 +35,22 @@ describe('Platform Domain Test Suite', () => {
     setupCustomMatchers()
 
     // eslint-disable-next-line no-console
-    console.log('🌐 Platform Domain v2.0 Test Suite Starting...')
+    console.log('Platform Domain v2.0 Test Suite Starting...')
     // eslint-disable-next-line no-console
-    console.log('📋 Test Coverage Target: 100% for all testable code paths')
+    console.log('Test Coverage Target: 100% for all testable code paths')
   })
 
   afterAll(() => {
     // eslint-disable-next-line no-console
-    console.log('✅ Platform Domain Test Suite Completed')
+    console.log('[OK] Platform Domain Test Suite Completed')
   })
 
-  describe('🔍 Platform Detection Service', () => {
+  describe('[CHECK] Platform Detection Service', () => {
     // 主要的平台檢測服務測試
     require('./services/platform-detection-service.test')
   })
 
-  describe('📝 Platform Registry Service', () => {
+  describe('[LOG] Platform Registry Service', () => {
     test.todo('Platform Registry Service 單元測試 - 待實現')
     // 未來實現: require('./services/platform-registry-service.test')
   })
@@ -60,22 +60,22 @@ describe('Platform Domain Test Suite', () => {
     // 未來實現: require('./services/adapter-factory-service.test')
   })
 
-  describe('🔄 Platform Switcher Service', () => {
+  describe('Platform Switcher Service', () => {
     test.todo('Platform Switcher Service 單元測試 - 待實現')
     // 未來實現: require('./services/platform-switcher-service.test')
   })
 
-  describe('🎯 Platform Domain Coordinator', () => {
+  describe('Platform Domain Coordinator', () => {
     test.todo('Platform Domain Coordinator 單元測試 - 待實現')
     // 未來實現: require('./platform-domain-coordinator.test')
   })
 
-  describe('🔗 Service Integration', () => {
+  describe('Service Integration', () => {
     test.todo('Platform Domain 服務間整合測試 - 待實現')
     // 未來實現: 測試各服務之間的協作
   })
 
-  describe('📊 Performance Benchmarks', () => {
+  describe('[STATS] Performance Benchmarks', () => {
     test.todo('Platform Domain 效能基準測試 - 待實現')
     // 未來實現: 整體效能測試
   })

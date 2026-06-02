@@ -136,7 +136,7 @@ describe('DataValidationService - 服務整合測試', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗️ 服務整合初始化', () => {
+  describe('服務整合初始化', () => {
     test('應該正確初始化所有子服務依賴', () => {
       expect(validationService.validationRuleManager).toBe(mockValidationRuleManager)
       expect(validationService.batchValidationProcessor).toBe(mockBatchValidationProcessor)
@@ -167,7 +167,7 @@ describe('DataValidationService - 服務整合測試', () => {
     })
   })
 
-  describe('🔄 服務協調流程', () => {
+  describe('服務協調流程', () => {
     test('validateAndNormalize() 應該協調所有服務完成完整流程', async () => {
       // eslint-disable-next-line no-unused-vars
       const books = [
@@ -225,7 +225,7 @@ describe('DataValidationService - 服務整合測試', () => {
     })
   })
 
-  describe('⏰ 超時控制機制', () => {
+  describe('[TIMER] 超時控制機制', () => {
     test('應該在超時後拋出錯誤', async () => {
       // 設置短超時時間
       validationService.config.validationTimeout = 100
@@ -259,7 +259,7 @@ describe('DataValidationService - 服務整合測試', () => {
     })
   })
 
-  describe('📊 事件生命週期管理', () => {
+  describe('[STATS] 事件生命週期管理', () => {
     test('應該發送完整的驗證生命週期事件', async () => {
       // eslint-disable-next-line no-unused-vars
       const books = [{ id: 'book1', title: '測試書籍' }]
@@ -314,7 +314,7 @@ describe('DataValidationService - 服務整合測試', () => {
     })
   })
 
-  describe('🛡️ 輸入驗證與錯誤處理', () => {
+  describe('輸入驗證與錯誤處理', () => {
     test('應該驗證必要輸入參數', async () => {
       await expect(
         validationService.validateAndNormalize(null, 'READMOO', 'test')
@@ -355,7 +355,7 @@ describe('DataValidationService - 服務整合測試', () => {
     })
   })
 
-  describe('🧹 服務清理與資源管理', () => {
+  describe('服務清理與資源管理', () => {
     test('destroy() 應該清理所有子服務', () => {
       mockCacheManagementService.clearAllCaches = jest.fn()
       mockValidationRuleManager.clearAllRules = jest.fn()
@@ -374,7 +374,7 @@ describe('DataValidationService - 服務整合測試', () => {
     })
   })
 
-  describe('⚙️ 配置管理', () => {
+  describe('配置管理', () => {
     test('應該支援配置更新', () => {
       // eslint-disable-next-line no-unused-vars
       const newConfig = {

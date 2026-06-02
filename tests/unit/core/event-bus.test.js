@@ -29,7 +29,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
  * - 資料提取、儲存、UI更新等都基於事件驅動
  */
 
-describe('🎭 事件總線核心測試', () => {
+describe('事件總線核心測試', () => {
   // eslint-disable-next-line no-unused-vars
   let eventBus
 
@@ -48,7 +48,7 @@ describe('🎭 事件總線核心測試', () => {
     }
   })
 
-  describe('📝 事件註冊機制', () => {
+  describe('[LOG] 事件註冊機制', () => {
     test('應該能夠註冊事件監聽器', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -165,7 +165,7 @@ describe('🎭 事件總線核心測試', () => {
     })
   })
 
-  describe('🚀 事件觸發機制', () => {
+  describe('[START] 事件觸發機制', () => {
     test('應該能夠觸發事件並執行監聽器', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -246,7 +246,7 @@ describe('🎭 事件總線核心測試', () => {
     })
   })
 
-  describe('⚡ 事件優先級處理', () => {
+  describe('事件優先級處理', () => {
     test('應該支援事件優先級', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -277,7 +277,7 @@ describe('🎭 事件總線核心測試', () => {
     })
   })
 
-  describe('🛡 錯誤處理機制', () => {
+  describe('錯誤處理機制', () => {
     test('應該隔離錯誤，不影響其他監聽器', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -336,7 +336,7 @@ describe('🎭 事件總線核心測試', () => {
     })
   })
 
-  describe('📊 統計和監控功能', () => {
+  describe('[STATS] 統計和監控功能', () => {
     test('應該提供完整的事件系統統計資訊（無觸發時）', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -586,7 +586,7 @@ describe('🎭 事件總線核心測試', () => {
     })
   })
 
-  describe('🔧 記憶體和效能管理', () => {
+  describe('[FIX] 記憶體和效能管理', () => {
     test('應該能夠完全清理所有監聽器', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars

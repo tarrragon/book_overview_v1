@@ -18,7 +18,7 @@ describe('TestDataFactory', () => {
     dataFactory = new TestDataFactory()
   })
 
-  describe('🔧 基礎初始化和配置', () => {
+  describe('[FIX] 基礎初始化和配置', () => {
     test('應該成功初始化資料工廠', () => {
       expect(dataFactory).toBeInstanceOf(TestDataFactory)
       expect(typeof dataFactory.createBookDataSet).toBe('function')
@@ -45,7 +45,7 @@ describe('TestDataFactory', () => {
     })
   })
 
-  describe('📚 書籍資料生成測試', () => {
+  describe('書籍資料生成測試', () => {
     test('應該生成指定數量的書籍資料', () => {
       // eslint-disable-next-line no-unused-vars
       const books = dataFactory.createBookDataSet(5)
@@ -152,7 +152,7 @@ describe('TestDataFactory', () => {
     })
   })
 
-  describe('💬 Chrome消息資料生成測試', () => {
+  describe('Chrome消息資料生成測試', () => {
     test('應該生成指定數量的Chrome消息', () => {
       // eslint-disable-next-line no-unused-vars
       const messages = dataFactory.createChromeMessages(5)
@@ -210,7 +210,7 @@ describe('TestDataFactory', () => {
     })
   })
 
-  describe('⚠️ 錯誤場景資料生成測試', () => {
+  describe('[WARN] 錯誤場景資料生成測試', () => {
     test('應該生成指定數量的錯誤場景', () => {
       // eslint-disable-next-line no-unused-vars
       const errors = dataFactory.createErrorScenarios(5)
@@ -343,7 +343,7 @@ describe('TestDataFactory', () => {
     })
   })
 
-  describe('⚡ 效能測試資料生成', () => {
+  describe('效能測試資料生成', () => {
     test('應該生成小型效能測試資料', () => {
       // eslint-disable-next-line no-unused-vars
       const data = dataFactory.createPerformanceTestData('small')
@@ -373,7 +373,7 @@ describe('TestDataFactory', () => {
     })
   })
 
-  describe('🌐 Readmoo頁面資料生成', () => {
+  describe('Readmoo頁面資料生成', () => {
     test('應該生成書架頁面資料', () => {
       // eslint-disable-next-line no-unused-vars
       const pageData = dataFactory.createReadmooPageData('bookshelf')
@@ -408,7 +408,7 @@ describe('TestDataFactory', () => {
     })
   })
 
-  describe('🔄 工廠狀態管理', () => {
+  describe('工廠狀態管理', () => {
     test('應該支援重置工廠狀態', () => {
       // 修改一些內部狀態（假設有的話）
       // eslint-disable-next-line no-unused-vars
@@ -457,7 +457,7 @@ describe('TestDataFactory', () => {
     })
   })
 
-  describe('🔒 資料一致性和品質驗證', () => {
+  describe('資料一致性和品質驗證', () => {
     test('應該生成一致性的書籍ID格式', () => {
       // eslint-disable-next-line no-unused-vars
       const books = dataFactory.createBookDataSet(20)

@@ -52,7 +52,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗️ 服務初始化', () => {
+  describe('服務初始化', () => {
     test('應該正確初始化批次驗證處理器', () => {
       expect(processor).toBeInstanceOf(BatchValidationProcessor)
       expect(processor.eventBus).toBe(mockEventBus)
@@ -73,7 +73,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
   })
 
-  describe('📦 批次分割功能', () => {
+  describe('批次分割功能', () => {
     test('splitIntoBatches() 應該正確分割小數量資料', () => {
       // eslint-disable-next-line no-unused-vars
       const books = [1, 2, 3, 4, 5]
@@ -117,7 +117,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
   })
 
-  describe('🔍 單本書籍驗證', () => {
+  describe('[CHECK] 單本書籍驗證', () => {
     beforeEach(() => {
       mockValidationRuleManager.getValidationRules.mockReturnValue({
         requiredFields: ['id', 'title'],
@@ -210,7 +210,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
   })
 
-  describe('📋 批次處理功能', () => {
+  describe('批次處理功能', () => {
     beforeEach(() => {
       mockValidationRuleManager.getValidationRules.mockReturnValue({
         requiredFields: ['id', 'title'],
@@ -284,7 +284,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
   })
 
-  describe('🚀 完整批次驗證流程', () => {
+  describe('[START] 完整批次驗證流程', () => {
     test('processBatches() 應該處理多個批次', async () => {
       // eslint-disable-next-line no-unused-vars
       const books = new Array(25).fill(0).map((_, i) => ({
@@ -341,7 +341,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
   })
 
-  describe('📊 統計與監控', () => {
+  describe('[STATS] 統計與監控', () => {
     test('getBatchStatistics() 應該提供批次處理統計', () => {
       processor.batchStatistics.totalProcessed = 100
       processor.batchStatistics.batchCount = 5
@@ -373,7 +373,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
   })
 
-  describe('🛠️ 輔助方法', () => {
+  describe('輔助方法', () => {
     test('isCorrectType() 應該驗證資料類型', () => {
       expect(processor.isCorrectType('test', 'string')).toBe(true)
       expect(processor.isCorrectType(123, 'number')).toBe(true)
@@ -397,7 +397,7 @@ describe('BatchValidationProcessor - 批次驗證處理服務', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         // eslint-disable-next-line no-new

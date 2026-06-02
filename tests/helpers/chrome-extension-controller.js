@@ -284,7 +284,7 @@ class ChromeExtensionController {
       if (currentInterference) {
         result.securityViolations = 1
         // eslint-disable-next-line no-console
-        console.log('🔧 Security violation detected:', currentInterference)
+        console.log('[FIX] Security violation detected:', currentInterference)
 
         if (enableCountermeasures) {
           const countermeasures = this.activateCountermeasures(currentInterference)
@@ -390,7 +390,7 @@ class ChromeExtensionController {
       if (enableCSPDetection) {
         const cspConfig = this.state.cspTestConfig || this.state.cspSettings
 
-        // this.log(`🔧 CSP檢測邏輯: cspConfig=${!!cspConfig}, restrictive=${cspConfig?.restrictive}`)
+        // this.log(`[FIX] CSP檢測邏輯: cspConfig=${!!cspConfig}, restrictive=${cspConfig?.restrictive}`)
 
         // 使用 setupCSPTestEnvironment 設置的 restrictive 標記
         if (cspConfig && cspConfig.restrictive === true) {
@@ -534,7 +534,7 @@ class ChromeExtensionController {
     } catch (error) {
       const handlingStartTime = Date.now()
 
-      this.log(`🔧 進入錯誤處理: ${error.message}, enableErrorHandling=${enableErrorHandling}, retryOnFailure=${retryOnFailure}`)
+      this.log(`[FIX] 進入錯誤處理: ${error.message}, enableErrorHandling=${enableErrorHandling}, retryOnFailure=${retryOnFailure}`)
 
       result.success = false
       result.error = error.message
@@ -556,7 +556,7 @@ class ChromeExtensionController {
           result.recoveryAttempted = true
           // 模擬恢復成功
           if (retryOnFailure && Math.random() > 0.3) { // 70% 成功率
-            this.log(`🔧 模擬恢復成功: ${error.message}`)
+            this.log(`[FIX] 模擬恢復成功: ${error.message}`)
             result.success = true
             result.injected = true
             result.injectionSuccess = true
@@ -570,7 +570,7 @@ class ChromeExtensionController {
               result.errorMessage = error.message
             }
           } else {
-            this.log(`🔧 模擬恢復失敗: ${error.message}`)
+            this.log(`[FIX] 模擬恢復失敗: ${error.message}`)
             // 恢復失敗時確保 errorMessage 存在
             result.errorMessage = error.message
             result.finalSuccess = false
@@ -594,7 +594,7 @@ class ChromeExtensionController {
       this.log(`Content Script注入失敗: ${error.message}`)
     }
 
-    this.log(`🔧 最終結果: cspViolationDetected=${result.cspViolationDetected}, behavior=${result.behavior}, injectionSuccess=${result.injectionSuccess}`)
+    this.log(`[FIX] 最終結果: cspViolationDetected=${result.cspViolationDetected}, behavior=${result.behavior}, injectionSuccess=${result.injectionSuccess}`)
 
     return result
   }
@@ -715,9 +715,9 @@ class ChromeExtensionController {
     }
 
     // eslint-disable-next-line no-console
-    console.log('🔧 CSP Test Environment setup:', this.state.cspTestConfig)
+    console.log('[FIX] CSP Test Environment setup:', this.state.cspTestConfig)
     // eslint-disable-next-line no-console
-    console.log('🔧 Page Environment for CSP test:', this.state.pageEnvironment.url)
+    console.log('[FIX] Page Environment for CSP test:', this.state.pageEnvironment.url)
 
     return { success: true, testEnvironmentReady: true }
   }
@@ -748,7 +748,7 @@ class ChromeExtensionController {
         actions
       }
       // eslint-disable-next-line no-console
-      console.log('🔧 Malicious environment set:', this.state.maliciousEnvironment)
+      console.log('[FIX] Malicious environment set:', this.state.maliciousEnvironment)
     }
 
     return { success: true, behaviorSimulated: true }

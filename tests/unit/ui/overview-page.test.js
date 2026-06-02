@@ -251,7 +251,7 @@ const DOMTestUtils = {
       if (tbody.children.length === 1) {
         // eslint-disable-next-line no-unused-vars
         const firstRow = tbody.children[0]
-        return firstRow.textContent.includes('📚 目前沒有書籍資料') || firstRow.textContent.includes('沒有符合條件的書籍')
+        return firstRow.textContent.includes('目前沒有書籍資料') || firstRow.textContent.includes('沒有符合條件的書籍')
       }
       return tbody.children.length === 0
     },
@@ -454,7 +454,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   })
 
   // ===== 階段1：EventHandler依賴解決測試 =====
-  describe('🔧 階段1：EventHandler依賴解決', () => {
+  describe('[FIX] 階段1：EventHandler依賴解決', () => {
     test('應該成功繼承EventHandler基類', () => {
       expect(controller).toBeInstanceOf(EventHandlerMock)
       expect(controller.eventBus).toBeDefined()
@@ -473,7 +473,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   })
 
   // ===== 階段2：DOM管理與初始化測試 =====
-  describe('🏗️ 階段2：DOM管理與初始化', () => {
+  describe('階段2：DOM管理與初始化', () => {
     test('建構函數應該正確初始化屬性', () => {
       expect(controller.eventBus).toBe(mockEventBus)
       expect(Array.isArray(controller.currentBooks)).toBe(true)
@@ -531,7 +531,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   })
 
   // ===== 階段3：事件驅動資料載入測試 =====
-  describe('📊 階段3：事件驅動資料載入', () => {
+  describe('[STATS] 階段3：事件驅動資料載入', () => {
     beforeEach(async () => {
       await controller.initializeElements()
       await controller.setupEventListeners()
@@ -614,7 +614,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   })
 
   // ===== 階段4：搜尋和篩選功能測試 =====
-  describe('🔍 階段4：搜尋和篩選功能', () => {
+  describe('[CHECK] 階段4：搜尋和篩選功能', () => {
     beforeEach(async () => {
       await controller.initializeElements()
       await controller.setupEventListeners()
@@ -738,7 +738,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   })
 
   // ===== 階段5：表格渲染與UI狀態管理測試 =====
-  describe('🎨 階段5：表格渲染與UI狀態管理', () => {
+  describe('階段5：表格渲染與UI狀態管理', () => {
     beforeEach(async () => {
       await controller.initializeElements()
       // eslint-disable-next-line no-unused-vars
@@ -817,7 +817,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   })
 
   // ===== 階段6：檔案匯入匯出功能測試 =====
-  describe('💾 階段6：檔案匯入匯出功能', () => {
+  describe('[SAVE] 階段6：檔案匯入匯出功能', () => {
     beforeEach(async () => {
       await controller.initializeElements()
       // eslint-disable-next-line no-unused-vars
@@ -921,7 +921,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   })
 
   // ===== 邊界條件和異常處理測試 =====
-  describe('⚠️ 邊界條件和異常處理', () => {
+  describe('[WARN] 邊界條件和異常處理', () => {
     test('應該正確處理邊界條件資料', async () => {
       // eslint-disable-next-line no-unused-vars
       const edgeCaseData = TestDataFactory.createEdgeCaseData()
@@ -970,7 +970,7 @@ describe('UC-06 Overview頁面功能測試套件 - 100%覆蓋率目標', () => {
   })
 
   // ===== 整合測試 =====
-  describe('🔗 整合測試', () => {
+  describe('整合測試', () => {
     test('應該完整執行初始化流程', async () => {
       // 模擬完整的初始化流程
       await controller.initializeElements()

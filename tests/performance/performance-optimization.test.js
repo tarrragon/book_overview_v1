@@ -52,7 +52,7 @@ const { PERFORMANCE_CONFIG } = require('./performance-config')
 const { PerformanceOptimizer } = require('src/performance/performance-optimizer')
 const { LoadingOptimizer } = require('src/performance/loading-optimizer')
 
-describe('🚀 效能優化整合測試', () => {
+describe('[START] 效能優化整合測試', () => {
   let performanceOptimizer
   let loadingOptimizer
   // eslint-disable-next-line no-unused-vars
@@ -88,7 +88,7 @@ describe('🚀 效能優化整合測試', () => {
     }
   })
 
-  describe('📊 效能監控和分析', () => {
+  describe('[STATS] 效能監控和分析', () => {
     test('應該能夠建立效能基準測量', async () => {
       // eslint-disable-next-line no-unused-vars
       const baselineReport = performanceOptimizer.getPerformanceReport()
@@ -134,7 +134,7 @@ describe('🚀 效能優化整合測試', () => {
     })
   })
 
-  describe('🧹 記憶體優化功能', () => {
+  describe('記憶體優化功能', () => {
     test('應該能夠執行記憶體優化並釋放空間', async () => {
       // 設定高記憶體使用
       mockMemory.usedJSHeapSize = 40 * 1024 * 1024 // 40MB
@@ -191,7 +191,7 @@ describe('🚀 效能優化整合測試', () => {
     })
   })
 
-  describe('⚡ 載入速度優化', () => {
+  describe('載入速度優化', () => {
     test('應該能夠執行優化載入流程', async () => {
       // eslint-disable-next-line no-unused-vars
       const startTime = performance.now()
@@ -209,7 +209,7 @@ describe('🚀 效能優化整合測試', () => {
       expect(loadTime).toBeLessThan(PERFORMANCE_CONFIG.time.optimizedLoadTotal) // 載入時間上限
 
       // eslint-disable-next-line no-console
-      console.log(`📊 優化載入完成時間: ${loadTime.toFixed(2)}ms`)
+      console.log(`[STATS] 優化載入完成時間: ${loadTime.toFixed(2)}ms`)
     })
 
     test('應該能夠按需載入資源', async () => {
@@ -228,7 +228,7 @@ describe('🚀 效能優化整合測試', () => {
       expect(endTime - startTime).toBeLessThan(PERFORMANCE_CONFIG.time.lazyLoadResource) // 按需載入時間上限
 
       // eslint-disable-next-line no-console
-      console.log(`📦 按需載入時間: ${(endTime - startTime).toFixed(2)}ms`)
+      console.log(`按需載入時間: ${(endTime - startTime).toFixed(2)}ms`)
     })
 
     test('應該能夠實現資源快取和重用', async () => {
@@ -254,7 +254,7 @@ describe('🚀 效能優化整合測試', () => {
       expect(metrics.cache.hitRate).toBeGreaterThan(0)
 
       // eslint-disable-next-line no-console
-      console.log(`🔄 快取命中率: ${metrics.cache.hitRate.toFixed(1)}%`)
+      console.log(`快取命中率: ${metrics.cache.hitRate.toFixed(1)}%`)
     })
 
     test('應該能夠預熱關鍵資源快取', async () => {
@@ -277,7 +277,7 @@ describe('🚀 效能優化整合測試', () => {
     })
   })
 
-  describe('📈 效能基準和目標', () => {
+  describe('效能基準和目標', () => {
     test('Popup 載入時間應符合目標', async () => {
       // eslint-disable-next-line no-unused-vars
       const loadTime = await measureLoadTime(async () => {
@@ -291,7 +291,7 @@ describe('🚀 效能優化整合測試', () => {
       expect(loadTime).toBeLessThan(target)
 
       // eslint-disable-next-line no-console
-      console.log(`🎯 Popup 載入時間: ${loadTime.toFixed(2)}ms (目標: ${target}ms)`)
+      console.log(`Popup 載入時間: ${loadTime.toFixed(2)}ms (目標: ${target}ms)`)
     })
 
     test('搜尋功能響應時間應符合目標', async () => {
@@ -308,7 +308,7 @@ describe('🚀 效能優化整合測試', () => {
       expect(responseTime).toBeLessThan(target)
 
       // eslint-disable-next-line no-console
-      console.log(`🔍 搜尋響應時間: ${responseTime.toFixed(2)}ms (目標: ${target}ms)`)
+      console.log(`[CHECK] 搜尋響應時間: ${responseTime.toFixed(2)}ms (目標: ${target}ms)`)
     })
 
     test('記憶體使用應保持在合理範圍', async () => {
@@ -334,11 +334,11 @@ describe('🚀 效能優化整合測試', () => {
       expect(measurement.measurement.memoryDelta).toBeLessThan(PERFORMANCE_CONFIG.memory.performanceDelta) // 效能測量記憶體增量上限
 
       // eslint-disable-next-line no-console
-      console.log(`💾 記憶體使用: ${formatBytes(currentMemory)} (目標: <${formatBytes(memoryTarget)})`)
+      console.log(`[SAVE] 記憶體使用: ${formatBytes(currentMemory)} (目標: <${formatBytes(memoryTarget)})`)
     })
   })
 
-  describe('🔧 資源管理和清理', () => {
+  describe('[FIX] 資源管理和清理', () => {
     test('應該能夠正確清理資源防止記憶體洩漏', async () => {
       // 使用 resourceMap 中已註冊的資源名稱，確保載入後會被快取
       const resources = ['popup-ui-manager', 'popup-event-controller', 'book-data-extractor', 'overview-page-controller', 'book-search-filter']
@@ -377,7 +377,7 @@ describe('🚀 效能優化整合測試', () => {
     })
   })
 
-  describe('📊 效能分析和報告', () => {
+  describe('[STATS] 效能分析和報告', () => {
     test('應該能夠生成詳細的效能報告', async () => {
       // 執行一些操作產生資料
       await loadingOptimizer.startOptimizedLoading()
@@ -403,7 +403,7 @@ describe('🚀 效能優化整合測試', () => {
       expect(loadingMetrics.cache.hitRate).toBeGreaterThanOrEqual(0)
 
       // eslint-disable-next-line no-console
-      console.log('📈 效能報告生成成功')
+      console.log('效能報告生成成功')
       // eslint-disable-next-line no-console
       console.log(`   記憶體使用: ${formatBytes(performanceReport.currentStatus.memoryUsed)}`)
       // eslint-disable-next-line no-console
@@ -428,11 +428,11 @@ describe('🚀 效能優化整合測試', () => {
       expect(highPriorityRecommendations.length).toBeGreaterThan(0)
 
       // eslint-disable-next-line no-console
-      console.log(`💡 產生 ${report.recommendations.length} 項優化建議`)
+      console.log(`產生 ${report.recommendations.length} 項優化建議`)
     })
   })
 
-  describe('🎯 Chrome Web Store 效能要求', () => {
+  describe('Chrome Web Store 效能要求', () => {
     test('應該符合 Chrome Web Store 的效能標準', async () => {
       // 模擬完整的 Extension 載入和使用流程
       // eslint-disable-next-line no-unused-vars
@@ -458,7 +458,7 @@ describe('🚀 效能優化整合測試', () => {
       expect(currentMemory).toBeLessThan(PERFORMANCE_CONFIG.memory.chromeStoreLimit) // Chrome Web Store 記憶體上限
 
       // eslint-disable-next-line no-console
-      console.log('✅ Chrome Web Store 效能標準驗證通過')
+      console.log('[OK] Chrome Web Store 效能標準驗證通過')
       // eslint-disable-next-line no-console
       console.log(`   啟動時間: ${startupTime.toFixed(2)}ms`)
       // eslint-disable-next-line no-console

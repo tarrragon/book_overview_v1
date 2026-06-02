@@ -56,7 +56,7 @@ describe('PopupExtractionService 核心功能', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗 建構和初始化', () => {
+  describe('建構和初始化', () => {
     test('應該正確初始化提取服務', () => {
       // Given: 提取服務的依賴
       // eslint-disable-next-line no-unused-vars
@@ -133,7 +133,7 @@ describe('PopupExtractionService 核心功能', () => {
     })
   })
 
-  describe('🔄 提取流程控制', () => {
+  describe('提取流程控制', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
@@ -205,7 +205,7 @@ describe('PopupExtractionService 核心功能', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理和重試機制', () => {
+  describe('[WARN] 錯誤處理和重試機制', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
@@ -279,7 +279,7 @@ describe('PopupExtractionService 核心功能', () => {
     })
   })
 
-  describe('📊 資料處理協調', () => {
+  describe('[STATS] 資料處理協調', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')
@@ -366,7 +366,7 @@ describe('PopupExtractionService 核心功能', () => {
     })
   })
 
-  describe('🔄 組件協調和狀態同步', () => {
+  describe('組件協調和狀態同步', () => {
     beforeEach(() => {
       // eslint-disable-next-line no-unused-vars
       const PopupExtractionService = require('src/popup/services/popup-extraction-service.js')

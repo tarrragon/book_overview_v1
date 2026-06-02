@@ -213,7 +213,7 @@ describe('RetryCoordinator TDD 測試', () => {
     })
   })
 
-  describe('⚙️ 進階策略和配置測試', () => {
+  describe('進階策略和配置測試', () => {
     test('shouldApplyJitter() 應該根據策略決定是否使用抖動', () => {
       // Given & When: 不同策略的抖動判斷
       // eslint-disable-next-line no-unused-vars
@@ -279,7 +279,7 @@ describe('RetryCoordinator TDD 測試', () => {
     })
   })
 
-  describe('🔍 邊界條件和錯誤處理測試', () => {
+  describe('[CHECK] 邊界條件和錯誤處理測試', () => {
     test('canRetry() 應該處理無效輸入', () => {
       // Given: 無效的作業物件
       // eslint-disable-next-line no-unused-vars
@@ -374,7 +374,7 @@ describe('RetryCoordinator TDD 測試', () => {
     })
   })
 
-  describe('📊 策略特定行為測試', () => {
+  describe('[STATS] 策略特定行為測試', () => {
     test('EXPONENTIAL_BACKOFF 策略應該使用指數退避', () => {
       // Given: 指數退避策略的延遲計算
 

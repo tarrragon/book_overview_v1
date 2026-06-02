@@ -112,3 +112,9 @@ tests/e2e/screenshots/
 
 # CodeGraph MCP index (per-developer local index, see docs/development-setup.md)
 .codegraph/
+
+# Editor / tooling backup snapshots (prevent regeneration of *.backup-N / *.bak / *.tmp
+# garbage files; 0.19.1-W1-005.3 cleaned 122 such files from tests/)
+*.backup-*
+*.bak
+*.tmp

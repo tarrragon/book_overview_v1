@@ -34,7 +34,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     } catch (error) {
       // 預期在紅燈階段會失敗
       // eslint-disable-next-line no-console
-      console.warn('⚠️ ReadmooAdapter 模組載入失敗，這在 TDD 紅燈階段是預期的')
+      console.warn('[WARN] ReadmooAdapter 模組載入失敗，這在 TDD 紅燈階段是預期的')
       createReadmooAdapter = null
       adapter = null
     }
@@ -80,7 +80,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     }
   }
 
-  describe('🏗️ 基本結構檢查', () => {
+  describe('基本結構檢查', () => {
     test('應該能創建 ReadmooAdapter 並包含 generateStableBookId 方法', () => {
       expect(createReadmooAdapter).toBeDefined()
       expect(adapter).toBeDefined()
@@ -88,7 +88,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     })
   })
 
-  describe('🎯 2.1 正常流程測試 (8個測試案例)', () => {
+  describe('2.1 正常流程測試 (8個測試案例)', () => {
     describe('封面ID優先邏輯測試', () => {
       // TC001: 標準封面URL的ID生成
       test('TC001: 應該從標準Readmoo封面URL生成cover-based ID', () => {
@@ -186,7 +186,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     })
   })
 
-  describe('🔍 2.2 邊界條件測試 (15個測試案例)', () => {
+  describe('[CHECK] 2.2 邊界條件測試 (15個測試案例)', () => {
     describe('空值和undefined處理', () => {
       // TC009: 全部參數為null
       test('TC009: 所有參數為null時應該返回reader-undefined', () => {
@@ -330,7 +330,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     })
   })
 
-  describe('⚠️ 2.3 異常情況測試 (10個測試案例)', () => {
+  describe('[WARN] 2.3 異常情況測試 (10個測試案例)', () => {
     describe('URL格式錯誤處理', () => {
       // TC024: 無效URL格式
       test('TC024: 無效URL格式應該優雅降級不拋出錯誤', () => {
@@ -504,7 +504,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     })
   })
 
-  describe('🔄 2.4 冪等性和唯一性測試 (8個測試案例)', () => {
+  describe('2.4 冪等性和唯一性測試 (8個測試案例)', () => {
     describe('冪等性驗證', () => {
       // TC034: 相同參數多次調用
       test('TC034: 相同參數多次調用應該返回相同結果', () => {
@@ -685,7 +685,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     })
   })
 
-  describe('📊 效能和記憶體測試', () => {
+  describe('[STATS] 效能和記憶體測試', () => {
     test('單次調用功能測試 - 應該正確返回 ID', () => {
       // eslint-disable-next-line no-unused-vars
       const result = adapter.generateStableBookId(
@@ -734,7 +734,7 @@ describe('generateStableBookId() - UC-02 去重邏輯測試套件', () => {
     })
   })
 
-  describe('🔒 安全性測試', () => {
+  describe('安全性測試', () => {
     test('應該防止XSS攻擊', () => {
       // eslint-disable-next-line no-unused-vars
       const xssTitle = '<img src=x onerror=alert("XSS")>書名'

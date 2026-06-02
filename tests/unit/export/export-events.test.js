@@ -26,7 +26,7 @@
  * @since 2025-08-08
  */
 
-describe('📤 匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => {
+describe('匯出事件定義系統測試 (TDD循環 #29 Red階段)', () => {
   describe('🔴 Red Phase: 基本事件常數定義', () => {
     test('應該定義 EXPORT_EVENTS 常數物件', () => {
       // 這個測試會失敗，因為 EXPORT_EVENTS 尚未實現

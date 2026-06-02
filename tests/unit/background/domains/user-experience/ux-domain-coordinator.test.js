@@ -127,7 +127,7 @@ jest.mock('../../../../../src/background/constants/module-constants', () => ({
   }
 }))
 
-describe('🎨 UX Domain 協調器測試', () => {
+describe('UX Domain 協調器測試', () => {
   // eslint-disable-next-line no-unused-vars
   let coordinator
   let dependencies
@@ -184,7 +184,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     jest.clearAllMocks()
   })
 
-  describe('🔧 基礎功能測試', () => {
+  describe('[FIX] 基礎功能測試', () => {
     test('應該正確初始化 UX Domain 協調器', async () => {
       // 執行初始化
       await coordinator.initialize()
@@ -247,7 +247,7 @@ describe('🎨 UX Domain 協調器測試', () => {
       await coordinator.initialize()
 
       // 驗證警告訊息
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ UX 領域協調器已初始化')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] UX 領域協調器已初始化')
     })
 
     test('應該防止重複啟動', async () => {
@@ -258,7 +258,7 @@ describe('🎨 UX Domain 協調器測試', () => {
       await coordinator.start()
 
       // 驗證警告訊息
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ UX 領域協調器已啟動')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] UX 領域協調器已啟動')
     })
 
     test('應該正確管理服務依賴關係', () => {
@@ -271,7 +271,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
   })
 
-  describe('🎨 主題協調功能測試', () => {
+  describe('主題協調功能測試', () => {
     beforeEach(async () => {
       await coordinator.initialize()
       await coordinator.start()
@@ -327,13 +327,13 @@ describe('🎨 UX Domain 協調器測試', () => {
 
       // 驗證錯誤日誌
       expect(mockLogger.error).toHaveBeenCalledWith(
-        `❌ 主題變更協調失敗: ${invalidTheme}`,
+        `[FAIL] 主題變更協調失敗: ${invalidTheme}`,
         expect.any(Error)
       )
     })
   })
 
-  describe('🖼️ Popup 狀態協調功能測試', () => {
+  describe('Popup 狀態協調功能測試', () => {
     beforeEach(async () => {
       await coordinator.initialize()
       await coordinator.start()
@@ -396,7 +396,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
   })
 
-  describe('⚙️ 偏好設定協調功能測試', () => {
+  describe('偏好設定協調功能測試', () => {
     beforeEach(async () => {
       await coordinator.initialize()
       await coordinator.start()
@@ -468,7 +468,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
   })
 
-  describe('📊 就緒檢查和健康監控測試', () => {
+  describe('[STATS] 就緒檢查和健康監控測試', () => {
     beforeEach(async () => {
       await coordinator.initialize()
     })
@@ -539,7 +539,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
   })
 
-  describe('🚨 錯誤處理測試', () => {
+  describe('[ALERT] 錯誤處理測試', () => {
     test('應該處理服務初始化失敗', async () => {
       // Mock 服務初始化失敗 - 使用 mockServicesPool 訪問
       mockServicesPool.ThemeManagementService.initialize.mockRejectedValue(new Error('Service init failed'))
@@ -549,7 +549,7 @@ describe('🎨 UX Domain 協調器測試', () => {
 
       // 驗證錯誤日誌
       expect(mockLogger.error).toHaveBeenCalledWith(
-        '❌ 初始化 UX 領域協調器失敗:',
+        '[FAIL] 初始化 UX 領域協調器失敗:',
         expect.any(Error)
       )
     })
@@ -565,7 +565,7 @@ describe('🎨 UX Domain 協調器測試', () => {
 
       // 驗證服務降級處理
       expect(mockLogger.error).toHaveBeenCalledWith(
-        '💥 UX 服務啟動失敗處理: theme',
+        'UX 服務啟動失敗處理: theme',
         expect.any(Error)
       )
 
@@ -579,7 +579,7 @@ describe('🎨 UX Domain 協調器測試', () => {
     })
   })
 
-  describe('📈 統計和指標測試', () => {
+  describe('統計和指標測試', () => {
     test('應該正確追蹤統計資訊', async () => {
       await coordinator.initialize()
       await coordinator.start()

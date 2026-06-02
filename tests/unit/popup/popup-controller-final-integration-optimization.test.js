@@ -106,7 +106,7 @@ describe('PopupController 最終整合和優化', () => {
     }
   })
 
-  describe('🧹 代碼重複清理', () => {
+  describe('代碼重複清理', () => {
     test('應該消除 TODO 標記的重複程式碼', async () => {
       await controller.initialize()
 
@@ -173,7 +173,7 @@ describe('PopupController 最終整合和優化', () => {
     })
   })
 
-  describe('⚡ 效能優化', () => {
+  describe('效能優化', () => {
     test('應該實現組件懶加載', async () => {
       // 測試組件只在需要時初始化
       await controller.initialize()
@@ -249,7 +249,7 @@ describe('PopupController 最終整合和優化', () => {
     })
   })
 
-  describe('🧠 記憶體管理改善', () => {
+  describe('記憶體管理改善', () => {
     test('應該正確清理所有事件監聽器', async () => {
       await controller.initialize()
 
@@ -335,7 +335,7 @@ describe('PopupController 最終整合和優化', () => {
     })
   })
 
-  describe('🔗 完整端對端功能驗證', () => {
+  describe('完整端對端功能驗證', () => {
     test('應該完成完整的提取流程', async () => {
       await controller.initialize()
 
@@ -464,7 +464,7 @@ describe('PopupController 最終整合和優化', () => {
     })
   })
 
-  describe('📊 整合品質指標', () => {
+  describe('[STATS] 整合品質指標', () => {
     test('應該達到初始化完整性基準', async () => {
       await controller.initialize()
 

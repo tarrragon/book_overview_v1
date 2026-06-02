@@ -30,7 +30,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
  * - 確保處理器的標準化實現
  */
 
-describe('🎭 事件處理器基底類別測試', () => {
+describe('事件處理器基底類別測試', () => {
   let EventHandler
   let ConcreteHandler
 
@@ -64,7 +64,7 @@ describe('🎭 事件處理器基底類別測試', () => {
     ConcreteHandler = TestEventHandler
   })
 
-  describe('📝 基本構造和屬性管理', () => {
+  describe('[LOG] 基本構造和屬性管理', () => {
     test('應該能夠創建處理器實例', () => {
       // Arrange & Act
       // eslint-disable-next-line no-unused-vars
@@ -106,7 +106,7 @@ describe('🎭 事件處理器基底類別測試', () => {
     })
   })
 
-  describe('🔄 事件處理生命週期', () => {
+  describe('事件處理生命週期', () => {
     test('應該按照正確順序執行生命週期方法', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -181,7 +181,7 @@ describe('🎭 事件處理器基底類別測試', () => {
     })
   })
 
-  describe('📊 統計追蹤功能', () => {
+  describe('[STATS] 統計追蹤功能', () => {
     test('應該正確追蹤執行統計', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -252,7 +252,7 @@ describe('🎭 事件處理器基底類別測試', () => {
     })
   })
 
-  describe('🎯 事件類型支援檢查', () => {
+  describe('事件類型支援檢查', () => {
     test('應該正確識別支援的事件類型', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -278,7 +278,7 @@ describe('🎭 事件處理器基底類別測試', () => {
     })
   })
 
-  describe('🔧 抽象方法強制實現', () => {
+  describe('[FIX] 抽象方法強制實現', () => {
     test('EventHandler不應該被直接實例化', () => {
       // Arrange & Act & Assert
       expect(() => {
@@ -319,7 +319,7 @@ describe('🎭 事件處理器基底類別測試', () => {
     })
   })
 
-  describe('🛡 錯誤處理和隔離', () => {
+  describe('錯誤處理和隔離', () => {
     test('應該在beforeHandle錯誤時停止執行', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -379,7 +379,7 @@ describe('🎭 事件處理器基底類別測試', () => {
     })
   })
 
-  describe('🔧 預設方法實現', () => {
+  describe('[FIX] 預設方法實現', () => {
     test('預設的beforeHandle應該記錄日誌', async () => {
       // Arrange
       const handler = new ConcreteHandler()

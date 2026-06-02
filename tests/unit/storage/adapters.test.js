@@ -21,7 +21,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
  * 4. 測試效能和容量限制
  */
 
-describe('💾 儲存適配器測試', () => {
+describe('[SAVE] 儲存適配器測試', () => {
   beforeEach(() => {
     // 重置測試環境
     global.testUtils.cleanup()
@@ -32,7 +32,7 @@ describe('💾 儲存適配器測試', () => {
     // indexedDbAdapter = require('@/storage/adapters/indexeddb.adapter');
   })
 
-  describe('🔧 Chrome Storage 適配器', () => {
+  describe('[FIX] Chrome Storage 適配器', () => {
     test('應該能夠儲存書籍資料', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -242,7 +242,7 @@ describe('💾 儲存適配器測試', () => {
     })
   })
 
-  describe('📊 IndexedDB 適配器', () => {
+  describe('[STATS] IndexedDB 適配器', () => {
     test('應該能夠建立資料庫連線', async () => {
       // Arrange - 模擬IndexedDB API
       // eslint-disable-next-line no-unused-vars
@@ -374,7 +374,7 @@ describe('💾 儲存適配器測試', () => {
     })
   })
 
-  describe('⚡ 效能測試', () => {
+  describe('效能測試', () => {
     test('儲存操作應該完成且結果正確', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -420,7 +420,7 @@ describe('💾 儲存適配器測試', () => {
     })
   })
 
-  describe('🛡 資料完整性測試', () => {
+  describe('資料完整性測試', () => {
     test('應該驗證儲存前的資料格式', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars

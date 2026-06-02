@@ -41,7 +41,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗️ 服務初始化', () => {
+  describe('服務初始化', () => {
     test('應該正確初始化驗證規則管理器', () => {
       expect(ruleManager).toBeInstanceOf(ValidationRuleManager)
       expect(ruleManager.eventBus).toBe(mockEventBus)
@@ -58,7 +58,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
   })
 
-  describe('📋 平台規則載入', () => {
+  describe('平台規則載入', () => {
     test('loadPlatformValidationRules() 應該載入 READMOO 平台規則', async () => {
       // eslint-disable-next-line no-unused-vars
       const result = await ruleManager.loadPlatformValidationRules('READMOO')
@@ -115,7 +115,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
   })
 
-  describe('🔍 規則檢索與驗證', () => {
+  describe('[CHECK] 規則檢索與驗證', () => {
     beforeEach(async () => {
       await ruleManager.loadPlatformValidationRules('READMOO')
     })
@@ -163,7 +163,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
   })
 
-  describe('🔧 規則管理操作', () => {
+  describe('[FIX] 規則管理操作', () => {
     test('updatePlatformRules() 應該支援動態更新平台規則', async () => {
       await ruleManager.loadPlatformValidationRules('READMOO')
 
@@ -203,7 +203,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
   })
 
-  describe('📊 統計與監控', () => {
+  describe('[STATS] 統計與監控', () => {
     test('getRuleStatistics() 應該提供規則載入統計', async () => {
       await ruleManager.loadPlatformValidationRules('READMOO')
       await ruleManager.loadPlatformValidationRules('KINDLE')
@@ -248,7 +248,7 @@ describe('ValidationRuleManager - 驗證規則管理服務', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         // eslint-disable-next-line no-new

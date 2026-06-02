@@ -65,7 +65,7 @@ class E2ETestRunner {
       process.exit(0)
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('\n❌ 端對端測試執行失敗:', error.message)
+      console.error('\n[FAIL] 端對端測試執行失敗:', error.message)
       await this.cleanup()
       process.exit(1)
     }
@@ -76,7 +76,7 @@ class E2ETestRunner {
    */
   async preCheck () {
     // eslint-disable-next-line no-console
-    console.log('🔍 執行前置檢查...')
+    console.log('[CHECK] 執行前置檢查...')
 
     // 檢查 Node.js 版本
     const nodeVersion = process.version
@@ -106,7 +106,7 @@ class E2ETestRunner {
     // 檢查依賴項是否安裝
     if (!fs.existsSync(path.join(this.projectRoot, 'node_modules'))) {
       // eslint-disable-next-line no-console
-      console.log('  🔧 安裝依賴項...')
+      console.log('  [FIX] 安裝依賴項...')
       execSync('npm install --legacy-peer-deps', {
         cwd: this.projectRoot,
         stdio: 'inherit'
@@ -114,7 +114,7 @@ class E2ETestRunner {
     }
 
     // eslint-disable-next-line no-console
-    console.log('  ✅ 前置檢查通過')
+    console.log('  [OK] 前置檢查通過')
   }
 
   /**
@@ -122,7 +122,7 @@ class E2ETestRunner {
    */
   async buildExtension () {
     // eslint-disable-next-line no-console
-    console.log('🏗️ 建置 Chrome Extension...')
+    console.log('建置 Chrome Extension...')
 
     try {
       // 清理舊的建置
@@ -147,7 +147,7 @@ class E2ETestRunner {
       }
 
       // eslint-disable-next-line no-console
-      console.log('  ✅ Extension 建置完成')
+      console.log('  [OK] Extension 建置完成')
     } catch (error) {
       throw (() => {
         const buildError = new Error(`Extension 建置失敗: ${error.message}`)
@@ -221,10 +221,10 @@ class E2ETestRunner {
         results.failed += suiteResult.failed
 
         // eslint-disable-next-line no-console
-        console.log(`  ✅ ${suite.name}: ${suiteResult.passed}/${suiteResult.total} 通過\n`)
+        console.log(`  [OK] ${suite.name}: ${suiteResult.passed}/${suiteResult.total} 通過\n`)
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.log(`  ❌ ${suite.name} 執行失敗: ${error.message}\n`)
+        console.log(`  [FAIL] ${suite.name} 執行失敗: ${error.message}\n`)
         results.suites.push({
           name: suite.name,
           status: 'failed',
@@ -385,7 +385,7 @@ class E2ETestRunner {
     )
 
     // eslint-disable-next-line no-console
-    console.log(`  📁 報告位置: ${this.testResultsDir}`)
+    console.log(`  報告位置: ${this.testResultsDir}`)
   }
 
   /**
@@ -412,7 +412,7 @@ class E2ETestRunner {
       </head>
       <body>
         <div class="header">
-          <h1>📚 Readmoo Extension E2E 測試報告</h1>
+          <h1>Readmoo Extension E2E 測試報告</h1>
           <p>測試時間: ${new Date().toLocaleString('zh-TW')}</p>
         </div>
         
@@ -456,7 +456,7 @@ class E2ETestRunner {
     delete process.env.HEADLESS
 
     // eslint-disable-next-line no-console
-    console.log('  ✅ 清理完成')
+    console.log('  [OK] 清理完成')
   }
 }
 

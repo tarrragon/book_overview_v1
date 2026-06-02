@@ -66,7 +66,7 @@ global.chrome = mockChrome
 // Mock DOM with complete popup structure
 const { JSDOM } = require('jsdom')
 
-describe('🔄 Popup Refactor Regression Tests (TDD循環 #40)', () => {
+describe('Popup Refactor Regression Tests (TDD循環 #40)', () => {
   let dom
   let document
   // eslint-disable-next-line no-unused-vars

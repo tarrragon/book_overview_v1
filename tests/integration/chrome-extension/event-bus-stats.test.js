@@ -27,7 +27,7 @@ const { ErrorCodesWithTest: ErrorCodes } = require('@tests/helpers/test-error-co
  * - 效能問題診斷
  */
 
-describe('🔍 EventBus getStats 整合測試', () => {
+describe('[CHECK] EventBus getStats 整合測試', () => {
   // eslint-disable-next-line no-unused-vars
   let eventBus
 
@@ -65,7 +65,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
     }
   })
 
-  describe('🏗 背景事件系統統計', () => {
+  describe('背景事件系統統計', () => {
     test('應該正確統計背景事件處理流程', async () => {
       // Arrange - 模擬真實的Background handlers
       // eslint-disable-next-line no-unused-vars
@@ -229,7 +229,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
     })
   })
 
-  describe('📊 統計資料一致性', () => {
+  describe('[STATS] 統計資料一致性', () => {
     test('應該在動態監聽器變更中保持統計一致性', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -325,7 +325,7 @@ describe('🔍 EventBus getStats 整合測試', () => {
     })
   })
 
-  describe('🔄 Chrome Extension 整合場景', () => {
+  describe('Chrome Extension 整合場景', () => {
     test('應該支援跨上下文統計追蹤', async () => {
       // Arrange - 模擬Background/Content/Popup間的事件流
       // eslint-disable-next-line no-unused-vars
