@@ -4,32 +4,27 @@
 
 ## [0.19.0] - 2026-06-02
 
-**[OK] UC-XX 功能名稱 - TDD 四階段完成**
-
-### Added
-- 新增功能項目
-
-### Changed
-- 變更項目
-
-### Fixed
-- 修復項目
-
----
-
-## [v0.19.0] - In Development
-
-### 端到端驗證、打包、內測準備與流程規格化 — 進行中
+### 端到端驗證、打包、內測準備與流程規格化
 
 **版本目標**：Readmoo 實機提取 + 匯出入端到端功能驗證 + 可分發 ZIP 打包 + 安裝指南 + E2E 流程契約規格化。
 
-**正在進行**（內容待 release 時補完，由 version-release 流程更新）：
-- Tag-based Book Model runtime pipeline 落地（W1-009 系列）
-- SPA lazy-load 提取完整化（W1-030：96/928 → 928/944 涵蓋率）
-- E2E 真實瀏覽器 regression 測試基礎建設（W1-008）
-- Readmoo URL 規範統一（W1-029 系列）
-- 內測 ZIP 打包流程驗證（W1-002 系列）
-- Framework 品質改善（W3 系列：version-release skill 修復、文件規格化）
+**產品功能**：
+- [新增] Tag-based Book Model runtime pipeline 落地，提取階段套用 schema 預設值並依進度 derive 閱讀狀態（W1-009 系列）
+- [修復] SPA lazy-load 提取完整化：內建 scroll-load 機制，實機書庫涵蓋率自 96/928 提升至 928/944（W1-030、W1-040）
+- [修復] build overview 入口接線：shipped overview 改用 event-driven 新版（自動讀 chrome.storage），停用孤兒 legacy 檔案式入口（W1-041）
+- [新增] E2E 真實瀏覽器 regression 測試基礎建設（W1-008）
+- [統一] Readmoo 提取 URL 規範（`read.readmoo.com/#/library`，W1-029 系列）
+- [新增] 內測 ZIP 打包流程 + 安裝指南 + 跨裝置匯出入 round-trip 驗證（W1-002 / W1-003 系列）
+- [修復] 全 src Chrome Extension 環境相容性：`global` 裸用改 `globalThis`、esbuild define `process.env.NODE_ENV`（W1-050 系列）
+
+**框架品質——派發與發布工具**：
+- [新增] parallel-claim-audit observability hook：記錄 claim 時同 wave in_progress 快照，補位 PC-078 / PC-141 事後歸因（W3-048）
+- [新增] worktree base stale 處理 SOP：trunk 工作流 base 同步指引寫入 agent-dispatch-template（W1-053）
+- [修正] version-release CLI config 化：tag 命名 / feature-branch merge / worklog 路徑支援 all-on-main 工作流（W1-127）
+
+**框架品質——規則與文件釐清**：
+- [釐清] PC-093 frontmatter exempt marker：phase4-hook 自 W1-092 起整段跳過 frontmatter，frontmatter 內字面無需 marker（W1-052）
+- [文件化] subagent 派發 claim 推薦用法（半成功 root cause 已由 W3-046 / W4-019 治本，W1-054）
 
 **版本 bump 時機**：本版本於 W1-072 ANA 評估後採方向 C（內測前 bump），於 W1-073 執行 package.json + manifest.json 0.18.0 → 0.19.0。
 
