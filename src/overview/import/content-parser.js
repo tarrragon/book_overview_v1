@@ -28,11 +28,17 @@
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const {
-  detectFormatVersion: defaultDetectFormatVersion
+  detectFormatVersion: defaultDetectFormatVersion,
+  detectInterchangeSource: defaultDetectInterchangeSource
 } = require('src/export/format-version-detector')
 const {
-  convertV1ToV2Data: defaultConvertV1ToV2Data
+  convertV1ToV2Data: defaultConvertV1ToV2Data,
+  convertAppLegacyToV2Data: defaultConvertAppLegacyToV2Data,
+  dedupBooks: defaultDedupBooks
 } = require('src/export/v1-to-v2-converter')
+const {
+  mapCanonicalToV1Book: defaultMapCanonicalToV1Book
+} = require('src/export/book-interchange-v1-adapter')
 
 // 模組常數（對齊 importer.js FILE_CONSTANTS）
 const DEFAULT_LARGE_DATASET_THRESHOLD = 1000
@@ -59,17 +65,33 @@ class ContentParser {
    * 建構 ContentParser
    *
    * @param {Object} [deps] - 依賴注入（全為選用）
-   * @param {Function} [deps.detectFormatVersion] - 預設用 src/export/format-version-detector
+   * @param {Function} [deps.detectFormatVersion] - 預設用 src/export/format-version-detector（既有二值 DI，向後相容）
+   * @param {Function} [deps.detectInterchangeSource] - 四來源 detector（canonical/v2/app-legacy/v1），預設 src/export/format-version-detector
    * @param {Function} [deps.convertV1ToV2Data] - 預設用 src/export/v1-to-v2-converter
+   * @param {Function} [deps.convertAppLegacyToV2Data] - APP legacy 無損匯入，預設 src/export/v1-to-v2-converter
+   * @param {Function} [deps.mapCanonicalToV1Book] - canonical → 內部 v2 映射，預設 src/export/book-interchange-v1-adapter
+   * @param {Function} [deps.dedupBooks] - id 主鍵 + 軟連結去重，預設 src/export/v1-to-v2-converter
    * @param {number} [deps.largeDatasetThreshold=1000] - 大型資料集警告閾值
    */
   constructor (deps = {}) {
     this._detectFormatVersion = typeof deps.detectFormatVersion === 'function'
       ? deps.detectFormatVersion
       : defaultDetectFormatVersion
+    this._detectInterchangeSource = typeof deps.detectInterchangeSource === 'function'
+      ? deps.detectInterchangeSource
+      : defaultDetectInterchangeSource
     this._convertV1ToV2Data = typeof deps.convertV1ToV2Data === 'function'
       ? deps.convertV1ToV2Data
       : defaultConvertV1ToV2Data
+    this._convertAppLegacyToV2Data = typeof deps.convertAppLegacyToV2Data === 'function'
+      ? deps.convertAppLegacyToV2Data
+      : defaultConvertAppLegacyToV2Data
+    this._mapCanonicalToV1Book = typeof deps.mapCanonicalToV1Book === 'function'
+      ? deps.mapCanonicalToV1Book
+      : defaultMapCanonicalToV1Book
+    this._dedupBooks = typeof deps.dedupBooks === 'function'
+      ? deps.dedupBooks
+      : defaultDedupBooks
     this._largeDatasetThreshold = typeof deps.largeDatasetThreshold === 'number'
       ? deps.largeDatasetThreshold
       : DEFAULT_LARGE_DATASET_THRESHOLD
@@ -386,15 +408,20 @@ class ContentParser {
   }
 
   /**
-   * 從資料中提取 v2 interchange 三區段（W1-047.2 / IMP-B）
+   * 從資料中提取 v2 interchange 三區段（W1-047.2 / IMP-B；W4-031.2.2 四來源接線）
    *
-   * 6 線性分支路徑表（spec 對應）：
+   * 線性分支路徑表（spec §8 四來源 + 既有相容）：
    * - CSV               頂層分流，不走版本偵測（F11 顯式化；CSV 自有 detectCsvFormatVersion）
-   * - JSON-v1           detectFormatVersion='v1' → convertV1ToV2Data 三區段（spec §2.1 Rule 3/4）
-   * - JSON-v2           detectFormatVersion='v2' → 取 data.books（spec §3.1 唯一合法形狀）
+   * - JSON-canonical    detectInterchangeSource='canonical' → mapCanonicalToV1Book 逐本 + dedup（spec §8）
+   * - JSON-app-legacy   detectInterchangeSource='app-legacy' → convertAppLegacyToV2Data 無損止血（spec §8 來源 3）
+   * - JSON-v1           v1 → convertV1ToV2Data 三區段（spec §2.1 Rule 3/4）
+   * - JSON-v2           v2 → 取 data.books（spec §3.1 唯一合法形狀）
    * - JSON-MetadataWrap _isMetadataWrapFormat → 取 data.data + warn（spec 未定義，歷史相容）
    * - JSON-EmptyObject  {} → 空 ImportResult（v1 退化合理）
    * - JSON-Unrecognized → throw VALIDATION_ERROR（既有錯誤契約零回歸）
+   *
+   * 來源辨識策略（向後相容）：先以四來源 detector 處理 canonical/app-legacy 兩新來源；
+   * v1/v2/null 既有來源仍委派 _detectFormatVersion（保留 v2 隱含偵測啟發式，B5 回歸不變）。
    *
    * INV-1：所有 return path 三欄位恆為陣列，throw path 不回傳。
    *
@@ -410,7 +437,29 @@ class ContentParser {
       }
     }
 
-    // 頂層分流 2：JSON — 走版本偵測（透過注入點）
+    // 頂層分流 2：JSON — 四來源辨識（spec §8）
+    // 防禦：_detectInterchangeSource 缺失時（legacy 測試以 partial-module mock 替換 detector
+    // 模組僅保留 detectFormatVersion）降級為既有二值流程，保留 canonical/app-legacy 以外的向後相容。
+    const source = typeof this._detectInterchangeSource === 'function'
+      ? this._detectInterchangeSource(data)
+      : null
+
+    // JSON path canonical：book-interchange-v1 → 逐本 read 映射 + dedup（spec §8 來源 1）
+    if (source === 'canonical') {
+      return this._extractCanonicalBooks(data)
+    }
+
+    // JSON path app-legacy：APP backup wrapper → 無損止血（spec §8 來源 3）
+    if (source === 'app-legacy') {
+      const converted = this._convertAppLegacyToV2Data(data)
+      return {
+        books: converted.books,
+        tagCategories: this._normalizeToArray(converted.tagCategories),
+        tags: this._normalizeToArray(converted.tags)
+      }
+    }
+
+    // 既有來源（v1/v2/null）：委派既有二值 detector，保留 v2 隱含偵測啟發式（B5 回歸）
     const version = this._detectFormatVersion(data)
 
     // JSON path A：v1 — converter 完整三區段（spec §2.1 Rule 3/4）
@@ -457,6 +506,35 @@ class ContentParser {
     error.code = ErrorCodes.VALIDATION_ERROR
     error.details = { category: 'validation' }
     throw error
+  }
+
+  /**
+   * 提取 canonical（book-interchange-v1）來源的書籍三區段（spec §8 來源 1）。
+   *
+   * 逐本以 mapCanonicalToV1Book read 映射為內部 v2 book model（首元素入固定欄位，
+   * 多值/carry/未知欄位入 _passthrough，C1 無損），轉換失敗（缺 id/title）跳過，
+   * 最後以 id 主鍵 + 軟連結 dedup（spec §8 C5）。tagCategories/tags 不在 canonical
+   * 來源產出（tag 樹由 tagTree 重建屬後續範圍），回空陣列維持 INV-1。
+   *
+   * @private
+   * @param {Object} data - canonical root（{format, books:[], tagTree?}）
+   * @returns {{ books: Array, tagCategories: Array, tags: Array }}
+   */
+  _extractCanonicalBooks (data) {
+    const canonicalBooks = Array.isArray(data.books) ? data.books : []
+    const mapped = []
+    for (const canonicalBook of canonicalBooks) {
+      try {
+        mapped.push(this._mapCanonicalToV1Book(canonicalBook))
+      } catch (_e) {
+        // 跳過缺 id/title 的書籍（與 convertV1ToV2Data 一致）
+      }
+    }
+    return {
+      books: this._dedupBooks(mapped),
+      tagCategories: [],
+      tags: []
+    }
   }
 
   /**
