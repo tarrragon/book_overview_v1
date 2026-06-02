@@ -25,7 +25,7 @@ describe('DataDifferenceEngine', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗️ 引擎初始化', () => {
+  describe('引擎初始化', () => {
     test('應該正確初始化差異引擎實例', () => {
       expect(engine).toBeInstanceOf(DataDifferenceEngine)
       expect(engine.config).toEqual(config)
@@ -55,7 +55,7 @@ describe('DataDifferenceEngine', () => {
     })
   })
 
-  describe('📊 資料差異計算', () => {
+  describe('[STATS] 資料差異計算', () => {
     test('calculateDifferences() 應該正確計算新增項目', () => {
       // eslint-disable-next-line no-unused-vars
       const sourceData = [
@@ -193,7 +193,7 @@ describe('DataDifferenceEngine', () => {
     })
   })
 
-  describe('🔍 項目比較功能', () => {
+  describe('[CHECK] 項目比較功能', () => {
     test('compareItems() 應該檢測到標題變更', () => {
       // eslint-disable-next-line no-unused-vars
       const source = { title: 'Old Title', progress: 50 }
@@ -270,7 +270,7 @@ describe('DataDifferenceEngine', () => {
     })
   })
 
-  describe('📝 變更詳情分析', () => {
+  describe('[LOG] 變更詳情分析', () => {
     test('getFieldChanges() 應該返回詳細的變更資訊', () => {
       // eslint-disable-next-line no-unused-vars
       const source = { title: 'New Title', progress: 70, lastUpdated: '2025-01-02' }
@@ -336,7 +336,7 @@ describe('DataDifferenceEngine', () => {
     })
   })
 
-  describe('🛠️ 配置管理', () => {
+  describe('配置管理', () => {
     test('updateConfig() 應該動態更新配置', () => {
       // eslint-disable-next-line no-unused-vars
       const newConfig = {
@@ -369,7 +369,7 @@ describe('DataDifferenceEngine', () => {
     })
   })
 
-  describe('📊 統計與效能', () => {
+  describe('[STATS] 統計與效能', () => {
     test('getStatistics() 應該提供差異統計資訊', () => {
       // eslint-disable-next-line no-unused-vars
       const sourceData = [
@@ -415,7 +415,7 @@ describe('DataDifferenceEngine', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('應該安全處理循環引用', () => {
       // eslint-disable-next-line no-unused-vars
       const circularSource = { id: '1', title: 'Book A' }

@@ -261,7 +261,7 @@ describe('ConflictDetectionService TDD 測試', () => {
     })
   })
 
-  describe('⚙️ 衝突嚴重性和策略測試', () => {
+  describe('衝突嚴重性和策略測試', () => {
     test('calculateConflictSeverity() 應該正確計算整體嚴重性', () => {
       // Given: 不同嚴重性的衝突項目
       // eslint-disable-next-line no-unused-vars
@@ -385,7 +385,7 @@ describe('ConflictDetectionService TDD 測試', () => {
     })
   })
 
-  describe('🔍 特定衝突類型檢測測試', () => {
+  describe('[CHECK] 特定衝突類型檢測測試', () => {
     test('detectProgressConflict() 應該檢測高差異進度衝突', () => {
       // Given: 高差異的進度變更
       // eslint-disable-next-line no-unused-vars
@@ -479,7 +479,7 @@ describe('ConflictDetectionService TDD 測試', () => {
     })
   })
 
-  describe('📊 統計和配置測試', () => {
+  describe('[STATS] 統計和配置測試', () => {
     test('getStatistics() 應該回傳正確的統計資訊', async () => {
       // Given: 執行一些衝突檢測
       // eslint-disable-next-line no-unused-vars
@@ -542,7 +542,7 @@ describe('ConflictDetectionService TDD 測試', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理和邊界測試', () => {
+  describe('[WARN] 錯誤處理和邊界測試', () => {
     test('detectConflicts() 應該處理空的變更資料', async () => {
       // Given: 空的變更資料
       // eslint-disable-next-line no-unused-vars

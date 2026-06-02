@@ -79,7 +79,7 @@ describe('Platform Detection Performance Benchmarks', () => {
     await new Promise(resolve => setTimeout(resolve, 10))
   })
 
-  describe('⚡ 檢測速度效能基準', () => {
+  describe('檢測速度效能基準', () => {
     test('單次檢測應符合速度基準', async () => {
       // eslint-disable-next-line no-unused-vars
       const context = createDetectionContext('READMOO')
@@ -174,7 +174,7 @@ describe('Platform Detection Performance Benchmarks', () => {
     })
   })
 
-  describe('📊 快取效率效能測試', () => {
+  describe('[STATS] 快取效率效能測試', () => {
     test('快取命中率應符合基準', async () => {
       // eslint-disable-next-line no-unused-vars
       const context = createDetectionContext('READMOO')
@@ -264,7 +264,7 @@ describe('Platform Detection Performance Benchmarks', () => {
     })
   })
 
-  describe('🧠 記憶體使用量監控', () => {
+  describe('記憶體使用量監控', () => {
     test('單次檢測記憶體使用基準', async () => {
       // eslint-disable-next-line no-unused-vars
       const memBefore = process.memoryUsage()
@@ -350,7 +350,7 @@ describe('Platform Detection Performance Benchmarks', () => {
     })
   })
 
-  describe('🔄 並發檢測效能基準', () => {
+  describe('並發檢測效能基準', () => {
     test('並發檢測成功率基準', async () => {
       // eslint-disable-next-line no-unused-vars
       const concurrentCount = 50
@@ -463,7 +463,7 @@ describe('Platform Detection Performance Benchmarks', () => {
     })
   })
 
-  describe('📈 效能回歸測試', () => {
+  describe('效能回歸測試', () => {
     test('效能基準回歸檢測', async () => {
       // 執行標準化效能測試套件
       // eslint-disable-next-line no-unused-vars

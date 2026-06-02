@@ -99,7 +99,7 @@ describe('BaseModule', () => {
 
       expect(baseModule.isInitialized).toBe(true)
       expect(baseModule.initializationError).toBe(null)
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ BaseModule 模組初始化完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] BaseModule 模組初始化完成')
     })
 
     test('應該防止重複初始化', async () => {
@@ -109,7 +109,7 @@ describe('BaseModule', () => {
 
       await baseModule.initialize()
       expect(baseModule.isInitialized).toBe(firstState)
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ BaseModule 模組已初始化，跳過重複初始化')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] BaseModule 模組已初始化，跳過重複初始化')
     })
 
     test('應該處理初始化錯誤', async () => {
@@ -169,7 +169,7 @@ describe('BaseModule', () => {
 
       expect(baseModule.isRunning).toBe(true)
       expect(baseModule.startTime).toBeDefined()
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ BaseModule 模組啟動完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] BaseModule 模組啟動完成')
     })
 
     test('應該跳過重複啟動', async () => {
@@ -180,7 +180,7 @@ describe('BaseModule', () => {
 
       await baseModule.start()
       expect(baseModule.startTime).toBe(firstStartTime)
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ BaseModule 模組已啟動，跳過重複啟動')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] BaseModule 模組已啟動，跳過重複啟動')
     })
 
     test('應該處理啟動錯誤', async () => {
@@ -229,12 +229,12 @@ describe('BaseModule', () => {
       await baseModule.stop()
 
       expect(baseModule.isRunning).toBe(false)
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ BaseModule 模組停止完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] BaseModule 模組停止完成')
     })
 
     test('應該跳過停止未運行的模組', async () => {
       await baseModule.stop()
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ BaseModule 模組未啟動，跳過停止')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] BaseModule 模組未啟動，跳過停止')
     })
 
     test('應該處理停止錯誤', async () => {
@@ -346,7 +346,7 @@ describe('BaseModule', () => {
 
       expect(baseModule.isRunning).toBe(false)
       expect(baseModule.isInitialized).toBe(false)
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ BaseModule 模組清理完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] BaseModule 模組清理完成')
     })
 
     test('應該清理運行時間統計', async () => {

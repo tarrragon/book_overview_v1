@@ -41,7 +41,7 @@ const { JSDOM } = require('jsdom')
 // eslint-disable-next-line no-unused-vars
 const ErrorCodes = require('@tests/helpers/test-error-codes')
 
-describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
+describe('Popup Error Handler Tests (TDD循環 #35)', () => {
   let PopupErrorHandler
   let errorHandler
   let dom
@@ -447,7 +447,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
 
       // 檢查元素存在後再驗證文字內容
       if (errorHandler.elements.diagnosticBtn) {
-        expect(errorHandler.elements.diagnosticBtn.textContent).toBe('🔧 停用診斷')
+        expect(errorHandler.elements.diagnosticBtn.textContent).toBe('[FIX] 停用診斷')
       }
       expect(mockChrome.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'ENABLE_DIAGNOSTIC_MODE'
@@ -459,7 +459,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
 
       // 只在元素存在時設定文字內容
       if (errorHandler.elements.diagnosticBtn) {
-        errorHandler.elements.diagnosticBtn.textContent = '🔧 停用診斷'
+        errorHandler.elements.diagnosticBtn.textContent = '[FIX] 停用診斷'
       }
 
       errorHandler.toggleDiagnosticMode()
@@ -467,7 +467,7 @@ describe('🎨 Popup Error Handler Tests (TDD循環 #35)', () => {
       expect(errorHandler.diagnosticMode).toBe(false)
 
       if (errorHandler.elements.diagnosticBtn) {
-        expect(errorHandler.elements.diagnosticBtn.textContent).toBe('🔧 診斷模式')
+        expect(errorHandler.elements.diagnosticBtn.textContent).toBe('[FIX] 診斷模式')
       }
       expect(mockChrome.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'DISABLE_DIAGNOSTIC_MODE'

@@ -20,7 +20,7 @@
  * 4. 測試錯誤處理
  */
 
-describe('📚 資料提取器測試', () => {
+describe('資料提取器測試', () => {
   // eslint-disable-next-line no-unused-vars
   let progressExtractor
   // eslint-disable-next-line no-unused-vars
@@ -36,7 +36,7 @@ describe('📚 資料提取器測試', () => {
     // metadataExtractor = require('@/content-scripts/extractors/metadata.extractor');
   })
 
-  describe('🎯 書籍基本資料提取', () => {
+  describe('書籍基本資料提取', () => {
     test('應該能夠從DOM中提取完整的書籍資料', async () => {
       // Arrange - 設定測試用的DOM結構
       // eslint-disable-next-line no-unused-vars
@@ -182,7 +182,7 @@ describe('📚 資料提取器測試', () => {
     })
   })
 
-  describe('📊 閱讀進度提取', () => {
+  describe('[STATS] 閱讀進度提取', () => {
     test('應該能夠正確解析進度百分比', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -240,7 +240,7 @@ describe('📚 資料提取器測試', () => {
     })
   })
 
-  describe('📖 書籍類型識別', () => {
+  describe('書籍類型識別', () => {
     test('應該能夠識別流式書籍', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -272,7 +272,7 @@ describe('📚 資料提取器測試', () => {
     })
   })
 
-  describe('🔧 錯誤處理測試', () => {
+  describe('[FIX] 錯誤處理測試', () => {
     test('應該能夠處理DOM不存在的情況', () => {
       // Arrange - 清空DOM
       document.body.innerHTML = ''
@@ -313,11 +313,11 @@ describe('📚 資料提取器測試', () => {
 
       // eslint-disable-next-line no-unused-vars
       const invalidUrls = [
-        'https://readmoo.com/invalid', // ❌ 正確域名但無效路徑
-        'https://example.com/api/reader/123', // ❌ 錯誤域名
-        'not-a-url', // ❌ 無效URL
-        'https://readmoo.com/api/reader/abc', // ❌ 非數字ID
-        '' // ❌ 空字串
+        'https://readmoo.com/invalid', // [FAIL] 正確域名但無效路徑
+        'https://example.com/api/reader/123', // [FAIL] 錯誤域名
+        'not-a-url', // [FAIL] 無效URL
+        'https://readmoo.com/api/reader/abc', // [FAIL] 非數字ID
+        '' // [FAIL] 空字串
       ]
 
       // Act & Assert
@@ -402,7 +402,7 @@ describe('📚 資料提取器測試', () => {
     })
   })
 
-  describe('⚡ 效能測試', () => {
+  describe('效能測試', () => {
     test('應該能夠處理大量書籍', async () => {
       // Arrange - 建立大量模擬書籍
       // eslint-disable-next-line no-unused-vars
@@ -428,7 +428,7 @@ describe('📚 資料提取器測試', () => {
     })
   })
 
-  describe('🔄 資料一致性測試', () => {
+  describe('資料一致性測試', () => {
     test('多次提取相同資料應該得到一致結果', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars

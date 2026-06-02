@@ -9,7 +9,7 @@
 
 const { JSDOM } = require('jsdom')
 
-describe('📄 Overview 資料匯入功能測試', () => {
+describe('Overview 資料匯入功能測試', () => {
   let dom
   let document
   let window
@@ -195,16 +195,16 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
           <!-- 操作按鈕區域 -->
           <div class="actions">
-            <button class="export-btn" id="importJSONBtn">📥 匯入 JSON</button>
-            <button class="export-btn" id="reloadBtn">🔄 重新載入</button>
+            <button class="export-btn" id="importJSONBtn">匯入 JSON</button>
+            <button class="export-btn" id="reloadBtn">重新載入</button>
           </div>
 
           <!-- 檔案載入區域 -->
           <div id="fileUploader" style="display: none;">
             <div class="file-uploader">
-              <h3>📁 載入書籍 JSON 檔案</h3>
+              <h3>載入書籍 JSON 檔案</h3>
               <input type="file" id="jsonFileInput" accept=".json,application/json">
-              <button class="export-btn" id="loadFileBtn">📂 載入檔案</button>
+              <button class="export-btn" id="loadFileBtn">載入檔案</button>
             </div>
           </div>
 
@@ -362,7 +362,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
     jest.clearAllMocks()
   })
 
-  describe('📄 檔案載入基本功能', () => {
+  describe('檔案載入基本功能', () => {
     test('應該能夠載入有效的JSON檔案', async () => {
       // Given: 準備有效的JSON檔案內容
       // eslint-disable-next-line no-unused-vars
@@ -401,7 +401,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
     })
   })
 
-  describe('📋 資料格式驗證', () => {
+  describe('資料格式驗證', () => {
     test('應該驗證必要欄位的存在', async () => {
       // Given: 包含無效記錄的JSON檔案
       // W1-047.1 IMP-A 起 cover 為選填（SPEC-EXPORT-V2 §3.5），
@@ -451,7 +451,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
     })
   })
 
-  describe('📏 檔案大小和格式邊界測試', () => {
+  describe('檔案大小和格式邊界測試', () => {
     test('應該處理空JSON陣列', async () => {
       // Given: 空陣列的JSON檔案
       // eslint-disable-next-line no-unused-vars
@@ -489,7 +489,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       // Given: 包含特殊字符的JSON檔案
       // eslint-disable-next-line no-unused-vars
       const specialCharBooks = [
-        { id: 'book-1', title: '📚 測試書籍 🔥', cover: 'http://example.com/cover.jpg' },
+        { id: 'book-1', title: '測試書籍 🔥', cover: 'http://example.com/cover.jpg' },
         { id: 'book-2', title: 'English & 中文 & 日本語', cover: 'http://example.com/cover.jpg' },
         { id: 'book-3', title: 'Special: "\'<>&', cover: 'http://example.com/cover.jpg' }
       ]
@@ -500,13 +500,13 @@ describe('📄 Overview 資料匯入功能測試', () => {
       await controller.handleFileLoad(createMockFile(fileContent))
 
       // Then: 驗證特殊字符正確處理
-      expect(controller.currentBooks[0].title).toBe('📚 測試書籍 🔥')
+      expect(controller.currentBooks[0].title).toBe('測試書籍 🔥')
       expect(controller.currentBooks[1].title).toBe('English & 中文 & 日本語')
       expect(controller.currentBooks[2].title).toBe('Special: "\'<>&')
     })
   })
 
-  describe('❌ 檔案格式錯誤處理', () => {
+  describe('[FAIL] 檔案格式錯誤處理', () => {
     test('應該處理無效的JSON格式', async () => {
       // Given: 無效的JSON檔案內容
       // eslint-disable-next-line no-unused-vars
@@ -680,8 +680,8 @@ describe('📄 Overview 資料匯入功能測試', () => {
     })
   })
 
-  describe('🎯 覆蓋率提升測試案例', () => {
-    describe('📝 檔案處理邊界情況', () => {
+  describe('覆蓋率提升測試案例', () => {
+    describe('[LOG] 檔案處理邊界情況', () => {
       test('應該處理 BOM (Byte Order Mark) 標記', async () => {
         // Given: 包含BOM標記的JSON檔案
         // eslint-disable-next-line no-unused-vars
@@ -699,7 +699,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
         // Given: 包含複雜 Unicode 字符的JSON檔案
         // eslint-disable-next-line no-unused-vars
         const unicodeBooks = [
-          { id: 'unicode-1', title: '🌟✨📚 Unicode測試 🇹🇼', cover: 'http://example.com/cover.jpg' },
+          { id: 'unicode-1', title: '🌟Unicode測試 🇹🇼', cover: 'http://example.com/cover.jpg' },
           { id: 'unicode-2', title: 'العربية 中文 한국어', cover: 'http://example.com/cover.jpg' }
         ]
         // eslint-disable-next-line no-unused-vars
@@ -710,7 +710,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
 
         // Then: 驗證Unicode字符正確處理
         expect(controller.currentBooks).toHaveLength(2)
-        expect(controller.currentBooks[0].title).toBe('🌟✨📚 Unicode測試 🇹🇼')
+        expect(controller.currentBooks[0].title).toBe('🌟Unicode測試 🇹🇼')
         expect(controller.currentBooks[1].title).toBe('العربية 中文 한국어')
       })
 
@@ -735,7 +735,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       })
     })
 
-    describe('❌ 錯誤處理分支測試', () => {
+    describe('[FAIL] 錯誤處理分支測試', () => {
       test('應該處理JSON語法錯誤', async () => {
         // Given: 包含語法錯誤的JSON檔案
         // eslint-disable-next-line no-unused-vars
@@ -836,7 +836,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       })
     })
 
-    describe('📄 資料格式支援測試', () => {
+    describe('資料格式支援測試', () => {
       test('應該處理books包裝格式的資料', async () => {
         // Given: 包裝books格式的JSON檔案（直接包含books屬性）
         // eslint-disable-next-line no-unused-vars
@@ -884,7 +884,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       })
     })
 
-    describe('⚡ 非同步處理測試', () => {
+    describe('非同步處理測試', () => {
       test('應該處理檔案讀取延遲', async () => {
         // Given: 設定較長的讀取延遲
         // eslint-disable-next-line no-unused-vars
@@ -962,7 +962,7 @@ describe('📄 Overview 資料匯入功能測試', () => {
       })
     })
 
-    describe('🔄 狀態管理和UI更新測試', () => {
+    describe('狀態管理和UI更新測試', () => {
       test('應該正確更新統計資訊', async () => {
         // Given: 準備多本書籍的資料
         // eslint-disable-next-line no-unused-vars

@@ -25,7 +25,7 @@ describe('PopupStatusManager 核心功能', () => {
     jest.clearAllMocks()
   })
 
-  describe('📊 基本狀態更新功能', () => {
+  describe('[STATS] 基本狀態更新功能', () => {
     test('應該正確更新擴展狀態', () => {
       // Given: 狀態管理器和初始狀態
       // eslint-disable-next-line no-unused-vars
@@ -86,7 +86,7 @@ describe('PopupStatusManager 核心功能', () => {
     })
   })
 
-  describe('🔄 狀態同步功能', () => {
+  describe('狀態同步功能', () => {
     test('應該與 Background Service Worker 狀態同步', () => {
       // Given: Background 狀態變化
       // eslint-disable-next-line no-unused-vars
@@ -125,7 +125,7 @@ describe('PopupStatusManager 核心功能', () => {
     })
   })
 
-  describe('🎯 狀態驗證與錯誤處理', () => {
+  describe('狀態驗證與錯誤處理', () => {
     test('應該驗證必要的狀態欄位', () => {
       // Given: 缺少必要欄位的狀態
       // eslint-disable-next-line no-unused-vars

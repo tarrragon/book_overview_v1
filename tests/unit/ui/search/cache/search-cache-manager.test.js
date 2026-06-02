@@ -647,7 +647,7 @@ describe('SearchCacheManager - TDD 循環 3/8', () => {
 
     test('應該正確處理特殊字元鍵', () => {
       // eslint-disable-next-line no-unused-vars
-      const specialKeys = ['@#$%', '!!', '???', '...', '---', '🚀', 'émoji']
+      const specialKeys = ['@#$%', '!!', '???', '...', '---', '[START] ', 'émoji']
 
       specialKeys.forEach((key, index) => {
         // eslint-disable-next-line no-unused-vars

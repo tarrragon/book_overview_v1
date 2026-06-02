@@ -241,7 +241,7 @@ describe('DataComparisonEngine TDD 測試', () => {
     })
   })
 
-  describe('⚙️ 配置和最佳化測試', () => {
+  describe('配置和最佳化測試', () => {
     test('應該支援大小寫不敏感比較', () => {
       // Given: 大小寫不敏感的引擎
       // eslint-disable-next-line no-unused-vars
@@ -291,7 +291,7 @@ describe('DataComparisonEngine TDD 測試', () => {
     })
   })
 
-  describe('📊 效能和統計測試', () => {
+  describe('[STATS] 效能和統計測試', () => {
     test('getStatistics() 應該回傳正確的統計資訊', async () => {
       // Given: 執行一些比較操作
       // eslint-disable-next-line no-unused-vars
@@ -351,7 +351,7 @@ describe('DataComparisonEngine TDD 測試', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理測試', () => {
+  describe('[WARN] 錯誤處理測試', () => {
     test('calculateDataDifferences() 應該處理無效輸入', async () => {
       // Given: 無效的輸入資料
 

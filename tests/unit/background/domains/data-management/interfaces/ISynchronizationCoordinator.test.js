@@ -280,7 +280,7 @@ describe('ISynchronizationCoordinator 抽象介面測試', () => {
     })
   })
 
-  describe('⚡ 多型和介面合約測試', () => {
+  describe('多型和介面合約測試', () => {
     test('應該支援多型實作', () => {
       // Given: 創建兩個不同的實作類別
       class ReadmooSyncCoordinator extends ISynchronizationCoordinator {

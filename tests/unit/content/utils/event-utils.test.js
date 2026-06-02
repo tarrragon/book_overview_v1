@@ -60,7 +60,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     document.body.innerHTML = ''
   })
 
-  describe('🎯 事件監聽器管理', () => {
+  describe('事件監聽器管理', () => {
     test('應該註冊和管理事件監聽器', () => {
       // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('button')
@@ -194,7 +194,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🚀 Chrome Extension 訊息傳遞', () => {
+  describe('[START] Chrome Extension 訊息傳遞', () => {
     test('應該發送訊息給 Background Script', async () => {
       // eslint-disable-next-line no-unused-vars
       const mockResponse = { success: true, data: 'response data' }
@@ -310,7 +310,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📋 事件委派和批處理', () => {
+  describe('事件委派和批處理', () => {
     test('應該實作事件委派機制', () => {
       // eslint-disable-next-line no-unused-vars
       const container = document.createElement('div')
@@ -418,7 +418,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('⚡ 事件防抖和節流', () => {
+  describe('事件防抖和節流', () => {
     test('應該實作事件防抖機制', (done) => {
       // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('input')
@@ -506,7 +506,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🔧 Content Script 特定事件', () => {
+  describe('[FIX] Content Script 特定事件', () => {
     test('應該處理頁面載入完成事件', () => {
       // eslint-disable-next-line no-unused-vars
       const loadHandler = jest.fn()
@@ -621,7 +621,7 @@ describe('EventUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📊 事件統計和診斷', () => {
+  describe('[STATS] 事件統計和診斷', () => {
     test('應該收集事件統計資訊', () => {
       // eslint-disable-next-line no-unused-vars
       const mockElement = document.createElement('button')

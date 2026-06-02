@@ -149,7 +149,7 @@ describe('AdapterFactoryService', () => {
     eventBus.removeAllListeners()
   })
 
-  describe('📋 基礎功能測試', () => {
+  describe('基礎功能測試', () => {
     test('應該正確初始化工廠服務', () => {
       expect(adapterFactory).toBeInstanceOf(AdapterFactoryService)
       expect(adapterFactory.eventBus).toBe(eventBus)
@@ -197,7 +197,7 @@ describe('AdapterFactoryService', () => {
     })
   })
 
-  describe('🏗 服務初始化測試', () => {
+  describe('服務初始化測試', () => {
     test('應該成功完成完整初始化流程', async () => {
       // eslint-disable-next-line no-unused-vars
       const initSpy = jest.spyOn(eventBus, 'emit')
@@ -533,7 +533,7 @@ describe('AdapterFactoryService', () => {
     })
   })
 
-  describe('🔄 生命週期管理測試', () => {
+  describe('生命週期管理測試', () => {
     beforeEach(async () => {
       await adapterFactory.initialize()
     })
@@ -687,7 +687,7 @@ describe('AdapterFactoryService', () => {
     })
   })
 
-  describe('🎯 適配器查詢測試', () => {
+  describe('適配器查詢測試', () => {
     beforeEach(async () => {
       await adapterFactory.initialize()
     })
@@ -788,7 +788,7 @@ describe('AdapterFactoryService', () => {
     })
   })
 
-  describe('🧹 資源清理測試', () => {
+  describe('資源清理測試', () => {
     beforeEach(async () => {
       await adapterFactory.initialize()
     })
@@ -969,7 +969,7 @@ describe('AdapterFactoryService', () => {
     })
   })
 
-  describe('📊 統計與狀態測試', () => {
+  describe('[STATS] 統計與狀態測試', () => {
     beforeEach(async () => {
       await adapterFactory.initialize()
     })
@@ -1206,7 +1206,7 @@ describe('AdapterFactoryService', () => {
     })
   })
 
-  describe('🔧 服務管理測試', () => {
+  describe('[FIX] 服務管理測試', () => {
     beforeEach(async () => {
       await adapterFactory.initialize()
     })
@@ -1264,7 +1264,7 @@ describe('AdapterFactoryService', () => {
     })
   })
 
-  describe('🔄 ID 生成測試', () => {
+  describe('ID 生成測試', () => {
     test('應該生成唯一的適配器ID', () => {
       // eslint-disable-next-line no-unused-vars
       const id1 = adapterFactory.generateAdapterId('READMOO')
@@ -1288,7 +1288,7 @@ describe('AdapterFactoryService', () => {
     })
   })
 
-  describe('📝 日誌測試', () => {
+  describe('[LOG] 日誌測試', () => {
     test('應該正確記錄一般日誌', async () => {
       await adapterFactory.log('測試訊息')
 

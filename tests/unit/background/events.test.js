@@ -23,7 +23,7 @@ const { StandardError } = require('src/core/errors/StandardError')
  * 4. 測試錯誤處理和回復
  */
 
-describe('🎭 背景服務事件系統測試', () => {
+describe('背景服務事件系統測試', () => {
   // eslint-disable-next-line no-unused-vars
   let _eventSystem
   // eslint-disable-next-line no-unused-vars
@@ -45,7 +45,7 @@ describe('🎭 背景服務事件系統測試', () => {
     // eventSystem = require('@/background/events');
   })
 
-  describe('📝 事件註冊機制', () => {
+  describe('[LOG] 事件註冊機制', () => {
     test('應該能夠註冊事件監聽器', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -127,7 +127,7 @@ describe('🎭 背景服務事件系統測試', () => {
     })
   })
 
-  describe('🚀 事件觸發機制', () => {
+  describe('[START] 事件觸發機制', () => {
     test('應該能夠觸發事件並執行處理器', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -214,7 +214,7 @@ describe('🎭 背景服務事件系統測試', () => {
     })
   })
 
-  describe('🔄 事件流程控制', () => {
+  describe('事件流程控制', () => {
     test('應該支援事件的條件執行', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -295,7 +295,7 @@ describe('🎭 背景服務事件系統測試', () => {
     })
   })
 
-  describe('🛡 錯誤處理', () => {
+  describe('錯誤處理', () => {
     test('應該能夠處理處理器中的錯誤', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -381,7 +381,7 @@ describe('🎭 背景服務事件系統測試', () => {
     })
   })
 
-  describe('🎯 Chrome Extension 特定事件', () => {
+  describe('Chrome Extension 特定事件', () => {
     test('應該能夠處理tab更新事件', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -449,7 +449,7 @@ describe('🎭 背景服務事件系統測試', () => {
     })
   })
 
-  describe('⚡ 效能測試', () => {
+  describe('效能測試', () => {
     test('事件處理應該在合理時間內完成', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -500,7 +500,7 @@ describe('🎭 背景服務事件系統測試', () => {
     })
   })
 
-  describe('🔧 事件系統維護', () => {
+  describe('[FIX] 事件系統維護', () => {
     test('應該能夠清理所有事件監聽器', () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars

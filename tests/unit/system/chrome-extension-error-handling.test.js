@@ -9,7 +9,7 @@
 // eslint-disable-next-line no-unused-vars
 const MessageErrorHandler = require('src/error-handling/message-error-handler')
 
-describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
+describe('Chrome Extension 錯誤處理測試套件', () => {
   let messageErrorHandler
   // eslint-disable-next-line no-unused-vars
   let mockEventBus
@@ -53,7 +53,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     }
   })
 
-  describe('🔐 權限相關錯誤處理', () => {
+  describe('權限相關錯誤處理', () => {
     test('CE001: 應該處理儲存權限被撤銷的情況', async () => {
       // Given: 設置權限被撤銷錯誤
       global.chrome.runtime.lastError = {
@@ -92,7 +92,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     })
   })
 
-  describe('🔄 擴展上下文錯誤處理', () => {
+  describe('擴展上下文錯誤處理', () => {
     test('CE003: 應該處理擴展上下文失效的情況', () => {
       // Given: 設置上下文失效錯誤
       global.chrome.runtime.lastError = {
@@ -129,7 +129,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     })
   })
 
-  describe('💾 儲存配額錯誤處理', () => {
+  describe('[SAVE] 儲存配額錯誤處理', () => {
     test('CE005: 應該處理Chrome Storage配額超限的情況', async () => {
       // Given: 設置配額超限錯誤
       global.chrome.runtime.lastError = {
@@ -166,7 +166,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     })
   })
 
-  describe('🛡️ 內容安全政策 (CSP) 錯誤處理', () => {
+  describe('內容安全政策 (CSP) 錯誤處理', () => {
     test('CE007: 應該處理CSP違規錯誤', async () => {
       // Given: CSP 錯誤事件
       // eslint-disable-next-line no-unused-vars
@@ -206,7 +206,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     })
   })
 
-  describe('📡 跨上下文通訊錯誤處理', () => {
+  describe('跨上下文通訊錯誤處理', () => {
     test('CE009: 應該處理Content Script通訊失敗', async () => {
       // Given: Content Script 通訊失敗事件
       // eslint-disable-next-line no-unused-vars
@@ -257,7 +257,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     })
   })
 
-  describe('🔧 系統恢復與降級機制', () => {
+  describe('[FIX] 系統恢復與降級機制', () => {
     test('CE011: 應該在多重錯誤情況下優先處理關鍵錯誤', async () => {
       // Given: 多個錯誤事件
       // eslint-disable-next-line no-unused-vars
@@ -317,7 +317,7 @@ describe('🏗️ Chrome Extension 錯誤處理測試套件', () => {
     })
   })
 
-  describe('📊 錯誤統計與診斷', () => {
+  describe('[STATS] 錯誤統計與診斷', () => {
     test('應該正確記錄和統計錯誤', async () => {
       // Given: 清空統計
       // eslint-disable-next-line no-unused-vars

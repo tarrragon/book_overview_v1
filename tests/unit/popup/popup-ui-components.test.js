@@ -19,7 +19,7 @@
 
 const { JSDOM } = require('jsdom')
 
-describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
+describe('Popup UI 組件測試 (TDD循環 #25)', () => {
   let dom
   let document
   // eslint-disable-next-line no-unused-vars
@@ -47,7 +47,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
         <!-- 進度顯示區域 -->
         <div class="status-card" id="progressContainer" style="display: none;">
           <div class="progress-header">
-            <strong>📊 提取進度</strong>
+            <strong>[STATS] 提取進度</strong>
             <span id="progressPercentage">0%</span>
           </div>
           <div class="progress-bar-container">
@@ -61,7 +61,7 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
         <!-- 結果顯示區域 -->
         <div class="status-card" id="resultsContainer" style="display: none;">
           <div class="results-header">
-            <strong>📋 提取結果</strong>
+            <strong>提取結果</strong>
           </div>
           <div class="info-text">
             <strong>已提取書籍:</strong> <span id="extractedBookCount">0</span> 本<br>
@@ -69,20 +69,20 @@ describe('🎨 Popup UI 組件測試 (TDD循環 #25)', () => {
             <strong>成功率:</strong> <span id="successRate">-</span>
           </div>
           <div class="action-buttons">
-            <button class="button secondary small" id="exportBtn" disabled>💾 匯出資料</button>
-            <button class="button secondary small" id="viewResultsBtn" disabled>👁️ 查看詳情</button>
+            <button class="button secondary small" id="exportBtn" disabled>[SAVE] 匯出資料</button>
+            <button class="button secondary small" id="viewResultsBtn" disabled>查看詳情</button>
           </div>
         </div>
         
         <!-- 錯誤顯示區域 -->
         <div class="status-card error-card" id="errorContainer" style="display: none;">
           <div class="error-header">
-            <strong>⚠️ 錯誤訊息</strong>
+            <strong>[WARN] 錯誤訊息</strong>
           </div>
           <div class="error-message" id="errorMessage">發生未知錯誤</div>
           <div class="action-buttons">
-            <button class="button secondary small" id="retryBtn">🔄 重試</button>
-            <button class="button secondary small" id="reportBtn">📝 回報問題</button>
+            <button class="button secondary small" id="retryBtn">[RETRY] 重試</button>
+            <button class="button secondary small" id="reportBtn">[LOG] 回報問題</button>
           </div>
         </div>
       </body>

@@ -53,7 +53,7 @@ global.URL = {
 const BookDataExporter = require('src/export/book-data-exporter')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
-describe('📤 BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', () => {
+describe('BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', () => {
   let exporter
   // eslint-disable-next-line no-unused-vars
   let mockBooks

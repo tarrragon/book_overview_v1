@@ -98,7 +98,7 @@ function loadFromFile () {
   reader.readAsText(file, 'UTF-8')
 }
 
-describe('🎯 UC-04 資料匯入功能測試套件', () => {
+describe('UC-04 資料匯入功能測試套件', () => {
   // eslint-disable-next-line no-unused-vars
   let mockFileReader
   let originalFileReader
@@ -168,7 +168,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     global.mockFileInput.files = file ? [file] : []
   }
 
-  describe('📝 基本檔案驗證測試', () => {
+  describe('[LOG] 基本檔案驗證測試', () => {
     test('應該在沒有選擇檔案時顯示錯誤訊息', () => {
       mockFileInput(null)
 
@@ -208,7 +208,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
   })
 
-  describe('📚 JSON 內容驗證測試', () => {
+  describe('JSON 內容驗證測試', () => {
     test('應該拒絕非陣列格式的 JSON', async () => {
       // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile('{}', 'test.json')
@@ -282,7 +282,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
   })
 
-  describe('✅ 成功載入測試', () => {
+  describe('[OK] 成功載入測試', () => {
     test('應該成功載入有效的書籍資料', async () => {
       // eslint-disable-next-line no-unused-vars
       const validBooks = [
@@ -342,7 +342,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
   })
 
-  describe('🔧 FileReader 錯誤處理測試', () => {
+  describe('[FIX] FileReader 錯誤處理測試', () => {
     test('應該處理 FileReader 讀取錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const jsonFile = createMockFile('[]', 'test.json')
@@ -370,7 +370,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
   })
 
-  describe('🎯 邊界情況測試', () => {
+  describe('邊界情況測試', () => {
     test('應該處理包含完整書籍資訊的複雜物件', async () => {
       // eslint-disable-next-line no-unused-vars
       const complexBook = [{
@@ -436,7 +436,7 @@ describe('🎯 UC-04 資料匯入功能測試套件', () => {
     })
   })
 
-  describe('🔄 覆蓋/合併模式測試', () => {
+  describe('覆蓋/合併模式測試', () => {
     test('應該完全覆蓋現有資料（覆蓋模式）', async () => {
       // 設置初始資料
       global.booksData.push(

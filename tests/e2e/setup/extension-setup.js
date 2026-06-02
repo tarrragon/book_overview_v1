@@ -95,7 +95,7 @@ class ExtensionTestSetup {
         if (attempt < SW_LAUNCH_RETRY_MAX) {
           // eslint-disable-next-line no-console
           console.warn(
-            `⚠️ Extension 測試環境建立第 ${attempt} 次失敗，重試中: ${error.message}`
+            `[WARN] Extension 測試環境建立第 ${attempt} 次失敗，重試中: ${error.message}`
           )
           await this.cleanup()
         }
@@ -104,7 +104,7 @@ class ExtensionTestSetup {
 
     // 全部 attempt 用完仍失敗
     // eslint-disable-next-line no-console
-    console.error('❌ Extension 測試環境建立失敗（已重試 ' + SW_LAUNCH_RETRY_MAX + ' 次）:', lastError)
+    console.error('[FAIL] Extension 測試環境建立失敗（已重試 ' + SW_LAUNCH_RETRY_MAX + ' 次）:', lastError)
     await this.cleanup()
     throw lastError
   }
@@ -261,7 +261,7 @@ class ExtensionTestSetup {
       await popupPage.goto(popupUrl)
 
       // eslint-disable-next-line no-console
-      console.log('✅ Extension Popup 已開啟')
+      console.log('[OK] Extension Popup 已開啟')
       return popupPage
     } catch (error) {
       throw (() => {
@@ -376,7 +376,7 @@ class ExtensionTestSetup {
       }
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.warn('⚠️ 測試環境清理時發生錯誤:', error)
+      console.warn('[WARN] 測試環境清理時發生錯誤:', error)
     }
   }
 }

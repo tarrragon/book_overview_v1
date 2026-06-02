@@ -119,7 +119,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
     }
   })
 
-  describe('🔧 ReadmooPlatformMigrationValidator 完整驗證', () => {
+  describe('[FIX] ReadmooPlatformMigrationValidator 完整驗證', () => {
     describe('平台檢測準確性驗證', () => {
       test('應該正確檢測 Readmoo 平台並達到最低信心度要求', async () => {
         // eslint-disable-next-line no-unused-vars
@@ -584,7 +584,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
     })
   })
 
-  describe('🔧 真實環境模擬測試', () => {
+  describe('[FIX] 真實環境模擬測試', () => {
     describe('網路條件和錯誤處理', () => {
       test('應該處理網路延遲情況', async () => {
         // 模擬網路延遲
@@ -827,7 +827,7 @@ describe('🧪 Readmoo 平台 v2.0 整合驗證測試', () => {
     })
   })
 
-  describe('🔧 驗證報告和監控', () => {
+  describe('[FIX] 驗證報告和監控', () => {
     test('應該生成完整的驗證報告', async () => {
       // 執行幾次驗證以生成統計資料
       await migrationValidator.validateReadmooMigration(validationContext)

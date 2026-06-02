@@ -57,7 +57,7 @@ describe('跨設備同步工作流程整合測試', () => {
         testDataGenerator.generateSpecialBook('completed-book', { progress: 100 }),
         testDataGenerator.generateSpecialBook('new-book', { progress: 0 }),
         testDataGenerator.generateSpecialBook('half-read', { progress: 50 }),
-        testDataGenerator.generateSpecialBook('unicode-title', { title: '測試書籍🔖📚' })
+        testDataGenerator.generateSpecialBook('unicode-title', { title: '測試書籍🔖' })
       ]
 
       // eslint-disable-next-line no-unused-vars

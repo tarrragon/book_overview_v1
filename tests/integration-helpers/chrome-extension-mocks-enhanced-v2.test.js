@@ -24,7 +24,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     }
   })
 
-  describe('🔧 基礎初始化和配置', () => {
+  describe('[FIX] 基礎初始化和配置', () => {
     test('應該成功初始化Mock系統', () => {
       expect(mockSystem).toBeInstanceOf(ChromeExtensionMocksEnhancedV2)
       expect(typeof mockSystem.createCompleteChromeAPI).toBe('function')
@@ -51,7 +51,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
   })
 
-  describe('💾 Storage API Mock增強測試', () => {
+  describe('[SAVE] Storage API Mock增強測試', () => {
     let chromeAPI
 
     beforeEach(() => {
@@ -179,7 +179,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
   })
 
-  describe('🔧 Runtime API Mock增強測試', () => {
+  describe('[FIX] Runtime API Mock增強測試', () => {
     let chromeAPI
 
     beforeEach(() => {
@@ -217,7 +217,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
   })
 
-  describe('🔄 Service Worker生命週期測試', () => {
+  describe('Service Worker生命週期測試', () => {
     test('應該支援Service Worker安裝模擬', async () => {
       // eslint-disable-next-line no-unused-vars
       const initialState = mockSystem.getStateSnapshot()
@@ -248,7 +248,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
   })
 
-  describe('✅ 狀態管理和一致性驗證', () => {
+  describe('[OK] 狀態管理和一致性驗證', () => {
     test('應該正確重置所有狀態', async () => {
       // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
@@ -297,7 +297,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
   })
 
-  describe('🎯 整合場景測試', () => {
+  describe('整合場景測試', () => {
     test('應該支援完整的Chrome Extension通訊流程', async () => {
       // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()
@@ -353,7 +353,7 @@ describe('ChromeExtensionMocksEnhancedV2', () => {
     })
   })
 
-  describe('📊 效能和記憶體測試', () => {
+  describe('[STATS] 效能和記憶體測試', () => {
     test('應該處理大量Storage操作', async () => {
       // eslint-disable-next-line no-unused-vars
       const chromeAPI = mockSystem.createCompleteChromeAPI()

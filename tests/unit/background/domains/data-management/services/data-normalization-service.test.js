@@ -46,7 +46,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗️ 服務初始化', () => {
+  describe('服務初始化', () => {
     test('應該正確初始化資料正規化服務', () => {
       expect(normalizer).toBeInstanceOf(DataNormalizationService)
       expect(normalizer.eventBus).toBe(mockEventBus)
@@ -66,7 +66,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('📖 書籍資料正規化', () => {
+  describe('書籍資料正規化', () => {
     test('normalizeBook() 應該正規化 READMOO 書籍資料', async () => {
       // eslint-disable-next-line no-unused-vars
       const book = {
@@ -156,7 +156,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('🔧 標題正規化', () => {
+  describe('[FIX] 標題正規化', () => {
     test('normalizeTitle() 應該清理標題空白', () => {
       expect(normalizer.normalizeTitle('  多餘空白   ')).toBe('多餘空白')
       expect(normalizer.normalizeTitle('多個\t\n空白')).toBe('多個 空白')
@@ -214,7 +214,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('📚 ISBN 正規化', () => {
+  describe('ISBN 正規化', () => {
     test('normalizeISBN() 應該清理 ISBN 格式', () => {
       expect(normalizer.normalizeISBN('978-1-234-56789-0')).toBe('9781234567890')
       expect(normalizer.normalizeISBN('978 1 234 56789 0')).toBe('9781234567890')
@@ -229,7 +229,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('🖼️ 封面正規化', () => {
+  describe('封面正規化', () => {
     test('normalizeCover() 應該處理完整封面資訊', () => {
       // eslint-disable-next-line no-unused-vars
       const cover = 'https://example.com/cover.jpg'
@@ -268,7 +268,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('📊 進度正規化', () => {
+  describe('[STATS] 進度正規化', () => {
     test('normalizeProgress() 應該處理數字進度', () => {
       // eslint-disable-next-line no-unused-vars
       const result = normalizer.normalizeProgress(75)
@@ -314,7 +314,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('📖 閱讀狀態正規化', () => {
+  describe('閱讀狀態正規化', () => {
     test('normalizeReadingStatus() 應該處理布林值', () => {
       expect(normalizer.normalizeReadingStatus(true)).toBe('FINISHED')
       expect(normalizer.normalizeReadingStatus(false)).toBe('READING')
@@ -378,7 +378,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('📊 批次正規化', () => {
+  describe('[STATS] 批次正規化', () => {
     test('normalizeBookBatch() 應該處理多本書籍', async () => {
       // eslint-disable-next-line no-unused-vars
       const books = [
@@ -423,7 +423,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('📊 統計與監控', () => {
+  describe('[STATS] 統計與監控', () => {
     test('getNormalizationStatistics() 應該提供正規化統計', async () => {
       // eslint-disable-next-line no-unused-vars
       const books = [
@@ -458,7 +458,7 @@ describe('DataNormalizationService - 資料正規化服務', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         // eslint-disable-next-line no-new

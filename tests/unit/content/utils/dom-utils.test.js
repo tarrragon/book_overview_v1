@@ -34,7 +34,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
     document.body.innerHTML = ''
   })
 
-  describe('🔍 DOM 查詢和選擇器', () => {
+  describe('[CHECK] DOM 查詢和選擇器', () => {
     test('應該安全執行 querySelector 查詢', () => {
       document.body.innerHTML = '<div class="test-element">測試內容</div>'
 
@@ -112,7 +112,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📋 元素檢查和驗證', () => {
+  describe('元素檢查和驗證', () => {
     test('應該檢查元素是否存在', () => {
       document.body.innerHTML = '<div id="test">測試</div>'
       // eslint-disable-next-line no-unused-vars
@@ -195,7 +195,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📄 文字和資料提取', () => {
+  describe('文字和資料提取', () => {
     test('應該安全提取元素文字內容', () => {
       document.body.innerHTML = `
         <h2 class="title">   JavaScript 程式設計   </h2>
@@ -275,7 +275,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🔧 DOM 操作和修改', () => {
+  describe('[FIX] DOM 操作和修改', () => {
     test('應該安全設定元素屬性', () => {
       document.body.innerHTML = '<div id="test"></div>'
       // eslint-disable-next-line no-unused-vars
@@ -346,7 +346,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('⚡ 效能和最佳化', () => {
+  describe('效能和最佳化', () => {
     test('應該快取查詢結果', () => {
       document.body.innerHTML = '<div class="cached-element">快取測試</div>'
 
@@ -439,7 +439,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('🌐 Readmoo 特定功能', () => {
+  describe('Readmoo 特定功能', () => {
     test('應該識別書籍容器元素', () => {
       document.body.innerHTML = `
         <div class="library-item">
@@ -530,7 +530,7 @@ describe('DOMUtils - TDD Red 階段測試', () => {
     }, 500)
   })
 
-  describe('⚠️ 錯誤處理和邊界情況', () => {
+  describe('[WARN] 錯誤處理和邊界情況', () => {
     test('應該處理 null 和 undefined 元素', () => {
       expect(() => DOMUtils.safeQuerySelector(null)).not.toThrow()
       expect(() => DOMUtils.extractText(null)).not.toThrow()

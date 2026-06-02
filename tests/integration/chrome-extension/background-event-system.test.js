@@ -111,7 +111,7 @@ describe('Background Service Worker Event System Integration', () => {
     }
   }
 
-  describe('🔧 EventBus 初始化與配置', () => {
+  describe('[FIX] EventBus 初始化與配置', () => {
     test('應該成功載入並初始化 EventBus', async () => {
       // 檢查 EventBus 模組是否可被載入
       expect(() => {
@@ -214,7 +214,7 @@ describe('Background Service Worker Event System Integration', () => {
     })
   })
 
-  describe('🔧 ChromeEventBridge 跨上下文功能', () => {
+  describe('[FIX] ChromeEventBridge 跨上下文功能', () => {
     test('應該成功載入並初始化 ChromeEventBridge', async () => {
       // 檢查 ChromeEventBridge 模組是否可被載入
       expect(() => {
@@ -358,7 +358,7 @@ describe('Background Service Worker Event System Integration', () => {
     })
   })
 
-  describe('🔧 事件系統整合與協調', () => {
+  describe('[FIX] 事件系統整合與協調', () => {
     test('應該整合 EventBus 和 ChromeEventBridge', async () => {
       // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus
@@ -449,7 +449,7 @@ describe('Background Service Worker Event System Integration', () => {
     })
   })
 
-  describe('🔧 Service Worker 生命週期相容性', () => {
+  describe('[FIX] Service Worker 生命週期相容性', () => {
     test('應該在 Service Worker 安裝時初始化事件系統', async () => {
       // 模擬 chrome.runtime.onInstalled 事件
       // eslint-disable-next-line no-unused-vars
@@ -514,7 +514,7 @@ describe('Background Service Worker Event System Integration', () => {
     })
   })
 
-  describe('🔧 錯誤處理和恢復機制', () => {
+  describe('[FIX] 錯誤處理和恢復機制', () => {
     test('應該處理 EventBus 初始化失敗', async () => {
       // 模擬初始化失敗情況 - 創建一個會失敗的EventCoordinator
       // eslint-disable-next-line no-unused-vars
@@ -626,7 +626,7 @@ describe('Background Service Worker Event System Integration', () => {
     })
   })
 
-  describe('🔧 效能和記憶體管理', () => {
+  describe('[FIX] 效能和記憶體管理', () => {
     test('應該有適當的記憶體使用管理', async () => {
       // eslint-disable-next-line no-unused-vars
       const eventBus = global.eventBus

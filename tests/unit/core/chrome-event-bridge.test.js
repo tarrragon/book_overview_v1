@@ -46,7 +46,7 @@ async function flushMicrotasks (rounds = 10) {
   }
 }
 
-describe('🌐 Chrome Extension 事件橋接器測試', () => {
+describe('Chrome Extension 事件橋接器測試', () => {
   let createChromeEventBridge
   let bridge
   // eslint-disable-next-line no-unused-vars
@@ -88,7 +88,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     }
   })
 
-  describe('📝 基本構造和設置', () => {
+  describe('[LOG] 基本構造和設置', () => {
     test('應該能夠創建橋接器實例', () => {
       // Act & Assert
       expect(bridge).toBeDefined()
@@ -110,7 +110,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('🔄 跨上下文事件處理', () => {
+  describe('跨上下文事件處理', () => {
     test('應該能夠處理跨上下文事件消息', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -202,7 +202,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('🎯 上下文分發機制', () => {
+  describe('上下文分發機制', () => {
     test('應該能夠分發到 background 上下文', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -262,7 +262,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('📤 Background 通訊機制', () => {
+  describe('Background 通訊機制', () => {
     test('應該能夠發送事件到 background', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -308,7 +308,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('📥 Content Script 通訊機制', () => {
+  describe('Content Script 通訊機制', () => {
     test('應該能夠發送事件到 content scripts', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -376,7 +376,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('🔍 Readmoo 分頁查詢', () => {
+  describe('[CHECK] Readmoo 分頁查詢', () => {
     test('應該能夠查詢 Readmoo 相關分頁', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -416,7 +416,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('📨 分頁消息發送', () => {
+  describe('分頁消息發送', () => {
     test('應該能夠發送消息到指定分頁', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -467,7 +467,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('🎨 Popup 通訊機制', () => {
+  describe('Popup 通訊機制', () => {
     test('應該能夠處理 popup 通訊', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars
@@ -485,7 +485,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('🛡 錯誤處理和復原', () => {
+  describe('錯誤處理和復原', () => {
     test('應該能夠處理消息監聽器註冊失敗', () => {
       // Arrange
       mockChrome.runtime.onMessage.addListener.mockImplementation(() => {
@@ -528,7 +528,7 @@ describe('🌐 Chrome Extension 事件橋接器測試', () => {
     })
   })
 
-  describe('⚡ 整合測試', () => {
+  describe('整合測試', () => {
     test('應該能夠完成完整的跨上下文事件流程', async () => {
       // Arrange
       // eslint-disable-next-line no-unused-vars

@@ -72,7 +72,7 @@ describe('PopupController 基礎架構測試', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗 基礎架構建立', () => {
+  describe('基礎架構建立', () => {
     test('應該能成功建立 PopupController 實例', () => {
       // Given: PopupController 類別已定義
 
@@ -111,7 +111,7 @@ describe('PopupController 基礎架構測試', () => {
     })
   })
 
-  describe('🔧 組件初始化', () => {
+  describe('[FIX] 組件初始化', () => {
     test('應該按順序初始化所有組件', async () => {
       // Given: PopupController 實例
       // eslint-disable-next-line no-unused-vars
@@ -172,7 +172,7 @@ describe('PopupController 基礎架構測試', () => {
     })
   })
 
-  describe('📡 事件協調 (未來實作)', () => {
+  describe('事件協調 (未來實作)', () => {
     test('應該支援事件監聽器設置', async () => {
       // Given: PopupController 實例和初始化完成
       // eslint-disable-next-line no-unused-vars
@@ -206,7 +206,7 @@ describe('PopupController 基礎架構測試', () => {
     })
   })
 
-  describe('🧹 資源清理', () => {
+  describe('資源清理', () => {
     test('應該正確清理所有資源', async () => {
       // Given: 已初始化的 PopupController
       // eslint-disable-next-line no-unused-vars
@@ -227,7 +227,7 @@ describe('PopupController 基礎架構測試', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('初始化成功時應該返回正確狀態', async () => {
       // Given: PopupController 實例
       // eslint-disable-next-line no-unused-vars

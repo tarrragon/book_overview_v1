@@ -133,7 +133,7 @@ describe('PopupController 事件系統重構', () => {
     }
   })
 
-  describe('🔧 事件管理器建立和配置', () => {
+  describe('[FIX] 事件管理器建立和配置', () => {
     test('應該建立統一的事件管理器', async () => {
       await controller.initialize()
 
@@ -177,7 +177,7 @@ describe('PopupController 事件系統重構', () => {
     })
   })
 
-  describe('🎯 事件綁定和執行', () => {
+  describe('事件綁定和執行', () => {
     test('應該正確綁定所有配置的事件', async () => {
       await controller.initialize()
 
@@ -247,7 +247,7 @@ describe('PopupController 事件系統重構', () => {
     })
   })
 
-  describe('🛡️ 錯誤處理和恢復', () => {
+  describe('錯誤處理和恢復', () => {
     test('應該處理事件綁定失敗', async () => {
       // 移除部分 DOM 元素模擬綁定失敗
       // eslint-disable-next-line no-unused-vars
@@ -369,7 +369,7 @@ describe('PopupController 事件系統重構', () => {
     })
   })
 
-  describe('🧹 事件清理和資源管理', () => {
+  describe('事件清理和資源管理', () => {
     test('應該記錄所有綁定的事件監聽器', async () => {
       await controller.initialize()
 
@@ -456,7 +456,7 @@ describe('PopupController 事件系統重構', () => {
     })
   })
 
-  describe('⚙️ 事件配置和自訂', () => {
+  describe('事件配置和自訂', () => {
     test('應該支援動態新增事件配置', async () => {
       await controller.initialize()
 

@@ -751,7 +751,7 @@ describe('SearchEngine - TDD 循環 2/8', () => {
 
     test('應該處理非 ASCII 字元', async () => {
       // eslint-disable-next-line no-unused-vars
-      const unicodeQueries = ['機器學習', '🚀', '中文測試', 'émoji']
+      const unicodeQueries = ['機器學習', '[START] ', '中文測試', 'émoji']
 
       for (const query of unicodeQueries) {
         expect(() => {

@@ -82,7 +82,7 @@ describe('ChromeStorageAdapter', () => {
     delete global.chrome
   })
 
-  describe('🔧 基本結構測試', () => {
+  describe('[FIX] 基本結構測試', () => {
     test('應該能夠正確實例化', () => {
       expect(() => {
         adapter = new ChromeStorageAdapter()
@@ -125,7 +125,7 @@ describe('ChromeStorageAdapter', () => {
     })
   })
 
-  describe('🔧 Chrome Storage API 整合測試', () => {
+  describe('[FIX] Chrome Storage API 整合測試', () => {
     beforeEach(() => {
       adapter = new ChromeStorageAdapter()
     })
@@ -190,7 +190,7 @@ describe('ChromeStorageAdapter', () => {
     })
   })
 
-  describe('🔧 儲存操作測試', () => {
+  describe('[FIX] 儲存操作測試', () => {
     beforeEach(() => {
       adapter = new ChromeStorageAdapter()
     })
@@ -288,7 +288,7 @@ describe('ChromeStorageAdapter', () => {
     })
   })
 
-  describe('🔧 配額管理測試', () => {
+  describe('[FIX] 配額管理測試', () => {
     beforeEach(() => {
       adapter = new ChromeStorageAdapter({
         maxSize: 1048576 // 1MB 限制
@@ -379,7 +379,7 @@ describe('ChromeStorageAdapter', () => {
     })
   })
 
-  describe('🔧 錯誤處理測試', () => {
+  describe('[FIX] 錯誤處理測試', () => {
     beforeEach(() => {
       adapter = new ChromeStorageAdapter()
     })
@@ -450,7 +450,7 @@ describe('ChromeStorageAdapter', () => {
     })
   })
 
-  describe('🔧 效能和統計測試', () => {
+  describe('[FIX] 效能和統計測試', () => {
     beforeEach(() => {
       adapter = new ChromeStorageAdapter()
     })
@@ -509,7 +509,7 @@ describe('ChromeStorageAdapter', () => {
     })
   })
 
-  describe('🔧 並發處理測試', () => {
+  describe('[FIX] 並發處理測試', () => {
     beforeEach(() => {
       adapter = new ChromeStorageAdapter()
     })
@@ -572,7 +572,7 @@ describe('ChromeStorageAdapter', () => {
     })
   })
 
-  describe('🔧 數據壓縮測試', () => {
+  describe('[FIX] 數據壓縮測試', () => {
     beforeEach(() => {
       adapter = new ChromeStorageAdapter({
         compressionEnabled: true,

@@ -166,7 +166,7 @@ describe('系統性錯誤處理場景測試', () => {
     global.chrome = mockChrome
   })
 
-  describe('🌐 NETWORK錯誤處理測試', () => {
+  describe('NETWORK錯誤處理測試', () => {
     test('應該正確檢測並分類網路超時錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const networkError = new Error('Network timeout')
@@ -199,7 +199,7 @@ describe('系統性錯誤處理場景測試', () => {
     })
   })
 
-  describe('📊 DATA錯誤處理測試', () => {
+  describe('[STATS] DATA錯誤處理測試', () => {
     test('應該檢測JSON格式錯誤並提供修復建議', () => {
       // eslint-disable-next-line no-unused-vars
       const jsonError = new Error('Invalid JSON format')
@@ -232,7 +232,7 @@ describe('系統性錯誤處理場景測試', () => {
     })
   })
 
-  describe('⚙️ SYSTEM錯誤處理測試', () => {
+  describe('SYSTEM錯誤處理測試', () => {
     test('應該處理記憶體不足錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const memoryError = new Error('Out of memory')
@@ -254,7 +254,7 @@ describe('系統性錯誤處理場景測試', () => {
     })
   })
 
-  describe('🔧 DOM錯誤處理測試', () => {
+  describe('[FIX] DOM錯誤處理測試', () => {
     test('應該檢測元素不存在錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const domError = new Error('Element not found')
@@ -275,7 +275,7 @@ describe('系統性錯誤處理場景測試', () => {
     })
   })
 
-  describe('🚀 PLATFORM錯誤處理測試', () => {
+  describe('[START] PLATFORM錯誤處理測試', () => {
     test('應該檢測Chrome API不可用錯誤', () => {
       // 模擬Chrome API不可用
       global.chrome = undefined
@@ -297,7 +297,7 @@ describe('系統性錯誤處理場景測試', () => {
     })
   })
 
-  describe('🔄 跨模組錯誤傳播測試', () => {
+  describe('跨模組錯誤傳播測試', () => {
     test('應該正確傳播Overview模組錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const overviewError = new Error('Overview module failed')

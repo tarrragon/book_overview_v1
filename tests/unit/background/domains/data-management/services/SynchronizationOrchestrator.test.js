@@ -351,7 +351,7 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
     })
   })
 
-  describe('⚙️ 服務管理和配置測試', () => {
+  describe('服務管理和配置測試', () => {
     test('initializeServices() 應該正確初始化所有服務', () => {
       // Given: 未初始化的協調器
       // eslint-disable-next-line no-unused-vars
@@ -441,7 +441,7 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
     })
   })
 
-  describe('🔍 錯誤處理和邊界條件測試', () => {
+  describe('[CHECK] 錯誤處理和邊界條件測試', () => {
     test('orchestrateSync() 應該優雅處理服務失敗', async () => {
       // Given: 比較引擎失敗
       // eslint-disable-next-line no-unused-vars
@@ -573,7 +573,7 @@ describe('SynchronizationOrchestrator TDD 測試', () => {
     })
   })
 
-  describe('🚀 效能最佳化測試', () => {
+  describe('[START] 效能最佳化測試', () => {
     test('應該根據負載動態調整批次大小', () => {
       // Given: 不同的負載統計
       // eslint-disable-next-line no-unused-vars

@@ -140,7 +140,7 @@ jest.mock('../../../src/export/export-events', () => ({
   }
 }))
 
-describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () => {
+describe('匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () => {
   // eslint-disable-next-line no-unused-vars
   let eventBus
   // eslint-disable-next-line no-unused-vars
@@ -848,7 +848,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
 
     test('處理器失敗時應該觸發錯誤處理器', async () => {
       /*
-       * 🚨 重要測試：錯誤處理機制驗證
+       * [ALERT] 重要測試：錯誤處理機制驗證
        *
        * 此測試驗證當匯出處理器失敗時，錯誤處理機制能正確運作
        *
@@ -863,7 +863,7 @@ describe('📤 匯出事件處理器系統測試 (TDD循環 #29 Red階段)', () 
        * 3. 添加短暫等待確保非同步事件處理完成
        * 4. 驗證錯誤資料結構完整性
        *
-       * ⚠️ 未來開發者注意：
+       * [WARN] 未來開發者注意：
        * - 不可移除 HandlerRegistry._processingError 重入保護
        * - 測試 ErrorHandler 時必須提供 exportId 字段
        * - 避免在錯誤處理流程中使用 .on() 持續監聽

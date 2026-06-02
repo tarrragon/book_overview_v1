@@ -26,7 +26,7 @@
 const { JSDOM } = require('jsdom')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
-describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
+describe('跨模組錯誤傳播測試 (v0.9.32)', () => {
   let dom, document, window
   // eslint-disable-next-line no-unused-vars
   let mockEventBus
@@ -112,7 +112,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     errorPropagationLogger.clear()
   })
 
-  describe('📊 資料層錯誤傳播測試', () => {
+  describe('[STATS] 資料層錯誤傳播測試', () => {
     test('應該正確傳播DOM解析錯誤從ReadmooAdapter到DataDomainCoordinator', async () => {
       // Given: ReadmooAdapter發生DOM解析錯誤
       // eslint-disable-next-line no-unused-vars
@@ -201,7 +201,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     })
   })
 
-  describe('🌐 網路層錯誤傳播測試', () => {
+  describe('網路層錯誤傳播測試', () => {
     test('應該處理Chrome Storage連接失敗的級聯影響', async () => {
       // Given: Chrome Storage不可用
       // eslint-disable-next-line no-unused-vars
@@ -296,7 +296,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     })
   })
 
-  describe('🔄 EventBus錯誤傳播測試', () => {
+  describe('EventBus錯誤傳播測試', () => {
     test('應該處理EventBus通訊中斷的影響', async () => {
       // Given: EventBus故障
       mockEventBus.emit.mockRejectedValue(new Error('EventBus communication failed'))
@@ -382,7 +382,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     })
   })
 
-  describe('🛡️ 錯誤隔離機制測試', () => {
+  describe('錯誤隔離機制測試', () => {
     test('應該防止單一模組錯誤導致系統崩潰', async () => {
       // Given: 某個模組完全故障
       ReadmooAdapter.extractBooks.mockImplementation(() => {
@@ -460,7 +460,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     })
   })
 
-  describe('📈 級聯錯誤控制測試', () => {
+  describe('級聯錯誤控制測試', () => {
     test('應該限制錯誤級聯的深度', async () => {
       // Given: 設計會產生級聯錯誤的情境
       // eslint-disable-next-line no-unused-vars
@@ -555,7 +555,7 @@ describe('🔗 跨模組錯誤傳播測試 (v0.9.32)', () => {
     })
   })
 
-  describe('🔧 系統恢復協調測試', () => {
+  describe('[FIX] 系統恢復協調測試', () => {
     test('應該協調多模組的恢復順序', async () => {
       // Given: 多個模組需要恢復
       // eslint-disable-next-line no-unused-vars

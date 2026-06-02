@@ -134,8 +134,8 @@ describe('InstallHandler', () => {
       await installHandler.initialize()
 
       expect(installHandler.isInitialized).toBe(true)
-      expect(mockLogger.log).toHaveBeenCalledWith('📦 初始化安裝處理器')
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ 安裝處理器初始化完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('初始化安裝處理器')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] 安裝處理器初始化完成')
     })
 
     test('應該設定版本號', async () => {
@@ -158,7 +158,7 @@ describe('InstallHandler', () => {
     test('應該通過完整的 API 相容性檢查', async () => {
       await installHandler.checkCompatibility()
 
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ 相容性檢查通過')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] 相容性檢查通過')
     })
 
     test('應該檢測缺少的 Chrome API', async () => {
@@ -195,7 +195,7 @@ describe('InstallHandler', () => {
 
       await installHandler.checkCompatibility()
 
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ 非 Manifest V3 環境')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] 非 Manifest V3 環境')
     })
   })
 
@@ -253,7 +253,7 @@ describe('InstallHandler', () => {
       await installHandler.handleInstall(chromeUpdateDetails)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('SYSTEM.CHROME.UPDATED', expect.any(Object))
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ Chrome 瀏覽器更新處理完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] Chrome 瀏覽器更新處理完成')
     })
 
     test('應該處理共享模組更新事件', async () => {
@@ -266,7 +266,7 @@ describe('InstallHandler', () => {
       await installHandler.handleInstall(sharedModuleUpdateDetails)
 
       expect(mockEventBus.emit).toHaveBeenCalledWith('SYSTEM.SHARED.MODULE.UPDATED', expect.any(Object))
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ 共享模組更新處理完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] 共享模組更新處理完成')
     })
 
     test('應該處理未知安裝原因', async () => {
@@ -278,7 +278,7 @@ describe('InstallHandler', () => {
 
       await installHandler.handleInstall(unknownDetails)
 
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ 未知的安裝原因: unknown_reason')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] 未知的安裝原因: unknown_reason')
       expect(mockEventBus.emit).toHaveBeenCalledWith('SYSTEM.UNKNOWN.INSTALL', expect.any(Object))
     })
 
@@ -295,7 +295,7 @@ describe('InstallHandler', () => {
 
       await firstInstall
 
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ 安裝處理已在進行中，跳過重複處理')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] 安裝處理已在進行中，跳過重複處理')
     })
 
     test('應該觸發安裝完成事件', async () => {
@@ -348,7 +348,7 @@ describe('InstallHandler', () => {
       mockChrome.storage.local.set.mockRejectedValue(new Error('儲存失敗'))
 
       await expect(installHandler.setupDefaultConfiguration()).rejects.toMatchObject(expect.objectContaining({ message: '儲存失敗' }))
-      expect(mockLogger.error).toHaveBeenCalledWith('❌ 設定預設配置失敗:', expect.any(Error))
+      expect(mockLogger.error).toHaveBeenCalledWith('[FAIL] 設定預設配置失敗:', expect.any(Error))
     })
   })
 
@@ -393,7 +393,7 @@ describe('InstallHandler', () => {
       mockChrome.storage.local.set.mockRejectedValue(new Error('儲存初始化失敗'))
 
       await expect(installHandler.initializeStorage()).rejects.toMatchObject(expect.objectContaining({ message: '儲存初始化失敗' }))
-      expect(mockLogger.error).toHaveBeenCalledWith('❌ 初始化儲存系統失敗:', expect.any(Error))
+      expect(mockLogger.error).toHaveBeenCalledWith('[FAIL] 初始化儲存系統失敗:', expect.any(Error))
     })
   })
 
@@ -459,7 +459,7 @@ describe('InstallHandler', () => {
       mockStorageService.initialize.mockRejectedValue(new Error('服務初始化失敗'))
 
       await expect(installHandler.reinitializeServices()).rejects.toMatchObject(expect.objectContaining({ message: '服務初始化失敗' }))
-      expect(mockLogger.error).toHaveBeenCalledWith('❌ 服務重新初始化失敗:', expect.any(Error))
+      expect(mockLogger.error).toHaveBeenCalledWith('[FAIL] 服務重新初始化失敗:', expect.any(Error))
     })
   })
 

@@ -76,10 +76,10 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
     }
   })
 
-  describe('📋 完整合規性檢查', () => {
+  describe('完整合規性檢查', () => {
     test('應該執行完整的上架準備檢查流程', async () => {
       // eslint-disable-next-line no-console
-      console.log('🔍 開始完整的 Chrome Web Store 合規性檢查...')
+      console.log('[CHECK] 開始完整的 Chrome Web Store 合規性檢查...')
 
       // eslint-disable-next-line no-unused-vars
       const startTime = Date.now()
@@ -100,11 +100,11 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(result.criticalIssues.length).toBe(0) // 不應有關鍵問題
 
       // eslint-disable-next-line no-console
-      console.log(`✅ 合規性檢查完成 (${endTime - startTime}ms)`)
+      console.log(`[OK] 合規性檢查完成 (${endTime - startTime}ms)`)
       // eslint-disable-next-line no-console
-      console.log(`📊 整體分數: ${result.overallScore}/100`)
+      console.log(`[STATS] 整體分數: ${result.overallScore}/100`)
       // eslint-disable-next-line no-console
-      console.log(`🎯 準備狀態: ${result.readinessLevel}`)
+      console.log(`準備狀態: ${result.readinessLevel}`)
 
       // 詳細結果報告
       logCheckResults(result.results)
@@ -131,7 +131,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(fieldsCheck?.status).toBe('PASSED')
 
       // eslint-disable-next-line no-console
-      console.log('✅ Manifest V3 合規性驗證通過')
+      console.log('[OK] Manifest V3 合規性驗證通過')
     })
 
     test('應該驗證檔案大小和結構符合要求', async () => {
@@ -148,12 +148,12 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(sizeCheck?.status).toBe('PASSED')
 
       // eslint-disable-next-line no-console
-      console.log('✅ 檔案大小和結構驗證通過')
+      console.log('[OK] 檔案大小和結構驗證通過')
 
       // 如果有警告，記錄但不算失敗
       if (fileResults.warnings > 0) {
         // eslint-disable-next-line no-console
-        console.log(`⚠️  檔案檢查有 ${fileResults.warnings} 個警告`)
+        console.log(`[WARN] 檔案檢查有 ${fileResults.warnings} 個警告`)
       }
     })
 
@@ -175,7 +175,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(injectionCheck?.status).toBe('PASSED')
 
       // eslint-disable-next-line no-console
-      console.log('✅ 安全性合規驗證通過')
+      console.log('[OK] 安全性合規驗證通過')
     })
 
     test('應該驗證隱私政策合規', async () => {
@@ -192,14 +192,14 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(dataCheck?.status).toBe('PASSED')
 
       // eslint-disable-next-line no-console
-      console.log('✅ 隱私政策合規驗證通過')
+      console.log('[OK] 隱私政策合規驗證通過')
     })
   })
 
-  describe('⚡ 效能標準驗證', () => {
+  describe('效能標準驗證', () => {
     test('應該符合 Chrome Web Store 效能要求', async () => {
       // eslint-disable-next-line no-console
-      console.log('⚡ 開始效能標準驗證...')
+      console.log('開始效能標準驗證...')
 
       // 啟動效能監控
       performanceOptimizer.startPerformanceMonitoring()
@@ -226,7 +226,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(performanceReport.currentStatus.memoryPercentage).toBeLessThan(80) // < 80% 記憶體使用率
 
       // eslint-disable-next-line no-console
-      console.log('✅ 效能標準驗證通過')
+      console.log('[OK] 效能標準驗證通過')
       // eslint-disable-next-line no-console
       console.log(`   總載入時間: ${loadTime.toFixed(2)}ms`)
       // eslint-disable-next-line no-console
@@ -266,7 +266,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
     }, 30000) // 增加超時到 30 秒
   })
 
-  describe('🎯 品質標準驗證', () => {
+  describe('品質標準驗證', () => {
     test('應該達到高品質標準分數', async () => {
       // eslint-disable-next-line no-unused-vars
       const result = await storeReadiness.performReadinessCheck()
@@ -284,7 +284,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(functionalityCheck?.status).toBe('PASSED')
 
       // eslint-disable-next-line no-console
-      console.log('✅ 品質標準驗證通過')
+      console.log('[OK] 品質標準驗證通過')
       // eslint-disable-next-line no-console
       console.log(`   品質檢查通過: ${qualityResults.passed} 項`)
       // eslint-disable-next-line no-console
@@ -303,11 +303,11 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(errorHandlingCheck?.status).toBe('PASSED')
 
       // eslint-disable-next-line no-console
-      console.log('✅ 錯誤處理機制驗證通過')
+      console.log('[OK] 錯誤處理機制驗證通過')
     })
   })
 
-  describe('📊 上架準備報告', () => {
+  describe('[STATS] 上架準備報告', () => {
     test('應該生成完整的上架準備報告', async () => {
       // eslint-disable-next-line no-unused-vars
       const readinessResult = await storeReadiness.performReadinessCheck()
@@ -326,7 +326,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       expect(submissionReport.readinessStatus.canSubmit).toBe(readinessResult.criticalIssues.length === 0)
 
       // eslint-disable-next-line no-console
-      console.log('📋 上架準備報告生成完成')
+      console.log('上架準備報告生成完成')
       // eslint-disable-next-line no-console
       console.log(`   準備狀態: ${submissionReport.readinessStatus.level}`)
       // eslint-disable-next-line no-console
@@ -336,7 +336,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
 
       // 顯示下一步行動
       // eslint-disable-next-line no-console
-      console.log('📝 下一步行動:')
+      console.log('[LOG] 下一步行動:')
       submissionReport.nextSteps.forEach((step, index) => {
         // eslint-disable-next-line no-console
         console.log(`   ${index + 1}. [${step.priority}] ${step.action} - ${step.description}`)
@@ -360,7 +360,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
         })
 
         // eslint-disable-next-line no-console
-        console.log('💡 改善建議:')
+        console.log('改善建議:')
         result.recommendations.forEach((rec, index) => {
           // eslint-disable-next-line no-console
           console.log(`   ${index + 1}. [${rec.priority}] ${rec.description}`)
@@ -371,15 +371,15 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
         })
       } else {
         // eslint-disable-next-line no-console
-        console.log('✅ 無需額外改善建議，品質優秀')
+        console.log('[OK] 無需額外改善建議，品質優秀')
       }
     })
   })
 
-  describe('🚀 最終上架檢查', () => {
+  describe('[START] 最終上架檢查', () => {
     test('應該通過所有必要檢查並準備好上架', async () => {
       // eslint-disable-next-line no-console
-      console.log('🎯 執行最終上架準備檢查...')
+      console.log('執行最終上架準備檢查...')
 
       // 執行完整檢查
       // eslint-disable-next-line no-unused-vars
@@ -399,10 +399,10 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       }
 
       // eslint-disable-next-line no-console
-      console.log('🔍 關鍵上架要求檢查結果:')
+      console.log('[CHECK] 關鍵上架要求檢查結果:')
       for (const [requirement, passed] of Object.entries(criticalChecks)) {
         // eslint-disable-next-line no-console
-        console.log(`   ${passed ? '✅' : '❌'} ${requirement}`)
+        console.log(`   ${passed ? '[OK] ' : '[FAIL] '} ${requirement}`)
         expect(passed).toBe(true)
       }
 
@@ -412,15 +412,15 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
                            readinessResult.overallScore >= 80 // 更高的品質標準
 
       // eslint-disable-next-line no-console
-      console.log(`\n🎯 最終評估: ${readyToSubmit ? '✅ 準備好上架' : '⚠️ 需要改善後再上架'}`)
+      console.log(`\n最終評估: ${readyToSubmit ? '[OK] 準備好上架' : '[WARN] 需要改善後再上架'}`)
       // eslint-disable-next-line no-console
-      console.log(`📊 整體品質分數: ${readinessResult.overallScore}/100`)
+      console.log(`[STATS] 整體品質分數: ${readinessResult.overallScore}/100`)
       // eslint-disable-next-line no-console
       console.log(`🏪 Chrome Web Store 準備狀態: ${readinessResult.readinessLevel}`)
 
       if (readyToSubmit) {
         // eslint-disable-next-line no-console
-        console.log('🎉 恭喜！Extension 已準備好提交到 Chrome Web Store')
+        console.log('恭喜！Extension 已準備好提交到 Chrome Web Store')
       }
 
       // 至少應該達到基本要求
@@ -498,7 +498,7 @@ async function simulateUserOperation (dataSize) {
  */
 function logCheckResults (results) {
   // eslint-disable-next-line no-console
-  console.log('\n📊 詳細檢查結果:')
+  console.log('\n[STATS] 詳細檢查結果:')
 
   for (const [category, result] of Object.entries(results)) {
     // eslint-disable-next-line no-unused-vars
@@ -507,7 +507,7 @@ function logCheckResults (results) {
     const passRate = total > 0 ? ((result.passed / total) * 100).toFixed(1) : '100.0'
 
     // eslint-disable-next-line no-console
-    console.log(`\n📋 ${category.toUpperCase()}:`)
+    console.log(`\n${category.toUpperCase()}:`)
     // eslint-disable-next-line no-console
     console.log(`   通過: ${result.passed}, 失敗: ${result.failed}, 警告: ${result.warnings}`)
     // eslint-disable-next-line no-console
@@ -519,7 +519,7 @@ function logCheckResults (results) {
       const failures = result.details.filter(d => d.status === 'FAILED')
       failures.forEach(failure => {
         // eslint-disable-next-line no-console
-        console.log(`   ❌ ${failure.name}: ${failure.message}`)
+        console.log(`   [FAIL] ${failure.name}: ${failure.message}`)
       })
     }
 
@@ -529,7 +529,7 @@ function logCheckResults (results) {
     if (warnings.length > 0) {
       warnings.forEach(warning => {
         // eslint-disable-next-line no-console
-        console.log(`   ⚠️  ${warning.message}`)
+        console.log(`   [WARN] ${warning.message}`)
       })
     }
   }

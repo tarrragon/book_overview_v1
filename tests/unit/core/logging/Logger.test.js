@@ -67,7 +67,7 @@ describe('Logger constructor local dict 注入 (0.19.0-W1-116)', () => {
   describe('AC 2: logger 輸出採 local dict 文字', () => {
     it('local dict 含 messageKey 時輸出採 local dict 內容（非 GlobalMessages）', () => {
       const localDict = new MessageDictionary({
-        CUSTOM_LOAD_EVENT: '🎯 自訂載入事件訊息'
+        CUSTOM_LOAD_EVENT: '自訂載入事件訊息'
       })
       const logger = new Logger('CustomLogger', 'INFO', localDict)
 
@@ -76,7 +76,7 @@ describe('Logger constructor local dict 注入 (0.19.0-W1-116)', () => {
       expect(infoSpy).toHaveBeenCalledTimes(1)
       const output = infoSpy.mock.calls[0][0]
       expect(typeof output).toBe('string')
-      expect(output).toContain('🎯 自訂載入事件訊息')
+      expect(output).toContain('自訂載入事件訊息')
       expect(output).toContain('CUSTOM_LOAD_EVENT')
       // 確認非 GlobalMessages 預設值（GlobalMessages 沒有此 key）
       expect(output).not.toContain('[Missing: CUSTOM_LOAD_EVENT]')
@@ -86,14 +86,14 @@ describe('Logger constructor local dict 注入 (0.19.0-W1-116)', () => {
       // 業務情境：local dict 可重新定義 GlobalMessages 既有 key 以提供模組專屬語意
       // POPUP_INTERFACE_LOADED 在 GlobalMessages 為 'Popup 介面已載入'
       const localDict = new MessageDictionary({
-        POPUP_INTERFACE_LOADED: '🎨 Popup 自訂載入文字'
+        POPUP_INTERFACE_LOADED: 'Popup 自訂載入文字'
       })
       const logger = new Logger('OverrideTest', 'INFO', localDict)
 
       logger.info('POPUP_INTERFACE_LOADED')
 
       const output = infoSpy.mock.calls[0][0]
-      expect(output).toContain('🎨 Popup 自訂載入文字')
+      expect(output).toContain('Popup 自訂載入文字')
       // 確認沒有採用 GlobalMessages 預設文字
       expect(output).not.toContain('Popup 介面已載入')
     })

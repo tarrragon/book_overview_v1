@@ -115,7 +115,7 @@ jest.mock('../../../src/export/export-events', () => ({
   }))
 }))
 
-describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)', () => {
+describe('ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)', () => {
   let exportManager
   // eslint-disable-next-line no-unused-vars
   let eventBus
@@ -905,7 +905,7 @@ describe('📤 ExportManager 事件驅動系統測試 (TDD循環 #29 Red階段)'
       }, 10, { testName: 'export-manager-memory-monitoring' })
 
       // eslint-disable-next-line no-console
-      console.log('📊 ExportManager 記憶體監控分析:')
+      console.log('[STATS] ExportManager 記憶體監控分析:')
       // eslint-disable-next-line no-console
       console.log(`  平均每操作記憶體增長: ${analysis.leakDetection.formattedAverageGrowth}`)
       // eslint-disable-next-line no-console

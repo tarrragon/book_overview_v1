@@ -84,7 +84,7 @@ describe('Platform Detection Integration Tests', () => {
     service = null
   })
 
-  describe('🔗 事件系統整合', () => {
+  describe('事件系統整合', () => {
     test('應該正確發送檢測生命週期事件', async () => {
       // eslint-disable-next-line no-unused-vars
       const context = testContexts.readmoo
@@ -167,7 +167,7 @@ describe('Platform Detection Integration Tests', () => {
     })
   })
 
-  describe('💾 快取系統整合', () => {
+  describe('[SAVE] 快取系統整合', () => {
     test('應該正確處理快取命中和未命中', async () => {
       // eslint-disable-next-line no-unused-vars
       const context = testContexts.readmoo
@@ -222,7 +222,7 @@ describe('Platform Detection Integration Tests', () => {
     })
   })
 
-  describe('🎯 多平台檢測協調', () => {
+  describe('多平台檢測協調', () => {
     test('應該正確識別各支援平台', async () => {
       // eslint-disable-next-line no-unused-vars
       const platforms = ['READMOO', 'KINDLE', 'KOBO']
@@ -277,7 +277,7 @@ describe('Platform Detection Integration Tests', () => {
     })
   })
 
-  describe('🛡️ 錯誤恢復和容錯機制', () => {
+  describe('錯誤恢復和容錯機制', () => {
     test('應該從 URL 分析錯誤中恢復', async () => {
       // 清除快取以確保每次調用都執行完整的檢測邏輯
       service.detectionCache.clear()
@@ -369,7 +369,7 @@ describe('Platform Detection Integration Tests', () => {
     })
   })
 
-  describe('⚡ 效能基準達標驗證', () => {
+  describe('效能基準達標驗證', () => {
     test('應該滿足單次檢測功能要求', async () => {
       // eslint-disable-next-line no-unused-vars
       const context = testContexts.readmoo
@@ -440,7 +440,7 @@ describe('Platform Detection Integration Tests', () => {
     })
   })
 
-  describe('📊 記憶體使用監控', () => {
+  describe('[STATS] 記憶體使用監控', () => {
     test('應該控制記憶體使用增長', async () => {
       // eslint-disable-next-line no-unused-vars
       const initialMemory = process.memoryUsage()
@@ -497,7 +497,7 @@ describe('Platform Detection Integration Tests', () => {
     })
   })
 
-  describe('🔄 並發檢測處理', () => {
+  describe('並發檢測處理', () => {
     test('應該安全處理同時檢測請求', async () => {
       // eslint-disable-next-line no-unused-vars
       const context = testContexts.readmoo

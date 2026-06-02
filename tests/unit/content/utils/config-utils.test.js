@@ -57,7 +57,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     }
   })
 
-  describe('🔧 配置管理', () => {
+  describe('[FIX] 配置管理', () => {
     test('應該設定和取得基本配置', () => {
       // eslint-disable-next-line no-unused-vars
       const config = {
@@ -239,7 +239,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📝 日誌系統', () => {
+  describe('[LOG] 日誌系統', () => {
     test('應該記錄不同層級的日誌', () => {
       ConfigUtils.log('debug', '偵錯訊息', { component: 'test' })
       ConfigUtils.log('info', '資訊訊息', { userId: 123 })
@@ -403,7 +403,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('⚙️ Content Script 特定配置', () => {
+  describe('Content Script 特定配置', () => {
     test('應該管理提取器配置', () => {
       // eslint-disable-next-line no-unused-vars
       const extractorConfig = {
@@ -566,7 +566,7 @@ describe('ConfigUtils - TDD Red 階段測試', () => {
     })
   })
 
-  describe('📊 效能和統計', () => {
+  describe('[STATS] 效能和統計', () => {
     test('應該追蹤配置使用統計', () => {
       ConfigUtils.getConfig('test-key-1')
       ConfigUtils.getConfig('test-key-2')

@@ -46,7 +46,7 @@ describe('ReadmooDataConsistencyService', () => {
     jest.clearAllMocks()
   })
 
-  describe('🏗️ 服務初始化', () => {
+  describe('服務初始化', () => {
     test('應該正確初始化服務實例', () => {
       expect(service).toBeInstanceOf(ReadmooDataConsistencyService)
       expect(service.eventBus).toBe(mockEventBus)
@@ -68,7 +68,7 @@ describe('ReadmooDataConsistencyService', () => {
     })
   })
 
-  describe('🔄 服務生命週期', () => {
+  describe('服務生命週期', () => {
     test('initialize() 應該正確初始化服務', async () => {
       await service.initialize()
 
@@ -113,7 +113,7 @@ describe('ReadmooDataConsistencyService', () => {
     })
   })
 
-  describe('📝 事件處理', () => {
+  describe('[LOG] 事件處理', () => {
     beforeEach(async () => {
       await service.initialize()
     })
@@ -160,7 +160,7 @@ describe('ReadmooDataConsistencyService', () => {
     })
   })
 
-  describe('🔍 一致性檢查功能', () => {
+  describe('[CHECK] 一致性檢查功能', () => {
     beforeEach(async () => {
       await service.initialize()
     })
@@ -250,7 +250,7 @@ describe('ReadmooDataConsistencyService', () => {
     })
   })
 
-  describe('🔄 向後相容性', () => {
+  describe('向後相容性', () => {
     beforeEach(async () => {
       await service.initialize()
     })
@@ -278,7 +278,7 @@ describe('ReadmooDataConsistencyService', () => {
     })
   })
 
-  describe('📊 統計與監控', () => {
+  describe('[STATS] 統計與監控', () => {
     beforeEach(async () => {
       await service.initialize()
     })
@@ -318,7 +318,7 @@ describe('ReadmooDataConsistencyService', () => {
     })
   })
 
-  describe('🔧 工具方法', () => {
+  describe('[FIX] 工具方法', () => {
     test('generateCheckId() 應該產生唯一的檢查 ID', () => {
       // eslint-disable-next-line no-unused-vars
       const id1 = service.generateCheckId()
@@ -331,7 +331,7 @@ describe('ReadmooDataConsistencyService', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('constructor 應該要求 eventBus 參數', () => {
       expect(() => {
         // eslint-disable-next-line no-unused-vars

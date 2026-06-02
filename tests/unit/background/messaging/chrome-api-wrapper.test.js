@@ -107,7 +107,7 @@ describe('ChromeApiWrapper', () => {
         .resolves
         .toBeUndefined()
 
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ Chrome API 可用性檢查通過')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] Chrome API 可用性檢查通過')
     })
 
     test('應該在非 Manifest V3 環境中發出警告', async () => {
@@ -115,7 +115,7 @@ describe('ChromeApiWrapper', () => {
 
       await chromeApiWrapper.checkChromeApiAvailability()
 
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ 非 Manifest V3 環境')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] 非 Manifest V3 環境')
     })
   })
 

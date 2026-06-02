@@ -116,8 +116,8 @@ describe('ShutdownHandler', () => {
       await shutdownHandler.initialize()
 
       expect(shutdownHandler.isInitialized).toBe(true)
-      expect(mockLogger.log).toHaveBeenCalledWith('🛑 初始化關閉處理器')
-      expect(mockLogger.log).toHaveBeenCalledWith('✅ 關閉處理器初始化完成')
+      expect(mockLogger.log).toHaveBeenCalledWith('[STOP] 初始化關閉處理器')
+      expect(mockLogger.log).toHaveBeenCalledWith('[OK] 關閉處理器初始化完成')
     })
 
     test('應該設定關閉檢測機制', async () => {
@@ -134,7 +134,7 @@ describe('ShutdownHandler', () => {
 
       // 檢查初始化完成，不強制要求監聽器註冊（因為在測試環境中可能不會實際註冊）
       expect(shutdownHandler.isInitialized).toBe(true)
-      expect(mockLogger.log).toHaveBeenCalledWith('🔍 關閉檢測機制設定完成（全域錯誤處理器已在頂層註冊）')
+      expect(mockLogger.log).toHaveBeenCalledWith('[CHECK] 關閉檢測機制設定完成（全域錯誤處理器已在頂層註冊）')
 
       // 清理
       global.self = originalSelf
@@ -157,7 +157,7 @@ describe('ShutdownHandler', () => {
       expect(shutdownHandler.shutdownHistory).toHaveLength(1)
       expect(shutdownHandler.shutdownHistory[0].success).toBe(true)
       expect(mockLogger.log).toHaveBeenCalledWith(
-        expect.stringContaining('🛑 開始優雅關閉')
+        expect.stringContaining('[STOP] 開始優雅關閉')
       )
     })
 
@@ -190,7 +190,7 @@ describe('ShutdownHandler', () => {
 
       await firstShutdown
 
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ 關閉處理已在進行中')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] 關閉處理已在進行中')
     })
   })
 
@@ -416,7 +416,7 @@ describe('ShutdownHandler', () => {
         reason: 'timeout',
         timestamp: expect.any(Number)
       })
-      expect(mockLogger.warn).toHaveBeenCalledWith('⚠️ 執行強制關閉')
+      expect(mockLogger.warn).toHaveBeenCalledWith('[WARN] 執行強制關閉')
     })
 
     test('應該在強制關閉時清理資源', async () => {

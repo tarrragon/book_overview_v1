@@ -27,7 +27,7 @@ describe('PopupProgressManager 核心功能', () => {
     jest.clearAllMocks()
   })
 
-  describe('📊 基本進度管理功能', () => {
+  describe('[STATS] 基本進度管理功能', () => {
     test('應該正確初始化進度管理器', () => {
       // Given: 進度管理器初始化
       // eslint-disable-next-line no-unused-vars
@@ -99,7 +99,7 @@ describe('PopupProgressManager 核心功能', () => {
     })
   })
 
-  describe('🎯 進度顯示生命週期', () => {
+  describe('進度顯示生命週期', () => {
     test('應該正確開始進度顯示', () => {
       // Given: 進度管理器
       // eslint-disable-next-line no-unused-vars
@@ -171,7 +171,7 @@ describe('PopupProgressManager 核心功能', () => {
     })
   })
 
-  describe('🔄 進度狀態管理', () => {
+  describe('進度狀態管理', () => {
     test('應該支援有效的進度狀態', () => {
       // Given: 進度管理器和有效狀態
       // eslint-disable-next-line no-unused-vars
@@ -234,7 +234,7 @@ describe('PopupProgressManager 核心功能', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('應該處理進度更新時的錯誤', () => {
       // Given: 進度管理器，模擬 UI 組件錯誤
       // eslint-disable-next-line no-unused-vars

@@ -48,7 +48,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     delete global.chrome
   })
 
-  describe('🔧 基本結構和初始化', () => {
+  describe('[FIX] 基本結構和初始化', () => {
     test('應該能夠創建 MessageErrorHandler 實例', () => {
       // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
@@ -95,7 +95,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
   })
 
-  describe('🚨 訊息錯誤捕獲和處理', () => {
+  describe('[ALERT] 訊息錯誤捕獲和處理', () => {
     test('應該處理 MESSAGE.ERROR 事件', async () => {
       // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
@@ -186,7 +186,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
   })
 
-  describe('🔍 診斷和建議系統', () => {
+  describe('[CHECK] 診斷和建議系統', () => {
     test('應該提供未知訊息類型的診斷建議', async () => {
       // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
@@ -238,7 +238,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
   })
 
-  describe('📊 錯誤統計和報告', () => {
+  describe('[STATS] 錯誤統計和報告', () => {
     test('應該追蹤各類型錯誤的統計資訊', async () => {
       // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
@@ -308,7 +308,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
   })
 
-  describe('🛠 Chrome Extension 整合', () => {
+  describe('Chrome Extension 整合', () => {
     test('應該監聽 Chrome Runtime 錯誤', () => {
       // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')
@@ -355,7 +355,7 @@ describe('MessageErrorHandler - TDD 循環 #31', () => {
     })
   })
 
-  describe('⚡ 效能和記憶體管理', () => {
+  describe('效能和記憶體管理', () => {
     test('應該限制錯誤記錄的數量', async () => {
       // eslint-disable-next-line no-unused-vars
       const MessageErrorHandler = require('src/error-handling/message-error-handler')

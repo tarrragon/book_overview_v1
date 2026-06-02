@@ -61,7 +61,7 @@ describe('PopupUIManager 模組化整合測試', () => {
     jest.clearAllMocks()
   })
 
-  describe('📋 DOM 元素管理 (核心職責)', () => {
+  describe('DOM 元素管理 (核心職責)', () => {
     test('應該正確初始化和快取 DOM 元素', () => {
       // Given: UIManager 已初始化
 
@@ -94,7 +94,7 @@ describe('PopupUIManager 模組化整合測試', () => {
     })
   })
 
-  describe('🎨 UI 顯示控制 (視覺層職責)', () => {
+  describe('UI 顯示控制 (視覺層職責)', () => {
     test('應該能顯示錯誤訊息 (純 UI 操作)', () => {
       // Given: 錯誤資料
       // eslint-disable-next-line no-unused-vars
@@ -145,7 +145,7 @@ describe('PopupUIManager 模組化整合測試', () => {
     })
   })
 
-  describe('📊 進度條控制', () => {
+  describe('[STATS] 進度條控制', () => {
     test('應該能更新進度條顯示', () => {
       // Given: 進度百分比
       // eslint-disable-next-line no-unused-vars
@@ -183,7 +183,7 @@ describe('PopupUIManager 模組化整合測試', () => {
     })
   })
 
-  describe('🔧 狀態管理分離驗證', () => {
+  describe('[FIX] 狀態管理分離驗證', () => {
     test('應該不再維護內部狀態', () => {
       // Given: UIManager 初始化後
 
@@ -231,7 +231,7 @@ describe('PopupUIManager 模組化整合測試', () => {
     })
   })
 
-  describe('⚡ 效能優化功能', () => {
+  describe('效能優化功能', () => {
     test('應該支援批次 DOM 更新', () => {
       // Given: 多個 UI 更新操作
 

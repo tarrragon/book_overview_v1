@@ -28,7 +28,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     jest.clearAllMocks()
   })
 
-  describe('🔧 基本結構和初始化', () => {
+  describe('[FIX] 基本結構和初始化', () => {
     test('應該能夠創建 EventErrorHandler 實例', () => {
       // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
@@ -75,7 +75,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
   })
 
-  describe('🚨 統一錯誤處理系統', () => {
+  describe('[ALERT] 統一錯誤處理系統', () => {
     test('應該處理 ERROR.SYSTEM 事件', async () => {
       // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
@@ -160,7 +160,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
   })
 
-  describe('⚡ 斷路器模式實現', () => {
+  describe('斷路器模式實現', () => {
     test('應該創建組件斷路器', () => {
       // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
@@ -284,7 +284,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
   })
 
-  describe('🔍 錯誤隔離和恢復機制', () => {
+  describe('[CHECK] 錯誤隔離和恢復機制', () => {
     test('應該隔離有問題的事件處理器', async () => {
       // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
@@ -358,7 +358,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
   })
 
-  describe('📊 系統健康監控', () => {
+  describe('[STATS] 系統健康監控', () => {
     test('應該追蹤系統整體健康狀態', async () => {
       // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')
@@ -432,7 +432,7 @@ describe('EventErrorHandler - TDD 循環 #32', () => {
     })
   })
 
-  describe('⚡ 效能和記憶體管理', () => {
+  describe('效能和記憶體管理', () => {
     test('應該限制錯誤記錄的數量', async () => {
       // eslint-disable-next-line no-unused-vars
       const EventErrorHandler = require('src/error-handling/event-error-handler')

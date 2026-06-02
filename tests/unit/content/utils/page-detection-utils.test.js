@@ -74,7 +74,7 @@ describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
     }
   }
 
-  describe('🌐 網域檢測功能', () => {
+  describe('網域檢測功能', () => {
     test('應該正確檢測 Readmoo 主網域', () => {
       expect(PageDetectionUtils.isReadmooDomain('https://readmoo.com/library')).toBe(true)
       expect(PageDetectionUtils.isReadmooDomain('https://www.readmoo.com/shelf')).toBe(true)
@@ -114,7 +114,7 @@ describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
     })
   })
 
-  describe('📄 頁面類型識別', () => {
+  describe('頁面類型識別', () => {
     test('應該正確識別書庫頁面', () => {
       expect(PageDetectionUtils.getPageType('https://readmoo.com/library')).toBe('library')
       expect(PageDetectionUtils.getPageType('https://readmoo.com/library/bought')).toBe('library')
@@ -143,7 +143,7 @@ describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
     })
   })
 
-  describe('📚 可提取性檢查', () => {
+  describe('可提取性檢查', () => {
     test('應該確認書庫頁面可提取', () => {
       expect(PageDetectionUtils.isExtractablePage('library')).toBe(true)
     })
@@ -168,7 +168,7 @@ describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
     })
   })
 
-  describe('⏱️ 頁面準備狀態檢查', () => {
+  describe('[TIME] 頁面準備狀態檢查', () => {
     test('應該檢查 DOM 是否完成載入', () => {
       global.document.readyState = 'complete'
       expect(PageDetectionUtils.isPageReady()).toBe(true)
@@ -209,7 +209,7 @@ describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
     }, 200)
   })
 
-  describe('🔍 URL 路徑分析', () => {
+  describe('[CHECK] URL 路徑分析', () => {
     test('應該正確解析 URL 路徑', () => {
       // eslint-disable-next-line no-unused-vars
       const urlInfo = PageDetectionUtils.parseUrl('https://readmoo.com/library/bought?page=2')
@@ -253,7 +253,7 @@ describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
     })
   })
 
-  describe('🚀 整合功能測試', () => {
+  describe('[START] 整合功能測試', () => {
     test('getCurrentPageInfo() 應該回傳完整的頁面資訊', () => {
       updateMockLocation('https://readmoo.com/library')
       global.document.readyState = 'complete'
@@ -291,7 +291,7 @@ describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
     })
   })
 
-  describe('💾 快取機制測試', () => {
+  describe('[SAVE] 快取機制測試', () => {
     test('應該快取檢測結果', () => {
       // 清空快取
       PageDetectionUtils.clearCache()
@@ -319,7 +319,7 @@ describe.skip('PageDetectionUtils (legacy - replaced by simple test)', () => {
     })
   })
 
-  describe('⚠️ 錯誤處理', () => {
+  describe('[WARN] 錯誤處理', () => {
     test('應該安全處理 window 物件不存在的情況', () => {
       // eslint-disable-next-line no-unused-vars
       const originalWindow = global.window

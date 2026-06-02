@@ -13,7 +13,7 @@ const { PerformanceTestDataGenerator } = require('../helpers/performance-test-da
 // eslint-disable-next-line no-unused-vars
 const MemoryLeakDetector = require('../helpers/memory-leak-detector')
 
-describe('📊 基礎效能測試套件 v0.9.35', () => {
+describe('[STATS] 基礎效能測試套件 v0.9.35', () => {
   let performanceMonitor
   let chromePerformanceMonitor
   // eslint-disable-next-line no-unused-vars
@@ -62,7 +62,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
     await new Promise(resolve => setTimeout(resolve, 100))
   })
 
-  describe('🎯 A1. UI回應時間基準測試', () => {
+  describe('A1. UI回應時間基準測試', () => {
     test('A1-1: Popup開啟效能測試 - 應在200ms內完成', async () => {
       // Given: Chrome Extension已安裝且處於空閒狀態
       // eslint-disable-next-line no-unused-vars
@@ -92,7 +92,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(result.uiElements.every(el => el.rendered)).toBe(true)
 
       // eslint-disable-next-line no-console
-      console.log(`✅ Popup開啟時間: ${timing.duration.toFixed(2)}ms (目標: <${expectedMaxTime}ms)`)
+      console.log(`[OK] Popup開啟時間: ${timing.duration.toFixed(2)}ms (目標: <${expectedMaxTime}ms)`)
     })
 
     test('A1-2: 按鈕點擊回應測試 - 應在100ms內回應', async () => {
@@ -131,7 +131,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(averageTime).toBeLessThan(expectedMaxTime)
 
       // eslint-disable-next-line no-console
-      console.log(`✅ 按鈕平均回應時間: ${averageTime.toFixed(2)}ms (目標: <${expectedMaxTime}ms)`)
+      console.log(`[OK] 按鈕平均回應時間: ${averageTime.toFixed(2)}ms (目標: <${expectedMaxTime}ms)`)
     })
 
     test('A1-3: 搜尋即時回應測試 - 應在300ms內顯示結果', async () => {
@@ -178,11 +178,11 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(maxTime).toBeLessThan(expectedMaxTime * 1.5) // 最大不超過期望值的150%
 
       // eslint-disable-next-line no-console
-      console.log(`✅ 搜尋平均回應時間: ${averageTime.toFixed(2)}ms, 最大: ${maxTime.toFixed(2)}ms`)
+      console.log(`[OK] 搜尋平均回應時間: ${averageTime.toFixed(2)}ms, 最大: ${maxTime.toFixed(2)}ms`)
     })
   })
 
-  describe('📊 A2. 資料處理效能基準測試', () => {
+  describe('[STATS] A2. 資料處理效能基準測試', () => {
     test('A2-1: 小量書籍提取效能測試 - 10本書籍應在1秒內完成', async () => {
       // Given: 目標網頁包含10本書籍資料
       // eslint-disable-next-line no-unused-vars
@@ -214,7 +214,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // 保留功能斷言（result.extractedCount / result.successRate）。
 
       // eslint-disable-next-line no-console
-      console.log(`✅ 10本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
+      console.log(`[OK] 10本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
     })
 
     test('A2-2: 中量書籍提取效能測試 - 100本書籍應在8秒內完成', async () => {
@@ -249,7 +249,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       // 保留功能斷言（result.extractedCount / result.successRate）。
 
       // eslint-disable-next-line no-console
-      console.log(`✅ 100本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
+      console.log(`[OK] 100本書籍提取時間: ${timing.duration.toFixed(2)}ms, 成功率: ${(result.successRate * 100).toFixed(1)}%`)
     })
 
     test('A2-3: JSON檔案解析效能測試 - 2MB檔案應在4秒內完成', async () => {
@@ -289,11 +289,11 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       const memoryGrowthMB = Math.abs(timing.memoryDelta || 0) / (1024 * 1024)
 
       // eslint-disable-next-line no-console
-      console.log(`✅ JSON解析速度: ${processingSpeedMBs.toFixed(2)}MB/s, 記憶體增長: ${memoryGrowthMB.toFixed(2)}MB`)
+      console.log(`[OK] JSON解析速度: ${processingSpeedMBs.toFixed(2)}MB/s, 記憶體增長: ${memoryGrowthMB.toFixed(2)}MB`)
     })
   })
 
-  describe('🧠 A3. 記憶體使用監控測試', () => {
+  describe('A3. 記憶體使用監控測試', () => {
     test('A3-1: 記憶體洩漏檢測 - 長時間運行不應超過基準20MB', async () => {
       // 使用 MemoryLeakDetector 進行專業記憶體洩漏檢測
       // eslint-disable-next-line no-unused-vars
@@ -319,7 +319,7 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       }, 50, { testName: 'long-running-performance-test' })
 
       // eslint-disable-next-line no-console
-      console.log('🧠 記憶體洩漏檢測結果:')
+      console.log('記憶體洩漏檢測結果:')
       // eslint-disable-next-line no-console
       console.log(`  基準記憶體: ${analysis.summary.formattedGrowth}`)
       // eslint-disable-next-line no-console
@@ -374,9 +374,9 @@ describe('📊 基礎效能測試套件 v0.9.35', () => {
       expect(messagingResult.result).toBeDefined()
 
       // eslint-disable-next-line no-console
-      console.log(`✅ Storage API: ${storageResult.duration.toFixed(2)}ms`)
+      console.log(`[OK] Storage API: ${storageResult.duration.toFixed(2)}ms`)
       // eslint-disable-next-line no-console
-      console.log(`✅ Messaging API: ${messagingResult.duration.toFixed(2)}ms`)
+      console.log(`[OK] Messaging API: ${messagingResult.duration.toFixed(2)}ms`)
     })
   })
 

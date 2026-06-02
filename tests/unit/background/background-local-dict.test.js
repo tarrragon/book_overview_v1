@@ -187,7 +187,7 @@ describe('Background Service Worker Local MessageDictionary', () => {
         })
       })
 
-      test('REGISTER_LIFECYCLE 應渲染為「📝 註冊 Service Worker 生命週期事件」', async () => {
+      test('REGISTER_LIFECYCLE 應渲染為「[LOG] 註冊 Service Worker 生命週期事件」', async () => {
         require('src/background/background')
         // 等所有 microtask 完成（init + registerServiceWorkerEvents）
         await new Promise(resolve => setTimeout(resolve, 0))
@@ -196,7 +196,7 @@ describe('Background Service Worker Local MessageDictionary', () => {
         expectKeyRendered(output, 'REGISTER_LIFECYCLE', '註冊 Service Worker 生命週期事件')
       })
 
-      test('LIFECYCLE_COMPLETE 應渲染為「✅ Service Worker 生命週期事件註冊完成」', async () => {
+      test('LIFECYCLE_COMPLETE 應渲染為「[OK] Service Worker 生命週期事件註冊完成」', async () => {
         require('src/background/background')
         await new Promise(resolve => setTimeout(resolve, 0))
 
@@ -204,14 +204,14 @@ describe('Background Service Worker Local MessageDictionary', () => {
         expectKeyRendered(output, 'LIFECYCLE_COMPLETE', 'Service Worker 生命週期事件註冊完成')
       })
 
-      test('INIT_FLOW_START 應渲染為「🏁 開始 Background Service Worker 初始化流程」', () => {
+      test('INIT_FLOW_START 應渲染為「開始 Background Service Worker 初始化流程」', () => {
         require('src/background/background')
 
         const output = collectAllConsoleOutput()
         expectKeyRendered(output, 'INIT_FLOW_START', '開始 Background Service Worker 初始化流程')
       })
 
-      test('INIT_FLOW_SUCCESS 應渲染為「🎉 Background Service Worker 初始化成功完成」', async () => {
+      test('INIT_FLOW_SUCCESS 應渲染為「Background Service Worker 初始化成功完成」', async () => {
         require('src/background/background')
         // 等 init().then() chain 完成
         await new Promise(resolve => setTimeout(resolve, 0))
@@ -425,7 +425,7 @@ describe('Background Service Worker Local MessageDictionary', () => {
         const { MessageDictionary } = require('src/core/messages/MessageDictionary')
         // 重建一份等價 dict 驗證 key 結構（避免 expose backgroundMessages instance）
         const dictUnderTest = new MessageDictionary({
-          EMERGENCY_ERROR: '❌ [緊急模式] 事件處理錯誤 ({eventType})'
+          EMERGENCY_ERROR: '[FAIL] [緊急模式] 事件處理錯誤 ({eventType})'
         })
 
         const rendered = dictUnderTest.get('EMERGENCY_ERROR', { eventType: 'TEST.EVENT' })
@@ -444,7 +444,7 @@ describe('Background Service Worker Local MessageDictionary', () => {
         )
         // 應存在 messageKey 形式
         expect(src).toContain("log.error('EMERGENCY_ERROR'")
-        // 不應殘留原描述性中文字串字面
+        // 不應殘留原描述性中文字串字面（偵測原始 emoji 字面，勿經 remove-emoji 轉換）
         expect(src).not.toMatch(/log\.error\(`?❌\s*\[緊急模式\]\s*事件處理錯誤/)
       })
     })
@@ -494,7 +494,10 @@ describe('Background Service Worker Local MessageDictionary', () => {
           'utf8'
         )
 
-        // 反模式：log.info('🏁 ...') / log.error('🚨 ...') / log.error(`❌ ...`)
+        // 反模式：log.info('（emoji）...') 形式的描述性中文 log call。
+        // 此測試以「原始 emoji 字面」為偵測對象，驗證 dict 重構後 src 不再殘留 emoji 前綴
+        // log（應改用 log.X('MESSAGE_KEY') 形式）。emoji 字面為偵測目標，禁止經
+        // scripts/remove-emoji.js 轉換為 [KEYWORD]（會破壞 regex 語意，見 0.19.1-W1-005.3）。
         // 排除 dict 定義段（const backgroundMessages = ...）
         const dictStart = src.indexOf('const backgroundMessages')
         const dictEnd = src.indexOf('})\n', dictStart) + 3

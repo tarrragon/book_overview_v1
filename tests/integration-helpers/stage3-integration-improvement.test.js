@@ -36,7 +36,7 @@ describe('Stage 3 整合改善驗證測試', () => {
     }
   })
 
-  describe('🚀 Chrome Extension Background系統改善', () => {
+  describe('[START] Chrome Extension Background系統改善', () => {
     test('應該改善Background Event System初始化問題', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
@@ -86,7 +86,7 @@ describe('Stage 3 整合改善驗證測試', () => {
     })
   })
 
-  describe('⚡ 效能和穩定性改善', () => {
+  describe('效能和穩定性改善', () => {
     test('應該處理大量並發Chrome API操作', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
@@ -144,7 +144,7 @@ describe('Stage 3 整合改善驗證測試', () => {
     })
   })
 
-  describe('🔄 跨模組整合改善', () => {
+  describe('跨模組整合改善', () => {
     test('應該支援完整的資料流整合', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest({
@@ -220,7 +220,7 @@ describe('Stage 3 整合改善驗證測試', () => {
     })
   })
 
-  describe('📊 測試品質改善驗證', () => {
+  describe('[STATS] 測試品質改善驗證', () => {
     test('應該提供一致的測試環境', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
@@ -265,7 +265,7 @@ describe('Stage 3 整合改善驗證測試', () => {
     })
   })
 
-  describe('🎯 實際整合場景改善', () => {
+  describe('實際整合場景改善', () => {
     test('應該改善Readmoo資料提取場景', async () => {
       // eslint-disable-next-line no-unused-vars
       const testContext = await testHelper.setupIntegrationTest()
