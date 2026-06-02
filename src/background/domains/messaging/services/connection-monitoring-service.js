@@ -70,20 +70,20 @@ class ConnectionMonitoringService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 連接監控服務已初始化')
+      this.logger.warn('[WARN] 連接監控服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔄 初始化連接監控服務')
+      this.logger.log('初始化連接監控服務')
 
       // 載入連接歷史
       await this.loadConnectionHistory()
 
       this.state.initialized = true
-      this.logger.log('✅ 連接監控服務初始化完成')
+      this.logger.log('[OK] 連接監控服務初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化連接監控服務失敗:', error)
+      this.logger.error('[FAIL] 初始化連接監控服務失敗:', error)
       throw error
     }
   }
@@ -100,12 +100,12 @@ class ConnectionMonitoringService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 連接監控服務已啟動')
+      this.logger.warn('[WARN] 連接監控服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動連接監控服務')
+      this.logger.log('[START] 啟動連接監控服務')
 
       // 註冊事件監聽器
       await this.registerEventListeners()
@@ -117,9 +117,9 @@ class ConnectionMonitoringService {
       this.startHeartbeatMonitoring()
 
       this.state.active = true
-      this.logger.log('✅ 連接監控服務啟動完成')
+      this.logger.log('[OK] 連接監控服務啟動完成')
     } catch (error) {
-      this.logger.error('❌ 啟動連接監控服務失敗:', error)
+      this.logger.error('[FAIL] 啟動連接監控服務失敗:', error)
       throw error
     }
   }
@@ -129,12 +129,12 @@ class ConnectionMonitoringService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 連接監控服務未啟動')
+      this.logger.warn('[WARN] 連接監控服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止連接監控服務')
+      this.logger.log('[STOP] 停止連接監控服務')
 
       // 停止健康檢查監控
       this.stopHealthCheckMonitoring()
@@ -152,9 +152,9 @@ class ConnectionMonitoringService {
       await this.unregisterEventListeners()
 
       this.state.active = false
-      this.logger.log('✅ 連接監控服務停止完成')
+      this.logger.log('[OK] 連接監控服務停止完成')
     } catch (error) {
-      this.logger.error('❌ 停止連接監控服務失敗:', error)
+      this.logger.error('[FAIL] 停止連接監控服務失敗:', error)
       throw error
     }
   }
@@ -164,11 +164,11 @@ class ConnectionMonitoringService {
    */
   async establishConnection (connectionId, connectionInfo) {
     try {
-      this.logger.log(`🔗 建立連接: ${connectionId}`)
+      this.logger.log(`建立連接: ${connectionId}`)
 
       // 檢查連接是否已存在
       if (this.activeConnections.has(connectionId)) {
-        this.logger.warn(`⚠️ 連接 ${connectionId} 已存在`)
+        this.logger.warn(`[WARN] 連接 ${connectionId} 已存在`)
         return {
           success: true,
           connectionId,
@@ -213,7 +213,7 @@ class ConnectionMonitoringService {
         }, EVENT_PRIORITIES.NORMAL)
       }
 
-      this.logger.log(`✅ 連接建立成功: ${connectionId}`)
+      this.logger.log(`[OK] 連接建立成功: ${connectionId}`)
 
       return {
         success: true,
@@ -222,7 +222,7 @@ class ConnectionMonitoringService {
         connection: { ...connection }
       }
     } catch (error) {
-      this.logger.error(`❌ 建立連接失敗: ${connectionId}`, error)
+      this.logger.error(`[FAIL] 建立連接失敗: ${connectionId}`, error)
       this.stats.failedConnectionAttempts++
       return {
         success: false,
@@ -236,11 +236,11 @@ class ConnectionMonitoringService {
    */
   async closeConnection (connectionId, reason = 'normal_closure') {
     try {
-      this.logger.log(`🔗 關閉連接: ${connectionId} (原因: ${reason})`)
+      this.logger.log(`關閉連接: ${connectionId} (原因: ${reason})`)
 
       const connection = this.activeConnections.get(connectionId)
       if (!connection) {
-        this.logger.warn(`⚠️ 連接 ${connectionId} 不存在`)
+        this.logger.warn(`[WARN] 連接 ${connectionId} 不存在`)
         return {
           success: false,
           message: 'Connection not found'
@@ -282,7 +282,7 @@ class ConnectionMonitoringService {
         }, EVENT_PRIORITIES.NORMAL)
       }
 
-      this.logger.log(`✅ 連接關閉成功: ${connectionId}`)
+      this.logger.log(`[OK] 連接關閉成功: ${connectionId}`)
 
       return {
         success: true,
@@ -295,7 +295,7 @@ class ConnectionMonitoringService {
         }
       }
     } catch (error) {
-      this.logger.error(`❌ 關閉連接失敗: ${connectionId}`, error)
+      this.logger.error(`[FAIL] 關閉連接失敗: ${connectionId}`, error)
       return {
         success: false,
         error: error.message
@@ -325,7 +325,7 @@ class ConnectionMonitoringService {
    * 關閉所有活動連接
    */
   async closeAllConnections (reason = 'system_shutdown') {
-    this.logger.log('🔗 關閉所有活動連接')
+    this.logger.log('關閉所有活動連接')
 
     const connectionIds = Array.from(this.activeConnections.keys())
 
@@ -333,11 +333,11 @@ class ConnectionMonitoringService {
       try {
         await this.closeConnection(connectionId, reason)
       } catch (error) {
-        this.logger.error(`❌ 關閉連接失敗: ${connectionId}`, error)
+        this.logger.error(`[FAIL] 關閉連接失敗: ${connectionId}`, error)
       }
     }
 
-    this.logger.log(`✅ 已關閉 ${connectionIds.length} 個連接`)
+    this.logger.log(`[OK] 已關閉 ${connectionIds.length} 個連接`)
   }
 
   /**
@@ -371,7 +371,7 @@ class ConnectionMonitoringService {
     }
 
     if (healthIssues.length > 0) {
-      this.logger.warn('⚠️ 連接健康檢查發現問題:', healthIssues)
+      this.logger.warn('[WARN] 連接健康檢查發現問題:', healthIssues)
 
       // 處理健康問題
       for (const issue of healthIssues) {
@@ -394,17 +394,17 @@ class ConnectionMonitoringService {
 
     switch (issueType) {
       case 'connection_inactive':
-        this.logger.warn(`⚠️ 處理非活動連接: ${connectionId}`)
+        this.logger.warn(`[WARN] 處理非活動連接: ${connectionId}`)
         await this.closeConnection(connectionId, 'inactivity_timeout')
         break
 
       case 'connection_status_invalid':
-        this.logger.warn(`⚠️ 處理狀態無效連接: ${connectionId}`)
+        this.logger.warn(`[WARN] 處理狀態無效連接: ${connectionId}`)
         await this.closeConnection(connectionId, 'status_invalid')
         break
 
       default:
-        this.logger.warn(`⚠️ 未知健康問題類型: ${issueType}`)
+        this.logger.warn(`[WARN] 未知健康問題類型: ${issueType}`)
     }
   }
 
@@ -420,7 +420,7 @@ class ConnectionMonitoringService {
       await this.performHealthCheck()
     }, LIMITS.HEALTH_CHECK_INTERVAL)
 
-    this.logger.log('🔄 連接健康檢查監控已啟動')
+    this.logger.log('連接健康檢查監控已啟動')
   }
 
   /**
@@ -432,7 +432,7 @@ class ConnectionMonitoringService {
       this.healthCheckInterval = null
     }
 
-    this.logger.log('🔄 連接健康檢查監控已停止')
+    this.logger.log('連接健康檢查監控已停止')
   }
 
   /**
@@ -447,7 +447,7 @@ class ConnectionMonitoringService {
       await this.sendHeartbeat()
     }, TIMEOUTS.HEARTBEAT_INTERVAL)
 
-    this.logger.log('💓 心跳監控已啟動')
+    this.logger.log('心跳監控已啟動')
   }
 
   /**
@@ -459,7 +459,7 @@ class ConnectionMonitoringService {
       this.heartbeatInterval = null
     }
 
-    this.logger.log('💓 心跳監控已停止')
+    this.logger.log('心跳監控已停止')
   }
 
   /**
@@ -494,13 +494,13 @@ class ConnectionMonitoringService {
           this.connectionHistory = stored.messaging_connections
             .slice(-LIMITS.MAX_CONNECTION_HISTORY)
 
-          this.logger.log(`📚 載入了 ${this.connectionHistory.length} 個連接歷史記錄`)
+          this.logger.log(`載入了 ${this.connectionHistory.length} 個連接歷史記錄`)
         }
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，跳過連接歷史載入')
+        this.logger.warn('[WARN] Chrome storage API 不可用，跳過連接歷史載入')
       }
     } catch (error) {
-      this.logger.error('❌ 載入連接歷史失敗:', error)
+      this.logger.error('[FAIL] 載入連接歷史失敗:', error)
     }
   }
 
@@ -514,12 +514,12 @@ class ConnectionMonitoringService {
           messaging_connections: this.connectionHistory.slice(-LIMITS.MAX_CONNECTION_HISTORY)
         })
 
-        this.logger.log(`💾 保存了 ${this.connectionHistory.length} 個連接歷史記錄`)
+        this.logger.log(`[SAVE] 保存了 ${this.connectionHistory.length} 個連接歷史記錄`)
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，無法保存連接歷史')
+        this.logger.warn('[WARN] Chrome storage API 不可用，無法保存連接歷史')
       }
     } catch (error) {
-      this.logger.error('❌ 保存連接歷史失敗:', error)
+      this.logger.error('[FAIL] 保存連接歷史失敗:', error)
     }
   }
 
@@ -528,7 +528,7 @@ class ConnectionMonitoringService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -550,7 +550,7 @@ class ConnectionMonitoringService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -563,12 +563,12 @@ class ConnectionMonitoringService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -579,7 +579,7 @@ class ConnectionMonitoringService {
       const { connectionId, connectionInfo } = event.data
       await this.establishConnection(connectionId, connectionInfo)
     } catch (error) {
-      this.logger.error('❌ 處理連接建立請求失敗:', error)
+      this.logger.error('[FAIL] 處理連接建立請求失敗:', error)
     }
   }
 
@@ -591,7 +591,7 @@ class ConnectionMonitoringService {
       const { connectionId, reason } = event.data
       await this.closeConnection(connectionId, reason)
     } catch (error) {
-      this.logger.error('❌ 處理連接關閉請求失敗:', error)
+      this.logger.error('[FAIL] 處理連接關閉請求失敗:', error)
     }
   }
 

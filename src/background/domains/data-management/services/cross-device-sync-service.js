@@ -60,12 +60,12 @@ class CrossDeviceSyncService {
     if (this.state.initialized) return
 
     try {
-      this.logger.log('🔄 初始化跨設備同步服務')
+      this.logger.log('初始化跨設備同步服務')
       await this.registerEventListeners()
       this.state.initialized = true
-      this.logger.log('✅ 跨設備同步服務初始化完成')
+      this.logger.log('[OK] 跨設備同步服務初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化跨設備同步服務失敗:', error)
+      this.logger.error('[FAIL] 初始化跨設備同步服務失敗:', error)
       throw error
     }
   }
@@ -74,7 +74,7 @@ class CrossDeviceSyncService {
     if (!this.state.initialized || this.state.active) return
 
     this.state.active = true
-    this.logger.log('✅ 跨設備同步服務啟動完成')
+    this.logger.log('[OK] 跨設備同步服務啟動完成')
   }
 
   async stop () {
@@ -84,7 +84,7 @@ class CrossDeviceSyncService {
     await this.cancelAllActiveSyncs()
     this.state.active = false
     this.state.syncing = false
-    this.logger.log('✅ 跨設備同步服務停止完成')
+    this.logger.log('[OK] 跨設備同步服務停止完成')
   }
 
   async startSync (options = {}) {
@@ -92,7 +92,7 @@ class CrossDeviceSyncService {
     const startTime = Date.now()
 
     try {
-      this.logger.log(`🔄 開始同步作業: ${syncId}`)
+      this.logger.log(`開始同步作業: ${syncId}`)
 
       const syncJob = {
         id: syncId,
@@ -184,7 +184,7 @@ class CrossDeviceSyncService {
       }
 
       await this.finalizeSyncJob(syncId, syncResult)
-      this.logger.log(`✅ 同步作業完成: ${syncId}`)
+      this.logger.log(`[OK] 同步作業完成: ${syncId}`)
 
       return syncResult
     } catch (error) {
@@ -324,7 +324,7 @@ class CrossDeviceSyncService {
       })
     }
 
-    this.logger.error(`❌ 同步作業失敗 ${syncId}:`, error)
+    this.logger.error(`[FAIL] 同步作業失敗 ${syncId}:`, error)
   }
 
   async cancelAllActiveSyncs () {
@@ -349,7 +349,7 @@ class CrossDeviceSyncService {
       reason
     })
 
-    this.logger.log(`🛑 取消同步作業: ${syncId} - ${reason}`)
+    this.logger.log(`[STOP] 取消同步作業: ${syncId} - ${reason}`)
     return true
   }
 
@@ -394,7 +394,7 @@ class CrossDeviceSyncService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
     this.registeredListeners.clear()
@@ -412,7 +412,7 @@ class CrossDeviceSyncService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理同步請求失敗:', error)
+      this.logger.error('[FAIL] 處理同步請求失敗:', error)
     }
   }
 

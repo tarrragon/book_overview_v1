@@ -72,12 +72,12 @@ class PageDetectionService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 頁面檢測服務已初始化')
+      this.logger.warn('[WARN] 頁面檢測服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔍 初始化頁面檢測服務')
+      this.logger.log('[CHECK] 初始化頁面檢測服務')
 
       // 初始化頁面類型配置
       await this.initializePageTypeConfigs()
@@ -86,7 +86,7 @@ class PageDetectionService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 頁面檢測服務初始化完成')
+      this.logger.log('[OK] 頁面檢測服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -97,7 +97,7 @@ class PageDetectionService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化頁面檢測服務失敗:', error)
+      this.logger.error('[FAIL] 初始化頁面檢測服務失敗:', error)
       throw error
     }
   }
@@ -114,17 +114,17 @@ class PageDetectionService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 頁面檢測服務已啟動')
+      this.logger.warn('[WARN] 頁面檢測服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動頁面檢測服務')
+      this.logger.log('[START] 啟動頁面檢測服務')
 
       this.state.active = true
       this.state.detecting = true
 
-      this.logger.log('✅ 頁面檢測服務啟動完成')
+      this.logger.log('[OK] 頁面檢測服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -133,7 +133,7 @@ class PageDetectionService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動頁面檢測服務失敗:', error)
+      this.logger.error('[FAIL] 啟動頁面檢測服務失敗:', error)
       throw error
     }
   }
@@ -143,12 +143,12 @@ class PageDetectionService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 頁面檢測服務未啟動')
+      this.logger.warn('[WARN] 頁面檢測服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止頁面檢測服務')
+      this.logger.log('[STOP] 停止頁面檢測服務')
 
       // 清理快取
       this.detectionCache.clear()
@@ -159,7 +159,7 @@ class PageDetectionService {
       this.state.active = false
       this.state.detecting = false
 
-      this.logger.log('✅ 頁面檢測服務停止完成')
+      this.logger.log('[OK] 頁面檢測服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -169,7 +169,7 @@ class PageDetectionService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止頁面檢測服務失敗:', error)
+      this.logger.error('[FAIL] 停止頁面檢測服務失敗:', error)
       throw error
     }
   }
@@ -218,7 +218,7 @@ class PageDetectionService {
       priority: 4
     })
 
-    this.logger.log(`✅ 初始化了 ${this.detectionRules.size} 個檢測規則`)
+    this.logger.log(`[OK] 初始化了 ${this.detectionRules.size} 個檢測規則`)
   }
 
   /**
@@ -261,7 +261,7 @@ class PageDetectionService {
       requiresLogin: false
     })
 
-    this.logger.log(`✅ 初始化了 ${this.pageTypeConfigs.size} 個頁面類型配置`)
+    this.logger.log(`[OK] 初始化了 ${this.pageTypeConfigs.size} 個頁面類型配置`)
   }
 
   /**
@@ -310,7 +310,7 @@ class PageDetectionService {
 
       return detectionResult
     } catch (error) {
-      this.logger.error('❌ 頁面檢測失敗:', error)
+      this.logger.error('[FAIL] 頁面檢測失敗:', error)
       return {
         detected: false,
         error: error.message,
@@ -439,7 +439,7 @@ class PageDetectionService {
       ...rule
     })
 
-    this.logger.log(`✅ 註冊檢測規則: ${name}`)
+    this.logger.log(`[OK] 註冊檢測規則: ${name}`)
   }
 
   /**
@@ -447,7 +447,7 @@ class PageDetectionService {
    */
   registerPageTypeConfig (pageType, config) {
     this.pageTypeConfigs.set(pageType, config)
-    this.logger.log(`✅ 註冊頁面類型配置: ${pageType}`)
+    this.logger.log(`[OK] 註冊頁面類型配置: ${pageType}`)
   }
 
   /**
@@ -455,7 +455,7 @@ class PageDetectionService {
    */
   clearCache () {
     this.detectionCache.clear()
-    this.logger.log('✅ 檢測快取已清理')
+    this.logger.log('[OK] 檢測快取已清理')
   }
 
   /**
@@ -463,7 +463,7 @@ class PageDetectionService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -485,7 +485,7 @@ class PageDetectionService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -498,12 +498,12 @@ class PageDetectionService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -531,7 +531,7 @@ class PageDetectionService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理檢測請求失敗:', error)
+      this.logger.error('[FAIL] 處理檢測請求失敗:', error)
 
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.DETECTION.ERROR', {
@@ -567,7 +567,7 @@ class PageDetectionService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理批量檢測請求失敗:', error)
+      this.logger.error('[FAIL] 處理批量檢測請求失敗:', error)
     }
   }
 

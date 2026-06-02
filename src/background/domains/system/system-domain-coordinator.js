@@ -94,7 +94,7 @@ class SystemDomainCoordinator {
       })
     }
 
-    this.logger.log(`🏗️ 初始化了 ${this.services.size} 個微服務`)
+    this.logger.log(`初始化了 ${this.services.size} 個微服務`)
   }
 
   /**
@@ -114,12 +114,12 @@ class SystemDomainCoordinator {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 系統領域協調器已初始化')
+      this.logger.warn('[WARN] 系統領域協調器已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化系統領域協調器')
+      this.logger.log('初始化系統領域協調器')
 
       // 按依賴順序初始化微服務
       await this.initializeServicesInOrder()
@@ -131,7 +131,7 @@ class SystemDomainCoordinator {
       await this.setupServiceCommunication()
 
       this.state.initialized = true
-      this.logger.log('✅ 系統領域協調器初始化完成')
+      this.logger.log('[OK] 系統領域協調器初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -142,7 +142,7 @@ class SystemDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化系統領域協調器失敗:', error)
+      this.logger.error('[FAIL] 初始化系統領域協調器失敗:', error)
       throw error
     }
   }
@@ -161,12 +161,12 @@ class SystemDomainCoordinator {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 系統領域協調器已啟動')
+      this.logger.warn('[WARN] 系統領域協調器已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動系統領域協調器')
+      this.logger.log('[START] 啟動系統領域協調器')
 
       // 按依賴順序啟動微服務
       await this.startServicesInOrder()
@@ -177,7 +177,7 @@ class SystemDomainCoordinator {
       this.state.active = true
       this.state.servicesReady = true
 
-      this.logger.log('✅ 系統領域協調器啟動完成')
+      this.logger.log('[OK] 系統領域協調器啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -187,7 +187,7 @@ class SystemDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動系統領域協調器失敗:', error)
+      this.logger.error('[FAIL] 啟動系統領域協調器失敗:', error)
       throw error
     }
   }
@@ -197,12 +197,12 @@ class SystemDomainCoordinator {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 系統領域協調器未啟動')
+      this.logger.warn('[WARN] 系統領域協調器未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止系統領域協調器')
+      this.logger.log('[STOP] 停止系統領域協調器')
 
       // 反序停止微服務
       await this.stopServicesInReverseOrder()
@@ -216,7 +216,7 @@ class SystemDomainCoordinator {
       this.state.active = false
       this.state.servicesReady = false
 
-      this.logger.log('✅ 系統領域協調器停止完成')
+      this.logger.log('[OK] 系統領域協調器停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -226,7 +226,7 @@ class SystemDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止系統領域協調器失敗:', error)
+      this.logger.error('[FAIL] 停止系統領域協調器失敗:', error)
       throw error
     }
   }
@@ -239,15 +239,15 @@ class SystemDomainCoordinator {
 
     for (const serviceName of initializationOrder) {
       try {
-        this.logger.log(`🔄 初始化服務: ${serviceName}`)
+        this.logger.log(`初始化服務: ${serviceName}`)
 
         const service = this.services.get(serviceName)
         await service.initialize()
 
         this.serviceStates.get(serviceName).initialized = true
-        this.logger.log(`✅ 服務初始化完成: ${serviceName}`)
+        this.logger.log(`[OK] 服務初始化完成: ${serviceName}`)
       } catch (error) {
-        this.logger.error(`❌ 服務初始化失敗: ${serviceName}`, error)
+        this.logger.error(`[FAIL] 服務初始化失敗: ${serviceName}`, error)
         const newError = new Error(`微服務 ${serviceName} 初始化失敗: ${error.message}`)
         newError.code = ErrorCodes.OPERATION_ERROR
         newError.details = {
@@ -257,7 +257,7 @@ class SystemDomainCoordinator {
       }
     }
 
-    this.logger.log('✅ 所有微服務初始化完成')
+    this.logger.log('[OK] 所有微服務初始化完成')
   }
 
   /**
@@ -268,21 +268,21 @@ class SystemDomainCoordinator {
 
     for (const serviceName of startOrder) {
       try {
-        this.logger.log(`🚀 啟動服務: ${serviceName}`)
+        this.logger.log(`[START] 啟動服務: ${serviceName}`)
 
         const service = this.services.get(serviceName)
         await service.start()
 
         this.serviceStates.get(serviceName).active = true
-        this.logger.log(`✅ 服務啟動完成: ${serviceName}`)
+        this.logger.log(`[OK] 服務啟動完成: ${serviceName}`)
       } catch (error) {
-        this.logger.error(`❌ 服務啟動失敗: ${serviceName}`, error)
+        this.logger.error(`[FAIL] 服務啟動失敗: ${serviceName}`, error)
         // 嘗試優雅降級
         await this.handleServiceStartupFailure(serviceName, error)
       }
     }
 
-    this.logger.log('✅ 所有微服務啟動完成')
+    this.logger.log('[OK] 所有微服務啟動完成')
   }
 
   /**
@@ -293,20 +293,20 @@ class SystemDomainCoordinator {
 
     for (const serviceName of stopOrder) {
       try {
-        this.logger.log(`🛑 停止服務: ${serviceName}`)
+        this.logger.log(`[STOP] 停止服務: ${serviceName}`)
 
         const service = this.services.get(serviceName)
         await service.stop()
 
         this.serviceStates.get(serviceName).active = false
-        this.logger.log(`✅ 服務停止完成: ${serviceName}`)
+        this.logger.log(`[OK] 服務停止完成: ${serviceName}`)
       } catch (error) {
-        this.logger.error(`❌ 服務停止失敗: ${serviceName}`, error)
+        this.logger.error(`[FAIL] 服務停止失敗: ${serviceName}`, error)
         // 繼續停止其他服務
       }
     }
 
-    this.logger.log('✅ 所有微服務停止完成')
+    this.logger.log('[OK] 所有微服務停止完成')
   }
 
   /**
@@ -342,7 +342,7 @@ class SystemDomainCoordinator {
    * 執行就緒檢查
    */
   async performReadinessCheck () {
-    this.logger.log('🔍 執行系統就緒檢查')
+    this.logger.log('[CHECK] 執行系統就緒檢查')
 
     const issues = []
 
@@ -362,9 +362,9 @@ class SystemDomainCoordinator {
     }
 
     if (issues.length > 0) {
-      this.logger.warn('⚠️ 系統就緒檢查發現問題:', issues)
+      this.logger.warn('[WARN] 系統就緒檢查發現問題:', issues)
     } else {
-      this.logger.log('✅ 系統就緒檢查通過')
+      this.logger.log('[OK] 系統就緒檢查通過')
     }
 
     return { ready: issues.length === 0, issues }
@@ -374,7 +374,7 @@ class SystemDomainCoordinator {
    * 處理服務啟動失敗
    */
   async handleServiceStartupFailure (serviceName, error) {
-    this.logger.error(`💥 服務啟動失敗處理: ${serviceName}`, error)
+    this.logger.error(`服務啟動失敗處理: ${serviceName}`, error)
 
     const serviceState = this.serviceStates.get(serviceName)
     serviceState.restartCount++
@@ -382,19 +382,19 @@ class SystemDomainCoordinator {
 
     // 如果重試次數未超限，嘗試重啟
     if (serviceState.restartCount < 3) {
-      this.logger.log(`🔄 嘗試重啟服務: ${serviceName} (第 ${serviceState.restartCount} 次)`)
+      this.logger.log(`嘗試重啟服務: ${serviceName} (第 ${serviceState.restartCount} 次)`)
 
       try {
         const service = this.services.get(serviceName)
         await service.start()
 
         serviceState.active = true
-        this.logger.log(`✅ 服務重啟成功: ${serviceName}`)
+        this.logger.log(`[OK] 服務重啟成功: ${serviceName}`)
       } catch (retryError) {
-        this.logger.error(`❌ 服務重啟失敗: ${serviceName}`, retryError)
+        this.logger.error(`[FAIL] 服務重啟失敗: ${serviceName}`, retryError)
       }
     } else {
-      this.logger.error(`🚫 服務 ${serviceName} 重試次數超限，標記為失敗`)
+      this.logger.error(`服務 ${serviceName} 重試次數超限，標記為失敗`)
       serviceState.healthy = false
     }
   }
@@ -404,7 +404,7 @@ class SystemDomainCoordinator {
    */
   async setupServiceCommunication () {
     // 設定服務間的事件路由和通訊
-    this.logger.log('🔗 設定服務間通訊')
+    this.logger.log('設定服務間通訊')
   }
 
   /**
@@ -451,7 +451,7 @@ class SystemDomainCoordinator {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -478,7 +478,7 @@ class SystemDomainCoordinator {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -491,12 +491,12 @@ class SystemDomainCoordinator {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -515,7 +515,7 @@ class SystemDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理狀態請求失敗:', error)
+      this.logger.error('[FAIL] 處理狀態請求失敗:', error)
     }
   }
 
@@ -533,7 +533,7 @@ class SystemDomainCoordinator {
         await this.restartAllServices()
       }
     } catch (error) {
-      this.logger.error('❌ 處理重啟請求失敗:', error)
+      this.logger.error('[FAIL] 處理重啟請求失敗:', error)
     }
   }
 
@@ -553,7 +553,7 @@ class SystemDomainCoordinator {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理健康檢查請求失敗:', error)
+      this.logger.error('[FAIL] 處理健康檢查請求失敗:', error)
     }
   }
 
@@ -561,7 +561,7 @@ class SystemDomainCoordinator {
    * 重啟指定服務
    */
   async restartService (serviceName) {
-    this.logger.log(`🔄 重啟服務: ${serviceName}`)
+    this.logger.log(`重啟服務: ${serviceName}`)
 
     try {
       const service = this.services.get(serviceName)
@@ -572,9 +572,9 @@ class SystemDomainCoordinator {
       serviceState.active = true
       serviceState.restartCount++
 
-      this.logger.log(`✅ 服務重啟完成: ${serviceName}`)
+      this.logger.log(`[OK] 服務重啟完成: ${serviceName}`)
     } catch (error) {
-      this.logger.error(`❌ 服務重啟失敗: ${serviceName}`, error)
+      this.logger.error(`[FAIL] 服務重啟失敗: ${serviceName}`, error)
       throw error
     }
   }
@@ -583,12 +583,12 @@ class SystemDomainCoordinator {
    * 重啟所有服務
    */
   async restartAllServices () {
-    this.logger.log('🔄 重啟所有服務')
+    this.logger.log('重啟所有服務')
 
     await this.stopServicesInReverseOrder()
     await this.startServicesInOrder()
 
-    this.logger.log('✅ 所有服務重啟完成')
+    this.logger.log('[OK] 所有服務重啟完成')
   }
 
   /**

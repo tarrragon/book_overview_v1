@@ -71,7 +71,7 @@ class ChromeApiWrapper extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('🌐 初始化 Chrome API 封裝器')
+    this.logger.log('初始化 Chrome API 封裝器')
 
     // 檢查 Chrome API 可用性
     await this.checkChromeApiAvailability()
@@ -79,7 +79,7 @@ class ChromeApiWrapper extends BaseModule {
     // 重置統計
     this.resetStats()
 
-    this.logger.log('✅ Chrome API 封裝器初始化完成')
+    this.logger.log('[OK] Chrome API 封裝器初始化完成')
   }
 
   /**
@@ -88,12 +88,12 @@ class ChromeApiWrapper extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動 Chrome API 封裝器')
+    this.logger.log('[START] 啟動 Chrome API 封裝器')
 
     // 開始批次處理
     this.startBatchProcessing()
 
-    this.logger.log('✅ Chrome API 封裝器啟動完成')
+    this.logger.log('[OK] Chrome API 封裝器啟動完成')
   }
 
   /**
@@ -102,7 +102,7 @@ class ChromeApiWrapper extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止 Chrome API 封裝器')
+    this.logger.log('[STOP] 停止 Chrome API 封裝器')
 
     // 停止批次處理
     this.stopBatchProcessing()
@@ -110,7 +110,7 @@ class ChromeApiWrapper extends BaseModule {
     // 處理剩餘的批次操作
     await this.flushBatchQueue()
 
-    this.logger.log('✅ Chrome API 封裝器停止完成')
+    this.logger.log('[OK] Chrome API 封裝器停止完成')
   }
 
   /**
@@ -141,10 +141,10 @@ class ChromeApiWrapper extends BaseModule {
     // 檢查 Manifest V3 支援
     const manifest = chrome.runtime.getManifest()
     if (manifest.manifest_version !== 3) {
-      this.logger.warn('⚠️ 非 Manifest V3 環境')
+      this.logger.warn('[WARN] 非 Manifest V3 環境')
     }
 
-    this.logger.log('✅ Chrome API 可用性檢查通過')
+    this.logger.log('[OK] Chrome API 可用性檢查通過')
   }
 
   /**
@@ -158,7 +158,7 @@ class ChromeApiWrapper extends BaseModule {
     const startTime = Date.now()
 
     try {
-      this.logger.log(`🌐 調用 Chrome API: ${apiPath}`, args)
+      this.logger.log(`調用 Chrome API: ${apiPath}`, args)
 
       // 驗證 API 支援
       if (!this.supportedApis.has(apiPath)) {
@@ -180,14 +180,14 @@ class ChromeApiWrapper extends BaseModule {
       // 更新成功統計
       this.updateApiStats(apiPath, 'success', Date.now() - startTime)
 
-      this.logger.log(`✅ Chrome API 調用成功: ${apiPath}`)
+      this.logger.log(`[OK] Chrome API 調用成功: ${apiPath}`)
       return result
     } catch (error) {
       // 更新失敗統計
       this.updateApiStats(apiPath, 'failed')
       this.updateErrorStats(error.message)
 
-      this.logger.error(`❌ Chrome API 調用失敗: ${apiPath}`, error)
+      this.logger.error(`[FAIL] Chrome API 調用失敗: ${apiPath}`, error)
 
       // 檢查是否可以重試
       if (this.shouldRetry(error, options)) {
@@ -291,7 +291,7 @@ class ChromeApiWrapper extends BaseModule {
     const delay = (options.retryDelay || this.retryConfig.retryDelay) * (retryCount + 1)
     await new Promise(resolve => setTimeout(resolve, delay))
 
-    this.logger.log(`🔄 重試 Chrome API 調用: ${apiPath} (${retryCount + 1}/${maxRetries})`)
+    this.logger.log(`[RETRY] 重試 Chrome API 調用: ${apiPath} (${retryCount + 1}/${maxRetries})`)
 
     // 更新選項
     const newOptions = {
@@ -450,7 +450,7 @@ class ChromeApiWrapper extends BaseModule {
       try {
         await this.processBatchOperations(apiName, operations)
       } catch (error) {
-        this.logger.error(`❌ 批次處理失敗: ${apiName}`, error)
+        this.logger.error(`[FAIL] 批次處理失敗: ${apiName}`, error)
       }
 
       // 清空已處理的操作

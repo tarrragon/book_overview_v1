@@ -134,7 +134,7 @@ class PopupInitializationTracker {
     const stepConfig = this.initializationSteps.find(s => s.id === stepId)
     if (!stepConfig && !customName) {
       // eslint-disable-next-line no-console
-      Logger.error(`❌ [初始化追蹤] 未知步驟: ${stepId}`)
+      Logger.error(`[FAIL] [初始化追蹤] 未知步驟: ${stepId}`)
       return false
     }
 
@@ -170,7 +170,7 @@ class PopupInitializationTracker {
     const stepIndex = this.steps.findIndex(s => s.id === stepId)
     if (stepIndex === -1) {
       // eslint-disable-next-line no-console
-      Logger.warn(`⚠️ [初始化追蹤] 步驟未找到: ${stepId}`)
+      Logger.warn(`[WARN] [初始化追蹤] 步驟未找到: ${stepId}`)
       return false
     }
 
@@ -204,7 +204,7 @@ class PopupInitializationTracker {
     const stepIndex = this.steps.findIndex(s => s.id === stepId)
     if (stepIndex === -1) {
       // eslint-disable-next-line no-console
-      Logger.warn(`⚠️ [初始化追蹤] 步驟未找到: ${stepId}`)
+      Logger.warn(`[WARN] [初始化追蹤] 步驟未找到: ${stepId}`)
       return false
     }
 
@@ -235,7 +235,7 @@ class PopupInitializationTracker {
    */
   handleStepTimeout (stepId) {
     // eslint-disable-next-line no-console
-    Logger.error(`⏰ [初始化追蹤] 步驟超時: ${stepId}`)
+    Logger.error(`[TIMER] [初始化追蹤] 步驟超時: ${stepId}`)
 
     const step = this.steps.find(s => s.id === stepId)
     if (step) {
@@ -251,7 +251,7 @@ class PopupInitializationTracker {
    */
   handleTotalTimeout () {
     // eslint-disable-next-line no-console
-    Logger.error('⏰ [初始化追蹤] 初始化總體超時')
+    Logger.error('[TIMER] [初始化追蹤] 初始化總體超時')
 
     this.isFailed = true
 
@@ -269,7 +269,7 @@ class PopupInitializationTracker {
    * 完成初始化
    */
   completeInitialization () {
-    Logger.info('🎉 [初始化追蹤] 初始化完成')
+    Logger.info('[初始化追蹤] 初始化完成')
 
     this.isCompleted = true
     this.endTime = Date.now()
@@ -428,10 +428,10 @@ class PopupInitializationTracker {
 
       this.steps.forEach((step, index) => {
         const status = step.status === 'completed'
-          ? '✅'
+          ? '[OK]'
           : step.status === 'failed'
-            ? '❌'
-            : step.status === 'running' ? '🔄' : '⏸️'
+            ? '[FAIL]'
+            : step.status === 'running' ? '[RUNNING]' : '[PAUSE]'
         helpText += `${index + 1}. ${status} ${step.name}\n`
       })
 

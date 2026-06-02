@@ -60,7 +60,7 @@ function createPageDetector () {
       // 後備機制: console.log 提供頁面檢測結果的直接可見性
       // 使用場景: Readmoo 頁面檢測結果記錄，便於開發者除錯和確認
       // eslint-disable-next-line no-console
-      console.log(`📍 頁面檢測: ${isReadmooPage ? 'Readmoo' : '非Readmoo'} 頁面 (${pageType})`)
+      console.log(`[DETECT] 頁面檢測: ${isReadmooPage ? 'Readmoo' : '非Readmoo'} 頁面 (${pageType})`)
 
       return { isReadmooPage, pageType }
     },
@@ -199,7 +199,7 @@ function createPageDetector () {
             // 後備機制: console.error 確保錯誤可見性和除錯能力
             // 使用場景: URL 變更回調執行失敗時的錯誤追蹤
             // eslint-disable-next-line no-console
-            console.error('❌ URL 變更回調函數錯誤:', error)
+            console.error('[FAIL] URL 變更回調函數錯誤:', error)
           }
         }
       })
@@ -219,7 +219,7 @@ function createPageDetector () {
         // 後備機制: console.warn 提供環境問題的即時提醒
         // 使用場景: 無法取得觀察目標元素時的環境診斷資訊
         // eslint-disable-next-line no-console
-        console.warn('⚠️ 無法找到觀察目標元素 (document.body 或 document.documentElement)')
+        console.warn('[WARN] 無法找到觀察目標元素 (document.body 或 document.documentElement)')
       }
 
       // 返回停止函數

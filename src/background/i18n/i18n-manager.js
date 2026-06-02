@@ -45,7 +45,7 @@ class I18nManager extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('🌐 初始化 i18n 管理器')
+    this.logger.log('初始化 i18n 管理器')
 
     // 偵測系統語言
     await this.detectSystemLanguage()
@@ -53,7 +53,7 @@ class I18nManager extends BaseModule {
     // 預載入當前語言和回退語言
     await this.preloadLanguages()
 
-    this.logger.log(`✅ i18n 管理器初始化完成，當前語言: ${this.currentLanguage}`)
+    this.logger.log(`[OK] i18n 管理器初始化完成，當前語言: ${this.currentLanguage}`)
   }
 
   /**
@@ -81,9 +81,9 @@ class I18nManager extends BaseModule {
         this.currentLanguage = 'zh-tw'
       }
 
-      this.logger.log(`🌐 偵測到系統語言: ${browserLanguage} → ${this.currentLanguage}`)
+      this.logger.log(`偵測到系統語言: ${browserLanguage} → ${this.currentLanguage}`)
     } catch (error) {
-      this.logger.error('❌ 偵測系統語言失敗:', error)
+      this.logger.error('[FAIL] 偵測系統語言失敗:', error)
       // 使用預設語言
       this.currentLanguage = 'zh-tw'
     }
@@ -157,7 +157,7 @@ class I18nManager extends BaseModule {
       this.languageCache.set(languageCode, resource)
       this.loadingPromises.delete(languageCode)
 
-      this.logger.log(`📚 語言資源載入完成: ${languageCode}`)
+      this.logger.log(`語言資源載入完成: ${languageCode}`)
       return resource
     } catch (error) {
       this.loadingPromises.delete(languageCode)
@@ -200,7 +200,7 @@ class I18nManager extends BaseModule {
 
       return resource
     } catch (error) {
-      this.logger.error(`❌ 載入語言資源失敗: ${languageCode}`, error)
+      this.logger.error(`[FAIL] 載入語言資源失敗: ${languageCode}`, error)
       throw error
     }
   }
@@ -224,7 +224,7 @@ class I18nManager extends BaseModule {
         translation = this.getTranslationFromLanguage(key, this.fallbackLanguage)
 
         if (this.debugMode) {
-          this.logger.warn(`⚠️ 使用回退語言翻譯: ${key} (${targetLanguage} → ${this.fallbackLanguage})`)
+          this.logger.warn(`[WARN] 使用回退語言翻譯: ${key} (${targetLanguage} → ${this.fallbackLanguage})`)
         }
       }
 
@@ -237,7 +237,7 @@ class I18nManager extends BaseModule {
       // 參數替換
       return this.replaceParameters(translation, params)
     } catch (error) {
-      this.logger.error(`❌ 獲取翻譯失敗: ${key}`, error)
+      this.logger.error(`[FAIL] 獲取翻譯失敗: ${key}`, error)
       return `[${key}]`
     }
   }
@@ -289,7 +289,7 @@ class I18nManager extends BaseModule {
         return String(paramValue)
       } else {
         if (this.debugMode) {
-          this.logger.warn(`⚠️ 參數缺失: ${paramName} in "${text}"`)
+          this.logger.warn(`[WARN] 參數缺失: ${paramName} in "${text}"`)
         }
         return match // 保留原始佔位符
       }
@@ -309,7 +309,7 @@ class I18nManager extends BaseModule {
       this.missingTranslations.add(missingKey)
 
       if (this.logMissingTranslations) {
-        this.logger.warn(`⚠️ 缺失翻譯: ${key} (語言: ${languageCode})`)
+        this.logger.warn(`[WARN] 缺失翻譯: ${key} (語言: ${languageCode})`)
       }
     }
   }
@@ -321,7 +321,7 @@ class I18nManager extends BaseModule {
    */
   async switchLanguage (languageCode) {
     if (!this.supportedLanguages.has(languageCode)) {
-      this.logger.error(`❌ 不支援的語言代碼: ${languageCode}`)
+      this.logger.error(`[FAIL] 不支援的語言代碼: ${languageCode}`)
       return false
     }
 
@@ -349,10 +349,10 @@ class I18nManager extends BaseModule {
         })
       }
 
-      this.logger.log(`🌐 語言切換完成: ${previousLanguage} → ${languageCode}`)
+      this.logger.log(`語言切換完成: ${previousLanguage} → ${languageCode}`)
       return true
     } catch (error) {
-      this.logger.error(`❌ 語言切換失敗: ${languageCode}`, error)
+      this.logger.error(`[FAIL] 語言切換失敗: ${languageCode}`, error)
       return false
     }
   }
@@ -411,7 +411,7 @@ class I18nManager extends BaseModule {
       await this.loadLanguage(languageCode)
       return true
     } catch (error) {
-      this.logger.error(`❌ 預載入語言失敗: ${languageCode}`, error)
+      this.logger.error(`[FAIL] 預載入語言失敗: ${languageCode}`, error)
       return false
     }
   }

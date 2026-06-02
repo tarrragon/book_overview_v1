@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 id="pageTitle">📚 Readmoo書籍目錄</h1>
+        <h1 id="pageTitle">Readmoo書籍目錄</h1>
         
         <!-- 統計資訊區域 -->
         <div class="stats">
@@ -23,15 +23,15 @@
         </div>
 
         <!-- 搜尋區域 -->
-        <input type="text" id="searchBox" placeholder="🔍 搜尋書籍標題...">
+        <input type="text" id="searchBox" placeholder="[CHECK] 搜尋書籍標題...">
         
         <!-- 操作按鈕區域 -->
         <div class="export-buttons">
-            <button class="export-btn" id="exportCSVBtn">📊 匯出 CSV</button>
-            <button class="export-btn" id="exportJSONBtn">🧾 匯出 JSON</button>
-            <button class="export-btn" id="importJSONBtn">📥 匯入 JSON</button>
-            <button class="export-btn" id="selectAllBtn">✅ 選取全部</button>
-            <button class="export-btn" id="reloadBtn">🔄 重新載入</button>
+            <button class="export-btn" id="exportCSVBtn">[STATS] 匯出 CSV</button>
+            <button class="export-btn" id="exportJSONBtn">匯出 JSON</button>
+            <button class="export-btn" id="importJSONBtn">匯入 JSON</button>
+            <button class="export-btn" id="selectAllBtn">[OK] 選取全部</button>
+            <button class="export-btn" id="reloadBtn">重新載入</button>
             <div style="display:inline-block;margin-left:16px;">
               <label for="sortSelect">排序：</label>
               <select id="sortSelect">
@@ -49,10 +49,10 @@
         <!-- 檔案載入區域 -->
         <div id="fileUploader" style="display: none;">
             <div class="file-uploader">
-                <h3>📁 載入書籍 JSON 檔案</h3>
+                <h3>載入書籍 JSON 檔案</h3>
                 <input type="file" id="jsonFileInput" accept=".json,application/json">
-                <button class="export-btn" id="loadFileBtn">📂 載入檔案</button>
-                <button class="export-btn" id="loadSampleBtn">📚 載入範例資料</button>
+                <button class="export-btn" id="loadFileBtn">載入檔案</button>
+                <button class="export-btn" id="loadSampleBtn">載入範例資料</button>
             </div>
         </div>
 

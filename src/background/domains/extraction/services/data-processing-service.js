@@ -81,12 +81,12 @@ class DataProcessingService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 資料處理服務已初始化')
+      this.logger.warn('[WARN] 資料處理服務已初始化')
       return
     }
 
     try {
-      this.logger.log('📊 初始化資料處理服務')
+      this.logger.log('[STATS] 初始化資料處理服務')
 
       // 初始化處理管道
       await this.initializeProcessingPipelines()
@@ -95,7 +95,7 @@ class DataProcessingService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 資料處理服務初始化完成')
+      this.logger.log('[OK] 資料處理服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -105,7 +105,7 @@ class DataProcessingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化資料處理服務失敗:', error)
+      this.logger.error('[FAIL] 初始化資料處理服務失敗:', error)
       throw error
     }
   }
@@ -122,12 +122,12 @@ class DataProcessingService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 資料處理服務已啟動')
+      this.logger.warn('[WARN] 資料處理服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動資料處理服務')
+      this.logger.log('[START] 啟動資料處理服務')
 
       this.state.active = true
       this.state.processing = true
@@ -135,7 +135,7 @@ class DataProcessingService {
       // 開始處理佇列
       this.startProcessingQueue()
 
-      this.logger.log('✅ 資料處理服務啟動完成')
+      this.logger.log('[OK] 資料處理服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -144,7 +144,7 @@ class DataProcessingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動資料處理服務失敗:', error)
+      this.logger.error('[FAIL] 啟動資料處理服務失敗:', error)
       throw error
     }
   }
@@ -154,12 +154,12 @@ class DataProcessingService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 資料處理服務未啟動')
+      this.logger.warn('[WARN] 資料處理服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止資料處理服務')
+      this.logger.log('[STOP] 停止資料處理服務')
 
       // 停止處理佇列
       this.stopProcessingQueue()
@@ -173,7 +173,7 @@ class DataProcessingService {
       this.state.active = false
       this.state.processing = false
 
-      this.logger.log('✅ 資料處理服務停止完成')
+      this.logger.log('[OK] 資料處理服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -183,7 +183,7 @@ class DataProcessingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止資料處理服務失敗:', error)
+      this.logger.error('[FAIL] 停止資料處理服務失敗:', error)
       throw error
     }
   }
@@ -194,7 +194,7 @@ class DataProcessingService {
   initializeDataProcessors () {
     // Readmoo 書籍資料處理器
     this.dataProcessors.set('readmoo_books', async (rawData) => {
-      this.logger.log('📚 處理 Readmoo 書籍資料')
+      this.logger.log('處理 Readmoo 書籍資料')
 
       if (!rawData || !Array.isArray(rawData.books)) {
         const error = new Error('無效的書籍資料格式')
@@ -262,7 +262,7 @@ class DataProcessingService {
 
     // 閱讀進度資料處理器
     this.dataProcessors.set('reading_progress', async (rawData) => {
-      this.logger.log('📖 處理閱讀進度資料')
+      this.logger.log('處理閱讀進度資料')
 
       return {
         progressRecords: rawData.map(record => ({
@@ -278,7 +278,7 @@ class DataProcessingService {
 
     // 書籍元資料處理器
     this.dataProcessors.set('book_metadata', async (rawData) => {
-      this.logger.log('📋 處理書籍元資料')
+      this.logger.log('處理書籍元資料')
 
       return {
         metadata: {
@@ -291,7 +291,7 @@ class DataProcessingService {
       }
     })
 
-    this.logger.log(`✅ 初始化了 ${this.dataProcessors.size} 個資料處理器`)
+    this.logger.log(`[OK] 初始化了 ${this.dataProcessors.size} 個資料處理器`)
   }
 
   /**
@@ -324,7 +324,7 @@ class DataProcessingService {
       'validate_output'
     ])
 
-    this.logger.log(`✅ 初始化了 ${this.processingPipelines.size} 個處理管道`)
+    this.logger.log(`[OK] 初始化了 ${this.processingPipelines.size} 個處理管道`)
   }
 
   /**
@@ -334,14 +334,14 @@ class DataProcessingService {
     const startTime = Date.now()
 
     try {
-      this.logger.log(`🔄 開始處理資料類型: ${dataType}`)
+      this.logger.log(`開始處理資料類型: ${dataType}`)
 
       // 檢查快取
       if (this.config.enableDataCaching) {
         const cached = this.getCachedData(dataType, rawData)
         if (cached) {
           this.stats.cacheHits++
-          this.logger.log(`💾 使用快取資料: ${dataType}`)
+          this.logger.log(`[SAVE] 使用快取資料: ${dataType}`)
           return cached
         }
       }
@@ -372,7 +372,7 @@ class DataProcessingService {
         const processingTime = Date.now() - startTime
         this.updateProcessingStats(processingTime)
 
-        this.logger.log(`✅ 資料處理完成: ${dataType} (${processingTime}ms)`)
+        this.logger.log(`[OK] 資料處理完成: ${dataType} (${processingTime}ms)`)
 
         // 發送處理完成事件
         if (this.eventBus) {
@@ -401,7 +401,7 @@ class DataProcessingService {
       }
     } catch (error) {
       this.stats.processingErrors++
-      this.logger.error(`❌ 資料處理失敗: ${dataType}`, error)
+      this.logger.error(`[FAIL] 資料處理失敗: ${dataType}`, error)
 
       // 發送處理錯誤事件
       if (this.eventBus) {
@@ -472,7 +472,7 @@ class DataProcessingService {
         const batchResults = await Promise.all(batchPromises)
         results.push(...batchResults)
       } catch (error) {
-        this.logger.error('❌ 批量處理失敗:', error)
+        this.logger.error('[FAIL] 批量處理失敗:', error)
         throw error
       }
     }
@@ -485,7 +485,7 @@ class DataProcessingService {
    */
   startProcessingQueue () {
     // 實現處理佇列邏輯
-    this.logger.log('🎯 處理佇列已啟動')
+    this.logger.log('處理佇列已啟動')
   }
 
   /**
@@ -493,7 +493,7 @@ class DataProcessingService {
    */
   stopProcessingQueue () {
     // 實現停止處理佇列邏輯
-    this.logger.log('⏹️ 處理佇列已停止')
+    this.logger.log('[STOP] 處理佇列已停止')
   }
 
   /**
@@ -669,7 +669,7 @@ class DataProcessingService {
   clearCache () {
     this.processedDataCache.clear()
     this.cacheMetadata.clear()
-    this.logger.log('🧹 處理快取已清理')
+    this.logger.log('處理快取已清理')
   }
 
   /**
@@ -710,7 +710,7 @@ class DataProcessingService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -732,7 +732,7 @@ class DataProcessingService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -745,12 +745,12 @@ class DataProcessingService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -769,7 +769,7 @@ class DataProcessingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理資料處理請求失敗:', error)
+      this.logger.error('[FAIL] 處理資料處理請求失敗:', error)
     }
   }
 
@@ -789,7 +789,7 @@ class DataProcessingService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理批量處理請求失敗:', error)
+      this.logger.error('[FAIL] 處理批量處理請求失敗:', error)
     }
   }
 

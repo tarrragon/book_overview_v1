@@ -79,12 +79,12 @@ class ConfigManagementService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 配置管理服務已初始化')
+      this.logger.warn('[WARN] 配置管理服務已初始化')
       return
     }
 
     try {
-      this.logger.log('⚙️ 初始化配置管理服務')
+      this.logger.log('初始化配置管理服務')
 
       // 載入當前配置
       await this.loadConfiguration()
@@ -93,7 +93,7 @@ class ConfigManagementService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 配置管理服務初始化完成')
+      this.logger.log('[OK] 配置管理服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -103,7 +103,7 @@ class ConfigManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化配置管理服務失敗:', error)
+      this.logger.error('[FAIL] 初始化配置管理服務失敗:', error)
       throw error
     }
   }
@@ -122,18 +122,18 @@ class ConfigManagementService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 配置管理服務已啟動')
+      this.logger.warn('[WARN] 配置管理服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動配置管理服務')
+      this.logger.log('[START] 啟動配置管理服務')
 
       // 驗證當前配置
       await this.validateCurrentConfiguration()
 
       this.state.active = true
-      this.logger.log('✅ 配置管理服務啟動完成')
+      this.logger.log('[OK] 配置管理服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -143,7 +143,7 @@ class ConfigManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動配置管理服務失敗:', error)
+      this.logger.error('[FAIL] 啟動配置管理服務失敗:', error)
       throw error
     }
   }
@@ -153,12 +153,12 @@ class ConfigManagementService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 配置管理服務未啟動')
+      this.logger.warn('[WARN] 配置管理服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止配置管理服務')
+      this.logger.log('[STOP] 停止配置管理服務')
 
       // 保存當前配置
       await this.saveConfiguration()
@@ -170,7 +170,7 @@ class ConfigManagementService {
       await this.unregisterEventListeners()
 
       this.state.active = false
-      this.logger.log('✅ 配置管理服務停止完成')
+      this.logger.log('[OK] 配置管理服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -179,7 +179,7 @@ class ConfigManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止配置管理服務失敗:', error)
+      this.logger.error('[FAIL] 停止配置管理服務失敗:', error)
       throw error
     }
   }
@@ -195,16 +195,16 @@ class ConfigManagementService {
         if (result[STORAGE_KEYS.SYSTEM_CONFIG]) {
           // 合併預設配置和儲存的配置
           this.currentConfig = { ...DEFAULT_CONFIG, ...result[STORAGE_KEYS.SYSTEM_CONFIG] }
-          this.logger.log('✅ 配置載入完成')
+          this.logger.log('[OK] 配置載入完成')
         } else {
-          this.logger.log('📝 使用預設配置')
+          this.logger.log('[LOG] 使用預設配置')
           await this.saveConfiguration() // 保存預設配置
         }
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，使用預設配置')
+        this.logger.warn('[WARN] Chrome storage API 不可用，使用預設配置')
       }
     } catch (error) {
-      this.logger.error('❌ 載入配置失敗:', error)
+      this.logger.error('[FAIL] 載入配置失敗:', error)
       this.currentConfig = { ...DEFAULT_CONFIG }
     }
   }
@@ -218,12 +218,12 @@ class ConfigManagementService {
         await chrome.storage.local.set({
           [STORAGE_KEYS.SYSTEM_CONFIG]: this.currentConfig
         })
-        this.logger.log('✅ 配置保存完成')
+        this.logger.log('[OK] 配置保存完成')
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，無法保存配置')
+        this.logger.warn('[WARN] Chrome storage API 不可用，無法保存配置')
       }
     } catch (error) {
-      this.logger.error('❌ 保存配置失敗:', error)
+      this.logger.error('[FAIL] 保存配置失敗:', error)
       throw error
     }
   }
@@ -267,18 +267,18 @@ class ConfigManagementService {
 
       if (!validation.isValid) {
         this.stats.validationFailures++
-        this.logger.warn('⚠️ 當前配置驗證失敗:', validation.errors)
+        this.logger.warn('[WARN] 當前配置驗證失敗:', validation.errors)
 
         // 嘗試恢復到預設配置
         this.currentConfig = { ...DEFAULT_CONFIG }
         await this.saveConfiguration()
-        this.logger.log('🔄 已恢復到預設配置')
+        this.logger.log('已恢復到預設配置')
       }
 
       return validation
     } catch (error) {
       this.stats.validationFailures++
-      this.logger.error('❌ 配置驗證失敗:', error)
+      this.logger.error('[FAIL] 配置驗證失敗:', error)
       throw error
     }
   }
@@ -364,7 +364,7 @@ class ConfigManagementService {
       // 通知監聽器
       await this.notifyConfigurationWatchers(oldConfig, newConfig, updates)
 
-      this.logger.log('✅ 配置更新完成')
+      this.logger.log('[OK] 配置更新完成')
 
       // 發送配置更新事件
       if (this.eventBus) {
@@ -377,7 +377,7 @@ class ConfigManagementService {
 
       return { success: true, warnings: validation.warnings }
     } catch (error) {
-      this.logger.error('❌ 應用配置更新失敗:', error)
+      this.logger.error('[FAIL] 應用配置更新失敗:', error)
       throw error
     }
   }
@@ -391,7 +391,7 @@ class ConfigManagementService {
         this.stats.watcherNotifications++
         await watcher(oldConfig, newConfig, updates)
       } catch (error) {
-        this.logger.error(`❌ 配置監聽器通知失敗 (${watcherKey}):`, error)
+        this.logger.error(`[FAIL] 配置監聽器通知失敗 (${watcherKey}):`, error)
       }
     }
   }
@@ -410,7 +410,7 @@ class ConfigManagementService {
     }
 
     this.configurationWatchers.set(key, watcher)
-    this.logger.log(`✅ 註冊配置監聽器: ${key}`)
+    this.logger.log(`[OK] 註冊配置監聽器: ${key}`)
   }
 
   /**
@@ -419,7 +419,7 @@ class ConfigManagementService {
   unregisterConfigurationWatcher (key) {
     const removed = this.configurationWatchers.delete(key)
     if (removed) {
-      this.logger.log(`✅ 取消註冊配置監聽器: ${key}`)
+      this.logger.log(`[OK] 取消註冊配置監聽器: ${key}`)
     }
     return removed
   }
@@ -438,7 +438,7 @@ class ConfigManagementService {
     }
 
     this.configurationValidators.set(key, validator)
-    this.logger.log(`✅ 註冊配置驗證器: ${key}`)
+    this.logger.log(`[OK] 註冊配置驗證器: ${key}`)
   }
 
   /**
@@ -446,7 +446,7 @@ class ConfigManagementService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -468,7 +468,7 @@ class ConfigManagementService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -481,12 +481,12 @@ class ConfigManagementService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -506,7 +506,7 @@ class ConfigManagementService {
 
       await this.applyConfigurationUpdates(updates)
     } catch (error) {
-      this.logger.error('❌ 處理配置更新請求失敗:', error)
+      this.logger.error('[FAIL] 處理配置更新請求失敗:', error)
 
       if (this.eventBus) {
         await this.eventBus.emit('SYSTEM.CONFIG.UPDATE_FAILED', {
@@ -532,7 +532,7 @@ class ConfigManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理配置重載請求失敗:', error)
+      this.logger.error('[FAIL] 處理配置重載請求失敗:', error)
     }
   }
 

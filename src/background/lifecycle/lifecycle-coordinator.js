@@ -41,7 +41,7 @@ class LifecycleCoordinator extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('🔄 初始化 Service Worker 生命週期協調器')
+    this.logger.log('初始化 Service Worker 生命週期協調器')
 
     // 初始化處理器
     if (this.installHandler && typeof this.installHandler.initialize === 'function') {
@@ -56,7 +56,7 @@ class LifecycleCoordinator extends BaseModule {
       await this.shutdownHandler.initialize()
     }
 
-    this.logger.log('✅ 生命週期協調器初始化完成')
+    this.logger.log('[OK] 生命週期協調器初始化完成')
   }
 
   /**
@@ -65,7 +65,7 @@ class LifecycleCoordinator extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動生命週期協調器')
+    this.logger.log('[START] 啟動生命週期協調器')
 
     // 註冊 Chrome Extension 生命週期監聽器
     await this.registerChromeLifecycleListeners()
@@ -73,7 +73,7 @@ class LifecycleCoordinator extends BaseModule {
     // 檢查當前狀態
     await this.checkCurrentLifecycleState()
 
-    this.logger.log('✅ 生命週期協調器啟動完成')
+    this.logger.log('[OK] 生命週期協調器啟動完成')
   }
 
   /**
@@ -82,12 +82,12 @@ class LifecycleCoordinator extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止生命週期協調器')
+    this.logger.log('[STOP] 停止生命週期協調器')
 
     // 取消註冊 Chrome Extension 生命週期監聽器
     this.unregisterChromeLifecycleListeners()
 
-    this.logger.log('✅ 生命週期協調器停止完成')
+    this.logger.log('[OK] 生命週期協調器停止完成')
   }
 
   /**
@@ -96,19 +96,19 @@ class LifecycleCoordinator extends BaseModule {
    * @protected
    */
   async _doCleanup () {
-    this.logger.log('🧹 清理生命週期協調器')
+    this.logger.log('清理生命週期協調器')
 
     // 清理心跳機制和狀態檢查
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval)
       this.heartbeatInterval = null
-      this.logger.log('💓 Service Worker 心跳機制已停止')
+      this.logger.log('Service Worker 心跳機制已停止')
     }
 
     if (this.stateCheckInterval) {
       clearInterval(this.stateCheckInterval)
       this.stateCheckInterval = null
-      this.logger.log('🔍 定期狀態檢查已停止')
+      this.logger.log('[CHECK] 定期狀態檢查已停止')
     }
 
     // 清理處理器
@@ -131,7 +131,7 @@ class LifecycleCoordinator extends BaseModule {
     this.startupCount = 0
     this.chromeListenersRegistered = false
 
-    this.logger.log('✅ 生命週期協調器清理完成')
+    this.logger.log('[OK] 生命週期協調器清理完成')
   }
 
   /**
@@ -140,7 +140,7 @@ class LifecycleCoordinator extends BaseModule {
    */
   async registerChromeLifecycleListeners () {
     if (this.chromeListenersRegistered) {
-      this.logger.warn('⚠️ Chrome 生命週期監聽器已註冊')
+      this.logger.warn('[WARN] Chrome 生命週期監聽器已註冊')
       return
     }
 
@@ -160,7 +160,7 @@ class LifecycleCoordinator extends BaseModule {
       this.setupServiceWorkerLifecycleManagement()
 
       this.chromeListenersRegistered = true
-      this.logger.log('✅ Chrome Extension 生命週期監聽器註冊完成 (Manifest V3)')
+      this.logger.log('[OK] Chrome Extension 生命週期監聽器註冊完成 (Manifest V3)')
 
       // 觸發監聽器註冊事件
       if (this.eventBus) {
@@ -171,7 +171,7 @@ class LifecycleCoordinator extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ Chrome 生命週期監聽器註冊失敗:', error)
+      this.logger.error('[FAIL] Chrome 生命週期監聽器註冊失敗:', error)
       throw error
     }
   }
@@ -208,7 +208,7 @@ class LifecycleCoordinator extends BaseModule {
       // 設置定期狀態檢查以替代 onSuspend
       this.setupPeriodicStateCheck()
 
-      this.logger.log('✅ Manifest V3 Service Worker 生命週期管理已設置')
+      this.logger.log('[OK] Manifest V3 Service Worker 生命週期管理已設置')
     }
   }
 
@@ -227,7 +227,7 @@ class LifecycleCoordinator extends BaseModule {
       }
     }, 20000)
 
-    this.logger.log('💓 Service Worker 心跳機制已啟動')
+    this.logger.log('Service Worker 心跳機制已啟動')
   }
 
   /**
@@ -252,12 +252,12 @@ class LifecycleCoordinator extends BaseModule {
         }
       } catch (error) {
         // Chrome API 調用失敗，可能擴展正在關閉
-        this.logger.warn('⚠️ 狀態檢查失敗，可能擴展正在關閉:', error.message)
+        this.logger.warn('[WARN] 狀態檢查失敗，可能擴展正在關閉:', error.message)
         await this.handleServiceWorkerSuspend()
       }
     }, 30000)
 
-    this.logger.log('🔍 定期狀態檢查已啟動')
+    this.logger.log('[CHECK] 定期狀態檢查已啟動')
   }
 
   /**
@@ -265,7 +265,7 @@ class LifecycleCoordinator extends BaseModule {
    */
   async handleServiceWorkerSuspend () {
     try {
-      this.logger.log('⏸️ 處理 Service Worker 暫停事件')
+      this.logger.log('[PAUSE] 處理 Service Worker 暫停事件')
 
       // 更新狀態
       this.lifecycleState = 'suspending'
@@ -286,9 +286,9 @@ class LifecycleCoordinator extends BaseModule {
       // 清理資源
       this.cleanupBeforeSuspend()
 
-      this.logger.log('✅ Service Worker 暫停事件處理完成')
+      this.logger.log('[OK] Service Worker 暫停事件處理完成')
     } catch (error) {
-      this.logger.error('❌ 處理 Service Worker 暫停事件失敗:', error)
+      this.logger.error('[FAIL] 處理 Service Worker 暫停事件失敗:', error)
     }
   }
 
@@ -307,7 +307,7 @@ class LifecycleCoordinator extends BaseModule {
       this.stateCheckInterval = null
     }
 
-    this.logger.log('🧹 暫停前資源清理完成')
+    this.logger.log('暫停前資源清理完成')
   }
 
   /**
@@ -315,7 +315,7 @@ class LifecycleCoordinator extends BaseModule {
    */
   async handleServiceWorkerDisconnect () {
     try {
-      this.logger.log('🔌 處理 Service Worker 連接斷開事件')
+      this.logger.log('處理 Service Worker 連接斷開事件')
 
       // 更新狀態
       this.lifecycleState = 'disconnected'
@@ -333,9 +333,9 @@ class LifecycleCoordinator extends BaseModule {
         await this.shutdownHandler.handleShutdown({ reason: 'disconnect' })
       }
 
-      this.logger.log('✅ Service Worker 斷開事件處理完成')
+      this.logger.log('[OK] Service Worker 斷開事件處理完成')
     } catch (error) {
-      this.logger.error('❌ 處理 Service Worker 斷開事件失敗:', error)
+      this.logger.error('[FAIL] 處理 Service Worker 斷開事件失敗:', error)
     }
   }
 
@@ -344,7 +344,7 @@ class LifecycleCoordinator extends BaseModule {
    */
   async handleServiceWorkerReload () {
     try {
-      this.logger.log('🔄 處理 Service Worker 重新載入事件')
+      this.logger.log('處理 Service Worker 重新載入事件')
 
       // 更新狀態
       this.lifecycleState = 'reloading'
@@ -364,9 +364,9 @@ class LifecycleCoordinator extends BaseModule {
       await this.registerChromeLifecycleListeners()
       await this.checkCurrentLifecycleState()
 
-      this.logger.log('✅ Service Worker 重新載入事件處理完成')
+      this.logger.log('[OK] Service Worker 重新載入事件處理完成')
     } catch (error) {
-      this.logger.error('❌ 處理 Service Worker 重新載入事件失敗:', error)
+      this.logger.error('[FAIL] 處理 Service Worker 重新載入事件失敗:', error)
     }
   }
 
@@ -377,7 +377,7 @@ class LifecycleCoordinator extends BaseModule {
     // Chrome Extension API 不提供直接取消註冊的方法
     // 這裡主要是標記狀態
     this.chromeListenersRegistered = false
-    this.logger.log('✅ Chrome Extension 生命週期監聽器標記為已取消註冊')
+    this.logger.log('[OK] Chrome Extension 生命週期監聽器標記為已取消註冊')
   }
 
   /**
@@ -386,7 +386,7 @@ class LifecycleCoordinator extends BaseModule {
    */
   async handleInstallEvent (details) {
     try {
-      this.logger.log('📦 處理擴展安裝事件:', details)
+      this.logger.log('處理擴展安裝事件:', details)
 
       // 更新狀態
       this.lifecycleState = 'installed'
@@ -412,9 +412,9 @@ class LifecycleCoordinator extends BaseModule {
         await this.installHandler.handleInstall(details)
       }
 
-      this.logger.log('✅ 擴展安裝事件處理完成')
+      this.logger.log('[OK] 擴展安裝事件處理完成')
     } catch (error) {
-      this.logger.error('❌ 處理擴展安裝事件失敗:', error)
+      this.logger.error('[FAIL] 處理擴展安裝事件失敗:', error)
 
       // 觸發安裝失敗事件
       if (this.eventBus) {
@@ -434,7 +434,7 @@ class LifecycleCoordinator extends BaseModule {
    */
   async handleStartupEvent () {
     try {
-      this.logger.log('🔄 處理 Service Worker 啟動事件')
+      this.logger.log('處理 Service Worker 啟動事件')
 
       // 更新狀態
       this.lifecycleState = 'running'
@@ -453,9 +453,9 @@ class LifecycleCoordinator extends BaseModule {
         await this.startupHandler.handleStartup()
       }
 
-      this.logger.log('✅ Service Worker 啟動事件處理完成')
+      this.logger.log('[OK] Service Worker 啟動事件處理完成')
     } catch (error) {
-      this.logger.error('❌ 處理 Service Worker 啟動事件失敗:', error)
+      this.logger.error('[FAIL] 處理 Service Worker 啟動事件失敗:', error)
 
       // 觸發啟動失敗事件
       if (this.eventBus) {
@@ -479,7 +479,7 @@ class LifecycleCoordinator extends BaseModule {
       const manifest = chrome.runtime.getManifest()
       if (manifest) {
         this.lifecycleState = 'running'
-        this.logger.log(`📋 當前擴展版本: ${manifest.version}`)
+        this.logger.log(`當前擴展版本: ${manifest.version}`)
       }
 
       // 觸發狀態檢查事件
@@ -491,7 +491,7 @@ class LifecycleCoordinator extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 檢查生命週期狀態失敗:', error)
+      this.logger.error('[FAIL] 檢查生命週期狀態失敗:', error)
     }
   }
 

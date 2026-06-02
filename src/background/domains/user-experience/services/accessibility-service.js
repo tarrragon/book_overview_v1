@@ -124,12 +124,12 @@ class AccessibilityService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 無障礙服務已初始化')
+      this.logger.warn('[WARN] 無障礙服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🎯 初始化無障礙服務')
+      this.logger.log('初始化無障礙服務')
 
       // 載入無障礙設定
       await this.loadAccessibilitySettings()
@@ -144,7 +144,7 @@ class AccessibilityService {
       await this.initializeComplianceChecking()
 
       this.state.initialized = true
-      this.logger.log('✅ 無障礙服務初始化完成')
+      this.logger.log('[OK] 無障礙服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -155,7 +155,7 @@ class AccessibilityService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化無障礙服務失敗:', error)
+      this.logger.error('[FAIL] 初始化無障礙服務失敗:', error)
       throw error
     }
   }
@@ -172,12 +172,12 @@ class AccessibilityService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 無障礙服務已啟動')
+      this.logger.warn('[WARN] 無障礙服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動無障礙服務')
+      this.logger.log('[START] 啟動無障礙服務')
 
       // 應用載入的無障礙設定
       await this.applyAccessibilitySettings()
@@ -186,7 +186,7 @@ class AccessibilityService {
       await this.performInitialComplianceCheck()
 
       this.state.active = true
-      this.logger.log('✅ 無障礙服務啟動完成')
+      this.logger.log('[OK] 無障礙服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -196,7 +196,7 @@ class AccessibilityService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動無障礙服務失敗:', error)
+      this.logger.error('[FAIL] 啟動無障礙服務失敗:', error)
       throw error
     }
   }
@@ -205,7 +205,7 @@ class AccessibilityService {
    * 啟用無障礙模式
    */
   async enableAccessibilityMode (mode) {
-    this.logger.log(`♿ 啟用無障礙模式: ${mode}`)
+    this.logger.log(`啟用無障礙模式: ${mode}`)
 
     try {
       const modeConfig = this.accessibilityModes[mode]
@@ -233,10 +233,10 @@ class AccessibilityService {
         })
       }
 
-      this.logger.log(`✅ 無障礙模式啟用完成: ${mode}`)
+      this.logger.log(`[OK] 無障礙模式啟用完成: ${mode}`)
       return { success: true, mode, settings: modeConfig.settings }
     } catch (error) {
-      this.logger.error(`❌ 啟用無障礙模式失敗: ${mode}`, error)
+      this.logger.error(`[FAIL] 啟用無障礙模式失敗: ${mode}`, error)
       throw error
     }
   }
@@ -245,7 +245,7 @@ class AccessibilityService {
    * 啟用無障礙設定
    */
   async enableAccessibilitySetting (setting) {
-    this.logger.log(`🔧 啟用無障礙設定: ${setting}`)
+    this.logger.log(`[FIX] 啟用無障礙設定: ${setting}`)
 
     try {
       // 檢查設定是否支援
@@ -276,9 +276,9 @@ class AccessibilityService {
         })
       }
 
-      this.logger.log(`✅ 無障礙設定啟用完成: ${setting}`)
+      this.logger.log(`[OK] 無障礙設定啟用完成: ${setting}`)
     } catch (error) {
-      this.logger.error(`❌ 啟用無障礙設定失敗: ${setting}`, error)
+      this.logger.error(`[FAIL] 啟用無障礙設定失敗: ${setting}`, error)
       throw error
     }
   }
@@ -287,7 +287,7 @@ class AccessibilityService {
    * 停用無障礙設定
    */
   async disableAccessibilitySetting (setting) {
-    this.logger.log(`🔧 停用無障礙設定: ${setting}`)
+    this.logger.log(`[FIX] 停用無障礙設定: ${setting}`)
 
     try {
       // 檢查設定是否支援
@@ -315,9 +315,9 @@ class AccessibilityService {
         })
       }
 
-      this.logger.log(`✅ 無障礙設定停用完成: ${setting}`)
+      this.logger.log(`[OK] 無障礙設定停用完成: ${setting}`)
     } catch (error) {
-      this.logger.error(`❌ 停用無障礙設定失敗: ${setting}`, error)
+      this.logger.error(`[FAIL] 停用無障礙設定失敗: ${setting}`, error)
       throw error
     }
   }
@@ -326,7 +326,7 @@ class AccessibilityService {
    * 驗證無障礙合規性
    */
   async validateAccessibilityCompliance () {
-    this.logger.log('🔍 驗證無障礙合規性')
+    this.logger.log('[CHECK] 驗證無障礙合規性')
 
     try {
       // 統計合規檢查
@@ -377,10 +377,10 @@ class AccessibilityService {
         })
       }
 
-      this.logger.log(`✅ 無障礙合規性驗證完成 (分數: ${complianceReport.score.toFixed(1)}%)`)
+      this.logger.log(`[OK] 無障礙合規性驗證完成 (分數: ${complianceReport.score.toFixed(1)}%)`)
       return complianceReport
     } catch (error) {
-      this.logger.error('❌ 驗證無障礙合規性失敗:', error)
+      this.logger.error('[FAIL] 驗證無障礙合規性失敗:', error)
       throw error
     }
   }
@@ -522,7 +522,7 @@ class AccessibilityService {
       })
     }
 
-    this.logger.log('🎨 高對比度模式已應用')
+    this.logger.log('高對比度模式已應用')
   }
 
   /**
@@ -538,7 +538,7 @@ class AccessibilityService {
       })
     }
 
-    this.logger.log('📝 大文字模式已應用')
+    this.logger.log('[LOG] 大文字模式已應用')
   }
 
   /**
@@ -550,7 +550,7 @@ class AccessibilityService {
       await this.preferenceService.setPreference('ui.animation.enabled', false)
     }
 
-    this.logger.log('🎬 減少動畫模式已應用')
+    this.logger.log('減少動畫模式已應用')
   }
 
   /**
@@ -565,7 +565,7 @@ class AccessibilityService {
       })
     }
 
-    this.logger.log('📢 螢幕閱讀器模式已應用')
+    this.logger.log('螢幕閱讀器模式已應用')
   }
 
   /**
@@ -580,7 +580,7 @@ class AccessibilityService {
       })
     }
 
-    this.logger.log('⌨️ 鍵盤導航模式已應用')
+    this.logger.log('鍵盤導航模式已應用')
   }
 
   /**
@@ -595,7 +595,7 @@ class AccessibilityService {
       })
     }
 
-    this.logger.log('🎯 焦點指示器模式已應用')
+    this.logger.log('焦點指示器模式已應用')
   }
 
   /**
@@ -610,7 +610,7 @@ class AccessibilityService {
       })
     }
 
-    this.logger.log('⏭️ 跳過連結模式已應用')
+    this.logger.log('[SKIP] 跳過連結模式已應用')
   }
 
   /**
@@ -625,7 +625,7 @@ class AccessibilityService {
       })
     }
 
-    this.logger.log('🖼️ 替代文字模式已應用')
+    this.logger.log('替代文字模式已應用')
   }
 
   /**
@@ -640,7 +640,7 @@ class AccessibilityService {
       })
     }
 
-    this.logger.log(`🔧 移除無障礙功能: ${setting}`)
+    this.logger.log(`[FIX] 移除無障礙功能: ${setting}`)
   }
 
   /**
@@ -655,10 +655,10 @@ class AccessibilityService {
           this.accessibilitySettings[setting] = value
         }
 
-        this.logger.log('📖 無障礙設定載入完成')
+        this.logger.log('無障礙設定載入完成')
       }
     } catch (error) {
-      this.logger.error('❌ 載入無障礙設定失敗:', error)
+      this.logger.error('[FAIL] 載入無障礙設定失敗:', error)
     }
   }
 
@@ -670,10 +670,10 @@ class AccessibilityService {
       if (this.preferenceService) {
         const key = `accessibility.${setting}`
         await this.preferenceService.setPreference(key, value)
-        this.logger.log(`💾 無障礙設定已保存: ${setting} = ${value}`)
+        this.logger.log(`[SAVE] 無障礙設定已保存: ${setting} = ${value}`)
       }
     } catch (error) {
-      this.logger.error(`❌ 保存無障礙設定失敗: ${setting}`, error)
+      this.logger.error(`[FAIL] 保存無障礙設定失敗: ${setting}`, error)
     }
   }
 
@@ -699,9 +699,9 @@ class AccessibilityService {
         }
       }
 
-      this.logger.log('🔍 系統無障礙偏好檢測完成')
+      this.logger.log('[CHECK] 系統無障礙偏好檢測完成')
     } catch (error) {
-      this.logger.error('❌ 檢測系統無障礙偏好失敗:', error)
+      this.logger.error('[FAIL] 檢測系統無障礙偏好失敗:', error)
     }
   }
 
@@ -715,7 +715,7 @@ class AccessibilityService {
       }
     }
 
-    this.logger.log('✅ 無障礙設定應用完成')
+    this.logger.log('[OK] 無障礙設定應用完成')
   }
 
   /**
@@ -727,7 +727,7 @@ class AccessibilityService {
       await this.performPeriodicComplianceCheck()
     }, 3600000) // 每小時檢查一次
 
-    this.logger.log('✅ 合規檢查機制初始化完成')
+    this.logger.log('[OK] 合規檢查機制初始化完成')
   }
 
   /**
@@ -738,12 +738,12 @@ class AccessibilityService {
       const report = await this.validateAccessibilityCompliance()
 
       if (report.violations.length > 0) {
-        this.logger.warn(`⚠️ 發現 ${report.violations.length} 個無障礙合規問題`)
+        this.logger.warn(`[WARN] 發現 ${report.violations.length} 個無障礙合規問題`)
       } else {
-        this.logger.log('✅ 無障礙合規檢查通過')
+        this.logger.log('[OK] 無障礙合規檢查通過')
       }
     } catch (error) {
-      this.logger.error('❌ 初始合規檢查失敗:', error)
+      this.logger.error('[FAIL] 初始合規檢查失敗:', error)
     }
   }
 
@@ -756,7 +756,7 @@ class AccessibilityService {
     try {
       await this.validateAccessibilityCompliance()
     } catch (error) {
-      this.logger.error('❌ 定期合規檢查失敗:', error)
+      this.logger.error('[FAIL] 定期合規檢查失敗:', error)
     }
   }
 
@@ -765,7 +765,7 @@ class AccessibilityService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過無障礙事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過無障礙事件監聽器註冊')
       return
     }
 
@@ -801,7 +801,7 @@ class AccessibilityService {
       }
     })
 
-    this.logger.log('✅ 無障礙事件監聽器註冊完成')
+    this.logger.log('[OK] 無障礙事件監聽器註冊完成')
   }
 
   /**

@@ -80,12 +80,12 @@ class LifecycleManagementService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 生命週期管理服務已初始化')
+      this.logger.warn('[WARN] 生命週期管理服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔄 初始化生命週期管理服務')
+      this.logger.log('初始化生命週期管理服務')
 
       // 載入系統狀態
       await this.loadSystemState()
@@ -94,7 +94,7 @@ class LifecycleManagementService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 生命週期管理服務初始化完成')
+      this.logger.log('[OK] 生命週期管理服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -104,7 +104,7 @@ class LifecycleManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化生命週期管理服務失敗:', error)
+      this.logger.error('[FAIL] 初始化生命週期管理服務失敗:', error)
       throw error
     }
   }
@@ -123,12 +123,12 @@ class LifecycleManagementService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 生命週期管理服務已啟動')
+      this.logger.warn('[WARN] 生命週期管理服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動生命週期管理服務')
+      this.logger.log('[START] 啟動生命週期管理服務')
       this.stats.startupAttempts++
 
       // 執行啟動檢查
@@ -141,7 +141,7 @@ class LifecycleManagementService {
       // 保存狀態
       await this.saveSystemState()
 
-      this.logger.log('✅ 生命週期管理服務啟動完成')
+      this.logger.log('[OK] 生命週期管理服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -151,7 +151,7 @@ class LifecycleManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動生命週期管理服務失敗:', error)
+      this.logger.error('[FAIL] 啟動生命週期管理服務失敗:', error)
       throw error
     }
   }
@@ -161,12 +161,12 @@ class LifecycleManagementService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 生命週期管理服務未啟動')
+      this.logger.warn('[WARN] 生命週期管理服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止生命週期管理服務')
+      this.logger.log('[STOP] 停止生命週期管理服務')
       this.stats.shutdownAttempts++
       this.state.shutdownRequested = true
 
@@ -180,7 +180,7 @@ class LifecycleManagementService {
       await this.unregisterEventListeners()
 
       this.state.active = false
-      this.logger.log('✅ 生命週期管理服務停止完成')
+      this.logger.log('[OK] 生命週期管理服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -190,7 +190,7 @@ class LifecycleManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止生命週期管理服務失敗:', error)
+      this.logger.error('[FAIL] 停止生命週期管理服務失敗:', error)
       throw error
     }
   }
@@ -224,12 +224,12 @@ class LifecycleManagementService {
           this.systemState.configuration = { ...DEFAULT_CONFIG, ...result[STORAGE_KEYS.SYSTEM_CONFIG] }
         }
 
-        this.logger.log('✅ 系統狀態載入完成')
+        this.logger.log('[OK] 系統狀態載入完成')
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，使用預設狀態')
+        this.logger.warn('[WARN] Chrome storage API 不可用，使用預設狀態')
       }
     } catch (error) {
-      this.logger.error('❌ 載入系統狀態失敗:', error)
+      this.logger.error('[FAIL] 載入系統狀態失敗:', error)
       // 使用預設狀態，不拋出錯誤
     }
   }
@@ -253,12 +253,12 @@ class LifecycleManagementService {
         }
 
         await chrome.storage.local.set(stateToSave)
-        this.logger.log('✅ 系統狀態保存完成')
+        this.logger.log('[OK] 系統狀態保存完成')
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，無法保存狀態')
+        this.logger.warn('[WARN] Chrome storage API 不可用，無法保存狀態')
       }
     } catch (error) {
-      this.logger.error('❌ 保存系統狀態失敗:', error)
+      this.logger.error('[FAIL] 保存系統狀態失敗:', error)
       throw error
     }
   }
@@ -268,7 +268,7 @@ class LifecycleManagementService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -295,7 +295,7 @@ class LifecycleManagementService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -308,12 +308,12 @@ class LifecycleManagementService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -322,16 +322,16 @@ class LifecycleManagementService {
   async performStartupChecks () {
     // 檢查系統狀態
     if (this.systemState.maintenanceMode) {
-      this.logger.warn('⚠️ 系統處於維護模式')
+      this.logger.warn('[WARN] 系統處於維護模式')
     }
 
     // 檢查配置完整性
     if (!this.systemState.configuration) {
-      this.logger.warn('⚠️ 系統配置不完整，使用預設配置')
+      this.logger.warn('[WARN] 系統配置不完整，使用預設配置')
       this.systemState.configuration = { ...DEFAULT_CONFIG }
     }
 
-    this.logger.log('✅ 啟動檢查完成')
+    this.logger.log('[OK] 啟動檢查完成')
   }
 
   /**
@@ -340,10 +340,10 @@ class LifecycleManagementService {
   async performShutdownChecks () {
     // 檢查是否有未完成的操作
     if (this.state.shutdownRequested) {
-      this.logger.log('🔄 執行正常關閉流程')
+      this.logger.log('執行正常關閉流程')
     }
 
-    this.logger.log('✅ 關閉檢查完成')
+    this.logger.log('[OK] 關閉檢查完成')
   }
 
   /**
@@ -351,12 +351,12 @@ class LifecycleManagementService {
    */
   async handleStartupRequest (event) {
     try {
-      this.logger.log('🔄 處理啟動請求')
+      this.logger.log('處理啟動請求')
       if (!this.state.active) {
         await this.start()
       }
     } catch (error) {
-      this.logger.error('❌ 處理啟動請求失敗:', error)
+      this.logger.error('[FAIL] 處理啟動請求失敗:', error)
     }
   }
 
@@ -365,12 +365,12 @@ class LifecycleManagementService {
    */
   async handleShutdownRequest (event) {
     try {
-      this.logger.log('🔄 處理關閉請求')
+      this.logger.log('處理關閉請求')
       if (this.state.active) {
         await this.stop()
       }
     } catch (error) {
-      this.logger.error('❌ 處理關閉請求失敗:', error)
+      this.logger.error('[FAIL] 處理關閉請求失敗:', error)
     }
   }
 
@@ -381,7 +381,7 @@ class LifecycleManagementService {
     try {
       await this.saveSystemState()
     } catch (error) {
-      this.logger.error('❌ 處理狀態保存請求失敗:', error)
+      this.logger.error('[FAIL] 處理狀態保存請求失敗:', error)
     }
   }
 

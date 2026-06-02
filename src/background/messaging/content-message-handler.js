@@ -52,7 +52,7 @@ class ContentMessageHandler extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('📱 初始化 Content Script 訊息處理器')
+    this.logger.log('初始化 Content Script 訊息處理器')
 
     // 清理可能存在的舊連接
     this.activeContentScripts.clear()
@@ -60,7 +60,7 @@ class ContentMessageHandler extends BaseModule {
     // 重置統計
     this.resetStats()
 
-    this.logger.log('✅ Content Script 訊息處理器初始化完成')
+    this.logger.log('[OK] Content Script 訊息處理器初始化完成')
   }
 
   /**
@@ -69,7 +69,7 @@ class ContentMessageHandler extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動 Content Script 訊息處理器')
+    this.logger.log('[START] 啟動 Content Script 訊息處理器')
 
     // 開始處理佇列中的訊息
     await this.processMessageQueue()
@@ -81,7 +81,7 @@ class ContentMessageHandler extends BaseModule {
       })
     }
 
-    this.logger.log('✅ Content Script 訊息處理器啟動完成')
+    this.logger.log('[OK] Content Script 訊息處理器啟動完成')
   }
 
   /**
@@ -90,7 +90,7 @@ class ContentMessageHandler extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止 Content Script 訊息處理器')
+    this.logger.log('[STOP] 停止 Content Script 訊息處理器')
 
     // 等待佇列處理完成
     await this.waitForQueueCompletion()
@@ -101,7 +101,7 @@ class ContentMessageHandler extends BaseModule {
     // 清理連接
     this.activeContentScripts.clear()
 
-    this.logger.log('✅ Content Script 訊息處理器停止完成')
+    this.logger.log('[OK] Content Script 訊息處理器停止完成')
   }
 
   /**
@@ -113,7 +113,7 @@ class ContentMessageHandler extends BaseModule {
    */
   async handleMessage (message, sender, sendResponse) {
     try {
-      this.logger.log('📱 處理 Content Script 訊息:', {
+      this.logger.log('處理 Content Script 訊息:', {
         type: message.type,
         tabId: sender.tab?.id,
         url: sender.tab?.url
@@ -141,7 +141,7 @@ class ContentMessageHandler extends BaseModule {
 
       return result
     } catch (error) {
-      this.logger.error('❌ Content Script 訊息處理失敗:', error)
+      this.logger.error('[FAIL] Content Script 訊息處理失敗:', error)
 
       // 更新失敗統計
       this.contentStats.failed++
@@ -236,7 +236,7 @@ class ContentMessageHandler extends BaseModule {
    * @private
    */
   async handleContentToBackgroundMessage (message, sender, sendResponse) {
-    this.logger.log('📱 處理 Content Script 一般訊息:', message.data)
+    this.logger.log('處理 Content Script 一般訊息:', message.data)
 
     // 觸發內部事件
     if (this.eventBus) {
@@ -266,7 +266,7 @@ class ContentMessageHandler extends BaseModule {
    * @private
    */
   async handleContentEventForward (message, sender, sendResponse) {
-    this.logger.log('🔄 處理 Content Script 事件轉發:', message.eventType, message.data)
+    this.logger.log('處理 Content Script 事件轉發:', message.eventType, message.data)
 
     // 驗證事件轉發格式
     if (!message.eventType) {
@@ -299,13 +299,13 @@ class ContentMessageHandler extends BaseModule {
 
     // 透過 EventBus 轉發事件
     if (this.eventBus) {
-      this.logger.log(`🎯 準備發送事件到 EventBus: ${message.eventType}`)
-      this.logger.log('📋 事件資料:', enhancedEventData)
+      this.logger.log(`準備發送事件到 EventBus: ${message.eventType}`)
+      this.logger.log('事件資料:', enhancedEventData)
 
       const results = await this.eventBus.emit(message.eventType, enhancedEventData)
       const handlersExecuted = Array.isArray(results) ? results.length : 0
 
-      this.logger.log(`✅ 事件轉發成功: ${message.eventType}`, {
+      this.logger.log(`[OK] 事件轉發成功: ${message.eventType}`, {
         handlersExecuted,
         success: true
       })
@@ -318,7 +318,7 @@ class ContentMessageHandler extends BaseModule {
         timestamp: Date.now()
       })
     } else {
-      this.logger.warn('⚠️ EventBus 未初始化，無法轉發事件')
+      this.logger.warn('[WARN] EventBus 未初始化，無法轉發事件')
       sendResponse({
         success: false,
         error: 'EventBus 未初始化',
@@ -341,7 +341,7 @@ class ContentMessageHandler extends BaseModule {
     const tabId = sender.tab.id
     const status = message.data?.status
 
-    this.logger.log(`📊 Content Script 狀態更新: Tab ${tabId} -> ${status}`)
+    this.logger.log(`[STATS] Content Script 狀態更新: Tab ${tabId} -> ${status}`)
 
     // 更新 Content Script 狀態
     if (this.activeContentScripts.has(tabId)) {
@@ -384,7 +384,7 @@ class ContentMessageHandler extends BaseModule {
   async handleContentScriptReady (message, sender, sendResponse) {
     const tabId = sender.tab.id
 
-    this.logger.log(`✅ Content Script 準備就緒: Tab ${tabId}`)
+    this.logger.log(`[OK] Content Script 準備就緒: Tab ${tabId}`)
 
     // 註冊 Content Script
     this.activeContentScripts.set(tabId, {
@@ -438,7 +438,7 @@ class ContentMessageHandler extends BaseModule {
     const tabId = sender.tab.id
     const error = message.data?.error
 
-    this.logger.error(`❌ Content Script 錯誤: Tab ${tabId}`, error)
+    this.logger.error(`[FAIL] Content Script 錯誤: Tab ${tabId}`, error)
 
     // 更新 Content Script 狀態
     if (this.activeContentScripts.has(tabId)) {
@@ -481,7 +481,7 @@ class ContentMessageHandler extends BaseModule {
     // 這個方法可以檢查和註冊關鍵的提取事件監聽器
     if (this.eventBus && typeof this.eventBus.hasListener === 'function') {
       if (!this.eventBus.hasListener('EXTRACTION.COMPLETED')) {
-        this.logger.warn('⚠️ EXTRACTION.COMPLETED 監聽器未註冊')
+        this.logger.warn('[WARN] EXTRACTION.COMPLETED 監聽器未註冊')
         // 可以在這裡觸發監聽器註冊事件
         if (this.eventBus) {
           await this.eventBus.emit('REGISTER.EXTRACTION.HANDLERS', {
@@ -500,14 +500,14 @@ class ContentMessageHandler extends BaseModule {
    */
   async sendToContentScript (tabId, message) {
     try {
-      this.logger.log(`📤 發送訊息到 Content Script: Tab ${tabId}`, message)
+      this.logger.log(`發送訊息到 Content Script: Tab ${tabId}`, message)
 
       const response = await chrome.tabs.sendMessage(tabId, message)
 
-      this.logger.log(`✅ Content Script 回應: Tab ${tabId}`, response)
+      this.logger.log(`[OK] Content Script 回應: Tab ${tabId}`, response)
       return { success: true, response }
     } catch (error) {
-      this.logger.error(`❌ 發送訊息到 Content Script 失敗: Tab ${tabId}`, error)
+      this.logger.error(`[FAIL] 發送訊息到 Content Script 失敗: Tab ${tabId}`, error)
 
       // 更新 Content Script 狀態為離線
       if (this.activeContentScripts.has(tabId)) {
@@ -543,7 +543,7 @@ class ContentMessageHandler extends BaseModule {
             queuedMessage.sendResponse
           )
         } catch (error) {
-          this.logger.error('❌ 處理佇列訊息失敗:', error)
+          this.logger.error('[FAIL] 處理佇列訊息失敗:', error)
         }
       }
     } finally {
@@ -581,7 +581,7 @@ class ContentMessageHandler extends BaseModule {
             type: 'SYSTEM.SHUTDOWN',
             timestamp: Date.now()
           }).catch(error => {
-            this.logger.error(`❌ 通知 Content Script 關閉失敗: Tab ${tabId}`, error)
+            this.logger.error(`[FAIL] 通知 Content Script 關閉失敗: Tab ${tabId}`, error)
           })
         )
       }

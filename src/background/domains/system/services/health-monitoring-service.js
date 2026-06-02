@@ -92,12 +92,12 @@ class HealthMonitoringService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 健康監控服務已初始化')
+      this.logger.warn('[WARN] 健康監控服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🩺 初始化健康監控服務')
+      this.logger.log('初始化健康監控服務')
 
       // 初始化監控器
       await this.initializeMonitors()
@@ -106,7 +106,7 @@ class HealthMonitoringService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 健康監控服務初始化完成')
+      this.logger.log('[OK] 健康監控服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -116,7 +116,7 @@ class HealthMonitoringService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化健康監控服務失敗:', error)
+      this.logger.error('[FAIL] 初始化健康監控服務失敗:', error)
       throw error
     }
   }
@@ -135,12 +135,12 @@ class HealthMonitoringService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 健康監控服務已啟動')
+      this.logger.warn('[WARN] 健康監控服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動健康監控服務')
+      this.logger.log('[START] 啟動健康監控服務')
 
       // 執行初始健康檢查
       await this.performInitialHealthCheck()
@@ -151,7 +151,7 @@ class HealthMonitoringService {
       this.state.active = true
       this.state.monitoring = true
 
-      this.logger.log('✅ 健康監控服務啟動完成')
+      this.logger.log('[OK] 健康監控服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -161,7 +161,7 @@ class HealthMonitoringService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動健康監控服務失敗:', error)
+      this.logger.error('[FAIL] 啟動健康監控服務失敗:', error)
       throw error
     }
   }
@@ -171,19 +171,19 @@ class HealthMonitoringService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 健康監控服務未啟動')
+      this.logger.warn('[WARN] 健康監控服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止健康監控服務')
+      this.logger.log('[STOP] 停止健康監控服務')
 
       // 停止定期監控
       this.stopPeriodicMonitoring()
 
       // 生成最終健康報告
       const finalReport = this.generateHealthReport()
-      this.logger.log('📊 最終健康報告:', finalReport)
+      this.logger.log('[STATS] 最終健康報告:', finalReport)
 
       // 取消註冊事件監聽器
       await this.unregisterEventListeners()
@@ -191,7 +191,7 @@ class HealthMonitoringService {
       this.state.active = false
       this.state.monitoring = false
 
-      this.logger.log('✅ 健康監控服務停止完成')
+      this.logger.log('[OK] 健康監控服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -201,7 +201,7 @@ class HealthMonitoringService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止健康監控服務失敗:', error)
+      this.logger.error('[FAIL] 停止健康監控服務失敗:', error)
       throw error
     }
   }
@@ -248,14 +248,14 @@ class HealthMonitoringService {
       // 這裡可以整合實際的效能監控邏輯
     })
 
-    this.logger.log(`✅ 初始化了 ${this.monitors.size} 個監控器`)
+    this.logger.log(`[OK] 初始化了 ${this.monitors.size} 個監控器`)
   }
 
   /**
    * 執行初始健康檢查
    */
   async performInitialHealthCheck () {
-    this.logger.log('🔍 執行初始健康檢查')
+    this.logger.log('[CHECK] 執行初始健康檢查')
 
     try {
       // 檢查基本系統狀態
@@ -280,9 +280,9 @@ class HealthMonitoringService {
       this.calculateOverallHealth()
 
       this.stats.checksPerformed++
-      this.logger.log('✅ 初始健康檢查完成')
+      this.logger.log('[OK] 初始健康檢查完成')
     } catch (error) {
-      this.logger.error('❌ 初始健康檢查失敗:', error)
+      this.logger.error('[FAIL] 初始健康檢查失敗:', error)
       this.healthData.system.healthy = false
       this.healthData.system.score = 0.0
     }
@@ -307,7 +307,7 @@ class HealthMonitoringService {
 
     this.timers.set('alertCleanup', alertCleanupTimer)
 
-    this.logger.log('⏰ 定期監控已啟動')
+    this.logger.log('[TIMER] 定期監控已啟動')
   }
 
   /**
@@ -318,7 +318,7 @@ class HealthMonitoringService {
       clearInterval(timer)
     }
     this.timers.clear()
-    this.logger.log('⏹️ 定期監控已停止')
+    this.logger.log('[STOP] 定期監控已停止')
   }
 
   /**
@@ -347,7 +347,7 @@ class HealthMonitoringService {
       // 更新歷史記錄
       this.updateHealthHistory()
     } catch (error) {
-      this.logger.error('❌ 健康檢查執行失敗:', error)
+      this.logger.error('[FAIL] 健康檢查執行失敗:', error)
       this.recordIssue('system', 'check_failed', `健康檢查失敗: ${error.message}`)
     }
   }
@@ -373,7 +373,7 @@ class HealthMonitoringService {
       this.healthData.system.issues = this.healthData.system.issues.slice(-50)
     }
 
-    this.logger.warn(`⚠️ 健康問題 [${category}/${type}]: ${message}`)
+    this.logger.warn(`[WARN] 健康問題 [${category}/${type}]: ${message}`)
   }
 
   /**
@@ -461,7 +461,7 @@ class HealthMonitoringService {
     this.healthData.alerts.push(alert)
     this.stats.alertsTriggered++
 
-    this.logger.warn(`🚨 健康警報 [${type}]: ${message}`)
+    this.logger.warn(`[ALERT] 健康警報 [${type}]: ${message}`)
 
     // 發送警報事件
     if (this.eventBus) {
@@ -544,7 +544,7 @@ class HealthMonitoringService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -566,7 +566,7 @@ class HealthMonitoringService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -579,12 +579,12 @@ class HealthMonitoringService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -601,7 +601,7 @@ class HealthMonitoringService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理健康檢查請求失敗:', error)
+      this.logger.error('[FAIL] 處理健康檢查請求失敗:', error)
     }
   }
 
@@ -626,7 +626,7 @@ class HealthMonitoringService {
 
       this.healthData.metrics.errors.count++
     } catch (error) {
-      this.logger.error('❌ 處理錯誤發生事件失敗:', error)
+      this.logger.error('[FAIL] 處理錯誤發生事件失敗:', error)
     }
   }
 

@@ -3,12 +3,12 @@
  * TDD 循環 #35: Chrome Web Store 上架品質檢查和準備
  *
  * 核心功能：
- * - ✅ Manifest V3 合規性全面檢查
- * - 🔒 安全性和隱私政策合規驗證
- * - 📏 檔案大小和效能基準檢查
- * - 🎨 UI/UX 品質和使用者體驗驗證
- * - 📋 上架資料和元數據準備
- * - 🚀 自動化品質檢查流程
+ * - [OK] Manifest V3 合規性全面檢查
+ * - 安全性和隱私政策合規驗證
+ * - 檔案大小和效能基準檢查
+ * - UI/UX 品質和使用者體驗驗證
+ * - 上架資料和元數據準備
+ * - [START] 自動化品質檢查流程
  *
  * 設計特點：
  * - 完整的 Chrome Web Store 政策合規性
@@ -231,7 +231,7 @@ class ChromeStoreReadiness {
       // 後備機制: console.error 確保部署失敗能被立即發現
       // 用戶需求: 開發者需要即時了解部署問題以快速修正
       // eslint-disable-next-line no-console
-      console.error('❌ 上架準備檢查失敗:', error)
+      console.error('[FAIL] 上架準備檢查失敗:', error)
       throw error
     }
   }
@@ -248,7 +248,7 @@ class ChromeStoreReadiness {
     // 後備機制: console.log 提供部署步驟的即時反饋
     // 用戶體驗: 開發者需要了解檢查進度和當前步驟
     // eslint-disable-next-line no-console
-    console.log('📋 檢查 Manifest 合規性...')
+    console.log('檢查 Manifest 合規性...')
 
     try {
       const manifest = await this.loadManifest()
@@ -374,7 +374,7 @@ class ChromeStoreReadiness {
     // 後備機制: console.log 提供檔案檢查步驟的即時狀態
     // 用戶體驗: 開發者需要了解檔案檢查的進度和結果
     // eslint-disable-next-line no-console
-    console.log('📁 檢查檔案要求...')
+    console.log('檢查檔案要求...')
 
     try {
       const fileStats = await this.analyzeFiles()
@@ -491,7 +491,7 @@ class ChromeStoreReadiness {
     // 後備機制: console.log 提供安全檢查步驟的即時狀態
     // 重要性: 安全問題會導致上架被拒，必須有清晰的檢查進度
     // eslint-disable-next-line no-console
-    console.log('🔒 檢查安全性合規...')
+    console.log('檢查安全性合規...')
 
     try {
       // 檢查 Content Security Policy
@@ -593,7 +593,7 @@ class ChromeStoreReadiness {
     // 後備機制: console.log 提供隱私檢查步驟的即時狀態
     // 法規重要性: 隱私問題會導致法律風險和審核被拒
     // eslint-disable-next-line no-console
-    console.log('🛡️ 檢查隱私合規...')
+    console.log('檢查隱私合規...')
 
     try {
       // 檢查隱私政策

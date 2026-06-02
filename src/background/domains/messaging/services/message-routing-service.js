@@ -73,12 +73,12 @@ class MessageRoutingService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 訊息路由服務已初始化')
+      this.logger.warn('[WARN] 訊息路由服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔄 初始化訊息路由服務')
+      this.logger.log('初始化訊息路由服務')
 
       // 初始化訊息處理器
       await this.initializeMessageHandlers()
@@ -90,9 +90,9 @@ class MessageRoutingService {
       await this.initializeRoutingRules()
 
       this.state.initialized = true
-      this.logger.log('✅ 訊息路由服務初始化完成')
+      this.logger.log('[OK] 訊息路由服務初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化訊息路由服務失敗:', error)
+      this.logger.error('[FAIL] 初始化訊息路由服務失敗:', error)
       throw error
     }
   }
@@ -109,20 +109,20 @@ class MessageRoutingService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 訊息路由服務已啟動')
+      this.logger.warn('[WARN] 訊息路由服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動訊息路由服務')
+      this.logger.log('[START] 啟動訊息路由服務')
 
       // 註冊事件監聽器
       await this.registerEventListeners()
 
       this.state.active = true
-      this.logger.log('✅ 訊息路由服務啟動完成')
+      this.logger.log('[OK] 訊息路由服務啟動完成')
     } catch (error) {
-      this.logger.error('❌ 啟動訊息路由服務失敗:', error)
+      this.logger.error('[FAIL] 啟動訊息路由服務失敗:', error)
       throw error
     }
   }
@@ -132,20 +132,20 @@ class MessageRoutingService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 訊息路由服務未啟動')
+      this.logger.warn('[WARN] 訊息路由服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止訊息路由服務')
+      this.logger.log('[STOP] 停止訊息路由服務')
 
       // 取消註冊事件監聽器
       await this.unregisterEventListeners()
 
       this.state.active = false
-      this.logger.log('✅ 訊息路由服務停止完成')
+      this.logger.log('[OK] 訊息路由服務停止完成')
     } catch (error) {
-      this.logger.error('❌ 停止訊息路由服務失敗:', error)
+      this.logger.error('[FAIL] 停止訊息路由服務失敗:', error)
       throw error
     }
   }
@@ -159,7 +159,7 @@ class MessageRoutingService {
       this.messageHandlers.set(MESSAGE_TYPES.CONTENT_TO_BACKGROUND, async (message, context) => {
         const { tabId, source } = context
 
-        this.logger.log(`📨 處理 Content Script 訊息: ${message.type || 'unknown'} (Tab ${tabId})`)
+        this.logger.log(`處理 Content Script 訊息: ${message.type || 'unknown'} (Tab ${tabId})`)
 
         // 更新連接狀態
         if (this.connectionService) {
@@ -189,7 +189,7 @@ class MessageRoutingService {
       this.messageHandlers.set(MESSAGE_TYPES.POPUP_TO_BACKGROUND, async (message, context) => {
         const { sessionId } = context
 
-        this.logger.log(`🎛️ 處理 Popup 訊息: ${message.type || 'unknown'} (Session ${sessionId})`)
+        this.logger.log(`處理 Popup 訊息: ${message.type || 'unknown'} (Session ${sessionId})`)
 
         // 根據訊息類型處理
         switch (message.type) {
@@ -232,9 +232,9 @@ class MessageRoutingService {
         }
       })
 
-      this.logger.log(`🔧 初始化了 ${this.messageHandlers.size} 個訊息處理器`)
+      this.logger.log(`[FIX] 初始化了 ${this.messageHandlers.size} 個訊息處理器`)
     } catch (error) {
-      this.logger.error('❌ 初始化訊息處理器失敗:', error)
+      this.logger.error('[FAIL] 初始化訊息處理器失敗:', error)
       throw error
     }
   }
@@ -285,9 +285,9 @@ class MessageRoutingService {
         }
       })
 
-      this.logger.log(`🔧 初始化了 ${this.messageTransformers.size} 個訊息轉換器`)
+      this.logger.log(`[FIX] 初始化了 ${this.messageTransformers.size} 個訊息轉換器`)
     } catch (error) {
-      this.logger.error('❌ 初始化訊息轉換器失敗:', error)
+      this.logger.error('[FAIL] 初始化訊息轉換器失敗:', error)
       throw error
     }
   }
@@ -324,9 +324,9 @@ class MessageRoutingService {
         retryCount: 0
       })
 
-      this.logger.log(`🔧 初始化了 ${this.routingRules.size} 個路由規則`)
+      this.logger.log(`[FIX] 初始化了 ${this.routingRules.size} 個路由規則`)
     } catch (error) {
-      this.logger.error('❌ 初始化路由規則失敗:', error)
+      this.logger.error('[FAIL] 初始化路由規則失敗:', error)
       throw error
     }
   }
@@ -391,7 +391,7 @@ class MessageRoutingService {
 
       return transformedResponse
     } catch (error) {
-      this.logger.error('❌ 路由訊息失敗:', error)
+      this.logger.error('[FAIL] 路由訊息失敗:', error)
       this.stats.routingErrors++
 
       return {
@@ -640,7 +640,7 @@ class MessageRoutingService {
    */
   async registerEventListeners () {
     // 路由服務通常不直接監聽事件，而是被其他服務調用
-    this.logger.log('✅ 訊息路由服務事件監聽器註冊完成')
+    this.logger.log('[OK] 訊息路由服務事件監聽器註冊完成')
   }
 
   /**
@@ -648,7 +648,7 @@ class MessageRoutingService {
    */
   async unregisterEventListeners () {
     this.registeredListeners.clear()
-    this.logger.log('✅ 訊息路由服務事件監聽器已取消註冊')
+    this.logger.log('[OK] 訊息路由服務事件監聽器已取消註冊')
   }
 
   /**

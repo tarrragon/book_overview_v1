@@ -114,27 +114,27 @@ if (typeof require !== 'undefined') {
 
 // 初始化 Popup Logger
 const popupMessages = new MessageDictionary({
-  POPUP_INTERFACE_LOADED: '🎨 Popup Interface 載入完成',
-  POPUP_SCRIPT_LOADED: '✅ Popup Script 載入完成',
+  POPUP_INTERFACE_LOADED: 'Popup Interface 載入完成',
+  POPUP_SCRIPT_LOADED: '[OK] Popup Script 載入完成',
   VERSION_ERROR: '無法獲取版本號',
-  EXTRACTION_ERROR: '❌ 提取錯誤詳情',
-  BACKGROUND_STATUS_CHECK: '🔍 正在檢查 Background Service Worker 狀態...',
-  TEST_ENV_PROCESSING: '📝 Test environment - processing mock response',
-  BACKGROUND_STATUS_OK: '✅ Background Service Worker 狀態正常',
-  EVENT_SYSTEM_STATUS: '📊 事件系統狀態',
-  BACKGROUND_CONNECTION_FAILED: '❌ Background Service Worker 連線失敗',
+  EXTRACTION_ERROR: '[FAIL] 提取錯誤詳情',
+  BACKGROUND_STATUS_CHECK: '[CHECK] 正在檢查 Background Service Worker 狀態...',
+  TEST_ENV_PROCESSING: '[LOG] Test environment - processing mock response',
+  BACKGROUND_STATUS_OK: '[OK] Background Service Worker 狀態正常',
+  EVENT_SYSTEM_STATUS: '[STATS] 事件系統狀態',
+  BACKGROUND_CONNECTION_FAILED: '[FAIL] Background Service Worker 連線失敗',
   CONTENT_SCRIPT_NOT_READY: 'Content Script 尚未就緒',
   TAB_CHECK_ERROR: '檢查標籤頁時發生錯誤',
   EXTRACTION_PROCESS_ERROR: '提取過程發生錯誤',
-  LIBRARY_OVERVIEW_OPEN: '📖 開啟書庫總覽頁面...',
-  LIBRARY_OVERVIEW_ERROR: '❌ 無法開啟書庫頁面',
-  POPUP_INIT_START: '🚀 開始初始化 Popup Interface',
-  POPUP_INIT_COMPLETE: '✅ Popup Interface 初始化完成',
-  POPUP_INIT_ERROR: '❌ 初始化過程發生錯誤',
-  DIAGNOSTIC_INIT_FAILED: '⚠️ 診斷增強器初始化失敗',
-  DIAGNOSTIC_INIT_SUCCESS: '✅ 診斷增強器初始化成功',
+  LIBRARY_OVERVIEW_OPEN: '開啟書庫總覽頁面...',
+  LIBRARY_OVERVIEW_ERROR: '[FAIL] 無法開啟書庫頁面',
+  POPUP_INIT_START: '[START] 開始初始化 Popup Interface',
+  POPUP_INIT_COMPLETE: '[OK] Popup Interface 初始化完成',
+  POPUP_INIT_ERROR: '[FAIL] 初始化過程發生錯誤',
+  DIAGNOSTIC_INIT_FAILED: '[WARN] 診斷增強器初始化失敗',
+  DIAGNOSTIC_INIT_SUCCESS: '[OK] 診斷增強器初始化成功',
   HEALTH_CHECK_ERROR: '健康檢查錯誤',
-  POPUP_GLOBAL_ERROR: '❌ Popup Interface 錯誤'
+  POPUP_GLOBAL_ERROR: '[FAIL] Popup Interface 錯誤'
 })
 
 const popupLogger = new Logger('PopupInterface', 'INFO', popupMessages)
@@ -499,7 +499,7 @@ function handleExtractionError (message, error) {
   }
 
   // 重置按鈕狀態
-  updateButtonState(false, '🚀 開始提取書庫資料')
+  updateButtonState(false, '[START] 開始提取書庫資料')
 }
 
 /**
@@ -563,7 +563,7 @@ function sendCancelToContentScript () {
  */
 function resetExtractionUI () {
   hideProgress()
-  updateButtonState(false, '🚀 開始提取書庫資料')
+  updateButtonState(false, '[START] 開始提取書庫資料')
   updateStatus('提取已取消', '使用者手動中止', '您可以重新開始提取', STATUS_TYPES.WARNING)
 }
 
@@ -634,7 +634,7 @@ function createBackgroundTimeoutPromise () {
  * @returns {boolean} 是否成功
  */
 function handleTestEnvironmentResponse (response) {
-  Logger.info('📝 Test environment - processing mock response')
+  Logger.info('[LOG] Test environment - processing mock response')
   updateStatus('測試模式', '測試環境', '背景服務模擬檢查完成', STATUS_TYPES.READY)
   return response && response.success !== false
 }
@@ -962,7 +962,7 @@ function showHelp () {
  */
 function openLibraryOverview () {
   try {
-    Logger.info('📖 開啟書庫總覽頁面...')
+    Logger.info('開啟書庫總覽頁面...')
     chrome.runtime.openOptionsPage()
   } catch (error) {
     Logger.error('無法開啟書庫頁面', { error })
@@ -1244,7 +1244,7 @@ async function initializeDiagnosticEnhancer () {
       if (healthCheckBtn) {
         healthCheckBtn.addEventListener('click', async () => {
           healthCheckBtn.disabled = true
-          healthCheckBtn.textContent = '⏳ 檢查中...'
+          healthCheckBtn.textContent = '[WAIT] 檢查中...'
 
           try {
             const healthReport = await diagnosticEnhancer.performSystemHealthCheck()
@@ -1254,7 +1254,7 @@ async function initializeDiagnosticEnhancer () {
             alert('健康檢查失敗: ' + error.message)
           } finally {
             healthCheckBtn.disabled = false
-            healthCheckBtn.textContent = '⚕️ 系統健康檢查'
+            healthCheckBtn.textContent = '系統健康檢查'
           }
         })
       }
@@ -1266,9 +1266,9 @@ function displayHealthCheckResults (healthReport) {
   const { summary, checks, recommendations } = healthReport
 
   let statusText = '系統健康檢查結果：\n'
-  statusText += `✅ 通過: ${summary.passed} 項\n`
-  statusText += `⚠️ 警告: ${summary.warnings} 項\n`
-  statusText += `❌ 失敗: ${summary.failed} 項\n\n`
+  statusText += `[OK] 通過: ${summary.passed} 項\n`
+  statusText += `[WARN] 警告: ${summary.warnings} 項\n`
+  statusText += `[FAIL] 失敗: ${summary.failed} 項\n\n`
 
   // 顯示主要問題
   const failedChecks = Object.values(checks).filter(check => check.status === 'failed')
@@ -1320,10 +1320,10 @@ function showInitializationReport () {
 
   const report = initializationTracker.getInitializationReport()
 
-  let reportText = '🔍 Popup 初始化詳細報告\n\n'
+  let reportText = '[CHECK] Popup 初始化詳細報告\n\n'
 
   // 基本統計
-  reportText += '📊 總體統計：\n'
+  reportText += '[STATS] 總體統計：\n'
   reportText += `• 總步驟數: ${report.summary.totalSteps}\n`
   reportText += `• 完成步驟: ${report.summary.completedSteps}\n`
   reportText += `• 失敗步驟: ${report.summary.failedSteps}\n`
@@ -1333,15 +1333,15 @@ function showInitializationReport () {
     reportText += `• 總耗時: ${report.totalDuration}ms\n`
   }
 
-  reportText += '\n⏱️ 詳細步驟執行記錄：\n'
+  reportText += '\n[TIME] 詳細步驟執行記錄：\n'
 
   // 步驟詳情
   report.steps.forEach((step, index) => {
     const statusIcon = step.status === 'completed'
-      ? '✅'
+      ? '[OK]'
       : step.status === 'failed'
-        ? '❌'
-        : step.status === 'running' ? '🔄' : '⏸️'
+        ? '[FAIL]'
+        : step.status === 'running' ? '[RUNNING]' : '[PAUSE]'
 
     reportText += `${index + 1}. ${statusIcon} ${step.name}\n`
     reportText += `   描述: ${step.description}\n`
@@ -1359,7 +1359,7 @@ function showInitializationReport () {
 
   // 如果有失敗，提供建議
   if (report.summary.failedSteps > 0) {
-    reportText += '💡 故障排除建議：\n'
+    reportText += '故障排除建議：\n'
     reportText += '1. 重新載入擴展 (chrome://extensions/)\n'
     reportText += '2. 重新整理頁面並重新開啟 Popup\n'
     reportText += '3. 重啟 Chrome 瀏覽器\n'

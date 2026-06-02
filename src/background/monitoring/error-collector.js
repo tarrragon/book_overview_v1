@@ -86,7 +86,7 @@ class ErrorCollector extends BaseModule {
     if (this.i18nManager) {
       this.logger.log(this.i18nManager.t('modules.operations.initialize', { moduleName: this.moduleName }))
     } else {
-      this.logger.log('🚨 初始化錯誤收集器')
+      this.logger.log('[ALERT] 初始化錯誤收集器')
     }
 
     // 初始化錯誤統計
@@ -100,7 +100,7 @@ class ErrorCollector extends BaseModule {
     // 設定全域錯誤處理器
     await this.setupGlobalErrorHandlers()
 
-    this.logger.log('✅ 錯誤收集器初始化完成')
+    this.logger.log('[OK] 錯誤收集器初始化完成')
   }
 
   /**
@@ -109,7 +109,7 @@ class ErrorCollector extends BaseModule {
    * @protected
    */
   async _doStart () {
-    this.logger.log('▶️ 啟動錯誤收集器')
+    this.logger.log('[START] 啟動錯誤收集器')
 
     // 註冊錯誤事件監聽器
     await this.registerErrorListeners()
@@ -117,7 +117,7 @@ class ErrorCollector extends BaseModule {
     // 開始定期錯誤報告
     this.startPeriodicReporting()
 
-    this.logger.log('✅ 錯誤收集器啟動完成')
+    this.logger.log('[OK] 錯誤收集器啟動完成')
   }
 
   /**
@@ -126,7 +126,7 @@ class ErrorCollector extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止錯誤收集器')
+    this.logger.log('[STOP] 停止錯誤收集器')
 
     // 停止定期報告
     this.stopPeriodicReporting()
@@ -139,7 +139,7 @@ class ErrorCollector extends BaseModule {
       await this.persistErrors()
     }
 
-    this.logger.log('✅ 錯誤收集器停止完成')
+    this.logger.log('[OK] 錯誤收集器停止完成')
   }
 
   /**
@@ -166,7 +166,7 @@ class ErrorCollector extends BaseModule {
   async setupGlobalErrorHandlers () {
     // error 和 unhandledrejection handler 已在 background.js 頂層同步註冊，
     // 避免 Chrome 警告 "Event handler must be added on initial evaluation"
-    this.logger.log('🔧 全域錯誤處理器已在頂層註冊')
+    this.logger.log('[FIX] 全域錯誤處理器已在頂層註冊')
   }
 
   /**
@@ -176,7 +176,7 @@ class ErrorCollector extends BaseModule {
    */
   async registerErrorListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 未初始化，跳過錯誤事件監聽器設定')
+      this.logger.warn('[WARN] EventBus 未初始化，跳過錯誤事件監聽器設定')
       return
     }
 
@@ -211,9 +211,9 @@ class ErrorCollector extends BaseModule {
         { priority: EVENT_PRIORITIES.NORMAL }
       )
 
-      this.logger.log('📝 錯誤事件監聽器註冊完成')
+      this.logger.log('[LOG] 錯誤事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊錯誤事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊錯誤事件監聽器失敗:', error)
     }
   }
 
@@ -242,9 +242,9 @@ class ErrorCollector extends BaseModule {
         }
       }
 
-      this.logger.log('🔄 錯誤事件監聽器取消註冊完成')
+      this.logger.log('錯誤事件監聽器取消註冊完成')
     } catch (error) {
-      this.logger.error('❌ 取消註冊錯誤事件監聽器失敗:', error)
+      this.logger.error('[FAIL] 取消註冊錯誤事件監聽器失敗:', error)
     }
   }
 
@@ -282,7 +282,7 @@ class ErrorCollector extends BaseModule {
           existingError.lastOccurrence = errorRecord.timestamp
           this.stats.duplicateErrors++
 
-          this.logger.log(`🔄 重複錯誤更新: ${errorId} (總計: ${existingError.count})`)
+          this.logger.log(`重複錯誤更新: ${errorId} (總計: ${existingError.count})`)
           return existingError.id
         }
       }
@@ -326,7 +326,7 @@ class ErrorCollector extends BaseModule {
       return errorId
     } catch (error) {
       // 避免錯誤收集器本身的錯誤造成無限循環
-      this.logger.error('❌ 錯誤收集失敗:', error)
+      this.logger.error('[FAIL] 錯誤收集失敗:', error)
       return null
     }
   }
@@ -538,7 +538,7 @@ class ErrorCollector extends BaseModule {
         pattern.detected = true
         this.stats.patternsDetected++
 
-        this.logger.warn(`🔍 檢測到錯誤模式: ${patternKey} (${pattern.occurrences.length} 次/小時)`)
+        this.logger.warn(`[CHECK] 檢測到錯誤模式: ${patternKey} (${pattern.occurrences.length} 次/小時)`)
 
         // 觸發模式檢測事件
         if (this.eventBus) {
@@ -554,7 +554,7 @@ class ErrorCollector extends BaseModule {
 
       this.errorPatterns.set(patternKey, pattern)
     } catch (error) {
-      this.logger.error('❌ 檢測錯誤模式失敗:', error)
+      this.logger.error('[FAIL] 檢測錯誤模式失敗:', error)
     }
   }
 
@@ -565,7 +565,7 @@ class ErrorCollector extends BaseModule {
    */
   logError (errorRecord) {
     const logLevel = this.getLogLevelBySeverity(errorRecord.severity)
-    const logMessage = `🚨 [${errorRecord.category.toUpperCase()}] ${errorRecord.message}`
+    const logMessage = `[ALERT] [${errorRecord.category.toUpperCase()}] ${errorRecord.message}`
 
     switch (logLevel) {
       case 'error':
@@ -610,7 +610,7 @@ class ErrorCollector extends BaseModule {
       await this.generatePeriodicReport()
     }, this.config.reportInterval)
 
-    this.logger.log('📊 定期錯誤報告已啟動')
+    this.logger.log('[STATS] 定期錯誤報告已啟動')
   }
 
   /**
@@ -623,7 +623,7 @@ class ErrorCollector extends BaseModule {
       this.reportingInterval = null
     }
 
-    this.logger.log('📊 定期錯誤報告已停止')
+    this.logger.log('[STATS] 定期錯誤報告已停止')
   }
 
   /**
@@ -635,7 +635,7 @@ class ErrorCollector extends BaseModule {
     try {
       const report = this.generateErrorReport()
 
-      this.logger.log('📈 錯誤統計報告:', report)
+      this.logger.log('錯誤統計報告:', report)
 
       // 觸發報告事件
       if (this.eventBus) {
@@ -647,7 +647,7 @@ class ErrorCollector extends BaseModule {
 
       this.stats.lastReportTime = Date.now()
     } catch (error) {
-      this.logger.error('❌ 生成定期報告失敗:', error)
+      this.logger.error('[FAIL] 生成定期報告失敗:', error)
     }
   }
 
@@ -668,10 +668,10 @@ class ErrorCollector extends BaseModule {
           this.updateErrorStats(error)
         }
 
-        this.logger.log(`📚 載入了 ${this.errorHistory.length} 個持久化錯誤記錄`)
+        this.logger.log(`載入了 ${this.errorHistory.length} 個持久化錯誤記錄`)
       }
     } catch (error) {
-      this.logger.error('❌ 載入持久化錯誤資料失敗:', error)
+      this.logger.error('[FAIL] 載入持久化錯誤資料失敗:', error)
     }
   }
 
@@ -686,9 +686,9 @@ class ErrorCollector extends BaseModule {
         error_history: this.errorHistory.slice(-this.config.maxHistorySize)
       })
 
-      this.logger.log(`💾 錯誤資料已持久化 (${this.errorHistory.length} 個記錄)`)
+      this.logger.log(`[SAVE] 錯誤資料已持久化 (${this.errorHistory.length} 個記錄)`)
     } catch (error) {
-      this.logger.error('❌ 持久化錯誤資料失敗:', error)
+      this.logger.error('[FAIL] 持久化錯誤資料失敗:', error)
     }
   }
 
@@ -794,7 +794,7 @@ class ErrorCollector extends BaseModule {
       await this.persistErrors()
     }
 
-    this.logger.log(`🧹 清理了 ${clearedCount} 個錯誤記錄`)
+    this.logger.log(`清理了 ${clearedCount} 個錯誤記錄`)
     return clearedCount
   }
 

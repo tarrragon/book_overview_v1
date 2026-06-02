@@ -55,12 +55,12 @@ class ExportService {
     if (this.state.initialized) return
 
     try {
-      this.logger.log('📤 初始化匯出服務')
+      this.logger.log('初始化匯出服務')
       await this.registerEventListeners()
       this.state.initialized = true
-      this.logger.log('✅ 匯出服務初始化完成')
+      this.logger.log('[OK] 匯出服務初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化匯出服務失敗:', error)
+      this.logger.error('[FAIL] 初始化匯出服務失敗:', error)
       throw error
     }
   }
@@ -70,7 +70,7 @@ class ExportService {
 
     this.state.active = true
     this.state.exporting = true
-    this.logger.log('✅ 匯出服務啟動完成')
+    this.logger.log('[OK] 匯出服務啟動完成')
   }
 
   async stop () {
@@ -79,7 +79,7 @@ class ExportService {
     await this.unregisterEventListeners()
     this.state.active = false
     this.state.exporting = false
-    this.logger.log('✅ 匯出服務停止完成')
+    this.logger.log('[OK] 匯出服務停止完成')
   }
 
   initializeExportFormats () {
@@ -117,7 +117,7 @@ class ExportService {
       }
     })
 
-    this.logger.log(`✅ 初始化了 ${this.exportFormats.size} 個匯出格式`)
+    this.logger.log(`[OK] 初始化了 ${this.exportFormats.size} 個匯出格式`)
   }
 
   async exportData (data, format = 'json', options = {}) {
@@ -125,7 +125,7 @@ class ExportService {
     const taskId = `export_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
 
     try {
-      this.logger.log(`📤 開始匯出資料: ${format}`)
+      this.logger.log(`開始匯出資料: ${format}`)
 
       const exportFormat = this.exportFormats.get(format)
       if (!exportFormat) {
@@ -165,12 +165,12 @@ class ExportService {
       const exportTime = Date.now() - startTime
       this.updateExportStats(exportTime)
 
-      this.logger.log(`✅ 匯出完成: ${format} (${exportTime}ms)`)
+      this.logger.log(`[OK] 匯出完成: ${format} (${exportTime}ms)`)
 
       return exportResult
     } catch (error) {
       this.stats.exportErrors++
-      this.logger.error(`❌ 匯出失敗: ${format}`, error)
+      this.logger.error(`[FAIL] 匯出失敗: ${format}`, error)
 
       if (this.exportTasks.has(taskId)) {
         this.exportTasks.get(taskId).status = 'failed'
@@ -218,7 +218,7 @@ class ExportService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
     this.registeredListeners.clear()
@@ -236,7 +236,7 @@ class ExportService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理匯出請求失敗:', error)
+      this.logger.error('[FAIL] 處理匯出請求失敗:', error)
     }
   }
 

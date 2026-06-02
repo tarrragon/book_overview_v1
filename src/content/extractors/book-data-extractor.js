@@ -204,7 +204,7 @@ function createBookDataExtractor () {
         // 後備機制: console 是唯一可靠的錯誤輸出
         // 安全考量: 提取流程失敗是關鍵錯誤，必須被記錄
         // eslint-disable-next-line no-console
-        console.error('❌ 啟動提取流程失敗:', error)
+        console.error('[FAIL] 啟動提取流程失敗:', error)
 
         if (eventBus) {
           await eventBus.emit('EXTRACTION.ERROR', {

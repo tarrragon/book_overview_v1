@@ -96,7 +96,7 @@ class ExtractionDomainCoordinator extends BaseModule {
    */
   async _doInitialize () {
     this.initializationStartTime = Date.now()
-    this.logger.log('🏗️ 開始初始化 Extraction Domain 協調器')
+    this.logger.log('開始初始化 Extraction Domain 協調器')
 
     try {
       // 1. 建立所有微服務
@@ -111,7 +111,7 @@ class ExtractionDomainCoordinator extends BaseModule {
       this.coordinatorStats.initializationDuration = Date.now() - this.initializationStartTime
       this.coordinatorReady = true
 
-      this.logger.log('✅ Extraction Domain 協調器初始化完成')
+      this.logger.log('[OK] Extraction Domain 協調器初始化完成')
       this.logInitializationSummary()
 
       // 發送初始化完成事件
@@ -122,7 +122,7 @@ class ExtractionDomainCoordinator extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ Extraction Domain 協調器初始化失敗:', error)
+      this.logger.error('[FAIL] Extraction Domain 協調器初始化失敗:', error)
       throw error
     }
   }
@@ -134,7 +134,7 @@ class ExtractionDomainCoordinator extends BaseModule {
    */
   async _doStart () {
     const startTime = Date.now()
-    this.logger.log('▶️ 啟動 Extraction Domain 協調器')
+    this.logger.log('[START] 啟動 Extraction Domain 協調器')
 
     try {
       // 按順序啟動所有微服務
@@ -146,7 +146,7 @@ class ExtractionDomainCoordinator extends BaseModule {
       this.coordinatorStats.startupDuration = Date.now() - startTime
       this.allServicesReady = true
 
-      this.logger.log('✅ Extraction Domain 協調器啟動完成')
+      this.logger.log('[OK] Extraction Domain 協調器啟動完成')
       this.logStartupSummary()
 
       // 觸發領域就緒事件
@@ -158,7 +158,7 @@ class ExtractionDomainCoordinator extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ Extraction Domain 協調器啟動失敗:', error)
+      this.logger.error('[FAIL] Extraction Domain 協調器啟動失敗:', error)
       throw error
     }
   }
@@ -169,7 +169,7 @@ class ExtractionDomainCoordinator extends BaseModule {
    * @protected
    */
   async _doStop () {
-    this.logger.log('⏹️ 停止 Extraction Domain 協調器')
+    this.logger.log('[STOP] 停止 Extraction Domain 協調器')
 
     try {
       // 反序停止所有微服務
@@ -179,7 +179,7 @@ class ExtractionDomainCoordinator extends BaseModule {
       this.coordinatorReady = false
       this.allServicesReady = false
 
-      this.logger.log('✅ Extraction Domain 協調器停止完成')
+      this.logger.log('[OK] Extraction Domain 協調器停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -189,7 +189,7 @@ class ExtractionDomainCoordinator extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error('❌ Extraction Domain 協調器停止失敗:', error)
+      this.logger.error('[FAIL] Extraction Domain 協調器停止失敗:', error)
     }
   }
 
@@ -200,7 +200,7 @@ class ExtractionDomainCoordinator extends BaseModule {
    */
   async createExtractionServices () {
     try {
-      this.logger.log('🔧 建立 Extraction Domain 微服務')
+      this.logger.log('[FIX] 建立 Extraction Domain 微服務')
 
       const commonDependencies = {
         eventBus: this.eventBus,
@@ -229,9 +229,9 @@ class ExtractionDomainCoordinator extends BaseModule {
       this.services.set('qualityControlService', this.qualityControlService)
 
       this.coordinatorStats.servicesLoaded = this.services.size
-      this.logger.log(`✅ Extraction 微服務建立完成 (${this.services.size} 個服務)`)
+      this.logger.log(`[OK] Extraction 微服務建立完成 (${this.services.size} 個服務)`)
     } catch (error) {
-      this.logger.error('❌ Extraction 微服務建立失敗:', error)
+      this.logger.error('[FAIL] Extraction 微服務建立失敗:', error)
       throw error
     }
   }
@@ -259,7 +259,7 @@ class ExtractionDomainCoordinator extends BaseModule {
       'qualityControlService' // 品質控制服務最後啟動
     ]
 
-    this.logger.log('✅ 服務順序定義完成')
+    this.logger.log('[OK] 服務順序定義完成')
   }
 
   /**
@@ -269,20 +269,20 @@ class ExtractionDomainCoordinator extends BaseModule {
    */
   async initializeAllServices () {
     try {
-      this.logger.log('🔧 開始初始化所有 Extraction 微服務')
+      this.logger.log('[FIX] 開始初始化所有 Extraction 微服務')
 
       for (const serviceName of this.serviceLoadOrder) {
         const service = this.services.get(serviceName)
         if (service) {
-          this.logger.log(`🔧 初始化微服務: ${serviceName}`)
+          this.logger.log(`[FIX] 初始化微服務: ${serviceName}`)
           await service.initialize()
           this.coordinatorStats.servicesInitialized++
         }
       }
 
-      this.logger.log(`✅ 所有微服務初始化完成 (${this.coordinatorStats.servicesInitialized}/${this.services.size})`)
+      this.logger.log(`[OK] 所有微服務初始化完成 (${this.coordinatorStats.servicesInitialized}/${this.services.size})`)
     } catch (error) {
-      this.logger.error('❌ 微服務初始化失敗:', error)
+      this.logger.error('[FAIL] 微服務初始化失敗:', error)
       throw error
     }
   }
@@ -294,20 +294,20 @@ class ExtractionDomainCoordinator extends BaseModule {
    */
   async startAllServices () {
     try {
-      this.logger.log('▶️ 開始啟動所有 Extraction 微服務')
+      this.logger.log('[START] 開始啟動所有 Extraction 微服務')
 
       for (const serviceName of this.serviceStartOrder) {
         const service = this.services.get(serviceName)
         if (service) {
-          this.logger.log(`▶️ 啟動微服務: ${serviceName}`)
+          this.logger.log(`[START] 啟動微服務: ${serviceName}`)
           await service.start()
           this.coordinatorStats.servicesStarted++
         }
       }
 
-      this.logger.log(`✅ 所有微服務啟動完成 (${this.coordinatorStats.servicesStarted}/${this.services.size})`)
+      this.logger.log(`[OK] 所有微服務啟動完成 (${this.coordinatorStats.servicesStarted}/${this.services.size})`)
     } catch (error) {
-      this.logger.error('❌ 微服務啟動失敗:', error)
+      this.logger.error('[FAIL] 微服務啟動失敗:', error)
       throw error
     }
   }
@@ -319,7 +319,7 @@ class ExtractionDomainCoordinator extends BaseModule {
    */
   async stopAllServices () {
     try {
-      this.logger.log('⏹️ 開始停止所有 Extraction 微服務')
+      this.logger.log('[STOP] 開始停止所有 Extraction 微服務')
 
       // 反序停止（與啟動順序相反）
       const stopOrder = [...this.serviceStartOrder].reverse()
@@ -328,17 +328,17 @@ class ExtractionDomainCoordinator extends BaseModule {
         const service = this.services.get(serviceName)
         if (service && typeof service.stop === 'function') {
           try {
-            this.logger.log(`⏹️ 停止微服務: ${serviceName}`)
+            this.logger.log(`[STOP] 停止微服務: ${serviceName}`)
             await service.stop()
           } catch (error) {
-            this.logger.error(`❌ 停止微服務失敗: ${serviceName}`, error)
+            this.logger.error(`[FAIL] 停止微服務失敗: ${serviceName}`, error)
           }
         }
       }
 
-      this.logger.log('✅ 所有微服務停止完成')
+      this.logger.log('[OK] 所有微服務停止完成')
     } catch (error) {
-      this.logger.error('❌ 微服務停止失敗:', error)
+      this.logger.error('[FAIL] 微服務停止失敗:', error)
     }
   }
 
@@ -349,7 +349,7 @@ class ExtractionDomainCoordinator extends BaseModule {
    */
   async verifyAllServicesHealthy () {
     try {
-      this.logger.log('🔍 驗證 Extraction 微服務健康狀態')
+      this.logger.log('[CHECK] 驗證 Extraction 微服務健康狀態')
 
       const healthStatuses = []
 
@@ -363,7 +363,7 @@ class ExtractionDomainCoordinator extends BaseModule {
           })
 
           if (!healthStatus.healthy) {
-            this.logger.warn(`⚠️ 微服務健康狀態異常: ${serviceName}`, healthStatus)
+            this.logger.warn(`[WARN] 微服務健康狀態異常: ${serviceName}`, healthStatus)
           }
         }
       }
@@ -371,12 +371,12 @@ class ExtractionDomainCoordinator extends BaseModule {
       const unhealthyServices = healthStatuses.filter(status => !status.healthy)
 
       if (unhealthyServices.length > 0) {
-        this.logger.warn(`⚠️ 檢測到 ${unhealthyServices.length} 個不健康的微服務`)
+        this.logger.warn(`[WARN] 檢測到 ${unhealthyServices.length} 個不健康的微服務`)
       } else {
-        this.logger.log('✅ 所有 Extraction 微服務狀態健康')
+        this.logger.log('[OK] 所有 Extraction 微服務狀態健康')
       }
     } catch (error) {
-      this.logger.error('❌ 健康狀態驗證失敗:', error)
+      this.logger.error('[FAIL] 健康狀態驗證失敗:', error)
     }
   }
 
@@ -392,7 +392,7 @@ class ExtractionDomainCoordinator extends BaseModule {
       微服務列表: Array.from(this.services.keys())
     }
 
-    this.logger.log('📊 Extraction Domain 初始化摘要:', summary)
+    this.logger.log('[STATS] Extraction Domain 初始化摘要:', summary)
   }
 
   /**
@@ -407,7 +407,7 @@ class ExtractionDomainCoordinator extends BaseModule {
       領域狀態: '就緒'
     }
 
-    this.logger.log('📊 Extraction Domain 啟動摘要:', summary)
+    this.logger.log('[STATS] Extraction Domain 啟動摘要:', summary)
   }
 
   /**
@@ -416,7 +416,7 @@ class ExtractionDomainCoordinator extends BaseModule {
    */
   async restart () {
     try {
-      this.logger.log('🔄 重啟 Extraction Domain 協調器')
+      this.logger.log('重啟 Extraction Domain 協調器')
 
       this.coordinatorStats.restartCount++
 
@@ -430,9 +430,9 @@ class ExtractionDomainCoordinator extends BaseModule {
       await this.initialize()
       await this.start()
 
-      this.logger.log('✅ Extraction Domain 協調器重啟完成')
+      this.logger.log('[OK] Extraction Domain 協調器重啟完成')
     } catch (error) {
-      this.logger.error('❌ 協調器重啟失敗:', error)
+      this.logger.error('[FAIL] 協調器重啟失敗:', error)
       throw error
     }
   }

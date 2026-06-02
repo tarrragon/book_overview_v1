@@ -84,12 +84,12 @@ class NavigationService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 導航服務已初始化')
+      this.logger.warn('[WARN] 導航服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🧭 初始化導航服務')
+      this.logger.log('初始化導航服務')
 
       // 註冊 Web Navigation API 監聽器
       await this.registerWebNavigationListeners()
@@ -101,14 +101,14 @@ class NavigationService {
       await this.initializeRouteAnalyzers()
 
       this.state.initialized = true
-      this.logger.log('✅ 導航服務初始化完成')
+      this.logger.log('[OK] 導航服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.NAVIGATION.INITIALIZED')
       }
     } catch (error) {
-      this.logger.error('❌ 初始化導航服務失敗:', error)
+      this.logger.error('[FAIL] 初始化導航服務失敗:', error)
       throw error
     }
   }
@@ -127,24 +127,24 @@ class NavigationService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 導航服務已啟動')
+      this.logger.warn('[WARN] 導航服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動導航服務')
+      this.logger.log('[START] 啟動導航服務')
 
       this.state.active = true
       this.state.tracking = true
 
-      this.logger.log('✅ 導航服務啟動完成')
+      this.logger.log('[OK] 導航服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.NAVIGATION.STARTED')
       }
     } catch (error) {
-      this.logger.error('❌ 啟動導航服務失敗:', error)
+      this.logger.error('[FAIL] 啟動導航服務失敗:', error)
       throw error
     }
   }
@@ -154,12 +154,12 @@ class NavigationService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 導航服務未啟動')
+      this.logger.warn('[WARN] 導航服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止導航服務')
+      this.logger.log('[STOP] 停止導航服務')
 
       // 清理防抖計時器
       this.clearNavigationTimers()
@@ -171,14 +171,14 @@ class NavigationService {
       this.state.active = false
       this.state.tracking = false
 
-      this.logger.log('✅ 導航服務停止完成')
+      this.logger.log('[OK] 導航服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
         await this.eventBus.emit('PAGE.NAVIGATION.STOPPED')
       }
     } catch (error) {
-      this.logger.error('❌ 停止導航服務失敗:', error)
+      this.logger.error('[FAIL] 停止導航服務失敗:', error)
       throw error
     }
   }
@@ -188,7 +188,7 @@ class NavigationService {
    */
   async registerWebNavigationListeners () {
     if (typeof chrome === 'undefined' || !chrome.webNavigation) {
-      this.logger.warn('⚠️ Chrome WebNavigation API 不可用')
+      this.logger.warn('[WARN] Chrome WebNavigation API 不可用')
       return
     }
 
@@ -218,9 +218,9 @@ class NavigationService {
       chrome.webNavigation.onHistoryStateUpdated.addListener(onHistoryStateUpdatedListener)
       this.webNavigationListeners.set('onHistoryStateUpdated', onHistoryStateUpdatedListener)
 
-      this.logger.log('✅ Web Navigation 事件監聽器註冊完成')
+      this.logger.log('[OK] Web Navigation 事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊 Web Navigation 監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊 Web Navigation 監聽器失敗:', error)
       throw error
     }
   }
@@ -253,9 +253,9 @@ class NavigationService {
       }
 
       this.webNavigationListeners.clear()
-      this.logger.log('✅ Web Navigation 事件監聽器取消註冊完成')
+      this.logger.log('[OK] Web Navigation 事件監聽器取消註冊完成')
     } catch (error) {
-      this.logger.error('❌ 取消註冊 Web Navigation 監聽器失敗:', error)
+      this.logger.error('[FAIL] 取消註冊 Web Navigation 監聽器失敗:', error)
     }
   }
 
@@ -294,7 +294,7 @@ class NavigationService {
       return patterns
     })
 
-    this.logger.log(`✅ 初始化了 ${this.routeAnalyzer.size} 個路由分析器`)
+    this.logger.log(`[OK] 初始化了 ${this.routeAnalyzer.size} 個路由分析器`)
   }
 
   /**
@@ -311,7 +311,7 @@ class NavigationService {
       // 只追蹤主框架
       if (frameId !== 0 && !this.config.trackSubFrames) return
 
-      this.logger.log(`🧭 導航開始: ${url} (分頁 ${tabId})`)
+      this.logger.log(`導航開始: ${url} (分頁 ${tabId})`)
 
       // 創建導航記錄
       const navigation = {
@@ -329,7 +329,7 @@ class NavigationService {
         this.recordNavigation(tabId, navigation)
       })
     } catch (error) {
-      this.logger.error('❌ 處理導航開始事件失敗:', error)
+      this.logger.error('[FAIL] 處理導航開始事件失敗:', error)
     }
   }
 
@@ -346,7 +346,7 @@ class NavigationService {
 
       if (frameId !== 0 && !this.config.trackSubFrames) return
 
-      this.logger.log(`🧭 導航提交: ${url} (${transitionType})`)
+      this.logger.log(`導航提交: ${url} (${transitionType})`)
 
       // 更新當前導航
       const currentNav = this.currentNavigations.get(tabId)
@@ -367,7 +367,7 @@ class NavigationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理導航提交事件失敗:', error)
+      this.logger.error('[FAIL] 處理導航提交事件失敗:', error)
     }
   }
 
@@ -384,7 +384,7 @@ class NavigationService {
 
       if (frameId !== 0 && !this.config.trackSubFrames) return
 
-      this.logger.log(`🧭 導航完成: ${url}`)
+      this.logger.log(`導航完成: ${url}`)
 
       // 更新當前導航
       const currentNav = this.currentNavigations.get(tabId)
@@ -408,7 +408,7 @@ class NavigationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理導航完成事件失敗:', error)
+      this.logger.error('[FAIL] 處理導航完成事件失敗:', error)
     }
   }
 
@@ -425,7 +425,7 @@ class NavigationService {
 
       if (frameId !== 0 && !this.config.trackSubFrames) return
 
-      this.logger.warn(`🧭 導航錯誤: ${url} - ${error}`)
+      this.logger.warn(`導航錯誤: ${url} - ${error}`)
 
       // 更新當前導航
       const currentNav = this.currentNavigations.get(tabId)
@@ -445,7 +445,7 @@ class NavigationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理導航錯誤事件失敗:', error)
+      this.logger.error('[FAIL] 處理導航錯誤事件失敗:', error)
     }
   }
 
@@ -462,7 +462,7 @@ class NavigationService {
 
       if (frameId !== 0 && !this.config.trackSubFrames) return
 
-      this.logger.log(`🧭 歷史狀態更新: ${url}`)
+      this.logger.log(`歷史狀態更新: ${url}`)
 
       // 記錄為歷史導航
       const navigation = {
@@ -488,7 +488,7 @@ class NavigationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理歷史狀態更新事件失敗:', error)
+      this.logger.error('[FAIL] 處理歷史狀態更新事件失敗:', error)
     }
   }
 
@@ -556,7 +556,7 @@ class NavigationService {
     }
 
     this.stats.navigationsTracked++
-    this.logger.log(`📝 記錄導航: ${navigation.url} (分頁 ${tabId})`)
+    this.logger.log(`[LOG] 記錄導航: ${navigation.url} (分頁 ${tabId})`)
   }
 
   /**
@@ -572,7 +572,7 @@ class NavigationService {
           return { analyzer: name, ...route }
         }
       } catch (error) {
-        this.logger.error(`❌ 路由分析器執行失敗 (${name}):`, error)
+        this.logger.error(`[FAIL] 路由分析器執行失敗 (${name}):`, error)
       }
     }
 
@@ -591,7 +591,7 @@ class NavigationService {
         const patterns = tracker(history)
         if (patterns && patterns.length > 0) {
           this.stats.patternsDetected++
-          this.logger.log(`🔍 檢測到導航模式: ${JSON.stringify(patterns)}`)
+          this.logger.log(`[CHECK] 檢測到導航模式: ${JSON.stringify(patterns)}`)
 
           // 發送模式檢測事件
           if (this.eventBus) {
@@ -603,7 +603,7 @@ class NavigationService {
           }
         }
       } catch (error) {
-        this.logger.error(`❌ 導航模式分析失敗 (${name}):`, error)
+        this.logger.error(`[FAIL] 導航模式分析失敗 (${name}):`, error)
       }
     }
   }
@@ -662,7 +662,7 @@ class NavigationService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -684,7 +684,7 @@ class NavigationService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -697,12 +697,12 @@ class NavigationService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -727,7 +727,7 @@ class NavigationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理導航歷史請求失敗:', error)
+      this.logger.error('[FAIL] 處理導航歷史請求失敗:', error)
     }
   }
 
@@ -751,7 +751,7 @@ class NavigationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理導航模式請求失敗:', error)
+      this.logger.error('[FAIL] 處理導航模式請求失敗:', error)
     }
   }
 

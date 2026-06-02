@@ -81,12 +81,12 @@ class ValidationService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 驗證服務已初始化')
+      this.logger.warn('[WARN] 驗證服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔍 初始化驗證服務')
+      this.logger.log('[CHECK] 初始化驗證服務')
 
       // 初始化自定義驗證器
       await this.initializeCustomValidators()
@@ -98,7 +98,7 @@ class ValidationService {
       await this.registerEventListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 驗證服務初始化完成')
+      this.logger.log('[OK] 驗證服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -108,7 +108,7 @@ class ValidationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化驗證服務失敗:', error)
+      this.logger.error('[FAIL] 初始化驗證服務失敗:', error)
       throw error
     }
   }
@@ -125,17 +125,17 @@ class ValidationService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 驗證服務已啟動')
+      this.logger.warn('[WARN] 驗證服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動驗證服務')
+      this.logger.log('[START] 啟動驗證服務')
 
       this.state.active = true
       this.state.validating = true
 
-      this.logger.log('✅ 驗證服務啟動完成')
+      this.logger.log('[OK] 驗證服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -144,7 +144,7 @@ class ValidationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動驗證服務失敗:', error)
+      this.logger.error('[FAIL] 啟動驗證服務失敗:', error)
       throw error
     }
   }
@@ -154,12 +154,12 @@ class ValidationService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 驗證服務未啟動')
+      this.logger.warn('[WARN] 驗證服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止驗證服務')
+      this.logger.log('[STOP] 停止驗證服務')
 
       // 清理快取
       this.validationCache.clear()
@@ -170,7 +170,7 @@ class ValidationService {
       this.state.active = false
       this.state.validating = false
 
-      this.logger.log('✅ 驗證服務停止完成')
+      this.logger.log('[OK] 驗證服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -180,7 +180,7 @@ class ValidationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止驗證服務失敗:', error)
+      this.logger.error('[FAIL] 停止驗證服務失敗:', error)
       throw error
     }
   }
@@ -287,7 +287,7 @@ class ValidationService {
       }
     })
 
-    this.logger.log(`✅ 初始化了 ${this.validationRules.size} 個驗證規則`)
+    this.logger.log(`[OK] 初始化了 ${this.validationRules.size} 個驗證規則`)
   }
 
   /**
@@ -333,7 +333,7 @@ class ValidationService {
       return { valid: true }
     })
 
-    this.logger.log(`✅ 初始化了 ${this.customValidators.size} 個自定義驗證器`)
+    this.logger.log(`[OK] 初始化了 ${this.customValidators.size} 個自定義驗證器`)
   }
 
   /**
@@ -366,7 +366,7 @@ class ValidationService {
       { field: 'language', rule: 'string_length', options: { min: 2, max: 10 } }
     ])
 
-    this.logger.log(`✅ 初始化了 ${this.ruleGroups.size} 個規則群組`)
+    this.logger.log(`[OK] 初始化了 ${this.ruleGroups.size} 個規則群組`)
   }
 
   /**
@@ -376,13 +376,13 @@ class ValidationService {
     const startTime = Date.now()
 
     try {
-      this.logger.log(`🔍 開始驗證資料: ${ruleGroup}`)
+      this.logger.log(`[CHECK] 開始驗證資料: ${ruleGroup}`)
 
       // 檢查快取
       const cacheKey = this.generateCacheKey(data, ruleGroup)
       const cached = this.getCachedValidation(cacheKey)
       if (cached) {
-        this.logger.log(`💾 使用快取驗證結果: ${ruleGroup}`)
+        this.logger.log(`[SAVE] 使用快取驗證結果: ${ruleGroup}`)
         return cached
       }
 
@@ -432,7 +432,7 @@ class ValidationService {
       // 快取結果
       this.setCachedValidation(cacheKey, validationResult)
 
-      this.logger.log(`✅ 驗證完成: ${ruleGroup} (${validationTime}ms)`)
+      this.logger.log(`[OK] 驗證完成: ${ruleGroup} (${validationTime}ms)`)
 
       // 發送驗證完成事件
       if (this.eventBus) {
@@ -446,7 +446,7 @@ class ValidationService {
 
       return validationResult
     } catch (error) {
-      this.logger.error(`❌ 驗證失敗: ${ruleGroup}`, error)
+      this.logger.error(`[FAIL] 驗證失敗: ${ruleGroup}`, error)
       throw error
     }
   }
@@ -532,7 +532,7 @@ class ValidationService {
         const batchResults = await Promise.all(batchPromises)
         results.push(...batchResults)
       } catch (error) {
-        this.logger.error('❌ 批量驗證失敗:', error)
+        this.logger.error('[FAIL] 批量驗證失敗:', error)
         throw error
       }
     }
@@ -649,7 +649,7 @@ class ValidationService {
    */
   registerValidationRule (name, rule) {
     this.validationRules.set(name, rule)
-    this.logger.log(`✅ 註冊驗證規則: ${name}`)
+    this.logger.log(`[OK] 註冊驗證規則: ${name}`)
   }
 
   /**
@@ -657,7 +657,7 @@ class ValidationService {
    */
   registerCustomValidator (name, validator) {
     this.customValidators.set(name, validator)
-    this.logger.log(`✅ 註冊自定義驗證器: ${name}`)
+    this.logger.log(`[OK] 註冊自定義驗證器: ${name}`)
   }
 
   /**
@@ -665,7 +665,7 @@ class ValidationService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -687,7 +687,7 @@ class ValidationService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -700,12 +700,12 @@ class ValidationService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -724,7 +724,7 @@ class ValidationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理驗證請求失敗:', error)
+      this.logger.error('[FAIL] 處理驗證請求失敗:', error)
     }
   }
 
@@ -744,7 +744,7 @@ class ValidationService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理批量驗證請求失敗:', error)
+      this.logger.error('[FAIL] 處理批量驗證請求失敗:', error)
     }
   }
 

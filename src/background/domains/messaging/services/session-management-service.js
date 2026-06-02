@@ -70,20 +70,20 @@ class SessionManagementService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 會話管理服務已初始化')
+      this.logger.warn('[WARN] 會話管理服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔄 初始化會話管理服務')
+      this.logger.log('初始化會話管理服務')
 
       // 載入會話歷史
       await this.loadSessionHistory()
 
       this.state.initialized = true
-      this.logger.log('✅ 會話管理服務初始化完成')
+      this.logger.log('[OK] 會話管理服務初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化會話管理服務失敗:', error)
+      this.logger.error('[FAIL] 初始化會話管理服務失敗:', error)
       throw error
     }
   }
@@ -100,12 +100,12 @@ class SessionManagementService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 會話管理服務已啟動')
+      this.logger.warn('[WARN] 會話管理服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動會話管理服務')
+      this.logger.log('[START] 啟動會話管理服務')
 
       // 註冊事件監聽器
       await this.registerEventListeners()
@@ -114,9 +114,9 @@ class SessionManagementService {
       this.startSessionCleanupMonitoring()
 
       this.state.active = true
-      this.logger.log('✅ 會話管理服務啟動完成')
+      this.logger.log('[OK] 會話管理服務啟動完成')
     } catch (error) {
-      this.logger.error('❌ 啟動會話管理服務失敗:', error)
+      this.logger.error('[FAIL] 啟動會話管理服務失敗:', error)
       throw error
     }
   }
@@ -126,12 +126,12 @@ class SessionManagementService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 會話管理服務未啟動')
+      this.logger.warn('[WARN] 會話管理服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止會話管理服務')
+      this.logger.log('[STOP] 停止會話管理服務')
 
       // 停止會話清理監控
       this.stopSessionCleanupMonitoring()
@@ -146,9 +146,9 @@ class SessionManagementService {
       await this.unregisterEventListeners()
 
       this.state.active = false
-      this.logger.log('✅ 會話管理服務停止完成')
+      this.logger.log('[OK] 會話管理服務停止完成')
     } catch (error) {
-      this.logger.error('❌ 停止會話管理服務失敗:', error)
+      this.logger.error('[FAIL] 停止會話管理服務失敗:', error)
       throw error
     }
   }
@@ -158,11 +158,11 @@ class SessionManagementService {
    */
   async startSession (sessionId, context) {
     try {
-      this.logger.log(`📝 開始會話: ${sessionId}`)
+      this.logger.log(`[LOG] 開始會話: ${sessionId}`)
 
       // 檢查會話是否已存在
       if (this.activeSessions.has(sessionId)) {
-        this.logger.warn(`⚠️ 會話 ${sessionId} 已存在`)
+        this.logger.warn(`[WARN] 會話 ${sessionId} 已存在`)
         return {
           success: true,
           sessionId,
@@ -207,7 +207,7 @@ class SessionManagementService {
         })
       }
 
-      this.logger.log(`✅ 會話開始成功: ${sessionId}`)
+      this.logger.log(`[OK] 會話開始成功: ${sessionId}`)
 
       return {
         success: true,
@@ -216,7 +216,7 @@ class SessionManagementService {
         session: { ...session }
       }
     } catch (error) {
-      this.logger.error(`❌ 開始會話失敗: ${sessionId}`, error)
+      this.logger.error(`[FAIL] 開始會話失敗: ${sessionId}`, error)
       return {
         success: false,
         error: error.message
@@ -229,11 +229,11 @@ class SessionManagementService {
    */
   async endSession (sessionId, reason = 'normal_termination') {
     try {
-      this.logger.log(`📝 結束會話: ${sessionId} (原因: ${reason})`)
+      this.logger.log(`[LOG] 結束會話: ${sessionId} (原因: ${reason})`)
 
       const session = this.activeSessions.get(sessionId)
       if (!session) {
-        this.logger.warn(`⚠️ 會話 ${sessionId} 不存在`)
+        this.logger.warn(`[WARN] 會話 ${sessionId} 不存在`)
         return {
           success: false,
           message: 'Session not found'
@@ -281,7 +281,7 @@ class SessionManagementService {
         })
       }
 
-      this.logger.log(`✅ 會話結束成功: ${sessionId}`)
+      this.logger.log(`[OK] 會話結束成功: ${sessionId}`)
 
       return {
         success: true,
@@ -294,7 +294,7 @@ class SessionManagementService {
         }
       }
     } catch (error) {
-      this.logger.error(`❌ 結束會話失敗: ${sessionId}`, error)
+      this.logger.error(`[FAIL] 結束會話失敗: ${sessionId}`, error)
       return {
         success: false,
         error: error.message
@@ -340,7 +340,7 @@ class SessionManagementService {
    * 結束所有活動會話
    */
   async terminateAllSessions (reason = 'system_shutdown') {
-    this.logger.log('📝 結束所有活動會話')
+    this.logger.log('[LOG] 結束所有活動會話')
 
     const sessionIds = Array.from(this.activeSessions.keys())
 
@@ -348,11 +348,11 @@ class SessionManagementService {
       try {
         await this.endSession(sessionId, reason)
       } catch (error) {
-        this.logger.error(`❌ 結束會話失敗: ${sessionId}`, error)
+        this.logger.error(`[FAIL] 結束會話失敗: ${sessionId}`, error)
       }
     }
 
-    this.logger.log(`✅ 已結束 ${sessionIds.length} 個會話`)
+    this.logger.log(`[OK] 已結束 ${sessionIds.length} 個會話`)
   }
 
   /**
@@ -364,7 +364,7 @@ class SessionManagementService {
 
     // 設定新的逾時
     const timeoutId = setTimeout(async () => {
-      this.logger.warn(`⚠️ 會話逾時: ${sessionId}`)
+      this.logger.warn(`[WARN] 會話逾時: ${sessionId}`)
       await this.endSession(sessionId, 'timeout')
     }, TIMEOUTS.DEFAULT_MESSAGE_TIMEOUT * 2) // 會話逾時時間為訊息逾時的兩倍
 
@@ -394,7 +394,7 @@ class SessionManagementService {
       this.cleanupInactiveSessions()
     }, 60000) // 每分鐘檢查一次
 
-    this.logger.log('🔄 會話清理監控已啟動')
+    this.logger.log('會話清理監控已啟動')
   }
 
   /**
@@ -406,7 +406,7 @@ class SessionManagementService {
       this.sessionCleanupInterval = null
     }
 
-    this.logger.log('🔄 會話清理監控已停止')
+    this.logger.log('會話清理監控已停止')
   }
 
   /**
@@ -420,7 +420,7 @@ class SessionManagementService {
       const timeSinceLastActivity = now - session.lastActivity
 
       if (timeSinceLastActivity > inactiveThreshold) {
-        this.logger.warn(`⚠️ 清理非活動會話: ${sessionId}`)
+        this.logger.warn(`[WARN] 清理非活動會話: ${sessionId}`)
         this.endSession(sessionId, 'inactivity_cleanup')
       }
     }
@@ -438,13 +438,13 @@ class SessionManagementService {
           this.sessionHistory = stored.messaging_sessions
             .slice(-LIMITS.MAX_SESSION_HISTORY)
 
-          this.logger.log(`📚 載入了 ${this.sessionHistory.length} 個會話歷史記錄`)
+          this.logger.log(`載入了 ${this.sessionHistory.length} 個會話歷史記錄`)
         }
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，跳過會話歷史載入')
+        this.logger.warn('[WARN] Chrome storage API 不可用，跳過會話歷史載入')
       }
     } catch (error) {
-      this.logger.error('❌ 載入會話歷史失敗:', error)
+      this.logger.error('[FAIL] 載入會話歷史失敗:', error)
     }
   }
 
@@ -458,12 +458,12 @@ class SessionManagementService {
           messaging_sessions: this.sessionHistory.slice(-LIMITS.MAX_SESSION_HISTORY)
         })
 
-        this.logger.log(`💾 保存了 ${this.sessionHistory.length} 個會話歷史記錄`)
+        this.logger.log(`[SAVE] 保存了 ${this.sessionHistory.length} 個會話歷史記錄`)
       } else {
-        this.logger.warn('⚠️ Chrome storage API 不可用，無法保存會話歷史')
+        this.logger.warn('[WARN] Chrome storage API 不可用，無法保存會話歷史')
       }
     } catch (error) {
-      this.logger.error('❌ 保存會話歷史失敗:', error)
+      this.logger.error('[FAIL] 保存會話歷史失敗:', error)
     }
   }
 
@@ -472,7 +472,7 @@ class SessionManagementService {
    */
   async registerEventListeners () {
     // 會話管理服務通常不直接監聽事件，而是被其他服務調用
-    this.logger.log('✅ 會話管理服務事件監聽器註冊完成')
+    this.logger.log('[OK] 會話管理服務事件監聽器註冊完成')
   }
 
   /**
@@ -480,7 +480,7 @@ class SessionManagementService {
    */
   async unregisterEventListeners () {
     this.registeredListeners.clear()
-    this.logger.log('✅ 會話管理服務事件監聽器已取消註冊')
+    this.logger.log('[OK] 會話管理服務事件監聽器已取消註冊')
   }
 
   /**

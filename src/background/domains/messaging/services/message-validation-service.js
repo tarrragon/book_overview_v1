@@ -91,20 +91,20 @@ class MessageValidationService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 訊息驗證服務已初始化')
+      this.logger.warn('[WARN] 訊息驗證服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔄 初始化訊息驗證服務')
+      this.logger.log('初始化訊息驗證服務')
 
       // 載入驗證規則配置
       await this.loadValidationRules()
 
       this.state.initialized = true
-      this.logger.log('✅ 訊息驗證服務初始化完成')
+      this.logger.log('[OK] 訊息驗證服務初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化訊息驗證服務失敗:', error)
+      this.logger.error('[FAIL] 初始化訊息驗證服務失敗:', error)
       throw error
     }
   }
@@ -121,12 +121,12 @@ class MessageValidationService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 訊息驗證服務已啟動')
+      this.logger.warn('[WARN] 訊息驗證服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動訊息驗證服務')
+      this.logger.log('[START] 啟動訊息驗證服務')
 
       // 註冊事件監聽器
       await this.registerEventListeners()
@@ -135,9 +135,9 @@ class MessageValidationService {
       this.startCacheCleanupMonitoring()
 
       this.state.active = true
-      this.logger.log('✅ 訊息驗證服務啟動完成')
+      this.logger.log('[OK] 訊息驗證服務啟動完成')
     } catch (error) {
-      this.logger.error('❌ 啟動訊息驗證服務失敗:', error)
+      this.logger.error('[FAIL] 啟動訊息驗證服務失敗:', error)
       throw error
     }
   }
@@ -147,12 +147,12 @@ class MessageValidationService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 訊息驗證服務未啟動')
+      this.logger.warn('[WARN] 訊息驗證服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止訊息驗證服務')
+      this.logger.log('[STOP] 停止訊息驗證服務')
 
       // 停止快取清理監控
       this.stopCacheCleanupMonitoring()
@@ -164,9 +164,9 @@ class MessageValidationService {
       await this.unregisterEventListeners()
 
       this.state.active = false
-      this.logger.log('✅ 訊息驗證服務停止完成')
+      this.logger.log('[OK] 訊息驗證服務停止完成')
     } catch (error) {
-      this.logger.error('❌ 停止訊息驗證服務失敗:', error)
+      this.logger.error('[FAIL] 停止訊息驗證服務失敗:', error)
       throw error
     }
   }
@@ -205,7 +205,7 @@ class MessageValidationService {
 
       return validationResult
     } catch (error) {
-      this.logger.error('❌ 驗證訊息失敗:', error)
+      this.logger.error('[FAIL] 驗證訊息失敗:', error)
       this.stats.invalidMessages++
       return {
         valid: false,
@@ -669,11 +669,11 @@ class MessageValidationService {
 
         if (stored.validation_rules) {
           this.validationRules = { ...this.validationRules, ...stored.validation_rules }
-          this.logger.log('📚 載入了自訂驗證規則')
+          this.logger.log('載入了自訂驗證規則')
         }
       }
     } catch (error) {
-      this.logger.error('❌ 載入驗證規則失敗:', error)
+      this.logger.error('[FAIL] 載入驗證規則失敗:', error)
     }
   }
 
@@ -689,7 +689,7 @@ class MessageValidationService {
       this.cleanupExpiredCache()
     }, 60000) // 每分鐘清理一次
 
-    this.logger.log('🔄 快取清理監控已啟動')
+    this.logger.log('快取清理監控已啟動')
   }
 
   /**
@@ -701,7 +701,7 @@ class MessageValidationService {
       this.cacheCleanupInterval = null
     }
 
-    this.logger.log('🔄 快取清理監控已停止')
+    this.logger.log('快取清理監控已停止')
   }
 
   /**
@@ -719,7 +719,7 @@ class MessageValidationService {
     }
 
     if (cleanedCount > 0) {
-      this.logger.log(`🧹 清理了 ${cleanedCount} 個過期快取項目`)
+      this.logger.log(`清理了 ${cleanedCount} 個過期快取項目`)
     }
   }
 
@@ -728,7 +728,7 @@ class MessageValidationService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -745,7 +745,7 @@ class MessageValidationService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -758,12 +758,12 @@ class MessageValidationService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -783,7 +783,7 @@ class MessageValidationService {
         }, EVENT_PRIORITIES.NORMAL)
       }
     } catch (error) {
-      this.logger.error('❌ 處理驗證請求失敗:', error)
+      this.logger.error('[FAIL] 處理驗證請求失敗:', error)
     }
   }
 

@@ -55,12 +55,12 @@ class ShutdownHandler extends BaseModule {
    * @protected
    */
   async _doInitialize () {
-    this.logger.log('🛑 初始化關閉處理器')
+    this.logger.log('[STOP] 初始化關閉處理器')
 
     // 註冊 beforeunload 類似的處理（如果可能）
     this.setupShutdownDetection()
 
-    this.logger.log('✅ 關閉處理器初始化完成')
+    this.logger.log('[OK] 關閉處理器初始化完成')
   }
 
   /**
@@ -71,7 +71,7 @@ class ShutdownHandler extends BaseModule {
     // error 和 unhandledrejection handler 已在 background.js 頂層同步註冊，
     // 避免 Chrome 警告 "Event handler must be added on initial evaluation"
     // 在 Manifest V3 中，我們無法直接監聽 Service Worker 的關閉
-    this.logger.log('🔍 關閉檢測機制設定完成（全域錯誤處理器已在頂層註冊）')
+    this.logger.log('[CHECK] 關閉檢測機制設定完成（全域錯誤處理器已在頂層註冊）')
   }
 
   /**
@@ -82,7 +82,7 @@ class ShutdownHandler extends BaseModule {
    */
   async gracefulShutdown (reason = 'manual', timeout = null) {
     if (this.shutdownInProgress) {
-      this.logger.warn('⚠️ 關閉處理已在進行中')
+      this.logger.warn('[WARN] 關閉處理已在進行中')
       return
     }
 
@@ -92,7 +92,7 @@ class ShutdownHandler extends BaseModule {
       this.lastShutdownReason = reason
       const effectiveTimeout = timeout || this.shutdownTimeout
 
-      this.logger.log(`🛑 開始優雅關閉 (原因: ${reason}, 超時: ${effectiveTimeout}ms)`)
+      this.logger.log(`[STOP] 開始優雅關閉 (原因: ${reason}, 超時: ${effectiveTimeout}ms)`)
 
       // 設定超時保護
       const shutdownPromise = this.performShutdown(reason)
@@ -120,9 +120,9 @@ class ShutdownHandler extends BaseModule {
         success: true
       })
 
-      this.logger.log(`✅ 優雅關閉完成 (耗時: ${Date.now() - this.shutdownStartTime}ms)`)
+      this.logger.log(`[OK] 優雅關閉完成 (耗時: ${Date.now() - this.shutdownStartTime}ms)`)
     } catch (error) {
-      this.logger.error('❌ 優雅關閉失敗:', error)
+      this.logger.error('[FAIL] 優雅關閉失敗:', error)
 
       // 記錄失敗
       this.shutdownHistory.push({
@@ -179,7 +179,7 @@ class ShutdownHandler extends BaseModule {
    */
   async saveCriticalState () {
     try {
-      this.logger.log('💾 保存關鍵狀態')
+      this.logger.log('[SAVE] 保存關鍵狀態')
 
       // 收集各模組的關鍵狀態
       const moduleStates = {}
@@ -190,7 +190,7 @@ class ShutdownHandler extends BaseModule {
           try {
             moduleStates[moduleName] = await module.getCriticalState()
           } catch (error) {
-            this.logger.error(`❌ 獲取模組狀態失敗: ${moduleName}`, error)
+            this.logger.error(`[FAIL] 獲取模組狀態失敗: ${moduleName}`, error)
           }
         }
       }
@@ -209,9 +209,9 @@ class ShutdownHandler extends BaseModule {
         last_shutdown_time: Date.now()
       })
 
-      this.logger.log('✅ 關鍵狀態保存完成')
+      this.logger.log('[OK] 關鍵狀態保存完成')
     } catch (error) {
-      this.logger.error('❌ 保存關鍵狀態失敗:', error)
+      this.logger.error('[FAIL] 保存關鍵狀態失敗:', error)
       // 不拋出錯誤，繼續關閉流程
     }
   }
@@ -223,7 +223,7 @@ class ShutdownHandler extends BaseModule {
    */
   async stopAcceptingRequests () {
     try {
-      this.logger.log('🚫 停止接受新請求')
+      this.logger.log('停止接受新請求')
 
       // 設定全域標誌表示系統正在關閉
       globalThis.systemShuttingDown = true
@@ -233,9 +233,9 @@ class ShutdownHandler extends BaseModule {
         await this.messageRouter.stopAcceptingMessages()
       }
 
-      this.logger.log('✅ 已停止接受新請求')
+      this.logger.log('[OK] 已停止接受新請求')
     } catch (error) {
-      this.logger.error('❌ 停止接受新請求失敗:', error)
+      this.logger.error('[FAIL] 停止接受新請求失敗:', error)
     }
   }
 
@@ -246,7 +246,7 @@ class ShutdownHandler extends BaseModule {
    */
   async finishPendingOperations () {
     try {
-      this.logger.log('⏳ 等待正在進行的操作完成')
+      this.logger.log('[WAIT] 等待正在進行的操作完成')
 
       // 等待各模組完成正在進行的操作
       const pendingPromises = []
@@ -256,7 +256,7 @@ class ShutdownHandler extends BaseModule {
         if (module && typeof module.finishPendingOperations === 'function') {
           pendingPromises.push(
             module.finishPendingOperations().catch(error => {
-              this.logger.error(`❌ 模組完成操作失敗: ${moduleName}`, error)
+              this.logger.error(`[FAIL] 模組完成操作失敗: ${moduleName}`, error)
             })
           )
         }
@@ -272,9 +272,9 @@ class ShutdownHandler extends BaseModule {
         timeoutPromise
       ])
 
-      this.logger.log('✅ 正在進行的操作已完成或超時')
+      this.logger.log('[OK] 正在進行的操作已完成或超時')
     } catch (error) {
-      this.logger.error('❌ 等待操作完成失敗:', error)
+      this.logger.error('[FAIL] 等待操作完成失敗:', error)
     }
   }
 
@@ -284,29 +284,29 @@ class ShutdownHandler extends BaseModule {
    * @private
    */
   async shutdownModulesInSequence () {
-    this.logger.log('🔄 按順序關閉模組')
+    this.logger.log('按順序關閉模組')
 
     for (const moduleName of this.shutdownSequence) {
       const module = this[moduleName]
 
       if (!module) {
-        this.logger.warn(`⚠️ 模組不存在: ${moduleName}`)
+        this.logger.warn(`[WARN] 模組不存在: ${moduleName}`)
         continue
       }
 
       try {
-        this.logger.log(`⏹️ 關閉模組: ${moduleName}`)
+        this.logger.log(`[STOP] 關閉模組: ${moduleName}`)
 
         if (typeof module.stop === 'function') {
           await module.stop()
         }
 
-        this.logger.log(`✅ 模組關閉成功: ${moduleName}`)
+        this.logger.log(`[OK] 模組關閉成功: ${moduleName}`)
 
         // 觸發模組關閉事件
         await this.emitShutdownEvent('MODULE.SHUTDOWN.SUCCESS', { moduleName })
       } catch (error) {
-        this.logger.error(`❌ 模組關閉失敗: ${moduleName}`, error)
+        this.logger.error(`[FAIL] 模組關閉失敗: ${moduleName}`, error)
 
         // 觸發模組關閉失敗事件
         await this.emitShutdownEvent('MODULE.SHUTDOWN.FAILED', {
@@ -316,7 +316,7 @@ class ShutdownHandler extends BaseModule {
       }
     }
 
-    this.logger.log('✅ 模組序列關閉完成')
+    this.logger.log('[OK] 模組序列關閉完成')
   }
 
   /**
@@ -326,7 +326,7 @@ class ShutdownHandler extends BaseModule {
    */
   async cleanupResources () {
     try {
-      this.logger.log('🧹 清理系統資源')
+      this.logger.log('清理系統資源')
 
       // 清理全域變數
       if (globalThis.eventBus) {
@@ -351,9 +351,9 @@ class ShutdownHandler extends BaseModule {
       // 清理關鍵狀態
       this.criticalState.clear()
 
-      this.logger.log('✅ 系統資源清理完成')
+      this.logger.log('[OK] 系統資源清理完成')
     } catch (error) {
-      this.logger.error('❌ 清理系統資源失敗:', error)
+      this.logger.error('[FAIL] 清理系統資源失敗:', error)
     }
   }
 
@@ -363,7 +363,7 @@ class ShutdownHandler extends BaseModule {
    */
   async forceShutdown () {
     try {
-      this.logger.warn('⚠️ 執行強制關閉')
+      this.logger.warn('[WARN] 執行強制關閉')
 
       // 觸發強制關閉事件
       await this.emitShutdownEvent('SYSTEM.FORCE.SHUTDOWN', {
@@ -373,9 +373,9 @@ class ShutdownHandler extends BaseModule {
       // 立即清理資源
       await this.cleanupResources()
 
-      this.logger.warn('⚠️ 強制關閉完成')
+      this.logger.warn('[WARN] 強制關閉完成')
     } catch (error) {
-      this.logger.error('❌ 強制關閉失敗:', error)
+      this.logger.error('[FAIL] 強制關閉失敗:', error)
     }
   }
 
@@ -395,7 +395,7 @@ class ShutdownHandler extends BaseModule {
         })
       }
     } catch (error) {
-      this.logger.error(`❌ 觸發關閉事件失敗: ${eventType}`, error)
+      this.logger.error(`[FAIL] 觸發關閉事件失敗: ${eventType}`, error)
     }
   }
 

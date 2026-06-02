@@ -101,7 +101,7 @@ class PermissionManagementService {
       await this.registerPermissionListeners()
 
       this.state.initialized = true
-      this.logger.log('✅ 權限管理服務初始化完成')
+      this.logger.log('[OK] 權限管理服務初始化完成')
 
       // 發送初始化完成事件
       if (this.eventBus) {
@@ -111,7 +111,7 @@ class PermissionManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 初始化權限管理服務失敗:', error)
+      this.logger.error('[FAIL] 初始化權限管理服務失敗:', error)
       throw error
     }
   }
@@ -130,12 +130,12 @@ class PermissionManagementService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 權限管理服務已啟動')
+      this.logger.warn('[WARN] 權限管理服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動權限管理服務')
+      this.logger.log('[START] 啟動權限管理服務')
 
       // 開始權限監控
       this.startPermissionMonitoring()
@@ -148,7 +148,7 @@ class PermissionManagementService {
       this.state.active = true
       this.state.monitoring = true
 
-      this.logger.log('✅ 權限管理服務啟動完成')
+      this.logger.log('[OK] 權限管理服務啟動完成')
 
       // 發送啟動完成事件
       if (this.eventBus) {
@@ -157,7 +157,7 @@ class PermissionManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 啟動權限管理服務失敗:', error)
+      this.logger.error('[FAIL] 啟動權限管理服務失敗:', error)
       throw error
     }
   }
@@ -167,12 +167,12 @@ class PermissionManagementService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 權限管理服務未啟動')
+      this.logger.warn('[WARN] 權限管理服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止權限管理服務')
+      this.logger.log('[STOP] 停止權限管理服務')
 
       // 停止權限監控
       this.stopPermissionMonitoring()
@@ -184,7 +184,7 @@ class PermissionManagementService {
       this.state.active = false
       this.state.monitoring = false
 
-      this.logger.log('✅ 權限管理服務停止完成')
+      this.logger.log('[OK] 權限管理服務停止完成')
 
       // 發送停止完成事件
       if (this.eventBus) {
@@ -194,7 +194,7 @@ class PermissionManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 停止權限管理服務失敗:', error)
+      this.logger.error('[FAIL] 停止權限管理服務失敗:', error)
       throw error
     }
   }
@@ -244,7 +244,7 @@ class PermissionManagementService {
       origins: ['*://readmoo.com/*']
     })
 
-    this.logger.log(`✅ 初始化了 ${this.requiredPermissions.size} 個權限配置`)
+    this.logger.log(`[OK] 初始化了 ${this.requiredPermissions.size} 個權限配置`)
   }
 
   /**
@@ -341,7 +341,7 @@ class PermissionManagementService {
 
       return await chrome.permissions.contains(checkData)
     } catch (error) {
-      this.logger.error(`❌ 檢查權限失敗 (${config.name}):`, error)
+      this.logger.error(`[FAIL] 檢查權限失敗 (${config.name}):`, error)
       return false
     }
   }
@@ -367,11 +367,11 @@ class PermissionManagementService {
 
     // 檢查是否已有待處理的請求
     if (this.pendingRequests.has(permissionKey)) {
-      this.logger.log(`⏳ 權限請求已在處理中: ${permissionKey}`)
+      this.logger.log(`[WAIT] 權限請求已在處理中: ${permissionKey}`)
       return this.pendingRequests.get(permissionKey)
     }
 
-    this.logger.log(`📋 請求權限: ${config.name}`)
+    this.logger.log(`請求權限: ${config.name}`)
     this.stats.permissionRequests++
 
     const requestPromise = this.executePermissionRequest(config, userInitiated)
@@ -383,7 +383,7 @@ class PermissionManagementService {
       if (granted) {
         this.grantedPermissions.add(permissionKey)
         this.stats.permissionsGranted++
-        this.logger.log(`✅ 權限已授予: ${config.name}`)
+        this.logger.log(`[OK] 權限已授予: ${config.name}`)
 
         // 發送權限授予事件
         if (this.eventBus) {
@@ -394,7 +394,7 @@ class PermissionManagementService {
         }
       } else {
         this.stats.permissionsDenied++
-        this.logger.log(`❌ 權限被拒絕: ${config.name}`)
+        this.logger.log(`[FAIL] 權限被拒絕: ${config.name}`)
 
         // 發送權限拒絕事件
         if (this.eventBus) {
@@ -430,13 +430,13 @@ class PermissionManagementService {
 
       // Chrome 要求某些權限請求必須由使用者互動觸發
       if (!userInitiated && this.requiresUserGesture(config.name)) {
-        this.logger.warn(`⚠️ 權限 ${config.name} 需要使用者手勢觸發`)
+        this.logger.warn(`[WARN] 權限 ${config.name} 需要使用者手勢觸發`)
         return false
       }
 
       return await chrome.permissions.request(requestData)
     } catch (error) {
-      this.logger.error(`❌ 執行權限請求失敗 (${config.name}):`, error)
+      this.logger.error(`[FAIL] 執行權限請求失敗 (${config.name}):`, error)
       return false
     }
   }
@@ -469,13 +469,13 @@ class PermissionManagementService {
         const granted = await this.requestPermission(permissionKey, false)
         results.push({ permission: permissionKey, granted })
       } catch (error) {
-        this.logger.error(`❌ 請求必要權限失敗 (${permissionKey}):`, error)
+        this.logger.error(`[FAIL] 請求必要權限失敗 (${permissionKey}):`, error)
         results.push({ permission: permissionKey, granted: false, error: error.message })
       }
     }
 
     const grantedCount = results.filter(r => r.granted).length
-    this.logger.log(`📋 必要權限請求完成: ${grantedCount}/${essentialPermissions.length} 已授予`)
+    this.logger.log(`必要權限請求完成: ${grantedCount}/${essentialPermissions.length} 已授予`)
 
     return results
   }
@@ -512,7 +512,7 @@ class PermissionManagementService {
 
       if (removed) {
         this.grantedPermissions.delete(permissionKey)
-        this.logger.log(`🗑️ 權限已撤銷: ${config.name}`)
+        this.logger.log(`權限已撤銷: ${config.name}`)
 
         // 發送權限撤銷事件
         if (this.eventBus) {
@@ -525,7 +525,7 @@ class PermissionManagementService {
 
       return removed
     } catch (error) {
-      this.logger.error(`❌ 撤銷權限失敗 (${config.name}):`, error)
+      this.logger.error(`[FAIL] 撤銷權限失敗 (${config.name}):`, error)
       return false
     }
   }
@@ -540,7 +540,7 @@ class PermissionManagementService {
       await this.checkCurrentPermissions()
     }, this.checkInterval)
 
-    this.logger.log('👁️ 權限監控已啟動')
+    this.logger.log('權限監控已啟動')
   }
 
   /**
@@ -550,7 +550,7 @@ class PermissionManagementService {
     if (this.permissionWatcher) {
       clearInterval(this.permissionWatcher)
       this.permissionWatcher = null
-      this.logger.log('👁️ 權限監控已停止')
+      this.logger.log('權限監控已停止')
     }
   }
 
@@ -559,7 +559,7 @@ class PermissionManagementService {
    */
   async registerPermissionListeners () {
     if (typeof chrome === 'undefined' || !chrome.permissions) {
-      this.logger.warn('⚠️ Chrome Permissions API 不可用')
+      this.logger.warn('[WARN] Chrome Permissions API 不可用')
       return
     }
 
@@ -570,9 +570,9 @@ class PermissionManagementService {
       // 權限移除事件
       chrome.permissions.onRemoved.addListener(this.handlePermissionRemoved.bind(this))
 
-      this.logger.log('✅ Chrome 權限事件監聽器註冊完成')
+      this.logger.log('[OK] Chrome 權限事件監聽器註冊完成')
     } catch (error) {
-      this.logger.error('❌ 註冊權限監聽器失敗:', error)
+      this.logger.error('[FAIL] 註冊權限監聽器失敗:', error)
     }
   }
 
@@ -586,9 +586,9 @@ class PermissionManagementService {
       chrome.permissions.onAdded.removeListener(this.handlePermissionAdded.bind(this))
       chrome.permissions.onRemoved.removeListener(this.handlePermissionRemoved.bind(this))
 
-      this.logger.log('✅ Chrome 權限事件監聽器取消註冊完成')
+      this.logger.log('[OK] Chrome 權限事件監聽器取消註冊完成')
     } catch (error) {
-      this.logger.error('❌ 取消註冊權限監聽器失敗:', error)
+      this.logger.error('[FAIL] 取消註冊權限監聽器失敗:', error)
     }
   }
 
@@ -596,7 +596,7 @@ class PermissionManagementService {
    * 處理權限添加事件
    */
   async handlePermissionAdded (permissions) {
-    this.logger.log('🔐 檢測到權限添加:', permissions)
+    this.logger.log('檢測到權限添加:', permissions)
 
     // 更新內部狀態
     await this.checkCurrentPermissions()
@@ -614,7 +614,7 @@ class PermissionManagementService {
    * 處理權限移除事件
    */
   async handlePermissionRemoved (permissions) {
-    this.logger.log('🔐 檢測到權限移除:', permissions)
+    this.logger.log('檢測到權限移除:', permissions)
 
     // 更新內部狀態
     await this.checkCurrentPermissions()
@@ -633,7 +633,7 @@ class PermissionManagementService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -660,7 +660,7 @@ class PermissionManagementService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -673,12 +673,12 @@ class PermissionManagementService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -707,7 +707,7 @@ class PermissionManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理權限請求事件失敗:', error)
+      this.logger.error('[FAIL] 處理權限請求事件失敗:', error)
     }
   }
 
@@ -738,7 +738,7 @@ class PermissionManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理權限檢查事件失敗:', error)
+      this.logger.error('[FAIL] 處理權限檢查事件失敗:', error)
     }
   }
 
@@ -768,7 +768,7 @@ class PermissionManagementService {
         })
       }
     } catch (error) {
-      this.logger.error('❌ 處理權限撤銷事件失敗:', error)
+      this.logger.error('[FAIL] 處理權限撤銷事件失敗:', error)
     }
   }
 

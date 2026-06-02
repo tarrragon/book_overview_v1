@@ -91,7 +91,7 @@ class QueueManagementService {
     for (const [, priority] of Object.entries(QUEUE_CONFIG.PRIORITY_LEVELS)) {
       this.messageQueues.set(priority, [])
     }
-    this.logger.log('🗂️ 初始化了優先級佇列結構')
+    this.logger.log('初始化了優先級佇列結構')
   }
 
   /**
@@ -99,20 +99,20 @@ class QueueManagementService {
    */
   async initialize () {
     if (this.state.initialized) {
-      this.logger.warn('⚠️ 佇列管理服務已初始化')
+      this.logger.warn('[WARN] 佇列管理服務已初始化')
       return
     }
 
     try {
-      this.logger.log('🔄 初始化佇列管理服務')
+      this.logger.log('初始化佇列管理服務')
 
       // 載入佇列配置
       await this.loadQueueConfiguration()
 
       this.state.initialized = true
-      this.logger.log('✅ 佇列管理服務初始化完成')
+      this.logger.log('[OK] 佇列管理服務初始化完成')
     } catch (error) {
-      this.logger.error('❌ 初始化佇列管理服務失敗:', error)
+      this.logger.error('[FAIL] 初始化佇列管理服務失敗:', error)
       throw error
     }
   }
@@ -129,12 +129,12 @@ class QueueManagementService {
     }
 
     if (this.state.active) {
-      this.logger.warn('⚠️ 佇列管理服務已啟動')
+      this.logger.warn('[WARN] 佇列管理服務已啟動')
       return
     }
 
     try {
-      this.logger.log('🚀 啟動佇列管理服務')
+      this.logger.log('[START] 啟動佇列管理服務')
 
       // 註冊事件監聽器
       await this.registerEventListeners()
@@ -146,9 +146,9 @@ class QueueManagementService {
       this.startHealthCheckMonitoring()
 
       this.state.active = true
-      this.logger.log('✅ 佇列管理服務啟動完成')
+      this.logger.log('[OK] 佇列管理服務啟動完成')
     } catch (error) {
-      this.logger.error('❌ 啟動佇列管理服務失敗:', error)
+      this.logger.error('[FAIL] 啟動佇列管理服務失敗:', error)
       throw error
     }
   }
@@ -158,12 +158,12 @@ class QueueManagementService {
    */
   async stop () {
     if (!this.state.active) {
-      this.logger.warn('⚠️ 佇列管理服務未啟動')
+      this.logger.warn('[WARN] 佇列管理服務未啟動')
       return
     }
 
     try {
-      this.logger.log('🛑 停止佇列管理服務')
+      this.logger.log('[STOP] 停止佇列管理服務')
 
       // 停止訊息處理器
       this.stopMessageProcessor()
@@ -178,9 +178,9 @@ class QueueManagementService {
       await this.unregisterEventListeners()
 
       this.state.active = false
-      this.logger.log('✅ 佇列管理服務停止完成')
+      this.logger.log('[OK] 佇列管理服務停止完成')
     } catch (error) {
-      this.logger.error('❌ 停止佇列管理服務失敗:', error)
+      this.logger.error('[FAIL] 停止佇列管理服務失敗:', error)
       throw error
     }
   }
@@ -194,7 +194,7 @@ class QueueManagementService {
       const totalQueueSize = this.getTotalQueueSize()
       if (totalQueueSize >= QUEUE_CONFIG.MAX_QUEUE_SIZE) {
         this.stats.queueOverflows++
-        this.logger.warn('⚠️ 佇列已滿，無法加入新訊息')
+        this.logger.warn('[WARN] 佇列已滿，無法加入新訊息')
         return {
           success: false,
           error: 'Queue overflow',
@@ -224,7 +224,7 @@ class QueueManagementService {
       this.stats.messagesQueued++
       this.stats.currentQueueSize = this.getTotalQueueSize()
 
-      this.logger.log(`📥 訊息已加入佇列: ${queueItem.id} (優先級: ${priority})`)
+      this.logger.log(`訊息已加入佇列: ${queueItem.id} (優先級: ${priority})`)
 
       return {
         success: true,
@@ -233,7 +233,7 @@ class QueueManagementService {
         queueSize: this.stats.currentQueueSize
       }
     } catch (error) {
-      this.logger.error('❌ 加入佇列失敗:', error)
+      this.logger.error('[FAIL] 加入佇列失敗:', error)
       return {
         success: false,
         error: error.message
@@ -253,7 +253,7 @@ class QueueManagementService {
           const queueItem = queue.splice(index, 1)[0]
           this.stats.currentQueueSize = this.getTotalQueueSize()
 
-          this.logger.log(`📤 訊息已從佇列移除: ${messageId}`)
+          this.logger.log(`訊息已從佇列移除: ${messageId}`)
           return {
             success: true,
             messageId,
@@ -267,7 +267,7 @@ class QueueManagementService {
         error: 'Message not found in queue'
       }
     } catch (error) {
-      this.logger.error('❌ 從佇列移除失敗:', error)
+      this.logger.error('[FAIL] 從佇列移除失敗:', error)
       return {
         success: false,
         error: error.message
@@ -288,7 +288,7 @@ class QueueManagementService {
     }, PROCESSING_CONFIG.PROCESSING_INTERVAL)
 
     this.state.processing = true
-    this.logger.log('⚙️ 訊息處理器已啟動')
+    this.logger.log('訊息處理器已啟動')
   }
 
   /**
@@ -301,7 +301,7 @@ class QueueManagementService {
     }
 
     this.state.processing = false
-    this.logger.log('⚙️ 訊息處理器已停止')
+    this.logger.log('訊息處理器已停止')
   }
 
   /**
@@ -336,7 +336,7 @@ class QueueManagementService {
       // 更新佇列大小統計
       this.stats.currentQueueSize = this.getTotalQueueSize()
     } catch (error) {
-      this.logger.error('❌ 處理訊息批次失敗:', error)
+      this.logger.error('[FAIL] 處理訊息批次失敗:', error)
     }
   }
 
@@ -476,7 +476,7 @@ class QueueManagementService {
       }, EVENT_PRIORITIES.LOW)
     }
 
-    this.logger.log(`✅ 訊息處理完成: ${queueItem.id}`)
+    this.logger.log(`[OK] 訊息處理完成: ${queueItem.id}`)
   }
 
   /**
@@ -496,7 +496,7 @@ class QueueManagementService {
       await this.moveToDeadLetterQueue(queueItem, 'max_retries_exceeded')
     }
 
-    this.logger.warn(`⚠️ 訊息處理失敗: ${queueItem.id}, 錯誤: ${error}`)
+    this.logger.warn(`[WARN] 訊息處理失敗: ${queueItem.id}, 錯誤: ${error}`)
   }
 
   /**
@@ -517,7 +517,7 @@ class QueueManagementService {
       await this.processRetryMessage(queueItem)
     }, retryDelay)
 
-    this.logger.log(`🔄 訊息已排程重試: ${queueItem.id}, 延遲: ${retryDelay}ms`)
+    this.logger.log(`[RETRY] 訊息已排程重試: ${queueItem.id}, 延遲: ${retryDelay}ms`)
   }
 
   /**
@@ -537,7 +537,7 @@ class QueueManagementService {
       priorityQueue.unshift(queueItem) // 優先處理重試訊息
     }
 
-    this.logger.log(`🔄 重試訊息已重新加入佇列: ${queueItem.id}`)
+    this.logger.log(`[RETRY] 重試訊息已重新加入佇列: ${queueItem.id}`)
   }
 
   /**
@@ -566,7 +566,7 @@ class QueueManagementService {
       }, EVENT_PRIORITIES.HIGH)
     }
 
-    this.logger.error(`💀 訊息已移至死信佇列: ${queueItem.id}, 原因: ${reason}`)
+    this.logger.error(`訊息已移至死信佇列: ${queueItem.id}, 原因: ${reason}`)
   }
 
   /**
@@ -581,7 +581,7 @@ class QueueManagementService {
    * 處理過期訊息
    */
   handleExpiredMessage (queueItem) {
-    this.logger.warn(`⏰ 訊息已過期: ${queueItem.id}`)
+    this.logger.warn(`[TIMER] 訊息已過期: ${queueItem.id}`)
     this.moveToDeadLetterQueue(queueItem, 'message_expired')
   }
 
@@ -633,7 +633,7 @@ class QueueManagementService {
     const totalMessages = this.getTotalQueueSize()
     if (totalMessages === 0) return
 
-    this.logger.log(`📦 處理剩餘的 ${totalMessages} 個訊息`)
+    this.logger.log(`處理剩餘的 ${totalMessages} 個訊息`)
 
     // 快速處理剩餘訊息
     while (this.getTotalQueueSize() > 0) {
@@ -645,7 +645,7 @@ class QueueManagementService {
       }
     }
 
-    this.logger.log('✅ 剩餘訊息處理完成')
+    this.logger.log('[OK] 剩餘訊息處理完成')
   }
 
   /**
@@ -659,11 +659,11 @@ class QueueManagementService {
         if (stored.queue_config) {
           // 合併配置（保持預設值的完整性）
           Object.assign(QUEUE_CONFIG, stored.queue_config)
-          this.logger.log('📚 載入了自訂佇列配置')
+          this.logger.log('載入了自訂佇列配置')
         }
       }
     } catch (error) {
-      this.logger.error('❌ 載入佇列配置失敗:', error)
+      this.logger.error('[FAIL] 載入佇列配置失敗:', error)
     }
   }
 
@@ -679,7 +679,7 @@ class QueueManagementService {
       await this.performHealthCheck()
     }, PROCESSING_CONFIG.HEALTH_CHECK_INTERVAL)
 
-    this.logger.log('🔍 佇列健康檢查監控已啟動')
+    this.logger.log('[CHECK] 佇列健康檢查監控已啟動')
   }
 
   /**
@@ -691,7 +691,7 @@ class QueueManagementService {
       this.healthCheckInterval = null
     }
 
-    this.logger.log('🔍 佇列健康檢查監控已停止')
+    this.logger.log('[CHECK] 佇列健康檢查監控已停止')
   }
 
   /**
@@ -722,7 +722,7 @@ class QueueManagementService {
     }
 
     if (issues.length > 0) {
-      this.logger.warn('⚠️ 佇列健康檢查發現問題:', issues)
+      this.logger.warn('[WARN] 佇列健康檢查發現問題:', issues)
     }
 
     return {
@@ -737,7 +737,7 @@ class QueueManagementService {
    */
   async registerEventListeners () {
     if (!this.eventBus) {
-      this.logger.warn('⚠️ EventBus 不可用，跳過事件監聽器註冊')
+      this.logger.warn('[WARN] EventBus 不可用，跳過事件監聽器註冊')
       return
     }
 
@@ -759,7 +759,7 @@ class QueueManagementService {
       this.registeredListeners.set(event, listenerId)
     }
 
-    this.logger.log(`✅ 註冊了 ${listeners.length} 個事件監聽器`)
+    this.logger.log(`[OK] 註冊了 ${listeners.length} 個事件監聽器`)
   }
 
   /**
@@ -772,12 +772,12 @@ class QueueManagementService {
       try {
         await this.eventBus.off(event, listenerId)
       } catch (error) {
-        this.logger.error(`❌ 取消註冊事件監聽器失敗 (${event}):`, error)
+        this.logger.error(`[FAIL] 取消註冊事件監聽器失敗 (${event}):`, error)
       }
     }
 
     this.registeredListeners.clear()
-    this.logger.log('✅ 所有事件監聽器已取消註冊')
+    this.logger.log('[OK] 所有事件監聽器已取消註冊')
   }
 
   /**
@@ -788,7 +788,7 @@ class QueueManagementService {
       const { message, priority } = event.data
       await this.enqueueMessage(message, priority)
     } catch (error) {
-      this.logger.error('❌ 處理加入佇列請求失敗:', error)
+      this.logger.error('[FAIL] 處理加入佇列請求失敗:', error)
     }
   }
 
@@ -800,7 +800,7 @@ class QueueManagementService {
       const { messageId } = event.data
       await this.dequeueMessage(messageId)
     } catch (error) {
-      this.logger.error('❌ 處理移除佇列請求失敗:', error)
+      this.logger.error('[FAIL] 處理移除佇列請求失敗:', error)
     }
   }
 
