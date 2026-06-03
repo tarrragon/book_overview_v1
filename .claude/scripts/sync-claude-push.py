@@ -183,6 +183,57 @@ def should_exclude(path: Path) -> bool:
     return any(part.lower() in _EXCLUDE_PATTERNS_LOWER for part in path.parts)
 
 
+def detect_secret_leak_risk(project_root: Path) -> list[str]:
+    """偵測 .claude/ 內會被 copy_filtered 推上公開 repo 的 gitignored / untracked 檔。
+
+    安全背景（W1-014 缺陷 E）：push 步驟 2 以 `git status --porcelain .claude`
+    判定乾淨，但 gitignored 檔不顯示於 porcelain；copy_filtered 從磁碟（非 git）
+    讀取，排除僅靠檔名黑名單。因此一個 gitignored 或 untracked 的機密檔（檔名
+    不在 EXCLUDE_* 黑名單內，如 my-api-token.txt）會被靜默推上公開 repo
+    github.com/tarrragon/claude.git——一旦發生即安全事故。
+
+    本函式為 interim 防護（根本解 C1「push 改從 git ls-files」於 W1-018）：
+    枚舉 .claude/ 內 git 不追蹤的檔案（含 ignored 與 untracked），過濾掉本就
+    會被 copy_filtered 排除（should_exclude）的檔，剩餘者即為「會被推上去但
+    git 不追蹤」的洩漏風險，回傳其相對 .claude/ 的路徑清單（已排序去重）。
+
+    為何同時涵蓋 ignored 與 untracked：
+      - ignored：被 .gitignore 命中，porcelain 完全看不到（原瑕疵核心）
+      - untracked：尚未 git add，porcelain 雖看得到但步驟 2 abort 訊息僅泛泛
+        要求「先提交」，未顯式點名機密外洩風險
+
+    參數:
+        project_root: 專案根目錄（含 .claude/ 與 .git/）
+
+    傳回:
+        list[str]: 風險檔案相對 .claude/ 的 posix 路徑清單（無風險時為空）
+    """
+    risky: set[str] = set()
+    # --others 列 untracked；--ignored 額外納入被 .gitignore 命中的檔
+    # -z 以 NUL 分隔，避免檔名含空白 / 特殊字元時解析錯誤
+    for flag in (["--others"], ["--others", "--ignored"]):
+        result = run_git(
+            ["ls-files", "-z", *flag, "--", ".claude"],
+            cwd=str(project_root),
+            check=False,
+        )
+        if result.returncode != 0:
+            continue
+        for raw in result.stdout.split("\0"):
+            rel = raw.strip()
+            if not rel:
+                continue
+            # rel 形如 ".claude/path/to/file"；轉成相對 .claude/ 的路徑判斷黑名單
+            try:
+                under_claude = Path(rel).relative_to(".claude")
+            except ValueError:
+                continue
+            if should_exclude(under_claude):
+                continue  # copy_filtered 本就會過濾，非洩漏風險
+            risky.add(under_claude.as_posix())
+    return sorted(risky)
+
+
 def copy_filtered(src: Path, dst: Path) -> int:
     """Copy src to dst, excluding files matching EXCLUDE_PATTERNS and symlinks.
 
@@ -809,6 +860,29 @@ def main() -> None:
     if result.stdout.strip():
         print_color("警告: .claude 有未提交的變更", "red")
         print("請先提交到主專案，或使用 git add .claude")
+        sys.exit(1)
+
+    # 2.2. 機密洩漏防護（W1-019，安全 P0）：偵測 .claude/ 內 gitignored / untracked
+    # 且未被 copy_filtered 黑名單排除的檔。這類檔不顯示於上方 porcelain 檢查，
+    # 卻會被 copy_filtered 從磁碟讀取並推上公開 repo，屬安全事故。
+    # 偵測到即 abort 並列出清單；正常乾淨 push（無此類檔）不受影響。
+    risky_files = detect_secret_leak_risk(project_root)
+    if risky_files:
+        print_color(
+            "[ABORT] 偵測到 .claude/ 內 gitignored 或 untracked 的檔案，"
+            "推送會將其外洩至公開 repo：",
+            "red",
+        )
+        for rel in risky_files:
+            print_color(f"   - .claude/{rel}", "red")
+        print_color(
+            "這些檔不顯示於 git status porcelain，卻會被 copy_filtered 推上公開 repo。",
+            "yellow",
+        )
+        print_color(
+            "請刪除機密檔、移出 .claude/、或加入 EXCLUDE_PATTERNS 黑名單後重試。",
+            "yellow",
+        )
         sys.exit(1)
 
     # 2.5. No-change early-exit（W3-075）：避免空 commit 污染歷史
