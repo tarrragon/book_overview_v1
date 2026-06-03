@@ -70,6 +70,23 @@ __pycache__/
 # Claude sync state (local only)
 .claude/.sync-state.json
 
+# Claude sync local-only / per-project settings 漂移補齊（0.19.1-W1-030）
+# 與 sync_exclude_manifest LOCAL_ONLY_PATTERNS 對齊：這些是各專案個別管理的
+# local-only / runtime / 工具產物，不應跨專案同步，也不應被誤推或被 push
+# clean-check 誤判。已 git tracked 者（如 .version-release.yaml / settings.local.json /
+# sync-preserve.yaml）由 manifest should_exclude 於 push 時過濾，此處 ignore 防止
+# 未來新增的同類 untracked 變體污染工作區狀態。
+.claude/.zhtw-mcp-skip
+.claude/.version-release.yaml
+.claude/sync-preserve.yaml
+.claude/settings.local.json
+.claude/.venv/
+.claude/.pytest_cache/
+.claude/.sync-conflicts/
+# nested skill 目錄下的同類 local-only 變體（如 .claude/skills/*/.version-release.yaml）
+**/.zhtw-mcp-skip
+**/.pytest_cache/
+
 # Claude handoff archives (session-local)
 .claude/handoff/archive/
 

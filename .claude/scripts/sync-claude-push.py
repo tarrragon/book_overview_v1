@@ -20,11 +20,13 @@
   - 任何 untracked / gitignored 檔（git archive 只取 tracked 樹，從架構層
     消滅 W1-019 secret-leak 風險——機密檔只要未 git add 就不可能被推上去）
 
-commit-first 行為（M5，0.19.1-W1-029）:
-  push 前以 git diff --quiet -- .claude 與 git diff --cached --quiet -- .claude
-  確認 .claude/ 已全數 commit。有未 commit / 未 staged 的變更時 abort，要求先 commit。
-  因 push 取的是 git tracked 樹（HEAD），未 commit 的變更不會被推送——若不先 commit，
-  推上去的內容會與工作區不一致，故強制 commit-first。
+commit-first 行為（M1 根因解，0.19.1-W1-030）:
+  push 前以 git status --porcelain --untracked=all -- .claude 取工作區全狀態，
+  再以 manifest should_exclude 過濾 local-only / 憑證後判定。過濾後仍有變更時
+  abort，要求先 commit。因 push 取的是 git tracked 樹（HEAD），未 commit 的變更
+  不會被推送——若不先 commit，推上去的內容會與工作區不一致，故強制 commit-first。
+  缺陷 T 修復：未進 .gitignore 的 local-only untracked 檔（如 .zhtw-mcp-skip）
+  被 should_exclude 過濾，不再誤判為未提交變更而 abort。
 
 刪除傳播（K，0.19.1-W1-029）:
   本地 git rm 的檔案自然不在 git archive HEAD 的 tracked 樹中 → 遠端 git diff
@@ -186,32 +188,67 @@ def write_base_sha(claude_dir: Path, base_sha: str) -> None:
 
 
 def ensure_committed(project_root: Path) -> bool:
-    """確認 .claude/ 已全數 commit（無 unstaged 也無 staged-uncommitted 變更，M5）。
+    """確認 .claude/ 已全數 commit（M1 根因解，0.19.1-W1-030）。
 
     push 取的是 git tracked 樹（HEAD，見 stage_tracked_tree）；若 .claude/ 有未
-    commit 的變更，推上去的內容會與工作區不一致。故 push 前強制 commit-first。
+    commit 的「會被推送的」變更，推上去的內容會與工作區不一致。故 push 前強制
+    commit-first。
 
-    檢查兩個維度：
-      - git diff --quiet -- .claude      ：工作區 vs index（unstaged 變更）
-      - git diff --cached --quiet -- .claude：index vs HEAD（staged 未 commit）
+    M1 根因解（缺陷 T）：改用 `git status --porcelain --untracked=all -- .claude`
+    取工作區全狀態（含 untracked），再以 manifest should_exclude 過濾掉
+    local-only / 憑證後判定。
 
-    兩者皆乾淨（exit 0）才回 True。
+    Why：舊版用 `git diff --quiet` 只看 tracked 檔的 unstaged/staged 變更，完全
+    忽略 untracked。這造成兩個反向問題：
+      - 缺陷 T 的對稱風險：若改用未過濾的 porcelain，未進 .gitignore 的
+        local-only untracked 檔（如 .zhtw-mcp-skip）會被誤判為「未提交變更」
+        而 abort——但這類檔本就不會被 push（git archive 只取 tracked 樹），
+        不應阻擋 push。
+      - 真正的 untracked 框架檔（如新增的 rule.md 尚未 git add）會被舊 git diff
+        靜默漏過，使 push 推出與工作區不一致的內容。
+
+    Consequence：未做此修復時，push clean-check 會在「local-only untracked 存在」
+    時誤 abort（缺陷 T），且在「真正 untracked 框架檔存在」時靜默放行不一致內容。
+
+    Action：以 porcelain 取全狀態 + should_exclude 過濾。過濾後仍有任何條目
+    （tracked 的 unstaged/staged 變更、或非 local-only 的 untracked 檔）即回 False
+    要求先 commit；過濾後乾淨才回 True。
 
     參數:
         project_root: 專案根目錄（含 .claude/ 與 .git/）
 
     傳回:
-        bool: True 表示已全數 commit，可安全 push
+        bool: True 表示無「會被推送的」未提交變更，可安全 push
     """
-    unstaged = run_git(
-        ["diff", "--quiet", "--", ".claude"], cwd=str(project_root), check=False
-    )
-    staged = run_git(
-        ["diff", "--cached", "--quiet", "--", ".claude"],
+    result = run_git(
+        ["status", "--porcelain", "--untracked=all", "--", ".claude"],
         cwd=str(project_root),
         check=False,
     )
-    return unstaged.returncode == 0 and staged.returncode == 0
+    if result.returncode != 0:
+        # git status 失敗時保守視為「不乾淨」，避免推出未知狀態
+        return False
+    for line in result.stdout.splitlines():
+        if not line.strip():
+            continue
+        # porcelain 格式：XY<space>path（rename 為 "orig -> new"，取末段判定）
+        path_field = line[3:] if len(line) > 3 else line
+        if " -> " in path_field:
+            path_field = path_field.split(" -> ", 1)[1]
+        path_field = path_field.strip().strip('"')
+        # path 相對 project_root（含 .claude/ 前綴）；should_exclude 契約要求相對
+        # claude_dir，故 strip 前綴
+        rel_str = path_field
+        prefix = ".claude/"
+        if rel_str.startswith(prefix):
+            rel_str = rel_str[len(prefix):]
+        if not rel_str:
+            continue
+        if should_exclude(Path(rel_str)):
+            continue
+        # 過濾後仍存在的變更 → 真的需要先 commit
+        return False
+    return True
 
 
 def stage_tracked_tree(project_root: Path, staging_dir: Path) -> int:
@@ -886,12 +923,14 @@ def main() -> None:
     project_root = find_project_root()
     claude_dir = project_root / ".claude"
 
-    # 2. commit-first 檢查（M5，0.19.1-W1-029）：push 取 git tracked 樹（HEAD），
-    # 未 commit 的變更不會被推送。若 .claude/ 有 unstaged 或 staged-uncommitted 變更，
-    # 推上去的內容會與工作區不一致，故強制要求先 commit。
+    # 2. commit-first 檢查（M1 根因解，0.19.1-W1-030）：push 取 git tracked 樹（HEAD），
+    # 未 commit 的「會被推送的」變更不會反映到遠端。clean-check 改用 git status
+    # --porcelain 全狀態 + should_exclude 過濾：local-only / 憑證 untracked 檔
+    # （如 .zhtw-mcp-skip）不再誤判為未提交變更而 abort（缺陷 T），但真正未 commit
+    # 的 tracked 變更與非 local-only untracked 框架檔仍被攔截。
     print_color("檢查 .claude 資料夾狀態（commit-first）...")
     if not ensure_committed(project_root):
-        print_color("警告: .claude 有未提交的變更（unstaged 或 staged 未 commit）", "red")
+        print_color("警告: .claude 有未提交的變更（會被推送但未 commit）", "red")
         print("push 取的是 git tracked 樹（HEAD）；請先 git add .claude && git commit")
         sys.exit(1)
     # 安全說明（C1）：push 改以 git archive HEAD 取 tracked 樹，untracked / gitignored
