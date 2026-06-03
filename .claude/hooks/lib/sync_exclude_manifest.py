@@ -71,6 +71,7 @@ LOCAL_ONLY_PATTERNS = frozenset({
     # 類型 B - Local-only settings
     "sync-preserve.yaml",
     ".sync-state.json",
+    ".sync-conflicts",         # 三方合併衝突暫存目錄（pull/push 皆不同步，本地手動解決）
     "settings.local.json",
     ".zhtw-mcp-skip",          # 各專案 opt-out 繁中檢查的 flag，per-project 決定
 })

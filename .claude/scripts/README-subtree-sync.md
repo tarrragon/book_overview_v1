@@ -37,7 +37,7 @@
 
 ## 同步範圍與排除
 
-同步腳本以檔案複製（`shutil`）逐項處理 `.claude/` 內容，並依下表分類排除或特例處理。完整清單見 `sync-claude-push.py` 的 `EXCLUDE_PATTERNS`、`sync-claude-pull.py` 的 `REMOTE_ONLY` / `LOCAL_ONLY`。
+push 以 `git archive HEAD -- .claude` 取 git tracked 樹，再依 `should_exclude` 過濾後複製到遠端 staging；pull 以三方合併處理 `.claude/` 內容。排除分類的 SSOT 為 `.claude/hooks/lib/sync_exclude_manifest.py`（`should_exclude` / `LOCAL_ONLY_PATTERNS` / `CREDENTIAL_PATTERNS` 等），push/pull/status 三腳本與 hook 共用，避免漂移（ARCH-020）。
 
 | 項目 | Push（本地 → 遠端） | Pull（遠端 → 本地） | 說明 |
 |-----|------|------|------|
@@ -70,6 +70,14 @@ git commit -m "feat: 更新 .claude 配置"
 # 2. 推送到獨立 repo
 python3 ./.claude/scripts/sync-claude-push.py "更新說明"
 ```
+
+> **commit-first 強制（必讀）**：push 取的是 git **tracked 樹**（`git archive HEAD -- .claude`），
+> **不**從磁碟讀取工作區。因此步驟 1 的 commit 是必要前置——若 `.claude/` 有未 commit
+> 或僅 staged 未 commit 的變更，push 會 abort 並要求先 commit（避免推上去的內容與工作區不一致）。
+>
+> 此設計同時帶來兩個保證：
+> - **安全**：untracked / gitignored 檔（含機密檔）不在 tracked 樹中，不可能被推上公開 repo。
+> - **刪除傳播**：本地 `git rm` 的檔自然不在 archive，遠端會對應刪除（需搭配 `--clean` 清理遠端殘留）。
 
 ### 從獨立 Repo 拉取更新
 

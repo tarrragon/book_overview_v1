@@ -9,12 +9,30 @@
 跨平台支援：macOS / Linux / Windows
 依賴：Python 3.8+, git
 
-推送內容:
-  - .claude/ 目錄所有檔案（排除暫存檔案）
+推送內容（C1，0.19.1-W1-029）:
+  - .claude/ 內 **git tracked** 的檔案（以 git archive HEAD -- .claude 取得 tracked
+    樹，非從磁碟 walk）。tracked 但須排除者（如 settings.local.json、.sync-state.json、
+    憑證）仍經 should_exclude 過濾擋下。
   - project-templates/FLUTTER.md
 
 不推送內容:
   - 根目錄 CLAUDE.md（專案特定配置）
+  - 任何 untracked / gitignored 檔（git archive 只取 tracked 樹，從架構層
+    消滅 W1-019 secret-leak 風險——機密檔只要未 git add 就不可能被推上去）
+
+commit-first 行為（M5，0.19.1-W1-029）:
+  push 前以 git diff --quiet -- .claude 與 git diff --cached --quiet -- .claude
+  確認 .claude/ 已全數 commit。有未 commit / 未 staged 的變更時 abort，要求先 commit。
+  因 push 取的是 git tracked 樹（HEAD），未 commit 的變更不會被推送——若不先 commit，
+  推上去的內容會與工作區不一致，故強制 commit-first。
+
+刪除傳播（K，0.19.1-W1-029）:
+  本地 git rm 的檔案自然不在 git archive HEAD 的 tracked 樹中 → 遠端 git diff
+  顯示 D(elete) → commit 帶刪除，刪除自動傳播到遠端。
+
+VERSION（B3，0.19.1-W1-029）:
+  本地 .claude/VERSION 純鏡像上游，永不手動修改（W1-016 B2）。push 流程在 clone
+  上 bump 遠端 VERSION，base 錨點由 .sync-state.json 的 last_synced_base_sha 承擔。
 
 commit 訊息生成:
   - 無參數時自動分析 .claude/ 相關 commit 生成結構化摘要
@@ -28,12 +46,14 @@ Windows 使用者特別注意:
   完整說明與除錯指南詳見 WINDOWS-NOTES.md。
 """
 
+import io
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 from collections import defaultdict
 from datetime import datetime
@@ -48,6 +68,11 @@ from sync_exclude_manifest import (  # noqa: E402
 )
 
 REPO_URL = "https://github.com/tarrragon/claude.git"
+
+# .sync-state.json schema（W1-025）：單一 base 欄位，pull/push 共用。
+# 禁雙欄位（H1：對 commit SHA 用 max 會選錯共同祖先）。與 sync-claude-pull.py 對稱。
+SYNC_STATE_FILENAME = ".sync-state.json"
+BASE_SHA_FIELD = "last_synced_base_sha"
 
 # Push 前強制還原 executable bit 的子目錄（與 sync-claude-pull.py 對稱）
 # 確保推上去的 git index mode 為 100755，避免下游 pull 拿到 644。
@@ -113,84 +138,173 @@ def find_project_root() -> Path:
     sys.exit(1)
 
 
-def detect_secret_leak_risk(project_root: Path) -> list[str]:
-    """偵測 .claude/ 內會被 copy_filtered 推上公開 repo 的 gitignored / untracked 檔。
+def read_base_sha(claude_dir: Path) -> str | None:
+    """讀取 .sync-state.json 中的 last_synced_base_sha（W1-025 schema，與 pull 對稱）。
 
-    安全背景（W1-014 缺陷 E）：push 步驟 2 以 `git status --porcelain .claude`
-    判定乾淨，但 gitignored 檔不顯示於 porcelain；copy_filtered 從磁碟（非 git）
-    讀取，排除僅靠檔名黑名單。因此一個 gitignored 或 untracked 的機密檔（檔名
-    不在 EXCLUDE_* 黑名單內，如 my-api-token.txt）會被靜默推上公開 repo
-    github.com/tarrragon/claude.git——一旦發生即安全事故。
+    無檔案 / 無欄位 / 解析失敗皆回傳 None（向後相容：無 base 時 fallback）。
 
-    本函式為 interim 防護（根本解 C1「push 改從 git ls-files」於 W1-018）：
-    枚舉 .claude/ 內 git 不追蹤的檔案（含 ignored 與 untracked），過濾掉本就
-    會被 copy_filtered 排除（should_exclude）的檔，剩餘者即為「會被推上去但
-    git 不追蹤」的洩漏風險，回傳其相對 .claude/ 的路徑清單（已排序去重）。
+    參數:
+        claude_dir: .claude 目錄路徑
 
-    為何同時涵蓋 ignored 與 untracked：
-      - ignored：被 .gitignore 命中，porcelain 完全看不到（原瑕疵核心）
-      - untracked：尚未 git add，porcelain 雖看得到但步驟 2 abort 訊息僅泛泛
-        要求「先提交」，未顯式點名機密外洩風險
+    傳回:
+        str | None: 上次同步的上游 base commit SHA，無則 None
+    """
+    state_file = claude_dir / SYNC_STATE_FILENAME
+    if not state_file.exists():
+        return None
+    try:
+        data = json.loads(state_file.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    sha = data.get(BASE_SHA_FIELD)
+    return sha if isinstance(sha, str) and sha else None
+
+
+def write_base_sha(claude_dir: Path, base_sha: str) -> None:
+    """push 成功後將遠端 HEAD SHA 寫入 .sync-state.json 的 last_synced_base_sha。
+
+    保留既有欄位（last_push_hash / version / time），僅覆寫單一 base SHA 欄位
+    （H1：禁雙欄位，禁對 commit SHA 用 max）。與 sync-claude-pull.py::write_base_sha
+    寫同一欄位，確保 pull/push 共用單一 base 錨點。
+
+    參數:
+        claude_dir: .claude 目錄路徑
+        base_sha: 本次 push 後遠端 HEAD 的 commit SHA
+    """
+    state_file = claude_dir / SYNC_STATE_FILENAME
+    data: dict = {}
+    if state_file.exists():
+        try:
+            data = json.loads(state_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            data = {}
+    data[BASE_SHA_FIELD] = base_sha
+    state_file.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def ensure_committed(project_root: Path) -> bool:
+    """確認 .claude/ 已全數 commit（無 unstaged 也無 staged-uncommitted 變更，M5）。
+
+    push 取的是 git tracked 樹（HEAD，見 stage_tracked_tree）；若 .claude/ 有未
+    commit 的變更，推上去的內容會與工作區不一致。故 push 前強制 commit-first。
+
+    檢查兩個維度：
+      - git diff --quiet -- .claude      ：工作區 vs index（unstaged 變更）
+      - git diff --cached --quiet -- .claude：index vs HEAD（staged 未 commit）
+
+    兩者皆乾淨（exit 0）才回 True。
 
     參數:
         project_root: 專案根目錄（含 .claude/ 與 .git/）
 
     傳回:
-        list[str]: 風險檔案相對 .claude/ 的 posix 路徑清單（無風險時為空）
+        bool: True 表示已全數 commit，可安全 push
     """
-    risky: set[str] = set()
-    # --others 列 untracked；--ignored 額外納入被 .gitignore 命中的檔
-    # -z 以 NUL 分隔，避免檔名含空白 / 特殊字元時解析錯誤
-    for flag in (["--others"], ["--others", "--ignored"]):
-        result = run_git(
-            ["ls-files", "-z", *flag, "--", ".claude"],
-            cwd=str(project_root),
-            check=False,
+    unstaged = run_git(
+        ["diff", "--quiet", "--", ".claude"], cwd=str(project_root), check=False
+    )
+    staged = run_git(
+        ["diff", "--cached", "--quiet", "--", ".claude"],
+        cwd=str(project_root),
+        check=False,
+    )
+    return unstaged.returncode == 0 and staged.returncode == 0
+
+
+def stage_tracked_tree(project_root: Path, staging_dir: Path) -> int:
+    """以 git archive HEAD -- .claude 取本地 git tracked 樹解到 staging_dir（C1）。
+
+    取代舊 copy_filtered 的磁碟 walk。git archive 只含 tracked 檔案，帶來兩個
+    架構層保證：
+      - 安全（消滅 W1-019）：untracked / gitignored 機密檔不在 tracked 樹中，
+        不可能被推上公開 repo，無需 detect_secret_leak_risk interim 防護。
+      - 刪除傳播（K）：git rm 的檔自然不在 archive，下游 git diff 顯示 D(elete)。
+
+    archive 內路徑帶 `.claude/` 前綴，解壓時 strip 該層，使 staging_dir 直接對應
+    .claude/ 內容（與舊 copy_filtered(claude_dir, temp_dir) 的目標結構一致）。
+
+    注意：本函式只負責「取 tracked 樹」，should_exclude 過濾由
+    copy_filtered_from_staging 在複製到遠端 temp_dir 時施加（M1：tracked 但須
+    排除者如 settings.local.json / .sync-state.json / 憑證仍要擋）。
+
+    參數:
+        project_root: 專案根目錄（含 .claude/ 與 .git/）
+        staging_dir: 解壓目的地（呼叫端建立的暫存目錄）
+
+    傳回:
+        int: 解出的檔案數
+    """
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    result = subprocess.run(
+        ["git", "archive", "--format=tar", "HEAD", "--", ".claude"],
+        cwd=str(project_root),
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        print_color(
+            f"git archive 失敗: {result.stderr.decode('utf-8', 'replace')}", "red"
         )
-        if result.returncode != 0:
-            continue
-        for raw in result.stdout.split("\0"):
-            rel = raw.strip()
+        sys.exit(1)
+
+    count = 0
+    prefix = ".claude/"
+    with tarfile.open(fileobj=io.BytesIO(result.stdout), mode="r:") as tar:
+        for member in tar.getmembers():
+            if not member.isfile():
+                continue
+            name = member.name
+            if not name.startswith(prefix):
+                continue
+            rel = name[len(prefix):]  # strip .claude/ 前綴
             if not rel:
                 continue
-            # rel 形如 ".claude/path/to/file"；轉成相對 .claude/ 的路徑判斷黑名單
-            try:
-                under_claude = Path(rel).relative_to(".claude")
-            except ValueError:
+            dest = staging_dir / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            extracted = tar.extractfile(member)
+            if extracted is None:
                 continue
-            if should_exclude(under_claude):
-                continue  # copy_filtered 本就會過濾，非洩漏風險
-            risky.add(under_claude.as_posix())
-    return sorted(risky)
+            dest.write_bytes(extracted.read())
+            count += 1
+    return count
 
 
-def copy_filtered(src: Path, dst: Path) -> int:
-    """Copy src to dst, excluding files matching EXCLUDE_PATTERNS and symlinks.
+def copy_filtered_from_staging(src: Path, dst: Path) -> int:
+    """從 staging（git tracked 樹）複製到遠端 temp_dir，施加 should_exclude 過濾（M1）。
 
-    Returns the number of files copied.
+    git archive 取的是 tracked 全部；tracked 但屬 local-only / 憑證者（如誤被
+    commit 的 settings.local.json）仍須在此被 should_exclude 擋下，避免外洩至
+    公開 repo。should_exclude 契約要求相對 claude_dir 的路徑，故傳 item 相對
+    src 的路徑判定。
+
+    參數:
+        src: staging_dir（已 strip .claude/ 前綴，內容對應 .claude/）
+        dst: 遠端 repo 本地暫存根目錄（temp_dir）
+
+    傳回:
+        int: 實際複製的檔案數
     """
     count = 0
-    for item in src.iterdir():
-        if should_exclude(item):
+    for item in sorted(src.rglob("*")):
+        if not item.is_file():
             continue
-        if item.is_symlink():
+        rel = item.relative_to(src)  # 相對 .claude/ 的路徑
+        if should_exclude(rel):
             continue
-
-        dest_item = dst / item.name
-        if item.is_dir():
-            dest_item.mkdir(parents=True, exist_ok=True)
-            count += copy_filtered(item, dest_item)
-        else:
-            dest_item.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item, dest_item)
-            count += 1
+        dest_item = dst / rel
+        dest_item.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(item, dest_item)
+        count += 1
     return count
 
 
 def restore_executable_bits(root: Path) -> int:
     """對 root/hooks/ 下所有 .py 檔案強制加入 filesystem executable bit。
 
-    呼叫時機：copy_filtered 把本地 .claude/ 內容複製到 temp_dir 後、git add -A 前。
+    呼叫時機：copy_filtered_from_staging 把 tracked 樹複製到 temp_dir 後、git add -A 前。
     在 POSIX 環境有效（macOS/Linux）；Windows NTFS 無 exec bit 概念，此操作無效果，
     但不會失敗或污染狀態。
 
@@ -659,10 +773,17 @@ def check_no_change_early_exit(
     return False, diag
 
 
-def clean_stale_files(temp_dir: Path, claude_dir: Path) -> int:
-    """刪除 clone 目錄中存在但本地 .claude/ 沒有的過時檔案。
+def clean_stale_files(temp_dir: Path, reference_dir: Path) -> int:
+    """刪除 clone 目錄中存在但 reference_dir（git tracked 樹 staging）沒有的過時檔案。
 
-    排除 .git 目錄、CHANGELOG.md、VERSION 等遠端獨有檔案。
+    C1 後 reference_dir 改為 git archive 解出的 tracked 樹（staging），而非本地磁碟
+    .claude/，使刪除傳播（K）對齊 git tracked 狀態：git rm 的檔不在 staging → 從
+    遠端刪除。
+
+    排除 .git 目錄、CHANGELOG.md、VERSION 等遠端獨有檔案；另對 should_exclude
+    命中的檔（local-only / 憑證）不刪除（這類檔本就不該被本腳本管理，可能是其他
+    專案推送內容）。
+
     回傳已刪除的檔案數量。
     """
     CLEAN_EXCLUDE = {".git", "CHANGELOG.md", "VERSION", "README.md", "LICENSE", ".gitignore"}
@@ -677,9 +798,11 @@ def clean_stale_files(temp_dir: Path, claude_dir: Path) -> int:
             continue
         if rel.name in CLEAN_EXCLUDE:
             continue
-        # 檢查本地 .claude/ 是否有對應檔案
-        local_counterpart = claude_dir / rel
-        if not local_counterpart.exists():
+        # should_exclude 命中者不刪除（local-only / 憑證，可能屬其他專案）
+        if should_exclude(rel):
+            continue
+        # 檢查 tracked 樹 staging 是否有對應檔案
+        if not (reference_dir / rel).exists():
             print(f"   刪除過時檔案: {rel}")
             file_path.unlink()
             deleted_count += 1
@@ -763,36 +886,17 @@ def main() -> None:
     project_root = find_project_root()
     claude_dir = project_root / ".claude"
 
-    # 2. Check uncommitted changes
-    print_color("檢查 .claude 資料夾狀態...")
-    result = run_git(["status", "--porcelain", ".claude"], cwd=str(project_root), check=False)
-    if result.stdout.strip():
-        print_color("警告: .claude 有未提交的變更", "red")
-        print("請先提交到主專案，或使用 git add .claude")
+    # 2. commit-first 檢查（M5，0.19.1-W1-029）：push 取 git tracked 樹（HEAD），
+    # 未 commit 的變更不會被推送。若 .claude/ 有 unstaged 或 staged-uncommitted 變更，
+    # 推上去的內容會與工作區不一致，故強制要求先 commit。
+    print_color("檢查 .claude 資料夾狀態（commit-first）...")
+    if not ensure_committed(project_root):
+        print_color("警告: .claude 有未提交的變更（unstaged 或 staged 未 commit）", "red")
+        print("push 取的是 git tracked 樹（HEAD）；請先 git add .claude && git commit")
         sys.exit(1)
-
-    # 2.2. 機密洩漏防護（W1-019，安全 P0）：偵測 .claude/ 內 gitignored / untracked
-    # 且未被 copy_filtered 黑名單排除的檔。這類檔不顯示於上方 porcelain 檢查，
-    # 卻會被 copy_filtered 從磁碟讀取並推上公開 repo，屬安全事故。
-    # 偵測到即 abort 並列出清單；正常乾淨 push（無此類檔）不受影響。
-    risky_files = detect_secret_leak_risk(project_root)
-    if risky_files:
-        print_color(
-            "[ABORT] 偵測到 .claude/ 內 gitignored 或 untracked 的檔案，"
-            "推送會將其外洩至公開 repo：",
-            "red",
-        )
-        for rel in risky_files:
-            print_color(f"   - .claude/{rel}", "red")
-        print_color(
-            "這些檔不顯示於 git status porcelain，卻會被 copy_filtered 推上公開 repo。",
-            "yellow",
-        )
-        print_color(
-            "請刪除機密檔、移出 .claude/、或加入 EXCLUDE_PATTERNS 黑名單後重試。",
-            "yellow",
-        )
-        sys.exit(1)
+    # 安全說明（C1）：push 改以 git archive HEAD 取 tracked 樹，untracked / gitignored
+    # 機密檔不在 tracked 樹中，從架構層消滅 W1-019 secret-leak 風險，故無需 interim
+    # detect_secret_leak_risk 防護（已隨 C1 移除）。
 
     # 2.5. No-change early-exit（W3-075）：避免空 commit 污染歷史
     # 跳過條件：user 提供 commit message（明確意圖）或 --force 旗標
@@ -852,17 +956,26 @@ def main() -> None:
         # 6. Merge 模式：不清空遠端內容，直接增量覆蓋
         # 保留遠端獨有的檔案（其他專案推送的內容）
 
-        # 7. Copy .claude/ content with exclusions（覆蓋本地有修改的檔案）
-        print_color("複製 .claude 配置檔案...")
-        file_count = copy_filtered(claude_dir, temp_dir)
-        print_color(f"   已複製 {file_count} 個檔案", "green")
-        print_color("   注意: CLAUDE.md 不再同步（專案特定配置）")
+        # 7. 取 git tracked 樹（C1）→ staging → should_exclude 過濾後複製到遠端 temp_dir
+        # git archive HEAD 只含 tracked 檔案：untracked / gitignored 機密檔不可能外洩，
+        # git rm 的檔自然不在 archive（K：刪除傳播）。
+        print_color("取 .claude git tracked 樹（git archive HEAD）...")
+        staging_dir = Path(tempfile.mkdtemp(prefix="claude-push-staging-"))
+        try:
+            staged_count = stage_tracked_tree(project_root, staging_dir)
+            print_color(f"   git archive 取得 {staged_count} 個 tracked 檔案", "green")
+            file_count = copy_filtered_from_staging(staging_dir, temp_dir)
+            print_color(f"   過濾後複製 {file_count} 個檔案（should_exclude 已套用）", "green")
+            print_color("   注意: CLAUDE.md 不再同步（專案特定配置）")
 
-        # 7.5. 清理遠端過時檔案（僅 --clean 模式）
-        if clean_mode:
-            print_color("清理遠端過時檔案...")
-            deleted = clean_stale_files(temp_dir, claude_dir)
-            print_color(f"   已清理 {deleted} 個遠端過時檔案", "green")
+            # 7.5. 清理遠端過時檔案（僅 --clean 模式）。
+            # 以 staging（tracked 樹）為基準：git rm 的檔不在 staging → 從遠端刪除（K）。
+            if clean_mode:
+                print_color("清理遠端過時檔案（對齊 git tracked 樹）...")
+                deleted = clean_stale_files(temp_dir, staging_dir)
+                print_color(f"   已清理 {deleted} 個遠端過時檔案", "green")
+        finally:
+            shutil.rmtree(staging_dir, ignore_errors=True)
 
         # 7.6. 還原 hook 檔案 executable bit（防止 push 出損壞 mode 到遠端）
         restored = restore_executable_bits(temp_dir)
@@ -943,19 +1056,40 @@ def main() -> None:
                 print_color(f"推送失敗: {push_result.stderr}", "red")
             sys.exit(1)
 
-        # 計算內容指紋並寫入 .sync-state.json
+        # 計算內容指紋並寫入 .sync-state.json（保留 last_synced_base_sha，禁覆蓋遺失）
         content_hash = _compute_content_hash(claude_dir)
-        sync_state = {
+        sync_state_path = claude_dir / ".sync-state.json"
+        existing_state: dict = {}
+        if sync_state_path.exists():
+            try:
+                existing_state = json.loads(sync_state_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                existing_state = {}
+        existing_state.update({
             "last_push_hash": content_hash,
             "last_push_version": new_version,
             "last_push_time": datetime.now().isoformat(timespec="seconds"),
-        }
-        sync_state_path = claude_dir / ".sync-state.json"
+        })
         sync_state_path.write_text(
-            json.dumps(sync_state, ensure_ascii=False, indent=2) + "\n",
+            json.dumps(existing_state, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-        print_color(f"已更新同步狀態 (hash: {content_hash})", "green")
+
+        # 寫入單一 last_synced_base_sha（W1-025 schema）：push 成功後遠端 HEAD 即
+        # 新 base 錨點，供下次 pull/push 三方合併使用（H1：禁雙欄位）。
+        head_result = run_git(
+            ["rev-parse", "HEAD"], cwd=str(temp_dir), check=False
+        )
+        if head_result.returncode == 0 and head_result.stdout.strip():
+            base_sha = head_result.stdout.strip()
+            write_base_sha(claude_dir, base_sha)
+            print_color(f"已更新同步狀態 (hash: {content_hash}, base: {base_sha[:12]})", "green")
+        else:
+            print_color(
+                f"已更新同步狀態 (hash: {content_hash})；警告：無法取得遠端 HEAD SHA，"
+                "未寫入 last_synced_base_sha",
+                "yellow",
+            )
 
         print_color("成功推送 .claude 到獨立 repo！", "green")
         print_color(f"Remote: {REPO_URL}", "green")
