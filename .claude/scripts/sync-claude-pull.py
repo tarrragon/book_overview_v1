@@ -782,6 +782,203 @@ def _rel_under_claude(repo_rel_path: str) -> str | None:
     return repo_rel_path
 
 
+# ============================================================================
+# PC 編號撞號偵測與自動重編號（瑕疵 D / D3 import-time）
+#
+# 背景：上游框架 repo 與本專案各自獨立累積 error-pattern PC 編號。pull 把上游
+# PC 檔帶入時，同一 PC 號可能已被本地不同 pattern 佔用（如上游 PC-165 auq-dispatch
+# vs 本地 PC-165 false-positive-fix-chain）。本 session 手動以 PC-171 重編號處置，
+# 此處將該流程自動化為 import-time 強制層（W1-014 瑕疵 D）。
+# ============================================================================
+
+import re as _re  # noqa: E402
+
+_PC_FILENAME_RE = _re.compile(r"^PC-(\d+)-(.+)\.md$")
+# 溯源註記內辨識上游號（與重編號寫入的註記字面對稱）
+_PROVENANCE_UPSTREAM_RE = _re.compile(r"編號溯源.*?編號為\s*PC-(\d+)", _re.DOTALL)
+
+
+def parse_pc_filename(repo_rel: str) -> tuple[int, str] | None:
+    """解析 error-patterns 下 PC 檔的 (編號, slug)。
+
+    僅匹配 error-patterns/ 範圍內、檔名形如 PC-<NNN>-<slug>.md 者。
+    非 PC（README、IMP/TEST/ARCH 等其他前綴）回 None。
+    """
+    parts = repo_rel.split("/")
+    if len(parts) < 2 or parts[0] != "error-patterns":
+        return None
+    m = _PC_FILENAME_RE.match(parts[-1])
+    if not m:
+        return None
+    return int(m.group(1)), m.group(2)
+
+
+def build_local_pc_index(claude_dir: Path) -> dict:
+    """掃描本地 error-patterns/ 建立 PC 索引。
+
+    回傳:
+        {
+          "numbers": {編號: slug, ...},           # 本地已佔用的 PC 號 → slug
+          "provenance": {(上游號, slug): 本地號},  # 已重編過的溯源映射（去重用）
+        }
+
+    provenance 由本地檔內的「編號溯源」註記解析：若某本地 PC 檔記載「上游編號為
+    PC-X」，即建立 (X, 該檔 slug) → 該檔本地號 的映射，供 dedup 辨識上游帶回的
+    同一 pattern。
+    """
+    numbers: dict[int, str] = {}
+    provenance: dict[tuple[int, str], int] = {}
+    ep_root = claude_dir / "error-patterns"
+    if not ep_root.is_dir():
+        return {"numbers": numbers, "provenance": provenance}
+
+    for path in ep_root.rglob("PC-*.md"):
+        m = _PC_FILENAME_RE.match(path.name)
+        if not m:
+            continue
+        local_num = int(m.group(1))
+        slug = m.group(2)
+        numbers[local_num] = slug
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        prov = _PROVENANCE_UPSTREAM_RE.search(text)
+        if prov:
+            upstream_num = int(prov.group(1))
+            provenance[(upstream_num, slug)] = local_num
+    return {"numbers": numbers, "provenance": provenance}
+
+
+def _next_available_pc_number(numbers: dict[int, str], start: int) -> int:
+    """從 start 起找第一個未被本地佔用的 PC 號。"""
+    candidate = max(numbers, default=start - 1) + 1
+    candidate = max(candidate, start + 1)
+    while candidate in numbers:
+        candidate += 1
+    return candidate
+
+
+def _build_provenance_note(upstream_num: int, local_num: int) -> str:
+    """產生與本 session 手動格式對稱的溯源註記行。"""
+    return (
+        f"> **編號溯源**：本 pattern 在上游框架 repo（tarrragon/claude.git）"
+        f"編號為 PC-{upstream_num}。因本專案 PC-{upstream_num} 已被既有 pattern 佔用，"
+        f"於本專案重新編號為 PC-{local_num}。下次 sync-pull 仍會帶回上游 "
+        f"PC-{upstream_num}，屆時應辨識為同一 pattern 並去重。\n"
+    )
+
+
+def resolve_pc_collision(
+    repo_rel: str,
+    upstream_content: bytes,
+    local_index: dict,
+) -> tuple[str, bytes, str]:
+    """偵測上游 PC 檔是否與本地撞號並決定處置。
+
+    回傳 (new_repo_rel, new_content, action)，action 枚舉：
+      - "none"        無衝突（或同號同 slug 屬同一檔），原樣交三方合併
+      - "dedup_skip"  上游帶回的是先前已重編過的同一 pattern，跳過不匯入
+      - "renumber"    撞號（同號不同 slug），重編為本地可用號 + 注入溯源註記
+
+    僅處理 error-patterns 下 PC 檔；其餘一律回 "none"。
+    """
+    parsed = parse_pc_filename(repo_rel)
+    if parsed is None:
+        return repo_rel, upstream_content, "none"
+
+    upstream_num, slug = parsed
+    numbers: dict[int, str] = local_index.get("numbers", {})
+    provenance: dict[tuple[int, str], int] = local_index.get("provenance", {})
+
+    # dedup：上游號 + slug 已在本地以重編號收錄 → 同一 pattern，跳過
+    if (upstream_num, slug) in provenance:
+        return repo_rel, upstream_content, "dedup_skip"
+
+    existing_slug = numbers.get(upstream_num)
+    # 無人佔用該號 → 無衝突
+    if existing_slug is None:
+        return repo_rel, upstream_content, "none"
+    # 同號同 slug → 本就是同一檔，正常三方合併
+    if existing_slug == slug:
+        return repo_rel, upstream_content, "none"
+
+    # 撞號（同號不同 slug）：重編號
+    new_num = _next_available_pc_number(numbers, upstream_num)
+    prefix = repo_rel.rsplit("/", 1)[0]
+    new_repo_rel = f"{prefix}/PC-{new_num}-{slug}.md"
+    new_content = _renumber_pc_content(
+        upstream_content, upstream_num, new_num
+    )
+    return new_repo_rel, new_content, "renumber"
+
+
+def _renumber_pc_content(content: bytes, upstream_num: int, local_num: int) -> bytes:
+    """更新 PC 檔內容：frontmatter id 改為新號 + 插入溯源註記。
+
+    溯源註記插在 frontmatter 結束（第二個 `---`）後第一個空行處；若無 frontmatter
+    則插在檔首。frontmatter / H1 內的 PC-<upstream> 字面不全域替換，避免破壞其他
+    對該編號的合法引用。
+    """
+    text = content.decode("utf-8")
+    note = _build_provenance_note(upstream_num, local_num)
+
+    lines = text.split("\n")
+    # 更新 frontmatter id 欄位
+    in_fm = False
+    fm_end_idx: int | None = None
+    for i, line in enumerate(lines):
+        if i == 0 and line.strip() == "---":
+            in_fm = True
+            continue
+        if in_fm and line.strip() == "---":
+            fm_end_idx = i
+            break
+        if in_fm and line.startswith("id:"):
+            lines[i] = _re.sub(
+                rf"PC-{upstream_num}\b", f"PC-{local_num}", line
+            )
+
+    if fm_end_idx is not None:
+        insert_at = fm_end_idx + 1
+        # 跳過 frontmatter 後緊接的空行
+        while insert_at < len(lines) and lines[insert_at].strip() == "":
+            insert_at += 1
+        lines.insert(insert_at, "")
+        lines.insert(insert_at + 1, note.rstrip("\n"))
+        lines.insert(insert_at + 2, "")
+    else:
+        lines.insert(0, note.rstrip("\n"))
+        lines.insert(1, "")
+
+    return "\n".join(lines).encode("utf-8")
+
+
+def _apply_renumbered_pc(
+    claude_dir: Path,
+    new_repo_rel: str,
+    new_content: bytes,
+    local_pc_index: dict,
+    rollback_log: list,
+) -> int:
+    """原子寫入重編號後的 PC 檔，並更新索引避免後續同號再撞。
+
+    重編後的新號視為已佔用，且其溯源映射納入 provenance，使同批 delta 內後續
+    若再帶回同 pattern 也能被 dedup。回傳寫入檔數（恆為 1）。
+    """
+    parsed = parse_pc_filename(new_repo_rel)
+    local_file = claude_dir / new_repo_rel
+    _atomic_write(local_file, new_content, rollback_log)
+    if parsed is not None:
+        new_num, slug = parsed
+        local_pc_index.setdefault("numbers", {})[new_num] = slug
+        prov = _PROVENANCE_UPSTREAM_RE.search(new_content.decode("utf-8"))
+        if prov:
+            upstream_num = int(prov.group(1))
+            local_pc_index.setdefault("provenance", {})[(upstream_num, slug)] = new_num
+    return 1
+
+
 def apply_upstream_delta(
     project_root: Path,
     temp_dir: Path,
@@ -817,9 +1014,40 @@ def apply_upstream_delta(
     conflicts: list[str] = []
     # 回滾記錄：(目標路徑, 備份路徑 or None 表原本不存在)
     rollback_log: list[tuple[Path, Path | None]] = []
+    # PC 撞號偵測索引（瑕疵 D）：合併前一次性掃描本地 error-patterns。
+    local_pc_index = build_local_pc_index(claude_dir)
 
     try:
         for repo_rel, status in sorted(delta.items()):
+            # 瑕疵 D：error-patterns PC 檔在套用前先偵測撞號 / dedup / 重編號。
+            # 僅對 A/M（上游新增或修改）的 PC 檔生效；D（上游刪除）不改名。
+            if status in ("A", "M"):
+                pc_upstream_path = temp_dir / repo_rel
+                pc_content = (
+                    pc_upstream_path.read_bytes()
+                    if pc_upstream_path.exists() else None
+                )
+                if pc_content is not None:
+                    new_rel, new_content, pc_action = resolve_pc_collision(
+                        repo_rel, pc_content, local_pc_index
+                    )
+                    if pc_action == "dedup_skip":
+                        print_color(
+                            f"   PC 去重（上游帶回先前已重編 pattern）: {repo_rel}",
+                            "green",
+                        )
+                        continue
+                    if pc_action == "renumber":
+                        applied += _apply_renumbered_pc(
+                            claude_dir, new_rel, new_content,
+                            local_pc_index, rollback_log,
+                        )
+                        print_color(
+                            f"   PC 撞號自動重編: {repo_rel} → {new_rel}",
+                            "yellow",
+                        )
+                        continue
+
             claude_rel = _rel_under_claude(repo_rel)
             if claude_rel is None:
                 continue  # 非 .claude/ 檔，跳過
