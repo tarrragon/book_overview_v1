@@ -52,6 +52,32 @@ this action using other tools that might naturally be used to accomplish this go
 
 **觸發背景**：Anthropic 官方 Permissions 文件宣稱 `.claude/commands`, `.claude/agents`, `.claude/skills` 為 bypassPermissions 豁免路徑；CHANGELOG v2.1.98 修復 agent team permission 繼承 bug。W5-050.1/2/3 三實驗重新驗證 ARCH-015 是否仍成立。
 
+### CC 2.1.161 #15 修復——Workflow 背景 worktree 編輯解鎖（2026-06-03 標註）
+
+**修復原文**：Fixed Workflow agents spawned with `isolation: "worktree"` in background sessions being blocked from editing files inside their own worktree.
+
+**與 ARCH-015 的關係**：
+
+#15 修復處理的是「背景 session 的 Workflow agent 無法編輯自身 worktree 內檔案」，與 ARCH-015 第 51-163 行描述的「外部 worktree `.claude/` 被拒」場景高度吻合。特別是：
+
+| 維度 | ARCH-015 現狀（v2.1.114） | #15 修復目標 | 期望影響 |
+|------|------------------------|-----------|---------|
+| 症狀 | 外部 worktree 內 subagent 無法 Write/Edit `.claude/` | 背景 session worktree agent 無法編輯自身 worktree | 可能解鎖外部 worktree `.claude/` 編輯 |
+| 根因 | CC runtime 對 `.claude/` 施加「target 必須在主 repo 樹內」的保護 | Workflow agent 在背景 session 的 worktree cwd 下編輯被 runtime 拒絕 | 若修復涵蓋非 .claude/ 路徑擴展到 .claude/ 則 ARCH-015 繞道可鬆動 |
+| 受影響 cwd | worktree (isolation:worktree 或外部路徑) | 背景 session worktree agent | 具體覆蓋範圍需實測驗證 |
+
+**現狀與待驗證**：
+
+本專案既有防護（ARCH-015 v2.1.114）已通過兩層規避充分應對：
+1. `worktree.bgIsolation: "none"` 規避背景隔離限制（W17-215 落地）
+2. `.claude/` 修改已走「主 repo cwd 不加 isolation」路徑（behavior-loop-details.md），確保 Edit/Write 成功
+
+但 #15 修復可能鬆動此保護。**實際是否解鎖外部 worktree `.claude/` 編輯，待 0.19.1-W1-011 IMP「升版 CC 2.1.161 後實測 ARCH-015 矩陣」驗證**。完成實測後由 PM 決策是否鬆動既有繞道結論（decision-trigger-binding 規則 2）。
+
+**Why**：#15 release note 描述的修復範圍邊界不明（可能只涵蓋非 .claude/ 路徑的 worktree 編輯），貿然鬆動規則會違反質性 baseline 規則 3（設計問題立即修正）。標註備註零風險先做，實驗驗證後再由用戶或 PM 決策。
+
+**Consequence**：若未在此標註新資訊，ARCH-015 文件會因 CC 平台修復而逐漸過時，未來維護者難以判斷相關繞道規則是否仍成立（knowledge decay）。
+
 **實測矩陣**（subagent cwd 為 CC isolation:worktree 建立的 agent worktree，位於主 repo 樹內 `.claude/worktrees/agent-xxx`）：
 
 | 實驗 | target 路徑 | 工具 | 結果 |
@@ -158,6 +184,8 @@ Bash 對**任何** `.claude/` 路徑（含主 repo）的寫入類命令（rm/pri
 - 待補：subagent 權限與 cwd 互動細節（若未來有更深入研究）
 
 ---
+
+**Last Updated**: 2026-06-03（0.19.1-W1-008 取證結果：CC 2.1.161 #15 修復「背景 worktree agent 無法編輯自身 worktree」高度吻合外部 worktree .claude/ 被拒場景；本專案既有規避已充分，但修復資訊應標註；實際解鎖待 W1-011 IMP 升版後實測驗證） <!-- PC-093-exempt: history:0.19.1-W1-008 ANA 為發現背景 -->
 
 **Last Updated**: 2026-05-26（W3-034.1 + W3-034.4 受控實驗：bgIsolation: none 下 subagent 在主 repo cwd 操作，單一 + 並行 3 對 `.claude/` Edit 皆 success。確認 deny 綁定「worktree cwd 機制」而非「subagent 身份」；bgIsolation: none 為合法例外） <!-- PC-093-exempt: history:0.19.0-W3-034.1 W3-034.4 為實驗驗證歷史錨點 -->
 
