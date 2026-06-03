@@ -107,10 +107,33 @@ LOCAL_ONLY = frozenset({
 # 同步時跳過的所有路徑（合併使用）
 SKIP_DURING_SYNC = REMOTE_ONLY | LOCAL_ONLY
 
-# 同步後強制還原 executable bit 的子目錄（convention-based safety net）
+# 同步後強制還原 executable bit 的目錄名（convention-based safety net）
 # 上游 repo 的 mode 可能已損壞（push 端未保留 100755），
 # pull 後需對這些目錄下的 .py 強制 chmod +x 確保 Hook 可執行。
-EXECUTABLE_PY_SUBDIRS = ("hooks",)
+# 注意：以「目錄名」遞迴比對，覆蓋頂層 .claude/hooks/ 與 W10-092 遷移後的
+# skills/<name>/hooks/（缺陷 G）。
+EXECUTABLE_HOOK_DIR_NAMES = ("hooks",)
+
+
+def iter_executable_hook_dirs(root: Path):
+    """遞迴 yield root 下所有名稱屬 EXECUTABLE_HOOK_DIR_NAMES 的目錄。
+
+    取代舊 `root / subdir` 單層查找，使 skills/<name>/hooks/ 也被涵蓋。
+    跳過 symlink 目錄避免循環。
+
+    參數:
+        root: 起始掃描根目錄（.claude 或其暫存樹）
+
+    產出:
+        Path: 每個符合名稱的目錄
+    """
+    if not root.is_dir():
+        return
+    for dirpath, dirnames, _filenames in os.walk(root):
+        # 跳過 symlink 指向的子目錄（os.walk 預設 followlinks=False，已安全）
+        for name in dirnames:
+            if name in EXECUTABLE_HOOK_DIR_NAMES:
+                yield Path(dirpath) / name
 
 
 def load_preserve_list(claude_dir: Path) -> set[str]:
@@ -618,14 +641,15 @@ def sync_directory(
 
 
 def restore_executable_bits(claude_dir: Path) -> int:
-    """對 .claude/hooks/ 下所有 .py 檔案強制加入 executable bit。
+    """對所有 hooks/ 目錄下的 .py 檔案強制加入 executable bit。
 
     背景：上游 tarrragon/claude.git 的 mode 已損壞（Python 檔案多為 100644），
     shutil.copy2 雖保留來源 mode，但來源本身就錯。Hook 系統（Stop、SessionStart 等）
     需要檔案有 +x 才能由 shell 直接執行，否則 Permission denied。
 
-    本函式作 convention-based safety net：EXECUTABLE_PY_SUBDIRS 列出的子目錄下
-    所有 .py 無條件加 +x（u/g/o 均加），獨立於上游 mode 狀態。
+    本函式作 convention-based safety net：遞迴掃描 claude_dir 下所有名為 hooks/ 的
+    目錄（頂層 .claude/hooks/ 與 W10-092 遷移後的 skills/<name>/hooks/，缺陷 G），
+    對其下所有 .py 無條件加 +x（u/g/o 均加），獨立於上游 mode 狀態。
 
     不處理 .claude/scripts/ 下檔案，因該目錄有 644/755 混合（如 sync 腳本本身），
     精細處理屬另一範疇。
@@ -637,10 +661,7 @@ def restore_executable_bits(claude_dir: Path) -> int:
         int: 實際變更 mode 的檔案數（已是可執行者不計）
     """
     count = 0
-    for subdir in EXECUTABLE_PY_SUBDIRS:
-        target_dir = claude_dir / subdir
-        if not target_dir.is_dir():
-            continue
+    for target_dir in iter_executable_hook_dirs(claude_dir):
         for py_file in target_dir.rglob("*.py"):
             if not py_file.is_file():
                 continue

@@ -76,9 +76,31 @@ REPO_URL = "https://github.com/tarrragon/claude.git"
 SYNC_STATE_FILENAME = ".sync-state.json"
 BASE_SHA_FIELD = "last_synced_base_sha"
 
-# Push 前強制還原 executable bit 的子目錄（與 sync-claude-pull.py 對稱）
+# Push 前強制還原 executable bit 的目錄名（與 sync-claude-pull.py 對稱）
 # 確保推上去的 git index mode 為 100755，避免下游 pull 拿到 644。
-EXECUTABLE_PY_SUBDIRS = ("hooks",)
+# 注意：以「目錄名」遞迴比對，覆蓋頂層 hooks/ 與 W10-092 遷移後的
+# skills/<name>/hooks/（缺陷 G）。
+EXECUTABLE_HOOK_DIR_NAMES = ("hooks",)
+
+
+def iter_executable_hook_dirs(root: Path):
+    """遞迴 yield root 下所有名稱屬 EXECUTABLE_HOOK_DIR_NAMES 的目錄。
+
+    取代舊 `root / subdir` 單層查找，使 skills/<name>/hooks/ 也被涵蓋。
+    os.walk 預設 followlinks=False，不跟隨 symlink，避免循環。
+
+    參數:
+        root: 起始掃描根目錄（temp_dir / staging 樹）
+
+    產出:
+        Path: 每個符合名稱的目錄
+    """
+    if not root.is_dir():
+        return
+    for dirpath, dirnames, _filenames in os.walk(root):
+        for name in dirnames:
+            if name in EXECUTABLE_HOOK_DIR_NAMES:
+                yield Path(dirpath) / name
 
 # commit 訊息中需要過濾的專案特定模式
 # 獨立 repo 是跨專案通用框架，commit 訊息禁止包含專案版本號/Wave/Ticket 編號
@@ -339,11 +361,13 @@ def copy_filtered_from_staging(src: Path, dst: Path) -> int:
 
 
 def restore_executable_bits(root: Path) -> int:
-    """對 root/hooks/ 下所有 .py 檔案強制加入 filesystem executable bit。
+    """對所有 hooks/ 目錄下的 .py 檔案強制加入 filesystem executable bit。
 
     呼叫時機：copy_filtered_from_staging 把 tracked 樹複製到 temp_dir 後、git add -A 前。
     在 POSIX 環境有效（macOS/Linux）；Windows NTFS 無 exec bit 概念，此操作無效果，
     但不會失敗或污染狀態。
+
+    遞迴覆蓋頂層 hooks/ 與 W10-092 遷移後的 skills/<name>/hooks/（缺陷 G）。
 
     與 sync-claude-pull.py::restore_executable_bits 對稱（pull 端 safety net）。
 
@@ -356,10 +380,7 @@ def restore_executable_bits(root: Path) -> int:
         int: 實際變更 mode 的檔案數
     """
     count = 0
-    for subdir in EXECUTABLE_PY_SUBDIRS:
-        target_dir = root / subdir
-        if not target_dir.is_dir():
-            continue
+    for target_dir in iter_executable_hook_dirs(root):
         for py_file in target_dir.rglob("*.py"):
             if not py_file.is_file():
                 continue
@@ -372,12 +393,16 @@ def restore_executable_bits(root: Path) -> int:
 
 
 def git_update_index_chmod(root: Path) -> int:
-    """對 root/hooks/ 下所有 .py 檔案的 git index mode 設為 100755。
+    """對所有 hooks/ 目錄下的 .py 檔案的 git index mode 設為 100755。
 
     Windows NTFS 無 executable bit 概念，filesystem chmod 對 git index 無作用；
     `git update-index --chmod=+x` 直接寫入 git index，不依賴 filesystem 語意，
     跨平台一致。這是 W16-004.3 的治本方案，覆蓋 restore_executable_bits 在
     Windows 上的盲點。
+
+    遞迴覆蓋頂層 hooks/ 與 W10-092 遷移後的 skills/<name>/hooks/（缺陷 G）。
+    與 W1-029 git-archive push 流程相容：archive 解出的 tracked 樹保留目錄結構，
+    本函式仍以 git update-index --chmod=+x 顯式校正 index mode。
 
     呼叫時機：`git add -A` 之後（檔案已 tracked），`git commit` 之前。
 
@@ -391,10 +416,7 @@ def git_update_index_chmod(root: Path) -> int:
         int: 成功設定 mode 的檔案數
     """
     count = 0
-    for subdir in EXECUTABLE_PY_SUBDIRS:
-        target_dir = root / subdir
-        if not target_dir.is_dir():
-            continue
+    for target_dir in iter_executable_hook_dirs(root):
         for py_file in target_dir.rglob("*.py"):
             if not py_file.is_file():
                 continue
