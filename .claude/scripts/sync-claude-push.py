@@ -28,7 +28,6 @@ Windows 使用者特別注意:
   完整說明與除錯指南詳見 WINDOWS-NOTES.md。
 """
 
-import hashlib
 import json
 import os
 import re
@@ -40,76 +39,19 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
+# 排除分類與 should_exclude / compute_content_hash 由 SSOT manifest 統一提供
+# （ARCH-020：消除 push/status 重複定義漂移）。manifest 位於 .claude/hooks/lib/。
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks" / "lib"))
+from sync_exclude_manifest import (  # noqa: E402
+    should_exclude,
+    compute_content_hash as _compute_content_hash,
+)
+
 REPO_URL = "https://github.com/tarrragon/claude.git"
-
-# 排除分類（新增項目時請對應下列四類之一，若都不符合請先評估是否應進 framework）
-#
-# 類型 A - Runtime state（本 session 執行期狀態，專案特定且會隨時間變動）
-#   特徵：記錄當前派發/Hook/PM 狀態，跨專案共用會造成狀態污染
-#   範例：dispatch-active.json、hook-state/、pm-status.json
-#
-# 類型 B - Local-only settings（各專案個別設定，不應跨專案同步）
-#   特徵：每個專案 preserve/狀態/覆蓋設定獨立管理
-#   範例：settings.local.json、sync-preserve.yaml、.sync-state.json
-#
-# 類型 C - Session-bound log（本地產生的日誌/交接檔案）
-#   特徵：只對本機 session 有意義，無跨專案共用價值
-#   範例：hook-logs/、handoff/、PM_INTERVENTION_REQUIRED、ARCHITECTURE_REVIEW_REQUIRED
-#
-# 類型 D - 敏感憑證（嚴禁推送至公開 repo）
-#   特徵：含密鑰/token/環境變數，外流即安全事故
-#   範例：.env*、credentials.json、secrets.*、.keys、私鑰副檔名
-#
-# 新增機制時的 checklist 與決策流程見 .claude/references/sync-exclusion-guide.md
-EXCLUDE_PATTERNS = {
-    # 類型 C - Session-bound log
-    "handoff",
-    "hook-logs",
-    "PM_INTERVENTION_REQUIRED",
-    "ARCHITECTURE_REVIEW_REQUIRED",
-    # 類型 A - Runtime state
-    "pm-status.json",
-    "dispatch-active.json",
-    "hook-state",
-    # 工具產物（Python 快取，非上述四類但無跨專案共用價值）
-    "__pycache__",
-    ".pytest_cache",
-    ".venv",
-    # 類型 B - Local-only settings
-    "sync-preserve.yaml",
-    ".sync-state.json",
-    "settings.local.json",
-    ".zhtw-mcp-skip",          # 各專案 opt-out 繁中檢查的 flag，per-project 決定
-    # 類型 D - 敏感憑證（避免意外推送憑證和環境變數）
-    ".env",
-    ".env.local",
-    ".env.production",
-    "credentials.json",
-    "secrets.yaml",
-    "secrets.json",
-    ".secrets",
-    # 類型 D - 目錄層級排除（與 .secrets 對齊）
-    "secrets",
-    "private",
-    ".keys",
-}
-
-EXCLUDE_SUFFIXES = {".pyc", ".pem", ".key", ".p12", ".pfx", ".jks"}
-
-# 檔案名稱前綴匹配（涵蓋 .env.staging, secrets_prod.json 等變體）
-EXCLUDE_NAME_PREFIXES = {
-    ".env.",    # .env.staging, .env.test, .env.development 等
-    "secret",   # secrets.json, secret_key.txt 等
-}
 
 # Push 前強制還原 executable bit 的子目錄（與 sync-claude-pull.py 對稱）
 # 確保推上去的 git index mode 為 100755，避免下游 pull 拿到 644。
 EXECUTABLE_PY_SUBDIRS = ("hooks",)
-
-# 預計算小寫版本，避免每次呼叫 should_exclude 重複計算
-_EXCLUDE_PATTERNS_LOWER = {p.lower() for p in EXCLUDE_PATTERNS}
-_EXCLUDE_SUFFIXES_LOWER = {s.lower() for s in EXCLUDE_SUFFIXES}
-_EXCLUDE_NAME_PREFIXES_LOWER = {p.lower() for p in EXCLUDE_NAME_PREFIXES}
 
 # commit 訊息中需要過濾的專案特定模式
 # 獨立 repo 是跨專案通用框架，commit 訊息禁止包含專案版本號/Wave/Ticket 編號
@@ -169,18 +111,6 @@ def find_project_root() -> Path:
         current = current.parent
     print_color("找不到 .claude 目錄，請在專案根目錄執行此腳本", "red")
     sys.exit(1)
-
-
-def should_exclude(path: Path) -> bool:
-    """Check if a path should be excluded from sync（大小寫不敏感）。"""
-    name_lower = path.name.lower()
-    if name_lower in _EXCLUDE_PATTERNS_LOWER:
-        return True
-    if path.suffix.lower() in _EXCLUDE_SUFFIXES_LOWER:
-        return True
-    if any(name_lower.startswith(prefix) for prefix in _EXCLUDE_NAME_PREFIXES_LOWER):
-        return True
-    return any(part.lower() in _EXCLUDE_PATTERNS_LOWER for part in path.parts)
 
 
 def detect_secret_leak_risk(project_root: Path) -> list[str]:
@@ -673,27 +603,6 @@ def update_changelog(repo_dir: Path, new_version: str, commit_message: str, old_
         updated = f"# CHANGELOG\n\n{new_entry}"
 
     changelog_path.write_text(updated, encoding="utf-8")
-
-
-def _compute_content_hash(claude_dir: Path) -> str:
-    """計算 .claude/ 目錄的內容指紋（前 16 字元）。
-
-    每個檔案產生 "相對路徑:sha256(內容)" 字串，
-    所有字串排序後合併取總 sha256 前 16 字元。
-    """
-    file_hashes: list[str] = []
-    for file_path in sorted(claude_dir.rglob("*")):
-        if not file_path.is_file() or file_path.is_symlink():
-            continue
-        rel = file_path.relative_to(claude_dir)
-        if should_exclude(rel):
-            continue
-        content_hash = hashlib.sha256(file_path.read_bytes()).hexdigest()
-        rel_posix = rel.as_posix()  # 統一使用正斜線，確保跨平台一致
-        file_hashes.append(f"{rel_posix}:{content_hash}")
-
-    combined = "\n".join(file_hashes)
-    return hashlib.sha256(combined.encode("utf-8")).hexdigest()[:16]
 
 
 def check_no_change_early_exit(

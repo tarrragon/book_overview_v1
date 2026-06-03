@@ -39,30 +39,19 @@ from hook_utils import (  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).parent / "lib"))
 from dispatch_tracker import cleanup_expired  # noqa: E402
+from sync_exclude_manifest import LOCAL_ONLY_PATTERNS  # noqa: E402
 
 EXIT_SUCCESS = 0
 
-# 已知必須排除的 .claude/ 根目錄檔案名稱（與 sync-claude-push.py 對齊）
+# 掃描 .claude/ 根目錄 .json/.yaml 時略過不警告的檔名集合。
 #
-# 類型 A - Runtime state（本 session 執行期狀態）
-#   dispatch-active.json, pm-status.json
+# local-only 名稱（類型 A Runtime state + 類型 B Local-only settings）直接取自
+# SSOT manifest 的 LOCAL_ONLY_PATTERNS（ARCH-020：避免硬編副本與 push 端漂移）。
 #
-# 類型 B - Local-only settings（各專案個別設定）
-#   settings.local.json, .sync-state.json, sync-preserve.yaml
-#
-# 類型 X - Framework config（正常 sync，不警告）
-#   settings.json（框架 Hook 註冊表，跨專案共用）
-KNOWN_EXCLUDED = {
-    # 類型 A - Runtime state
-    "dispatch-active.json",
-    "pm-status.json",
-    # 類型 B - Local-only settings
-    "settings.local.json",
-    ".sync-state.json",
-    "sync-preserve.yaml",
-    # 類型 X - Framework config（需正常 sync，加入此集合代表掃描時略過不警告）
-    "settings.json",
-}
+# 類型 X - Framework config（正常 sync，不警告）：settings.json 為框架 Hook 註冊表，
+# 跨專案共用，不屬 local-only，故額外併入 allowlist。
+_FRAMEWORK_CONFIG = frozenset({"settings.json"})
+KNOWN_EXCLUDED = LOCAL_ONLY_PATTERNS | _FRAMEWORK_CONFIG
 
 # 掃描副檔名清單
 SCAN_SUFFIXES = {".json", ".yaml", ".yml"}

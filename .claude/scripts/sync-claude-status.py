@@ -11,7 +11,6 @@
 依賴：Python 3.8+, git
 """
 
-import hashlib
 import json
 import os
 import shutil
@@ -20,44 +19,14 @@ import sys
 import tempfile
 from pathlib import Path
 
+# 排除分類與 should_exclude / compute_content_hash 由 SSOT manifest 統一提供
+# （ARCH-020：消除 push/status 重複定義漂移；修缺陷 N——status 舊版 EXCLUDE_PATTERNS
+# 漏列 dispatch-active.json/hook-state/settings.local.json/.zhtw-mcp-skip 導致與 push
+# 指紋不一致）。manifest 位於 .claude/hooks/lib/。
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "hooks" / "lib"))
+from sync_exclude_manifest import should_exclude, compute_content_hash  # noqa: E402, F401
+
 REPO_URL = "https://github.com/tarrragon/claude.git"
-
-# 與 push 腳本一致的排除清單
-EXCLUDE_PATTERNS = {
-    "handoff",
-    "hook-logs",
-    "PM_INTERVENTION_REQUIRED",
-    "ARCHITECTURE_REVIEW_REQUIRED",
-    "pm-status.json",
-    "__pycache__",
-    ".pytest_cache",
-    "sync-preserve.yaml",
-    ".sync-state.json",
-    ".env",
-    ".env.local",
-    ".env.production",
-    "credentials.json",
-    "secrets.yaml",
-    "secrets.json",
-    ".secrets",
-    ".venv",
-    # 目錄層級排除（與 .secrets 對齊）
-    "secrets",
-    "private",
-    ".keys",
-}
-
-EXCLUDE_SUFFIXES = {".pyc", ".pem", ".key", ".p12", ".pfx", ".jks"}
-
-EXCLUDE_NAME_PREFIXES = {
-    ".env.",
-    "secret",
-}
-
-# 預計算小寫版本，避免每次呼叫 should_exclude 重複計算
-_EXCLUDE_PATTERNS_LOWER = {p.lower() for p in EXCLUDE_PATTERNS}
-_EXCLUDE_SUFFIXES_LOWER = {s.lower() for s in EXCLUDE_SUFFIXES}
-_EXCLUDE_NAME_PREFIXES_LOWER = {p.lower() for p in EXCLUDE_NAME_PREFIXES}
 
 SYNC_STATE_FILENAME = ".sync-state.json"
 
@@ -81,39 +50,6 @@ def find_project_root() -> Path:
         current = current.parent
     print_color("找不到 .claude 目錄，請在專案根目錄執行此腳本", "red")
     sys.exit(1)
-
-
-def should_exclude(path: Path) -> bool:
-    """檢查路徑是否應排除在 hash 計算之外（大小寫不敏感）。"""
-    name_lower = path.name.lower()
-    if name_lower in _EXCLUDE_PATTERNS_LOWER:
-        return True
-    if path.suffix.lower() in _EXCLUDE_SUFFIXES_LOWER:
-        return True
-    if any(name_lower.startswith(prefix) for prefix in _EXCLUDE_NAME_PREFIXES_LOWER):
-        return True
-    return any(part.lower() in _EXCLUDE_PATTERNS_LOWER for part in path.parts)
-
-
-def compute_content_hash(claude_dir: Path) -> str:
-    """遞迴計算 .claude/ 目錄的內容指紋（前 16 字元）。
-
-    每個檔案產生 "相對路徑:sha256(內容)" 字串，
-    所有字串排序後合併取總 sha256 前 16 字元。
-    """
-    file_hashes: list[str] = []
-    for file_path in sorted(claude_dir.rglob("*")):
-        if not file_path.is_file() or file_path.is_symlink():
-            continue
-        rel = file_path.relative_to(claude_dir)
-        if should_exclude(rel):
-            continue
-        content_hash = hashlib.sha256(file_path.read_bytes()).hexdigest()
-        rel_posix = rel.as_posix()  # 統一使用正斜線，確保跨平台一致
-        file_hashes.append(f"{rel_posix}:{content_hash}")
-
-    combined = "\n".join(file_hashes)
-    return hashlib.sha256(combined.encode("utf-8")).hexdigest()[:16]
 
 
 def extract_version_string(content: str) -> str:
