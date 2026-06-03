@@ -107,6 +107,10 @@ LOCAL_ONLY = frozenset({
 # 同步時跳過的所有路徑（合併使用）
 SKIP_DURING_SYNC = REMOTE_ONLY | LOCAL_ONLY
 
+# Q（0.19.1-W1-021）：備份 .claude 時排除的工具產物，避免備份 bloat / 變慢
+# / 遇 broken symlink 拋例外。主同步本身已排除這些，備份須一致。
+BACKUP_IGNORE_PATTERNS = ("__pycache__", ".pytest_cache", ".venv")
+
 # 同步後強制還原 executable bit 的目錄名（convention-based safety net）
 # 上游 repo 的 mode 可能已損壞（push 端未保留 100755），
 # pull 後需對這些目錄下的 .py 強制 chmod +x 確保 Hook 可執行。
@@ -139,13 +143,21 @@ def iter_executable_hook_dirs(root: Path):
 def load_preserve_list(claude_dir: Path) -> set[str]:
     """讀取 sync-preserve.yaml 中的本地特化檔案清單。
 
-    若檔案不存在或無法解析，回傳空集合（向下相容）。
+    若檔案不存在，回傳空集合（合法情境：專案未定義 preserve 清單）。
+    若檔案存在但解析失敗，fail-loud（stderr 警告 + raise），不靜默回空集合。
+
+    H（0.19.1-W1-021）：靜默回空集合會關閉全部 preserve 保護，導致本地
+    特化檔案（settings.local.json 等）被遠端覆蓋。違反 quality-baseline
+    規則 4（禁止靜默失敗），故 malformed preserve 改為 fail-loud。
 
     參數:
         claude_dir: .claude 目錄路徑
 
     傳回:
         set[str]: 需要保留的相對路徑集合（相對於 .claude/）
+
+    例外:
+        Exception: sync-preserve.yaml 存在但無法解析時拋出（fail-loud）。
     """
     preserve_file = claude_dir / "sync-preserve.yaml"
     if not preserve_file.exists():
@@ -157,11 +169,26 @@ def load_preserve_list(claude_dir: Path) -> set[str]:
     if yaml is not None:
         try:
             data = yaml.safe_load(content)
-            if isinstance(data, dict) and isinstance(data.get("preserve"), list):
-                return set(data["preserve"])
-        except Exception:
-            pass
-        return set()
+        except Exception as exc:
+            # fail-loud：雙通道可觀測性（stderr + raise），禁止靜默回空集合
+            sys.stderr.write(
+                f"[sync-pull] preserve 清單解析失敗，sync 中止以避免關閉全部 "
+                f"preserve 保護: {preserve_file}: {exc}\n"
+            )
+            raise
+        if isinstance(data, dict) and isinstance(data.get("preserve"), list):
+            return set(data["preserve"])
+        # 結構不符（非 dict 或 preserve 非 list）：可能 YAML 合法但格式錯誤
+        if data is None:
+            return set()
+        sys.stderr.write(
+            f"[sync-pull] preserve 清單格式錯誤（預期 dict 含 preserve list）"
+            f"，sync 中止以避免關閉全部 preserve 保護: {preserve_file}\n"
+        )
+        raise ValueError(
+            f"sync-preserve.yaml 格式錯誤：預期 'preserve:' 為 list，"
+            f"實際得到 {type(data).__name__}"
+        )
 
     # 簡易 fallback 解析：讀取 "- path" 格式的行
     paths: set[str] = set()
@@ -1204,6 +1231,25 @@ def detect_changed_packages(project_root: Path) -> None:
     print_color("   套件將在下次 SessionStart 自動重新安裝", "green")
 
 
+def backup_claude_dir(claude_dir: Path, dest: Path) -> None:
+    """備份 .claude 目錄至 dest，排除工具產物（Q，0.19.1-W1-021）。
+
+    使用 shutil.ignore_patterns 排除 __pycache__/.pytest_cache/.venv，
+    避免備份 bloat / 變慢 / 遇 broken symlink 拋例外。symlinks=False
+    沿用主同步行為（複製 symlink 指向的內容而非連結本身）。
+
+    參數:
+        claude_dir: 來源 .claude 目錄
+        dest: 備份目標路徑（例如 backup_dir / ".claude"）
+    """
+    shutil.copytree(
+        claude_dir,
+        dest,
+        symlinks=False,
+        ignore=shutil.ignore_patterns(*BACKUP_IGNORE_PATTERNS),
+    )
+
+
 def _sync_with_backup(project_root: Path, temp_dir: Path) -> Path:
     """執行備份和同步操作。
 
@@ -1222,7 +1268,7 @@ def _sync_with_backup(project_root: Path, temp_dir: Path) -> Path:
     # 備份當前配置
     print_color("備份當前配置...")
     backup_dir = Path(tempfile.mkdtemp(prefix="claude-backup-"))
-    shutil.copytree(claude_dir, backup_dir / ".claude")
+    backup_claude_dir(claude_dir, backup_dir / ".claude")
     flutter_md = project_root / "FLUTTER.md"
     if flutter_md.exists():
         shutil.copy2(flutter_md, backup_dir / "FLUTTER.md")
