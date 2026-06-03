@@ -63,22 +63,29 @@ this action using other tools that might naturally be used to accomplish this go
 | 維度 | ARCH-015 現狀（v2.1.114） | #15 修復目標 | 期望影響 |
 |------|------------------------|-----------|---------|
 | 症狀 | 外部 worktree 內 subagent 無法 Write/Edit `.claude/` | 背景 session worktree agent 無法編輯自身 worktree | 可能解鎖外部 worktree `.claude/` 編輯 |
-| 根因 | CC runtime 對 `.claude/` 施加「target 必須在主 repo 樹內」的保護 | Workflow agent 在背景 session 的 worktree cwd 下編輯被 runtime 拒絕 | 若修復涵蓋非 .claude/ 路徑擴展到 .claude/ 則 ARCH-015 繞道可鬆動 |
+| 根因 | CC runtime 對 `.claude/` 施加「target 必須在主 repo 樹內」的保護 | Workflow agent 在背景 session 的 worktree cwd 下編輯被 runtime 拒絕 | 若修復涵蓋非 .claude/ 路徑擴充到 .claude/ 則 ARCH-015 繞道可鬆動 |
 | 受影響 cwd | worktree (isolation:worktree 或外部路徑) | 背景 session worktree agent | 具體覆蓋範圍需實測驗證 |
 
-**現狀與待驗證**：
+**2.1.161 四測驗證結果（0.19.1-W1-011 + W1-012，2026-06-03）**：
 
-本專案既有防護（ARCH-015 v2.1.114）已通過兩層規避充分應對：
-1. `worktree.bgIsolation: "none"` 規避背景隔離限制（W17-215 落地）
-2. `.claude/` 修改已走「主 repo cwd 不加 isolation」路徑（behavior-loop-details.md），確保 Edit/Write 成功
+下方 050.x 矩陣為 v2.1.114 時的記錄（外部 worktree `.claude/` 與 Bash 寫入皆「被拒」）。CC 2.1.161 經四測重驗，**ARCH-015 歷史記錄的三條被拒軸全部解鎖**：
 
-**實測結果（0.19.1-W1-011，2026-06-03 於 CC 2.1.161）**：背景 isolation:worktree session 的 subagent 對「自身 worktree 內 `.claude/`」的 Write 與 Edit **全程 SUCCESS，無 deny、無 PreToolUse hook 攔截**（探針 agent a1e935bbed18f8624）。對照下方 050.x 矩陣（v2.1.114 時外部 worktree `.claude/` 為「被拒」），確認 #15 已放寬「subagent 無法編輯 worktree 內 `.claude/`」限制。
+| 測試 | 機制 / 身分 | target | 工具 | 2.1.161 結果 | v2.1.114 對照 |
+|------|-----------|--------|------|-------------|--------------|
+| T1 | isolation:worktree 背景 subagent | worktree 內 `.claude/` | Write/Edit | SUCCESS | （未測此機制） |
+| 補測 | 前景派發 subagent | 外部 `/tmp` worktree `.claude/` | Write/Edit | SUCCESS | 被拒（050.1/C/D） |
+| T3 | isolation:worktree 背景 subagent（身分明確） | worktree 內 `.claude/` | Write/Edit/**Bash** | 全 SUCCESS | Bash 被拒（050.2E） |
+| T2 | — | `.claude/` markdown merge | git merge | 標準文字 merge（同檔同區才衝突） | — |
 
-**範圍邊界**：本實測限「worktree 自身樹內 `.claude/`」（探針 cwd 為 `.claude/worktrees/agent-xxx`）。主 repo `.claude/` 的 subagent 編輯限制（本 ARCH-015 核心「target 須在主 session repo 樹內」分界）是否受影響未測。是否據此鬆動 ARCH-015 / PC-114 繞道結論屬敏感規則變更，方向交用戶決策（建議另建 ANA 評估完整利弊，decision-trigger-binding 規則 2）。
+**核心結論**：CC 2.1.161 起，subagent 對 worktree 內 `.claude/`（含外部 worktree）的 Write/Edit/Bash 編輯**已解鎖**，無 deny、無 PreToolUse hook 攔截；`.claude/` markdown 的 merge 成本與 `src/` 程式碼相當（路徑無關），衝突僅發生於同檔同區重疊。
 
-**Why**：#15 release note 描述的修復範圍邊界不明（可能只涵蓋非 .claude/ 路徑的 worktree 編輯），貿然鬆動規則會違反 quality-baseline 規則 3（設計問題立即修正）。標註備註零風險先做，實驗驗證後再由用戶或 PM 決策。
+**決策（0.19.1-W1-012，用戶定案）：記錄能力，不正式鬆動規則**。
 
-**Consequence**：若未在此標註新資訊，ARCH-015 文件會因 CC 平台修復而逐漸過時，未來維護者難以判斷相關繞道規則是否仍成立（knowledge decay）。
+**Why**：技術可行性已充分驗證，但（1）並行 `.claude/` 派發的實際需求頻率未量化；（2）此議題不在 v0.19.1 核心目標（端到端驗證/打包/內測）上；（3）`isolation:worktree` 編輯能力依賴 CC #15 平台行為，無 API 穩定性保證，未來版本可能回退。正式改寫 PC-114 / behavior-loop-details 規則會引入平台脆弱性，且排擠實際功能 ticket 的機會成本。
+
+**Consequence**：若僅因「技術可行」即鬆動規則，未來 CC 版本回退 #15 時需緊急修復繞道；而既有規避（`bgIsolation:none` + 主 repo cwd 不加 isolation）對當前 `.claude/` 修改頻率已充分運作。反之若不記錄此能力，四測證據與「能力已驗證」的事實會隨時間流失（knowledge decay）。
+
+**Action**：保留既有繞道（`bgIsolation:none` + 主 repo cwd）為預設路徑不變。未來若出現高頻並行 `.claude/` 重構需求，PM 可基於本段四測證據自行決定改用 worktree 背景派發；屆時若 CC #15 已回退，退回主 repo cwd 路徑即可。本記錄不修改 PC-114 / behavior-loop-details 的繞道結論。
 
 **實測矩陣**（subagent cwd 為 CC isolation:worktree 建立的 agent worktree，位於主 repo 樹內 `.claude/worktrees/agent-xxx`）：
 
