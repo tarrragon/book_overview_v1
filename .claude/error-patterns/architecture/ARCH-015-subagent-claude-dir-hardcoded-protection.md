@@ -74,7 +74,7 @@ this action using other tools that might naturally be used to accomplish this go
 
 但 #15 修復可能鬆動此保護。**實際是否解鎖外部 worktree `.claude/` 編輯，待 0.19.1-W1-011 IMP「升版 CC 2.1.161 後實測 ARCH-015 矩陣」驗證**。完成實測後由 PM 決策是否鬆動既有繞道結論（decision-trigger-binding 規則 2）。
 
-**Why**：#15 release note 描述的修復範圍邊界不明（可能只涵蓋非 .claude/ 路徑的 worktree 編輯），貿然鬆動規則會違反質性 baseline 規則 3（設計問題立即修正）。標註備註零風險先做，實驗驗證後再由用戶或 PM 決策。
+**Why**：#15 release note 描述的修復範圍邊界不明（可能只涵蓋非 .claude/ 路徑的 worktree 編輯），貿然鬆動規則會違反 quality-baseline 規則 3（設計問題立即修正）。標註備註零風險先做，實驗驗證後再由用戶或 PM 決策。
 
 **Consequence**：若未在此標註新資訊，ARCH-015 文件會因 CC 平台修復而逐漸過時，未來維護者難以判斷相關繞道規則是否仍成立（knowledge decay）。
 
