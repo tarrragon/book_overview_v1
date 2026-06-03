@@ -110,6 +110,17 @@ PUSH_EXCLUDE = LOCAL_ONLY_PATTERNS | CREDENTIAL_PATTERNS
 # content hash 與 copy 共用的完整名稱黑名單（與 PUSH_EXCLUDE 同義，供語意檢索）
 SYNC_EXCLUDE_ALL = PUSH_EXCLUDE
 
+# .gitignore 必須涵蓋的 local-only 名稱（gitignore↔manifest 交叉驗證基準）。
+#
+# 與 LOCAL_ONLY_PATTERNS 同義：這些是各專案個別管理、不應被 git track 的 runtime
+# state / local-only settings / session log / 工具產物。若 .gitignore 漏列其一，
+# push 端 clean-check 會把未追蹤的本地檔判為 dirty 而 abort（W1-024 缺陷 T）。
+# 故 session-start hook 以此集合交叉驗證 .gitignore 涵蓋度，偵測未來漂移。
+#
+# 不含 CREDENTIAL_PATTERNS：憑證的 gitignore 涵蓋由 .env / secret 等專用 glob
+# 規則處理（且部分為目錄層級），語意與 local-only 名稱比對不同，故分開不混入。
+GITIGNORE_EXPECTED = LOCAL_ONLY_PATTERNS
+
 # 預計算小寫版本，避免每次呼叫 should_exclude 重複計算
 _PUSH_EXCLUDE_LOWER = frozenset(p.lower() for p in PUSH_EXCLUDE)
 _EXCLUDE_SUFFIXES_LOWER = frozenset(s.lower() for s in EXCLUDE_SUFFIXES)
