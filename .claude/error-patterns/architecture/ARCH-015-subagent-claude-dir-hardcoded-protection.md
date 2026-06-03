@@ -72,7 +72,9 @@ this action using other tools that might naturally be used to accomplish this go
 1. `worktree.bgIsolation: "none"` 規避背景隔離限制（W17-215 落地）
 2. `.claude/` 修改已走「主 repo cwd 不加 isolation」路徑（behavior-loop-details.md），確保 Edit/Write 成功
 
-但 #15 修復可能鬆動此保護。**實際是否解鎖外部 worktree `.claude/` 編輯，待 0.19.1-W1-011 IMP「升版 CC 2.1.161 後實測 ARCH-015 矩陣」驗證**。完成實測後由 PM 決策是否鬆動既有繞道結論（decision-trigger-binding 規則 2）。
+**實測結果（0.19.1-W1-011，2026-06-03 於 CC 2.1.161）**：背景 isolation:worktree session 的 subagent 對「自身 worktree 內 `.claude/`」的 Write 與 Edit **全程 SUCCESS，無 deny、無 PreToolUse hook 攔截**（探針 agent a1e935bbed18f8624）。對照下方 050.x 矩陣（v2.1.114 時外部 worktree `.claude/` 為「被拒」），確認 #15 已放寬「subagent 無法編輯 worktree 內 `.claude/`」限制。
+
+**範圍邊界**：本實測限「worktree 自身樹內 `.claude/`」（探針 cwd 為 `.claude/worktrees/agent-xxx`）。主 repo `.claude/` 的 subagent 編輯限制（本 ARCH-015 核心「target 須在主 session repo 樹內」分界）是否受影響未測。是否據此鬆動 ARCH-015 / PC-114 繞道結論屬敏感規則變更，方向交用戶決策（建議另建 ANA 評估完整利弊，decision-trigger-binding 規則 2）。
 
 **Why**：#15 release note 描述的修復範圍邊界不明（可能只涵蓋非 .claude/ 路徑的 worktree 編輯），貿然鬆動規則會違反 quality-baseline 規則 3（設計問題立即修正）。標註備註零風險先做，實驗驗證後再由用戶或 PM 決策。
 
