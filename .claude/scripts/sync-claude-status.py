@@ -30,6 +30,19 @@ REPO_URL = "https://github.com/tarrragon/claude.git"
 
 SYNC_STATE_FILENAME = ".sync-state.json"
 
+# 單一 base snapshot 欄位（多視角 H1：禁雙欄位 push/pull + 禁對 SHA 用 max()）。
+# commit SHA 為字典序字串，max(SHA) 會選錯共同祖先；push/pull 成功皆覆寫此同一欄位。
+BASE_SHA_FIELD = "last_synced_base_sha"
+NO_RECORD = "（無記錄）"
+
+
+def resolve_base_sha_display(sync_state: dict) -> str:
+    """從 sync_state 取單一 base SHA 供顯示，缺欄位回退「無記錄」。
+
+    僅認 BASE_SHA_FIELD 單一鍵，不接受 push/pull 雙欄位 schema（H1 防護）。
+    """
+    return sync_state.get(BASE_SHA_FIELD) or NO_RECORD
+
 
 def print_color(msg: str, color: str = "yellow") -> None:
     """輸出彩色訊息。"""
@@ -145,9 +158,10 @@ def main() -> None:
     # 內容指紋
     current_hash = compute_content_hash(claude_dir)
     sync_state = load_sync_state(claude_dir)
-    last_push_hash = sync_state.get("last_push_hash", "（無記錄）")
+    last_push_hash = sync_state.get("last_push_hash", NO_RECORD)
+    base_sha = resolve_base_sha_display(sync_state)
 
-    if last_push_hash == "（無記錄）":
+    if last_push_hash == NO_RECORD:
         content_status = "無推送記錄"
         content_color = "yellow"
     elif current_hash == last_push_hash:
@@ -168,6 +182,8 @@ def main() -> None:
     print_color(f"內容指紋:  {current_hash}", "green")
     print_color(f"上次推送:  {last_push_hash}", "green")
     print_color(f"內容狀態:  {content_status}", content_color)
+    print()
+    print_color(f"同步 base SHA: {base_sha}", "green")
 
 
 if __name__ == "__main__":
