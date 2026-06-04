@@ -6,5 +6,6 @@
 const { COLORS, STATUS_COLORS } = require('./colors.js')
 const { SPACING, BORDER_RADIUS } = require('./spacing.js')
 const { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS } = require('./typography.js')
+const { SHADOW_COLORS, OVERLAY_COLORS } = require('./shadows.js')
 
-module.exports = { COLORS, STATUS_COLORS, SPACING, BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS }
+module.exports = { COLORS, STATUS_COLORS, SPACING, BORDER_RADIUS, FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS, SHADOW_COLORS, OVERLAY_COLORS }

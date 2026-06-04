@@ -71,4 +71,9 @@
   --font-weight-medium: 500;
   --font-weight-semi-bold: 600;
   --font-weight-bold: 700;
+
+  /* Shadows & Overlay (Section 8) */
+  --shadow-color-sm: rgba(0, 0, 0, 0.1);
+  --shadow-color-md: rgba(0, 0, 0, 0.25);
+  --overlay-scrim: rgba(0, 0, 0, 0.5);
 }

@@ -16,6 +16,7 @@
 
 const { buildCss, camelToKebab } = require('../../scripts/generate-design-system-css.js')
 const { STATUS_COLORS } = require('../../src/core/design-system/colors.js')
+const { SHADOW_COLORS, OVERLAY_COLORS } = require('../../src/core/design-system/shadows.js')
 
 describe('design-system.css 產生器', () => {
   let css
@@ -113,6 +114,26 @@ describe('design-system.css 產生器', () => {
     test('font-weight 保留無單位數字（semiBold → --font-weight-semi-bold: 600）', () => {
       expect(css).toContain('--font-weight-semi-bold: 600;')
       expect(css).toContain('--font-weight-bold: 700;')
+    })
+  })
+
+  describe('Shadows & Overlay（Section 8）', () => {
+    test('陰影顏色兩級（sm 0.1 輕陰影 / md 0.25 中陰影）', () => {
+      expect(css).toContain('--shadow-color-sm: rgba(0, 0, 0, 0.1);')
+      expect(css).toContain('--shadow-color-md: rgba(0, 0, 0, 0.25);')
+    })
+
+    test('overlay scrim（modal backdrop 半透明黑底 0.5）', () => {
+      expect(css).toContain('--overlay-scrim: rgba(0, 0, 0, 0.5);')
+    })
+
+    test('產出值與 shadows.js SHADOW_COLORS / OVERLAY_COLORS 為單一來源（無漂移）', () => {
+      Object.keys(SHADOW_COLORS).forEach((key) => {
+        expect(css).toContain(`--shadow-color-${camelToKebab(key)}: ${SHADOW_COLORS[key]};`)
+      })
+      Object.keys(OVERLAY_COLORS).forEach((key) => {
+        expect(css).toContain(`--overlay-${camelToKebab(key)}: ${OVERLAY_COLORS[key]};`)
+      })
     })
   })
 

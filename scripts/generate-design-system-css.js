@@ -28,6 +28,7 @@ const path = require('path')
 const { COLORS, STATUS_COLORS } = require('../src/core/design-system/colors.js')
 const { SPACING, BORDER_RADIUS } = require('../src/core/design-system/spacing.js')
 const { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS } = require('../src/core/design-system/typography.js')
+const { SHADOW_COLORS, OVERLAY_COLORS } = require('../src/core/design-system/shadows.js')
 
 const OUTPUT_PATH = path.join(__dirname, '..', 'src', 'core', 'design-system', 'design-system.css')
 
@@ -109,6 +110,12 @@ function buildCss () {
   lines.push(`  --font-family: ${FONT_FAMILY};`)
   lines.push(...mapToCssVars('font-size', FONT_SIZES, asPx))
   lines.push(...mapToCssVars('font-weight', FONT_WEIGHTS, asIs))
+  lines.push('')
+
+  // Shadows & Overlay (Section 8) — 中性純黑陰影顏色與遮罩 scrim
+  lines.push('  /* Shadows & Overlay (Section 8) */')
+  lines.push(...mapToCssVars('shadow-color', SHADOW_COLORS, asIs))
+  lines.push(...mapToCssVars('overlay', OVERLAY_COLORS, asIs))
 
   lines.push('}')
   lines.push('')

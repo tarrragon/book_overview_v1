@@ -2,15 +2,15 @@
  * Overview 頁面樣式 - Readmoo 書庫瀏覽器
  * 設計原則：簡潔、響應式、易於閱讀
  *
- * 樣式來源：所有顏色 / 間距 / 圓角 / 字級皆取用 design-system.css 的 :root 變數
- * （AUTO-GENERATED，由 scripts/generate-design-system-css.js 自 colors.js/
- * spacing.js/typography.js 產生）。本檔不得出現硬編碼 hex/rgba 色值與漸層。
- * design-system.css 由 overview.html 以 <link> 在本檔之前引入。
+ * 樣式來源：所有顏色 / 間距 / 圓角 / 字級 / 陰影 / 遮罩皆取用 design-system.css
+ * 的 :root 變數（AUTO-GENERATED，由 scripts/generate-design-system-css.js 自
+ * colors.js/spacing.js/typography.js/shadows.js 產生）。本檔不得出現硬編碼
+ * hex/rgba 色值與漸層。design-system.css 由 overview.html 以 <link> 在本檔之前引入。
  *
- * 例外：中性陰影 / modal overlay 使用 rgba(0,0,0,*) 純黑 scrim，屬與品牌色
- * 無關的 CSS 慣用陰影，design-system 未提供 shadow/overlay token，故保留。
- * 需帶品牌色調的 focus / hover 光暈改用 color-mix() 由 --color-primary 推導，
- * 不再硬編碼 primary alpha 值。
+ * 中性陰影 / modal overlay 的純黑值已收斂為 design-system shadow/overlay token：
+ * box-shadow 顏色取用 --shadow-color-sm / --shadow-color-md（offset/blur 仍由
+ * 各規則自行宣告），modal backdrop 取用 --overlay-scrim。需帶品牌色調的
+ * focus / hover 光暈改用 color-mix() 由 --color-primary 推導，不再硬編碼 alpha 值。
  */
 
 /* 基礎設定 */
@@ -33,7 +33,7 @@ body {
   margin: 0 auto;
   padding: var(--spacing-lg);
   background-color: var(--color-surface);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px var(--shadow-color-sm);
   min-height: 100vh;
 }
 
@@ -149,7 +149,7 @@ body {
   border-collapse: collapse;
   margin-bottom: var(--spacing-lg);
   background: var(--color-surface);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow-color-sm);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -207,7 +207,7 @@ body {
   height: 60px;
   object-fit: cover;
   border-radius: var(--radius-xs);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow-color-sm);
 }
 
 /* 進度條 */
@@ -430,7 +430,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--overlay-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -443,7 +443,7 @@ body {
   padding: var(--spacing-lg);
   max-width: 480px;
   width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 20px var(--shadow-color-md);
 }
 
 .modal-title {
