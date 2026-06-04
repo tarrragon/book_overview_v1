@@ -47,19 +47,35 @@ describe('design-system.css 產生器', () => {
   })
 
   describe('Colors（Section 2）關鍵 token', () => {
-    test('--color-primary 為 Material Blue #2196F3', () => {
-      expect(css).toContain('--color-primary: #2196F3;')
+    test('--color-primary 為 Wave B slate-indigo #1A56DB（跳脫 Material 預設藍）', () => {
+      expect(css).toContain('--color-primary: #1A56DB;')
     })
 
     test('camelCase key 轉 kebab-case（primaryLightest → --color-primary-lightest）', () => {
-      expect(css).toContain('--color-primary-lightest: #E3F2FD;')
+      expect(css).toContain('--color-primary-lightest: #EAF0FD;')
     })
 
-    test('含背景 / 表面 / 錯誤 / 邊框等核心色', () => {
-      expect(css).toContain('--color-background: #FAFAFA;')
+    test('含背景 / 表面 / 錯誤 / 邊框等核心色（Wave B 中性 surface 系統）', () => {
+      expect(css).toContain('--color-background: #F5F7FA;')
       expect(css).toContain('--color-surface: #FFFFFF;')
-      expect(css).toContain('--color-error: #F44336;')
-      expect(css).toContain('--color-border: #E0E0E0;')
+      expect(css).toContain('--color-error: #C2342B;')
+      expect(css).toContain('--color-border: #D9E0EA;')
+    })
+
+    test('Wave B 新增第二中性層 panel（sidebar/toolbar/表頭/次要按鈕底）', () => {
+      expect(css).toContain('--color-panel: #EDF1F7;')
+    })
+
+    test('Wave B 新增強調邊框 border-strong（分隔用）', () => {
+      expect(css).toContain('--color-border-strong: #C4CDD9;')
+    })
+
+    test('Wave B 新增成功文字 success-text（白底 6.54:1）', () => {
+      expect(css).toContain('--color-success-text: #1B6B3A;')
+    })
+
+    test('primary-medium 為中階 accent #5B8DEF（僅非文字 UI / 大文字用）', () => {
+      expect(css).toContain('--color-primary-medium: #5B8DEF;')
     })
   })
 
