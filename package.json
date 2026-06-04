@@ -35,6 +35,7 @@
     "dev": "npm run build:dev && npm run test:watch",
     "lint": "eslint src/ tests/ scripts/",
     "lint:fix": "eslint src/ tests/ scripts/ --fix",
+    "lint:emoji": "node scripts/check-no-emoji.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "format:md": "prettier --write \"**/*.md\"",
@@ -57,7 +58,8 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,mjs,cjs}": "eslint --max-warnings=0"
+    "*.{js,jsx,ts,tsx,mjs,cjs}": "eslint --max-warnings=0",
+    "src/**/*.{js,jsx,ts,mjs,cjs,html,css}": "node scripts/check-no-emoji.js"
   },
   "keywords": [
     "chrome-extension",
