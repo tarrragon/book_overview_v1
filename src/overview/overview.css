@@ -37,25 +37,27 @@ body {
   min-height: 100vh;
 }
 
-/* 頁面標題 */
+/* 頁面標題（headline 24 / bold）
+   W3-001 §b 字級層次：headline 為最高階，與下方 title/body 拉開對比 */
 #pageTitle {
   text-align: center;
   color: var(--color-on-background);
   margin-bottom: var(--spacing-xl);
   font-size: var(--font-size-headline3);
-  font-weight: var(--font-weight-semi-bold);
+  font-weight: var(--font-weight-bold);
 }
 
-/* 統計資訊區域 */
+/* 統計資訊區域（W3-001 §c：去 hero-metric 化）
+   移除 primary 藍 slab，改為 canvas 上的 inline 數字組：
+   - 無背景色塊、無卡片容器，僅靠間距分組（權重「平 / inline」級）
+   - 大數字用 primary accent（藍只出現於數字，面積 < 10%）
+   - 標籤用 muted，與數字拉開層次 */
 .stats {
   display: flex;
   justify-content: center;
-  gap: var(--spacing-xxl);
+  gap: var(--spacing-xl);
   margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-lg);
-  background: var(--color-primary);
-  border-radius: var(--radius-sm);
-  color: var(--color-surface);
+  padding: var(--spacing-lg) 0;
 }
 
 .stat-item {
@@ -65,21 +67,24 @@ body {
 .stat-number {
   font-size: var(--font-size-headline3);
   font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
   margin-bottom: var(--spacing-xs);
 }
 
 .stat-label {
-  font-size: var(--font-size-body-medium);
-  opacity: 0.9;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-on-surface-muted);
 }
 
-/* 搜尋區域 */
+/* 搜尋區域（W3-001 §c：去 pill 化，radius-xl → radius-sm）
+   pill 對資料工具顯 toy-like，對齊類別最佳工具（6-8px） */
 #searchBox {
   width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
   font-size: var(--font-size-body-large);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   margin-bottom: var(--spacing-lg);
   outline: none;
   transition: border-color 0.3s;
@@ -90,49 +95,83 @@ body {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
-/* 操作按鈕區域 */
+/* 操作按鈕區域（W3-001 §c：按鈕主次三級 + 去 pill）
+   消除「5 個同色同尺寸 pill」的無主次氾濫。透過 ID 選擇器賦予語意層級
+   （HTML 共用 .export-btn class，本檔以 ID 區分主次，不需改 HTML）：
+   - 預設 .export-btn = secondary（panel 底 + ink 字 + border）
+   - #exportCSVBtn = primary（每頁唯一主動作）
+   - #reloadBtn = danger 語意（重新載入屬資料破壞性操作） */
 .export-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-lg);
-  justify-content: center;
+  justify-content: flex-start;
 }
 
+/* 基礎按鈕 = secondary 級（一般動作：匯出 JSON / 匯入 JSON / 選取全部 / 載入檔案 / 載入範例） */
 .export-btn {
   padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--color-primary);
-  color: var(--color-surface);
-  border: none;
-  border-radius: var(--radius-xl);
+  background: var(--color-panel);
+  color: var(--color-on-background);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: var(--font-size-body-medium);
   font-weight: var(--font-weight-medium);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, filter 0.2s;
 }
 
 .export-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  background: var(--color-surface);
+  border-color: var(--color-primary);
 }
 
 .export-btn:active {
-  transform: translateY(0);
+  filter: brightness(0.96);
 }
 
-/* 檔案載入區域 */
+/* primary 級：每頁唯一主動作（匯出 CSV），primary 底 + 白字 + radius-sm（非 pill） */
+#exportCSVBtn.export-btn {
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+#exportCSVBtn.export-btn:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+/* danger 級：資料破壞性動作（重新載入會丟棄當前顯示資料） */
+#reloadBtn.export-btn {
+  background: var(--color-error);
+  color: var(--color-surface);
+  border-color: var(--color-error);
+}
+
+#reloadBtn.export-btn:hover {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  filter: brightness(0.9);
+}
+
+/* 檔案載入區域（W3-001 §c：權重「次 / secondary panel」級）
+   panel 底 + 1px border + 無陰影，與主元素（表格）拉開視覺權重 */
 .file-uploader {
-  background: var(--color-background);
-  padding: var(--spacing-lg);
+  background: var(--color-panel);
+  padding: var(--spacing-md);
   border-radius: var(--radius-sm);
   text-align: center;
   margin-bottom: var(--spacing-lg);
-  border: 2px dashed var(--color-border);
+  border: 1px dashed var(--color-border-strong);
 }
 
 .file-uploader h3 {
   margin-bottom: var(--spacing-md);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-surface);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semi-bold);
 }
 
 #jsonFileInput {
@@ -143,30 +182,36 @@ body {
   background: var(--color-surface);
 }
 
-/* 書籍表格 */
+/* 書籍表格（W3-001 §c：權重「主 / primary surface」級 = 頁面視覺重心）
+   資料工具的核心是資料而非按鈕，故表格升為唯一較重元素：
+   surface 白底 + sm shadow（0 2px 8px）+ radius md（12，由 sm 升階） */
 #booksTable {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: var(--spacing-lg);
   background: var(--color-surface);
   box-shadow: 0 2px 8px var(--shadow-color-sm);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
+/* 表頭（W3-001 §c：由 primary 藍改 panel 中性底 + ink 文字）
+   消除大面積單藍氾濫，表頭退為中性承載層（th-text 14.03:1 on panel） */
 #booksTable th {
-  background: var(--color-primary);
-  color: var(--color-surface);
+  background: var(--color-panel);
+  color: var(--color-on-background);
   padding: var(--spacing-md) var(--spacing-md);
   text-align: left;
   font-weight: var(--font-weight-semi-bold);
   font-size: var(--font-size-body-medium);
+  border-bottom: 1px solid var(--color-border-strong);
 }
 
 #booksTable td {
   padding: var(--spacing-md);
   border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
+  font-size: var(--font-size-body-medium);
 }
 
 #booksTable tr:hover {
@@ -319,9 +364,10 @@ body {
   color: var(--color-surface);
   border: none;
   padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
 }
 
 .error-retry-btn:hover {
@@ -448,7 +494,8 @@ body {
 
 .modal-title {
   margin: 0 0 var(--spacing-md);
-  font-size: var(--font-size-title-large);
+  font-size: var(--font-size-title-medium);
+  font-weight: var(--font-weight-semi-bold);
   color: var(--color-on-background);
 }
 
@@ -472,15 +519,25 @@ body {
   cursor: pointer;
 }
 
-/* modal 主色歸一至 design-system primary（原自訂紫藍漂移色已移除） */
+/* modal 按鈕主次三級（W3-001 §c）：primary 底白字 / secondary panel 底 ink 字 + border */
 .modal-btn-primary {
   background: var(--color-primary);
   color: var(--color-surface);
 }
 
+.modal-btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
 .modal-btn-secondary {
-  background: var(--color-border);
+  background: var(--color-panel);
   color: var(--color-on-background);
+  border: 1px solid var(--color-border-strong);
+}
+
+.modal-btn-secondary:hover {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
 }
 
 /* W1-049: destructive 確認按鈕（紅色警告色，視覺與其他按鈕對比明顯）
