@@ -1,6 +1,16 @@
 /**
  * Overview 頁面樣式 - Readmoo 書庫瀏覽器
  * 設計原則：簡潔、響應式、易於閱讀
+ *
+ * 樣式來源：所有顏色 / 間距 / 圓角 / 字級皆取用 design-system.css 的 :root 變數
+ * （AUTO-GENERATED，由 scripts/generate-design-system-css.js 自 colors.js/
+ * spacing.js/typography.js 產生）。本檔不得出現硬編碼 hex/rgba 色值與漸層。
+ * design-system.css 由 overview.html 以 <link> 在本檔之前引入。
+ *
+ * 例外：中性陰影 / modal overlay 使用 rgba(0,0,0,*) 純黑 scrim，屬與品牌色
+ * 無關的 CSS 慣用陰影，design-system 未提供 shadow/overlay token，故保留。
+ * 需帶品牌色調的 focus / hover 光暈改用 color-mix() 由 --color-primary 推導，
+ * 不再硬編碼 primary alpha 值。
  */
 
 /* 基礎設定 */
@@ -13,16 +23,16 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
   line-height: 1.6;
-  color: #333;
-  background-color: #FAFAFA;
-  font-size: 14px;
+  color: var(--color-on-background);
+  background-color: var(--color-background);
+  font-size: var(--font-size-body-medium);
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   min-height: 100vh;
 }
@@ -30,22 +40,22 @@ body {
 /* 頁面標題 */
 #pageTitle {
   text-align: center;
-  color: #212121;
-  margin-bottom: 30px;
-  font-size: 28px;
-  font-weight: 600;
+  color: var(--color-on-background);
+  margin-bottom: var(--spacing-xl);
+  font-size: var(--font-size-headline3);
+  font-weight: var(--font-weight-semi-bold);
 }
 
 /* 統計資訊區域 */
 .stats {
   display: flex;
   justify-content: center;
-  gap: 40px;
-  margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-  border-radius: 10px;
-  color: white;
+  gap: var(--spacing-xxl);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+  color: var(--color-surface);
 }
 
 .stat-item {
@@ -53,57 +63,57 @@ body {
 }
 
 .stat-number {
-  font-size: 36px;
-  font-weight: bold;
-  margin-bottom: 5px;
+  font-size: var(--font-size-headline3);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-xs);
 }
 
 .stat-label {
-  font-size: 14px;
+  font-size: var(--font-size-body-medium);
   opacity: 0.9;
 }
 
 /* 搜尋區域 */
 #searchBox {
   width: 100%;
-  padding: 12px 20px;
-  font-size: 16px;
-  border: 2px solid #ddd;
-  border-radius: 25px;
-  margin-bottom: 20px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-body-large);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-lg);
   outline: none;
   transition: border-color 0.3s;
 }
 
 #searchBox:focus {
-  border-color: #2196F3;
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 /* 操作按鈕區域 */
 .export-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
   justify-content: center;
 }
 
 .export-btn {
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-  color: white;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-primary);
+  color: var(--color-surface);
   border: none;
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-medium);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .export-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+  box-shadow: 0 5px 15px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
 .export-btn:active {
@@ -112,55 +122,55 @@ body {
 
 /* 檔案載入區域 */
 .file-uploader {
-  background: #FAFAFA;
-  padding: 20px;
-  border-radius: 10px;
+  background: var(--color-background);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-sm);
   text-align: center;
-  margin-bottom: 20px;
-  border: 2px dashed #ddd;
+  margin-bottom: var(--spacing-lg);
+  border: 2px dashed var(--color-border);
 }
 
 .file-uploader h3 {
-  margin-bottom: 15px;
-  color: #555;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-on-surface-muted);
 }
 
 #jsonFileInput {
-  margin-bottom: 15px;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background: white;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface);
 }
 
 /* 書籍表格 */
 #booksTable {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
-  background: white;
+  margin-bottom: var(--spacing-lg);
+  background: var(--color-surface);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 #booksTable th {
-  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-  color: white;
-  padding: 15px 12px;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  padding: var(--spacing-md) var(--spacing-md);
   text-align: left;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: var(--font-weight-semi-bold);
+  font-size: var(--font-size-body-medium);
 }
 
 #booksTable td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
 }
 
 #booksTable tr:hover {
-  background-color: #FAFAFA;
+  background-color: var(--color-background);
 }
 
 #booksTable tr:last-child td {
@@ -172,7 +182,7 @@ body {
 #booksTable td.select-col {
   width: 40px;
   text-align: center;
-  padding: 8px;
+  padding: var(--spacing-sm);
 }
 
 #booksTable .row-checkbox,
@@ -184,11 +194,11 @@ body {
 }
 
 #booksTable tr.row-selected {
-  background-color: rgba(33, 150, 243, 0.08);
+  background-color: var(--color-primary-lightest);
 }
 
 #booksTable tr.row-selected:hover {
-  background-color: rgba(33, 150, 243, 0.12);
+  background-color: var(--color-primary-light);
 }
 
 /* 書籍封面圖片 */
@@ -196,7 +206,7 @@ body {
   width: 40px;
   height: 60px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -204,77 +214,78 @@ body {
 .progress-bar {
   width: 100px;
   height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-xs);
   overflow: hidden;
   position: relative;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50 0%, #388E3C 100%);
+  background: var(--color-success);
   transition: width 0.3s ease;
 }
 
 .progress-text {
-  font-size: 12px;
-  color: #666;
-  margin-top: 4px;
+  font-size: var(--font-size-body-small);
+  color: var(--color-on-surface-muted);
+  margin-top: var(--spacing-xs);
 }
 
-/* 閱讀狀態標籤（6 狀態，對齊 SPEC-DESIGN-SYSTEM Section 3） */
+/* 閱讀狀態標籤（6 狀態，對齊 SPEC-DESIGN-SYSTEM Section 3）
+   D3：深字淺底 WCAG AA，色值取自 design-system.css --status-*-fg/bg */
 .reading-status-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
   display: inline-block;
 }
 
 .reading-status-badge[data-status="unread"] {
-  background-color: rgba(227, 242, 253, 0.15);
-  color: #E3F2FD;
+  background-color: var(--status-unread-bg);
+  color: var(--status-unread-fg);
 }
 
 .reading-status-badge[data-status="queued"] {
-  background-color: rgba(100, 181, 246, 0.15);
-  color: #64B5F6;
+  background-color: var(--status-queued-bg);
+  color: var(--status-queued-fg);
 }
 
 .reading-status-badge[data-status="reading"] {
-  background-color: rgba(33, 150, 243, 0.15);
-  color: #2196F3;
+  background-color: var(--status-reading-bg);
+  color: var(--status-reading-fg);
 }
 
 .reading-status-badge[data-status="finished"] {
-  background-color: rgba(76, 175, 80, 0.15);
-  color: #4CAF50;
+  background-color: var(--status-finished-bg);
+  color: var(--status-finished-fg);
 }
 
 .reading-status-badge[data-status="abandoned"] {
-  background-color: rgba(255, 152, 0, 0.15);
-  color: #FF9800;
+  background-color: var(--status-abandoned-bg);
+  color: var(--status-abandoned-fg);
 }
 
 .reading-status-badge[data-status="reference"] {
-  background-color: rgba(25, 118, 210, 0.15);
-  color: #1976D2;
+  background-color: var(--status-reference-bg);
+  color: var(--status-reference-fg);
 }
 
 /* 載入狀態 */
 #loadingIndicator {
   text-align: center;
-  padding: 40px;
+  padding: var(--spacing-xxl);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #FAFAFA;
-  border-top: 4px solid #2196F3;
+  border: 4px solid var(--color-background);
+  border-top: 4px solid var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 15px;
+  margin: 0 auto var(--spacing-md);
 }
 
 @keyframes spin {
@@ -283,78 +294,79 @@ body {
 }
 
 .loading-text {
-  color: #666;
-  font-size: 16px;
+  color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-large);
 }
 
 /* 錯誤訊息 */
 #errorContainer {
-  background-color: #ffebee;
-  border: 1px solid #ffcdd2;
-  border-radius: 8px;
-  padding: 20px;
+  background-color: var(--color-error-light);
+  border: 1px solid var(--color-error-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-lg);
   text-align: center;
-  margin: 20px 0;
+  margin: var(--spacing-lg) 0;
 }
 
 .error-message {
-  color: #F44336;
-  margin-bottom: 15px;
-  font-size: 16px;
+  color: var(--color-error);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-body-large);
 }
 
 .error-retry-btn {
-  background-color: #f44336;
-  color: white;
+  background-color: var(--color-error);
+  color: var(--color-surface);
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-xs);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-body-medium);
 }
 
 .error-retry-btn:hover {
-  background-color: #F44336;
+  background-color: var(--color-error);
+  filter: brightness(0.92);
 }
 
 /* 響應式設計 */
 @media (max-width: 768px) {
   .container {
-    padding: 15px;
+    padding: var(--spacing-md);
   }
-  
+
   #pageTitle {
-    font-size: 24px;
+    font-size: var(--font-size-headline3);
   }
-  
+
   .stats {
     flex-direction: column;
-    gap: 20px;
+    gap: var(--spacing-lg);
   }
-  
+
   .export-buttons {
     justify-content: stretch;
   }
-  
+
   .export-btn {
     flex: 1;
     min-width: 120px;
   }
-  
+
   #booksTable {
-    font-size: 12px;
+    font-size: var(--font-size-body-small);
   }
-  
+
   #booksTable th,
   #booksTable td {
-    padding: 8px 6px;
+    padding: var(--spacing-sm) var(--spacing-xs);
   }
-  
+
   .book-cover {
     width: 30px;
     height: 45px;
   }
-  
+
   .progress-bar {
     width: 80px;
   }
@@ -362,17 +374,17 @@ body {
 
 @media (max-width: 480px) {
   .stats {
-    padding: 15px;
+    padding: var(--spacing-md);
   }
-  
+
   .stat-number {
-    font-size: 28px;
+    font-size: var(--font-size-headline3);
   }
-  
+
   .export-buttons {
     flex-direction: column;
   }
-  
+
   .export-btn {
     width: 100%;
   }
@@ -388,11 +400,11 @@ body {
 }
 
 .mt-20 {
-  margin-top: 20px;
+  margin-top: var(--spacing-lg);
 }
 
 .mb-20 {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 /* 動畫效果 */
@@ -426,62 +438,65 @@ body {
 }
 
 .modal-dialog {
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-lg);
   max-width: 480px;
   width: 90%;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .modal-title {
-  margin: 0 0 12px;
-  font-size: 1.25rem;
-  color: #333;
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size-title-large);
+  color: var(--color-on-background);
 }
 
 .modal-description {
-  margin: 0 0 20px;
-  color: #666;
+  margin: 0 0 var(--spacing-lg);
+  color: var(--color-on-surface-muted);
   line-height: 1.6;
 }
 
 .modal-actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .modal-btn {
-  padding: 10px 16px;
+  padding: var(--spacing-sm) var(--spacing-md);
   border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body-medium);
   cursor: pointer;
 }
 
+/* modal 主色歸一至 design-system primary（原自訂紫藍漂移色已移除） */
 .modal-btn-primary {
-  background: #667eea;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .modal-btn-secondary {
-  background: #e0e0e0;
-  color: #333;
+  background: var(--color-border);
+  color: var(--color-on-background);
 }
 
 /* W1-049: destructive 確認按鈕（紅色警告色，視覺與其他按鈕對比明顯）
    用於不可逆操作（如清空書庫）的二次確認，與 .modal-btn-secondary 取消鈕並列 */
 .modal-btn-danger {
-  background: #d9534f;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--color-surface);
 }
 
 .modal-btn-danger:hover {
-  background: #c9302c;
+  background: var(--color-error);
+  filter: brightness(0.88);
 }
 
+/* focus ring 主色歸一至 design-system primary（原自訂藍紫漂移色已移除） */
 .modal-btn:focus {
-  outline: 2px solid #4a5fc1;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
