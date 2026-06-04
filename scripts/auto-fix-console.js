@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 const fs = require('fs')
-const path = require('path')
 const { execSync } = require('child_process')
 
 console.log('🔧 正在自動修復所有測試檔案中的 console warnings...')
 
 // 取得所有含 console 的檔案
-const grep = execSync(`grep -r "console\\.(log\\|warn\\|error\\|info\\|debug)" tests/ --include="*.js" -l`, { encoding: 'utf-8' })
+const grep = execSync('grep -r "console\\.(log\\|warn\\|error\\|info\\|debug)" tests/ --include="*.js" -l', { encoding: 'utf-8' })
   .trim()
   .split('\n')
   .filter(file => file.length > 0)
@@ -23,7 +22,7 @@ for (const file of grep) {
   processed++
   console.log(`[${processed}/${grep.length}] ${file}`)
 
-  let content = fs.readFileSync(file, 'utf8')
+  const content = fs.readFileSync(file, 'utf8')
   let changed = false
 
   // 按行處理
@@ -50,21 +49,21 @@ for (const file of grep) {
   if (changed) {
     fs.writeFileSync(file, lines.join('\n'), 'utf8')
     modified++
-    console.log(`  ✅ 已修復`)
+    console.log('  ✅ 已修復')
   } else {
-    console.log(`  ⏭️  已有註解`)
+    console.log('  ⏭️  已有註解')
   }
 }
 
-console.log(`\n🎉 處理完成！`)
-console.log(`📊 統計:`)
+console.log('\n🎉 處理完成！')
+console.log('📊 統計:')
 console.log(`  - 檢查檔案: ${processed}`)
 console.log(`  - 修復檔案: ${modified}`)
 console.log(`  - 跳過檔案: ${processed - modified}`)
 
-console.log(`\n🔍 驗證結果:`)
+console.log('\n🔍 驗證結果:')
 try {
-  const remaining = execSync(`grep -r "console\\.(log\\|warn\\|error\\|info\\|debug)" tests/ --include="*.js" | grep -v "eslint-disable-next-line no-console" | wc -l`, { encoding: 'utf-8' }).trim()
+  const remaining = execSync('grep -r "console\\.(log\\|warn\\|error\\|info\\|debug)" tests/ --include="*.js" | grep -v "eslint-disable-next-line no-console" | wc -l', { encoding: 'utf-8' }).trim()
   console.log(`剩餘未處理的 console 語句: ${remaining}`)
 } catch (error) {
   console.log('無法統計剩餘語句，請手動檢查')

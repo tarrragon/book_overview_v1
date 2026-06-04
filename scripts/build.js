@@ -4,22 +4,22 @@
  * 負責建立生產和開發版本的 Chrome Extension
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
 // Design System CSS 產生器（0.19.1-W2-001 D1）：
 // design-system.css 為 generated artifact，由 colors.js/spacing.js/typography.js
 // 產出。build flow 開頭呼叫產生器，確保複製到 build/ 的 CSS 為最新。
-const { generate: generateDesignSystemCss } = require('./generate-design-system-css.js');
+const { generate: generateDesignSystemCss } = require('./generate-design-system-css.js')
 
 // esbuild lazy require：避免單元測試在 jsdom 環境載入本檔時
 // 因 TextEncoder/Uint8Array 不相容崩潰。實際 build flow 仍正常使用。
-let esbuild;
+let esbuild
 function getEsbuild () {
   if (!esbuild) {
-    esbuild = require('esbuild');
+    esbuild = require('esbuild')
   }
-  return esbuild;
+  return esbuild
 }
 
 /**
@@ -43,9 +43,9 @@ function getEsbuild () {
  * @throws {Error} esbuild 載入失敗時拋出帶診斷訊息的 Error
  */
 function ensureEsbuildAvailable () {
-  let mod;
+  let mod
   try {
-    mod = getEsbuild();
+    mod = getEsbuild()
   } catch (err) {
     throw new Error(
       `[ESBUILD CHECK] 無法載入 esbuild 模組：${err.message}\n` +
@@ -53,22 +53,22 @@ function ensureEsbuildAvailable () {
       '  1. 確認 node_modules/esbuild 已安裝（npm install --legacy-peer-deps）\n' +
       '  2. 確認 esbuild binary 對應當前平台（macOS/Linux/Windows）\n' +
       '  3. 若 npm install 警告 platform binary 失敗，移除 node_modules 後重裝'
-    );
+    )
   }
   if (!mod || typeof mod.build !== 'function') {
     throw new Error(
       '[ESBUILD CHECK] esbuild 模組載入但缺 build() 方法，疑似版本不相容或 binary 損壞'
-    );
+    )
   }
 }
 
-const MODE = process.argv.includes('--prod') ? 'production' : 'development';
-const SKIP_VERSION_CHECK = process.argv.includes('--skip-version-check');
-const BUILD_DIR = path.join(__dirname, '..', 'build', MODE);
-const SOURCE_DIR = path.join(__dirname, '..');
+const MODE = process.argv.includes('--prod') ? 'production' : 'development'
+const SKIP_VERSION_CHECK = process.argv.includes('--skip-version-check')
+const BUILD_DIR = path.join(__dirname, '..', 'build', MODE)
+const SOURCE_DIR = path.join(__dirname, '..')
 // W1-081：去除硬編碼 v0 major dir，改由 resolveWorklogPath 自 packageVersion
 // 取 major 動態推斷。支援 v0/v1+ 並存與 v1 only 場景。
-const WORK_LOGS_ROOT = path.join(SOURCE_DIR, 'docs', 'work-logs');
+const WORK_LOGS_ROOT = path.join(SOURCE_DIR, 'docs', 'work-logs')
 
 /**
  * 預設 fsAdapter：使用 Node.js fs 模組，與 scripts/validate-manifest.js 同模式
@@ -83,7 +83,7 @@ const defaultFsAdapter = {
   readFile: (p) => fs.readFileSync(p, 'utf8'),
   readdir: (p) => fs.readdirSync(p),
   stat: (p) => fs.statSync(p)
-};
+}
 
 /**
  * 預設 fsWriter：供 syncWorklogStatus 寫入 worklog main.md
@@ -94,7 +94,7 @@ const defaultFsAdapter = {
  */
 const defaultFsWriter = {
   writeFile: (p, content) => fs.writeFileSync(p, content, 'utf8')
-};
+}
 
 /**
  * 根據 package.json 版號推斷對應的 worklog patch 目錄路徑
@@ -117,21 +117,21 @@ const defaultFsWriter = {
  * @returns {{ok: boolean, mainFile?: string, patchDir?: string, error?: string}}
  */
 function resolveWorklogPath (packageVersion, workLogsRoot) {
-  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(packageVersion);
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(packageVersion)
   if (!match) {
     return {
       ok: false,
       error: `[VERSION CHECK] package.json 版號格式不符 (預期 M.m.p)：${packageVersion}`
-    };
+    }
   }
-  const [, major, minor] = match;
+  const [, major, minor] = match
   // W1-081：新增 major 層（v0 / v1 / v2...），原 majorDir 改名為 minorDir
-  const majorDir = `v${major}`;
-  const minorDir = `v${major}.${minor}`;
-  const patchDir = `v${packageVersion}`;
-  const patchPath = path.join(workLogsRoot, majorDir, minorDir, patchDir);
-  const mainFile = path.join(patchPath, `${patchDir}-main.md`);
-  return { ok: true, patchDir: patchPath, mainFile };
+  const majorDir = `v${major}`
+  const minorDir = `v${major}.${minor}`
+  const patchDir = `v${packageVersion}`
+  const patchPath = path.join(workLogsRoot, majorDir, minorDir, patchDir)
+  const mainFile = path.join(patchPath, `${patchDir}-main.md`)
+  return { ok: true, patchDir: patchPath, mainFile }
 }
 
 /**
@@ -160,50 +160,50 @@ function resolveWorklogPath (packageVersion, workLogsRoot) {
  */
 function detectActiveWorklogVersion (workLogsRoot, fsAdapter = defaultFsAdapter) {
   if (!fsAdapter.fileExists(workLogsRoot)) {
-    return { ok: false, reason: `worklog 根目錄不存在: ${workLogsRoot}` };
+    return { ok: false, reason: `worklog 根目錄不存在: ${workLogsRoot}` }
   }
 
-  const activeVersions = [];
+  const activeVersions = []
 
   // W1-081：新增最外層 major dir 掃描（v0 / v1 / v2...），支援 v0/v1 並存與 v1 only 情境
   const majorDirs = fsAdapter.readdir(workLogsRoot)
-    .filter((name) => /^v\d+$/.test(name));
+    .filter((name) => /^v\d+$/.test(name))
 
   for (const majorDir of majorDirs) {
-    const majorPath = path.join(workLogsRoot, majorDir);
-    if (!fsAdapter.stat(majorPath).isDirectory()) continue;
+    const majorPath = path.join(workLogsRoot, majorDir)
+    if (!fsAdapter.stat(majorPath).isDirectory()) continue
 
     const minorDirs = fsAdapter.readdir(majorPath)
-      .filter((name) => /^v\d+\.\d+$/.test(name));
+      .filter((name) => /^v\d+\.\d+$/.test(name))
 
     for (const minorDir of minorDirs) {
-      const minorPath = path.join(majorPath, minorDir);
-      if (!fsAdapter.stat(minorPath).isDirectory()) continue;
+      const minorPath = path.join(majorPath, minorDir)
+      if (!fsAdapter.stat(minorPath).isDirectory()) continue
 
       const patchDirs = fsAdapter.readdir(minorPath)
-        .filter((name) => /^v\d+\.\d+\.\d+$/.test(name));
+        .filter((name) => /^v\d+\.\d+\.\d+$/.test(name))
 
       for (const patchDir of patchDirs) {
-        const patchPath = path.join(minorPath, patchDir);
-        if (!fsAdapter.stat(patchPath).isDirectory()) continue;
+        const patchPath = path.join(minorPath, patchDir)
+        if (!fsAdapter.stat(patchPath).isDirectory()) continue
 
-        const mainFile = path.join(patchPath, `${patchDir}-main.md`);
-        if (!fsAdapter.fileExists(mainFile)) continue;
+        const mainFile = path.join(patchPath, `${patchDir}-main.md`)
+        if (!fsAdapter.fileExists(mainFile)) continue
 
-        const content = fsAdapter.readFile(mainFile);
+        const content = fsAdapter.readFile(mainFile)
         // 偵測「**狀態**: 開發中」標記（容忍前後空白與全形/半形冒號 U+003A / U+FF1A）。
         // W1-084 修復：原 regex [::] 兩字元皆為半形冒號（W1-074 implementation bug），
         // 改為顯式 escape [:：] 與 syncWorklogStatus 對稱真正支援全形冒號。
         if (/\*\*狀態\*\*\s*[:：]\s*開發中/.test(content)) {
           // 移除 v 前綴以對齊 package.json 格式
-          activeVersions.push(patchDir.replace(/^v/, ''));
+          activeVersions.push(patchDir.replace(/^v/, ''))
         }
       }
     }
   }
 
   if (activeVersions.length === 0) {
-    return { ok: false, reason: '未找到任何 active worklog（標記為「**狀態**: 開發中」）' };
+    return { ok: false, reason: '未找到任何 active worklog（標記為「**狀態**: 開發中」）' }
   }
 
   if (activeVersions.length > 1) {
@@ -211,10 +211,10 @@ function detectActiveWorklogVersion (workLogsRoot, fsAdapter = defaultFsAdapter)
       ok: false,
       reason: `找到多個 active worklog（應僅 1 個）: ${activeVersions.join(', ')}`,
       candidates: activeVersions
-    };
+    }
   }
 
-  return { ok: true, version: activeVersions[0] };
+  return { ok: true, version: activeVersions[0] }
 }
 
 /**
@@ -244,9 +244,9 @@ function detectActiveWorklogVersion (workLogsRoot, fsAdapter = defaultFsAdapter)
  * @returns {{ok: boolean, error?: string, actualVersion?: string, expectedMainFile?: string}}
  */
 function validateVersionAlignment (packageVersion, workLogsRoot, fsAdapter = defaultFsAdapter) {
-  const resolved = resolveWorklogPath(packageVersion, workLogsRoot);
+  const resolved = resolveWorklogPath(packageVersion, workLogsRoot)
   if (!resolved.ok) {
-    return { ok: false, error: resolved.error, actualVersion: packageVersion };
+    return { ok: false, error: resolved.error, actualVersion: packageVersion }
   }
 
   if (!fsAdapter.fileExists(resolved.patchDir)) {
@@ -255,7 +255,7 @@ function validateVersionAlignment (packageVersion, workLogsRoot, fsAdapter = def
       error: `[VERSION CHECK] package.json 版號 (${packageVersion}) 對應的 worklog 目錄不存在: ${resolved.patchDir}`,
       actualVersion: packageVersion,
       expectedMainFile: resolved.mainFile
-    };
+    }
   }
 
   if (!fsAdapter.fileExists(resolved.mainFile)) {
@@ -264,14 +264,14 @@ function validateVersionAlignment (packageVersion, workLogsRoot, fsAdapter = def
       error: `[VERSION CHECK] package.json 版號 (${packageVersion}) 對應的 worklog 主檔案不存在: ${resolved.mainFile}`,
       actualVersion: packageVersion,
       expectedMainFile: resolved.mainFile
-    };
+    }
   }
 
   return {
     ok: true,
     actualVersion: packageVersion,
     expectedMainFile: resolved.mainFile
-  };
+  }
 }
 
 /**
@@ -309,9 +309,9 @@ function syncWorklogStatus (
   fsAdapter = defaultFsAdapter,
   fsWriter = defaultFsWriter
 ) {
-  const resolved = resolveWorklogPath(packageVersion, workLogsRoot);
+  const resolved = resolveWorklogPath(packageVersion, workLogsRoot)
   if (!resolved.ok) {
-    return { ok: false, error: resolved.error };
+    return { ok: false, error: resolved.error }
   }
 
   if (!fsAdapter.fileExists(resolved.mainFile)) {
@@ -319,39 +319,39 @@ function syncWorklogStatus (
       ok: false,
       error: `[WORKLOG SYNC] worklog 主檔案不存在: ${resolved.mainFile}`,
       mainFile: resolved.mainFile
-    };
+    }
   }
 
-  const content = fsAdapter.readFile(resolved.mainFile);
+  const content = fsAdapter.readFile(resolved.mainFile)
   // 容忍前後空白與全形/半形冒號（U+003A / U+FF1A）。
   // 與 detectActiveWorklogVersion（line 175）對稱採顯式 [:：] 確保全形冒號支援
   // （W1-074 implementation bug 於 W1-083 + W1-084 完整修復）。
-  const statusRegex = /(\*\*狀態\*\*\s*[:：]\s*)([^\n\r]+)/;
-  const match = statusRegex.exec(content);
+  const statusRegex = /(\*\*狀態\*\*\s*[:：]\s*)([^\n\r]+)/
+  const match = statusRegex.exec(content)
 
   if (!match) {
     return {
       ok: false,
       error: `[WORKLOG SYNC] worklog 主檔案缺少「**狀態**: ...」標記行: ${resolved.mainFile}`,
       mainFile: resolved.mainFile
-    };
+    }
   }
 
-  const previousStatus = match[2].trim();
+  const previousStatus = match[2].trim()
   if (previousStatus === '開發中') {
-    return { ok: true, changed: false, previousStatus, mainFile: resolved.mainFile };
+    return { ok: true, changed: false, previousStatus, mainFile: resolved.mainFile }
   }
 
   // 改寫狀態為「開發中」並保留前綴格式（冒號樣式、間距）
-  const updatedContent = content.replace(statusRegex, `$1開發中`);
-  fsWriter.writeFile(resolved.mainFile, updatedContent);
+  const updatedContent = content.replace(statusRegex, '$1開發中')
+  fsWriter.writeFile(resolved.mainFile, updatedContent)
 
   return {
     ok: true,
     changed: true,
     previousStatus,
     mainFile: resolved.mainFile
-  };
+  }
 }
 
 // 注意：build/ 與 BUILD_DIR 的建立移至 build() 函式內執行（PC-N/A：避免模組頂層
@@ -368,41 +368,41 @@ const filesToCopy = [
   'manifest.json',
   'src/',
   'assets/'
-];
+]
 
 /**
  * 遞迴複製檔案和目錄
  */
-function copyRecursive(src, dest) {
-  const stats = fs.statSync(src);
-  
+function copyRecursive (src, dest) {
+  const stats = fs.statSync(src)
+
   if (stats.isDirectory()) {
     if (!fs.existsSync(dest)) {
-      fs.mkdirSync(dest, { recursive: true });
+      fs.mkdirSync(dest, { recursive: true })
     }
-    
-    const items = fs.readdirSync(src);
+
+    const items = fs.readdirSync(src)
     items.forEach(item => {
       // 跳過測試檔案和開發檔案
       if (item.includes('.test.') || item.includes('.spec.')) {
-        return;
+        return
       }
 
       // 跳過 .backup 與 .backup-<時間戳> 開發殘留檔。
       // 檔名含 .backup 子字串即排除，避免工具產生的備份檔混入分發產物
       // （與 scripts/package.js 的 *.backup* glob 排除語意一致）。
       if (item.includes('.backup')) {
-        return;
+        return
       }
 
       copyRecursive(
         path.join(src, item),
         path.join(dest, item)
-      );
-    });
+      )
+    })
   } else {
     // 複製檔案
-    fs.copyFileSync(src, dest);
+    fs.copyFileSync(src, dest)
   }
 }
 
@@ -433,7 +433,7 @@ const BUNDLE_ENTRY_POINTS = [
     input: 'src/overview/overview.js',
     format: 'iife'
   }
-];
+]
 
 /**
  * 對入口點執行 esbuild bundling
@@ -442,16 +442,16 @@ const BUNDLE_ENTRY_POINTS = [
  * 覆蓋 build 目錄中複製的原始檔案。
  * 使用 alias 解析 'src/' 開頭的 bare module specifier。
  */
-async function bundleEntryPoints() {
-  console.log('\n[BUNDLE] 開始 esbuild bundling...');
+async function bundleEntryPoints () {
+  console.log('\n[BUNDLE] 開始 esbuild bundling...')
 
-  const srcAlias = path.join(BUILD_DIR, 'src');
+  const srcAlias = path.join(BUILD_DIR, 'src')
 
   for (const entry of BUNDLE_ENTRY_POINTS) {
-    const inputPath = path.join(BUILD_DIR, entry.input);
-    const outputPath = inputPath; // 覆蓋原始檔案
+    const inputPath = path.join(BUILD_DIR, entry.input)
+    const outputPath = inputPath // 覆蓋原始檔案
 
-    console.log(`[BUNDLE] 打包 ${entry.name}...`);
+    console.log(`[BUNDLE] 打包 ${entry.name}...`)
 
     await getEsbuild().build({
       entryPoints: [inputPath],
@@ -462,7 +462,7 @@ async function bundleEntryPoints() {
       outfile: outputPath,
       allowOverwrite: true,
       alias: {
-        'src': srcAlias
+        src: srcAlias
       },
       // 將 process.env.NODE_ENV 替換為 build mode 字串常量。
       //
@@ -480,32 +480,32 @@ async function bundleEntryPoints() {
         'process.env.NODE_ENV': JSON.stringify(MODE)
       },
       logLevel: 'warning'
-    });
+    })
 
-    const bundledSize = fs.statSync(outputPath).size;
-    console.log(`[BUNDLE] ${entry.name} -> ${Math.round(bundledSize / 1024 * 100) / 100} KB`);
+    const bundledSize = fs.statSync(outputPath).size
+    console.log(`[BUNDLE] ${entry.name} -> ${Math.round(bundledSize / 1024 * 100) / 100} KB`)
   }
 
-  console.log('[BUNDLE] bundling 完成');
+  console.log('[BUNDLE] bundling 完成')
 }
 
 /**
  * 主要編譯流程
  */
-async function build() {
+async function build () {
   try {
-    console.log(`🔨 開始編譯 ${MODE} 版本...`);
+    console.log(`🔨 開始編譯 ${MODE} 版本...`)
 
     // esbuild early validation（W1-080）：在副作用前 fail-fast 確認 esbuild 可用，
     // 避免清空 build/ 目錄 + 複製檔案完成後才在 bundleEntryPoints 撞到模組錯誤。
-    ensureEsbuildAvailable();
+    ensureEsbuildAvailable()
 
     // Design System CSS 產生（0.19.1-W2-001 D1）：
     // 在複製 src/ 之前重新產生 design-system.css，確保 build/{mode}/src/core/
     // design-system/design-system.css 與 3 個 .js 來源一致。filesToCopy 含 src/，
     // 故 generated CSS 隨 src/ 一併複製進 build 目錄（依現有 copy 流程慣例）。
-    const dsCss = generateDesignSystemCss();
-    console.log(`[DESIGN-SYSTEM] 已產生 ${path.relative(SOURCE_DIR, dsCss.outputPath)}`);
+    const dsCss = generateDesignSystemCss()
+    console.log(`[DESIGN-SYSTEM] 已產生 ${path.relative(SOURCE_DIR, dsCss.outputPath)}`)
 
     // 版號 sanity check（W1-074 -> W1-083 SSOT 反轉）
     //
@@ -528,113 +528,112 @@ async function build() {
     //
     // 逃生閥：--skip-version-check flag（dev 期暫時不一致時使用）
     if (MODE === 'production' && !SKIP_VERSION_CHECK) {
-      const packageJsonPath = path.join(SOURCE_DIR, 'package.json');
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-      const result = validateVersionAlignment(packageJson.version, WORK_LOGS_ROOT);
+      const packageJsonPath = path.join(SOURCE_DIR, 'package.json')
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+      const result = validateVersionAlignment(packageJson.version, WORK_LOGS_ROOT)
 
       if (!result.ok) {
-        console.error(result.error);
-        console.error('[VERSION CHECK] 修復建議：');
-        console.error('  1. 確認 docs/work-logs/v{M}/v{M.m}/v{M.m.p}/v{M.m.p}-main.md 已建立（W1-081：major 層動態化）');
-        console.error('  2. 執行 version-release skill 的 start 子命令自動建立 worklog 結構');
-        console.error('  3. dev 期暫時不一致：使用 --skip-version-check flag 繞過');
-        process.exit(1);
+        console.error(result.error)
+        console.error('[VERSION CHECK] 修復建議：')
+        console.error('  1. 確認 docs/work-logs/v{M}/v{M.m}/v{M.m.p}/v{M.m.p}-main.md 已建立（W1-081：major 層動態化）')
+        console.error('  2. 執行 version-release skill 的 start 子命令自動建立 worklog 結構')
+        console.error('  3. dev 期暫時不一致：使用 --skip-version-check flag 繞過')
+        process.exit(1)
       }
 
-      console.log(`[VERSION CHECK] package.json (${result.actualVersion}) 對應 worklog 存在`);
+      console.log(`[VERSION CHECK] package.json (${result.actualVersion}) 對應 worklog 存在`)
 
       // Auto-sync worklog 狀態標記至「開發中」（W1-083 補救路徑）
-      const syncResult = syncWorklogStatus(packageJson.version, WORK_LOGS_ROOT);
+      const syncResult = syncWorklogStatus(packageJson.version, WORK_LOGS_ROOT)
       if (!syncResult.ok) {
-        console.warn(`[WORKLOG SYNC] ${syncResult.error}`);
+        console.warn(`[WORKLOG SYNC] ${syncResult.error}`)
         // 不 fail-fast：validate 已通過，sync 失敗不阻擋 build
         // 但顯示警告讓開發者注意 worklog 結構異常
       } else if (syncResult.changed) {
         console.log(
           `[WORKLOG SYNC] worklog 標記自動更新「${syncResult.previousStatus}」-> 「開發中」: ${syncResult.mainFile}`
-        );
+        )
       } else {
-        console.log(`[WORKLOG SYNC] worklog 標記已為「開發中」(no-op)`);
+        console.log('[WORKLOG SYNC] worklog 標記已為「開發中」(no-op)')
       }
     } else if (MODE === 'production' && SKIP_VERSION_CHECK) {
-      console.warn('[VERSION CHECK] 已透過 --skip-version-check 略過版號 sanity check + worklog sync');
+      console.warn('[VERSION CHECK] 已透過 --skip-version-check 略過版號 sanity check + worklog sync')
     }
 
     // 清理輸出目錄
     if (fs.existsSync(BUILD_DIR)) {
-      fs.rmSync(BUILD_DIR, { recursive: true, force: true });
+      fs.rmSync(BUILD_DIR, { recursive: true, force: true })
     }
-    fs.mkdirSync(BUILD_DIR, { recursive: true });
+    fs.mkdirSync(BUILD_DIR, { recursive: true })
 
     // 複製檔案
     filesToCopy.forEach(file => {
-      const srcPath = path.join(SOURCE_DIR, file);
-      const destPath = path.join(BUILD_DIR, file);
+      const srcPath = path.join(SOURCE_DIR, file)
+      const destPath = path.join(BUILD_DIR, file)
 
       if (fs.existsSync(srcPath)) {
-        console.log(`[COPY] 複製 ${file}...`);
-        copyRecursive(srcPath, destPath);
+        console.log(`[COPY] 複製 ${file}...`)
+        copyRecursive(srcPath, destPath)
       } else {
-        console.warn(`[WARNING] 檔案不存在: ${file}`);
+        console.warn(`[WARNING] 檔案不存在: ${file}`)
       }
-    });
+    })
 
     // 讀取並處理 manifest.json（注入 package.json 版本號）
-    const manifestPath = path.join(BUILD_DIR, 'manifest.json');
+    const manifestPath = path.join(BUILD_DIR, 'manifest.json')
     if (fs.existsSync(manifestPath)) {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
       const packageJson = JSON.parse(
         fs.readFileSync(path.join(SOURCE_DIR, 'package.json'), 'utf8')
-      );
+      )
 
       // 從 package.json 注入版本號，確保版本一致
-      manifest.version = packageJson.version;
-      console.log(`[VERSION] 版本注入: ${packageJson.version} (來源: package.json)`);
+      manifest.version = packageJson.version
+      console.log(`[VERSION] 版本注入: ${packageJson.version} (來源: package.json)`)
 
       // 生產模式的特殊處理
       if (MODE === 'production') {
         // 移除開發專用的權限和配置
-        console.log('[PROD] 套用生產模式配置...');
+        console.log('[PROD] 套用生產模式配置...')
       }
 
-      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2))
     }
 
     // esbuild bundling：打包三個入口點及其依賴
-    await bundleEntryPoints();
+    await bundleEntryPoints()
 
-    console.log(`\n[DONE] 編譯完成！輸出目錄: ${BUILD_DIR}`);
-    console.log(`[FILES] 檔案清單:`);
+    console.log(`\n[DONE] 編譯完成！輸出目錄: ${BUILD_DIR}`)
+    console.log('[FILES] 檔案清單:')
 
     // 顯示編譯結果
-    function listFiles(dir, prefix = '') {
-      const items = fs.readdirSync(dir);
+    function listFiles (dir, prefix = '') {
+      const items = fs.readdirSync(dir)
       items.forEach(item => {
-        const fullPath = path.join(dir, item);
-        const relativePath = path.relative(BUILD_DIR, fullPath);
+        const fullPath = path.join(dir, item)
+        const relativePath = path.relative(BUILD_DIR, fullPath)
 
         if (fs.statSync(fullPath).isDirectory()) {
-          console.log(`${prefix}[DIR] ${relativePath}/`);
+          console.log(`${prefix}[DIR] ${relativePath}/`)
           if (prefix.length < 6) { // 限制遞迴深度
-            listFiles(fullPath, prefix + '  ');
+            listFiles(fullPath, prefix + '  ')
           }
         } else {
-          const size = fs.statSync(fullPath).size;
-          console.log(`${prefix}[FILE] ${relativePath} (${size} bytes)`);
+          const size = fs.statSync(fullPath).size
+          console.log(`${prefix}[FILE] ${relativePath} (${size} bytes)`)
         }
-      });
+      })
     }
 
-    listFiles(BUILD_DIR);
+    listFiles(BUILD_DIR)
 
-    console.log(`\n[NEXT] 下一步:`);
-    console.log(`1. 在 Chrome 中載入解壓縮的擴充功能`);
-    console.log(`2. 選擇目錄: ${BUILD_DIR}`);
-    console.log(`3. 在 Readmoo 網站上測試功能`);
-
+    console.log('\n[NEXT] 下一步:')
+    console.log('1. 在 Chrome 中載入解壓縮的擴充功能')
+    console.log(`2. 選擇目錄: ${BUILD_DIR}`)
+    console.log('3. 在 Readmoo 網站上測試功能')
   } catch (error) {
-    console.error(`[ERROR] 編譯失敗:`, error.message);
-    process.exit(1);
+    console.error('[ERROR] 編譯失敗:', error.message)
+    process.exit(1)
   }
 }
 
@@ -643,7 +642,7 @@ async function build() {
 // 設計參考 scripts/validate-manifest.js 同模式：純函式 + I/O 分離，
 // 測試可注入 mock fsAdapter 而不需建立實體 docs/work-logs/ 結構。
 if (require.main === module) {
-  build();
+  build()
 }
 
 module.exports = {
@@ -653,4 +652,4 @@ module.exports = {
   resolveWorklogPath,
   defaultFsAdapter,
   defaultFsWriter
-};
+}

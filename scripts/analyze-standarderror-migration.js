@@ -11,7 +11,7 @@ const path = require('path')
 
 // 模擬 StandardErrorMigrationAnalyzer 功能
 class StandardErrorMigrationAnalyzer {
-  constructor(options = {}) {
+  constructor (options = {}) {
     this.config = {
       projectRoot: options.projectRoot || process.cwd(),
       srcDirectory: options.srcDirectory || 'src',
@@ -29,7 +29,7 @@ class StandardErrorMigrationAnalyzer {
     }
   }
 
-  async analyzeForMigration() {
+  async analyzeForMigration () {
     console.log('🔍 開始 StandardError 遷移分析...\n')
 
     try {
@@ -47,7 +47,7 @@ class StandardErrorMigrationAnalyzer {
     }
   }
 
-  async _scanStandardErrorUsage() {
+  async _scanStandardErrorUsage () {
     console.log('📂 掃描 StandardError 使用情況...')
 
     const srcPath = path.join(this.config.projectRoot, this.config.srcDirectory)
@@ -77,7 +77,7 @@ class StandardErrorMigrationAnalyzer {
     console.log(`   🎯 發現 ${this.analysisResults.affectedFiles.length} 個檔案使用 StandardError`)
   }
 
-  _getAllJavaScriptFiles(directory) {
+  _getAllJavaScriptFiles (directory) {
     const files = []
 
     if (!fs.existsSync(directory)) return files
@@ -98,13 +98,13 @@ class StandardErrorMigrationAnalyzer {
     return files
   }
 
-  _isExcludedPath(pathName) {
+  _isExcludedPath (pathName) {
     return this.config.excludePatterns.some(pattern =>
       pathName.includes(pattern.replace('*', ''))
     )
   }
 
-  _extractStandardErrorUsages(content, filePath) {
+  _extractStandardErrorUsages (content, filePath) {
     const usages = []
     const lines = content.split('\n')
 
@@ -126,20 +126,20 @@ class StandardErrorMigrationAnalyzer {
     return usages
   }
 
-  _suggestErrorCodesMigration(standardErrorCode) {
+  _suggestErrorCodesMigration (standardErrorCode) {
     const migrationMap = {
-      'VALIDATION_ERROR': 'VALIDATION_ERROR',
-      'REQUIRED_FIELD_MISSING': 'VALIDATION_ERROR',
-      'OPERATION_FAILED': 'OPERATION_ERROR',
-      'OPERATION_TIMEOUT': 'TIMEOUT_ERROR',
-      'CONFIGURATION_ERROR': 'OPERATION_ERROR',
-      'RESOURCE_NOT_AVAILABLE': 'OPERATION_ERROR',
-      'NETWORK_ERROR': 'NETWORK_ERROR',
-      'DOM_ERROR': 'DOM_ERROR',
-      'STORAGE_ERROR': 'STORAGE_ERROR',
-      'CHROME_API_ERROR': 'CHROME_ERROR',
-      'BOOK_ERROR': 'BOOK_ERROR',
-      'UNKNOWN_ERROR': 'UNKNOWN_ERROR'
+      VALIDATION_ERROR: 'VALIDATION_ERROR',
+      REQUIRED_FIELD_MISSING: 'VALIDATION_ERROR',
+      OPERATION_FAILED: 'OPERATION_ERROR',
+      OPERATION_TIMEOUT: 'TIMEOUT_ERROR',
+      CONFIGURATION_ERROR: 'OPERATION_ERROR',
+      RESOURCE_NOT_AVAILABLE: 'OPERATION_ERROR',
+      NETWORK_ERROR: 'NETWORK_ERROR',
+      DOM_ERROR: 'DOM_ERROR',
+      STORAGE_ERROR: 'STORAGE_ERROR',
+      CHROME_API_ERROR: 'CHROME_ERROR',
+      BOOK_ERROR: 'BOOK_ERROR',
+      UNKNOWN_ERROR: 'UNKNOWN_ERROR'
     }
 
     const targetErrorCode = migrationMap[standardErrorCode] || 'UNKNOWN_ERROR'
@@ -151,13 +151,13 @@ class StandardErrorMigrationAnalyzer {
     }
   }
 
-  _determineMigrationStrategy(sourceCode, targetCode) {
+  _determineMigrationStrategy (sourceCode, targetCode) {
     if (sourceCode === 'UNKNOWN_ERROR') return 'DIRECT_REPLACEMENT'
     if (targetCode === 'UNKNOWN_ERROR') return 'NEEDS_REVIEW'
     return 'ADAPTER_MIGRATION'
   }
 
-  _categorizeModule(filePath) {
+  _categorizeModule (filePath) {
     if (filePath.includes('/core/')) return 'core'
     if (filePath.includes('/ui/')) return 'ui'
     if (filePath.includes('/background/')) return 'background'
@@ -169,7 +169,7 @@ class StandardErrorMigrationAnalyzer {
     return 'other'
   }
 
-  _calculateFileComplexity(content, usages) {
+  _calculateFileComplexity (content, usages) {
     const lines = content.split('\n').length
     const usageCount = usages.length
     const complexPatterns = (content.match(/try|catch|async|await|Promise/g) || []).length
@@ -181,7 +181,7 @@ class StandardErrorMigrationAnalyzer {
     return 'high'
   }
 
-  async _analyzeUsagePatterns() {
+  async _analyzeUsagePatterns () {
     console.log('📈 分析使用模式...')
 
     const patterns = {
@@ -210,7 +210,7 @@ class StandardErrorMigrationAnalyzer {
 
     console.log('   📊 最常見錯誤類型:')
     Object.entries(patterns.mostCommonErrors)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .forEach(([code, count]) => {
         console.log(`      ${code}: ${count} 次`)
@@ -218,13 +218,13 @@ class StandardErrorMigrationAnalyzer {
 
     console.log('   📦 模組分布:')
     Object.entries(patterns.moduleDistribution)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .forEach(([module, count]) => {
         console.log(`      ${module}: ${count} 個檔案`)
       })
   }
 
-  async _assessMigrationRisks() {
+  async _assessMigrationRisks () {
     console.log('⚠️  評估遷移風險...')
 
     const riskFactors = {
@@ -269,7 +269,7 @@ class StandardErrorMigrationAnalyzer {
     console.log(`   🎯 平均風險分數: ${averageRisk.toFixed(2)}`)
   }
 
-  _isCriticalModule(filePath) {
+  _isCriticalModule (filePath) {
     const criticalPaths = [
       '/core/errors/', '/background/service-worker',
       '/error-handling/', '/core/event'
@@ -277,7 +277,7 @@ class StandardErrorMigrationAnalyzer {
     return criticalPaths.some(path => filePath.includes(path))
   }
 
-  _generateRiskRecommendations(riskLevel) {
+  _generateRiskRecommendations (riskLevel) {
     const recommendations = {
       LOW: ['可以採用自動化遷移工具', '並行處理多個模組'],
       MEDIUM: ['分階段遷移', '加強測試覆蓋'],
@@ -287,14 +287,19 @@ class StandardErrorMigrationAnalyzer {
     return recommendations[riskLevel] || []
   }
 
-  async _createMigrationPlan() {
+  async _createMigrationPlan () {
     console.log('📋 建立遷移計畫...')
 
     const sortedFiles = [...this.analysisResults.affectedFiles].sort((a, b) => {
       const complexityWeight = { low: 1, medium: 2, high: 3 }
       const moduleWeight = {
-        tests: 0.5, handlers: 1, ui: 1.5, storage: 2,
-        content: 2.5, background: 3, core: 3.5
+        tests: 0.5,
+        handlers: 1,
+        ui: 1.5,
+        storage: 2,
+        content: 2.5,
+        background: 3,
+        core: 3.5
       }
 
       const aWeight = complexityWeight[a.complexity] + (moduleWeight[a.moduleType] || 2)
@@ -352,11 +357,16 @@ class StandardErrorMigrationAnalyzer {
     })
   }
 
-  _calculateMigrationWeight(file) {
+  _calculateMigrationWeight (file) {
     const complexityWeight = { low: 1, medium: 3, high: 5 }
     const moduleWeight = {
-      tests: 0.5, handlers: 1, ui: 2, storage: 3,
-      content: 3, background: 4, core: 5
+      tests: 0.5,
+      handlers: 1,
+      ui: 2,
+      storage: 3,
+      content: 3,
+      background: 4,
+      core: 5
     }
 
     return complexityWeight[file.complexity] +
@@ -364,7 +374,7 @@ class StandardErrorMigrationAnalyzer {
            file.usages.length * 0.5
   }
 
-  _estimatePhaseEffort(files) {
+  _estimatePhaseEffort (files) {
     const totalWeight = files.reduce((sum, file) =>
       sum + this._calculateMigrationWeight(file), 0)
 
@@ -373,7 +383,7 @@ class StandardErrorMigrationAnalyzer {
     return 'HIGH'
   }
 
-  _calculatePhaseRisk(files) {
+  _calculatePhaseRisk (files) {
     const hasHighComplexity = files.some(file => file.complexity === 'high')
     const hasCriticalModule = files.some(file => this._isCriticalModule(file.filePath))
     const avgUsages = files.reduce((sum, file) => sum + file.usages.length, 0) / files.length
@@ -383,7 +393,7 @@ class StandardErrorMigrationAnalyzer {
     return 'LOW'
   }
 
-  _generateAnalysisReport() {
+  _generateAnalysisReport () {
     const totalUsages = this.analysisResults.affectedFiles.reduce(
       (sum, file) => sum + file.usages.length, 0)
 
@@ -408,7 +418,7 @@ class StandardErrorMigrationAnalyzer {
     return report
   }
 
-  _generateMigrationRecommendations() {
+  _generateMigrationRecommendations () {
     const recommendations = []
 
     switch (this.analysisResults.riskAssessment.overallRiskLevel) {
@@ -433,7 +443,7 @@ class StandardErrorMigrationAnalyzer {
     return recommendations
   }
 
-  _generateNextSteps() {
+  _generateNextSteps () {
     return [
       '1. 建立 StandardError 到 ErrorCodes 的向後相容包裝器',
       '2. 實作自動化遷移工具',
@@ -446,7 +456,7 @@ class StandardErrorMigrationAnalyzer {
 }
 
 // 執行分析
-async function runMigrationAnalysis() {
+async function runMigrationAnalysis () {
   try {
     const analyzer = new StandardErrorMigrationAnalyzer({
       projectRoot: process.cwd(),
@@ -457,7 +467,7 @@ async function runMigrationAnalysis() {
 
     // 生成詳細報告
     console.log('\n📊 遷移分析報告總結:')
-    console.log('=' .repeat(50))
+    console.log('='.repeat(50))
     console.log(`📁 總檔案數: ${report.summary.totalFiles}`)
     console.log(`🎯 受影響檔案: ${report.summary.affectedFiles}`)
     console.log(`📈 總使用點數: ${report.summary.totalUsages}`)

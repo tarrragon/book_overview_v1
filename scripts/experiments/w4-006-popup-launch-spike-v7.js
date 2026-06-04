@@ -35,7 +35,9 @@ function resolveChromePath () {
 async function launchBrowser () {
   const chromePath = resolveChromePath()
   const opts = {
-    headless: false, devtools: false, protocolTimeout: 180000,
+    headless: false,
+    devtools: false,
+    protocolTimeout: 180000,
     args: [
       `--disable-extensions-except=${EXTENSION_PATH}`,
       `--load-extension=${EXTENSION_PATH}`,

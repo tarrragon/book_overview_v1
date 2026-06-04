@@ -23,7 +23,7 @@ require('module').globalPaths.push(path.join(rootDir, 'src'))
 const Module = require('module')
 const originalRequire = Module.prototype.require
 
-Module.prototype.require = function(id) {
+Module.prototype.require = function (id) {
   if (id.startsWith('src/')) {
     const resolvedPath = path.join(rootDir, id)
     return originalRequire.call(this, resolvedPath)
@@ -37,7 +37,7 @@ const { AutoMigrationConverter, CONVERSION_MODES, CONVERSION_RISKS } = require('
 /**
  * 解析命令列參數
  */
-function parseArguments() {
+function parseArguments () {
   const args = process.argv.slice(2)
   const options = {
     mode: CONVERSION_MODES.SUGGEST_ONLY,
@@ -99,7 +99,7 @@ function parseArguments() {
 /**
  * 顯示使用說明
  */
-function showHelp() {
+function showHelp () {
   console.log(`
 🚀 StandardError 自動遷移工具
 
@@ -143,12 +143,15 @@ function showHelp() {
 /**
  * 主要執行函式
  */
-async function main() {
+async function main () {
   console.log('🚀 啟動 StandardError 自動遷移工具...\n')
+
+  // 在 try 外宣告，使 catch 區塊能存取 options.enableLogging（修正 no-undef）
+  let options = null
 
   try {
     // 解析參數
-    const options = parseArguments()
+    options = parseArguments()
 
     // 顯示配置
     console.log('⚙️ 遷移配置:')
@@ -198,7 +201,6 @@ async function main() {
     // 成功完成
     console.log('\n✅ 自動遷移工具執行完成!')
     console.log(`📄 詳細報告: ${options.reportPath}`)
-
   } catch (error) {
     console.error('\n❌ 自動遷移執行失敗:', error.message)
     if (options && options.enableLogging) {

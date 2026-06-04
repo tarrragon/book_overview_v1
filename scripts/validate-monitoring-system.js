@@ -14,7 +14,7 @@ console.log('🔍 開始驗證 ErrorCodes 效能監控系統...\n')
 
 // 模擬 ErrorCodesPerformanceMonitor
 class MockErrorCodesPerformanceMonitor {
-  constructor(options = {}) {
+  constructor (options = {}) {
     this.config = {
       memoryThreshold: options.memoryThreshold || 1000,
       creationTimeThreshold: options.creationTimeThreshold || 0.5,
@@ -32,7 +32,7 @@ class MockErrorCodesPerformanceMonitor {
     this.isMonitoring = true
   }
 
-  monitorErrorCreation(errorCreationFn, context = {}) {
+  monitorErrorCreation (errorCreationFn, context = {}) {
     const startTime = process.hrtime.bigint()
     const memoryBefore = process.memoryUsage()
 
@@ -50,7 +50,7 @@ class MockErrorCodesPerformanceMonitor {
     return result
   }
 
-  monitorBatchErrorCreation(batchCreationFn, batchSize) {
+  monitorBatchErrorCreation (batchCreationFn, batchSize) {
     if (batchSize > this.config.batchSizeWarning) {
       this._emitWarning('FREQUENT_ERRORS', {
         batchSize,
@@ -61,7 +61,7 @@ class MockErrorCodesPerformanceMonitor {
     return batchCreationFn()
   }
 
-  _recordPerformanceData(creationTime, memoryUsed, errorType) {
+  _recordPerformanceData (creationTime, memoryUsed, errorType) {
     this.realtimeStats.totalErrorsCreated++
     this.realtimeStats.averageCreationTime =
       (this.realtimeStats.averageCreationTime + creationTime) / 2
@@ -76,7 +76,7 @@ class MockErrorCodesPerformanceMonitor {
     }
   }
 
-  _checkPerformanceWarnings(creationTime, memoryUsed) {
+  _checkPerformanceWarnings (creationTime, memoryUsed) {
     if (creationTime > this.config.creationTimeThreshold) {
       this._emitWarning('SLOW_CREATION', {
         creationTime,
@@ -92,7 +92,7 @@ class MockErrorCodesPerformanceMonitor {
     }
   }
 
-  _emitWarning(type, data) {
+  _emitWarning (type, data) {
     const warning = {
       type,
       timestamp: Date.now(),
@@ -101,7 +101,7 @@ class MockErrorCodesPerformanceMonitor {
     this.warnings.unshift(warning)
   }
 
-  getRealtimeStatus() {
+  getRealtimeStatus () {
     return {
       isMonitoring: this.isMonitoring,
       realtimeStats: { ...this.realtimeStats },
@@ -110,21 +110,21 @@ class MockErrorCodesPerformanceMonitor {
     }
   }
 
-  _calculateHealthStatus() {
+  _calculateHealthStatus () {
     if (this.warnings.length > 5) return 'critical'
     if (this.warnings.length > 2) return 'warning'
     if (this.realtimeStats.averageCreationTime > this.config.creationTimeThreshold) return 'degraded'
     return 'healthy'
   }
 
-  stopMonitoring() {
+  stopMonitoring () {
     this.isMonitoring = false
   }
 }
 
 // 模擬 PerformanceAnomalyDetector
 class MockPerformanceAnomalyDetector {
-  constructor(config = {}) {
+  constructor (config = {}) {
     this.config = {
       windowSize: config.windowSize || 50,
       confidenceThreshold: config.confidenceThreshold || 0.8,
@@ -141,7 +141,7 @@ class MockPerformanceAnomalyDetector {
     this.isDetecting = true
   }
 
-  addDataPoint(dataPoint) {
+  addDataPoint (dataPoint) {
     this.dataWindow.memoryUsage.push(dataPoint.memoryUsage || 0)
     this.dataWindow.creationTimes.push(dataPoint.creationTime || 0)
     this.dataWindow.timestamps.push(dataPoint.timestamp || Date.now())
@@ -150,7 +150,7 @@ class MockPerformanceAnomalyDetector {
     this._realtimeAnomalyCheck(dataPoint)
   }
 
-  _maintainWindowSize() {
+  _maintainWindowSize () {
     const windowSize = this.config.windowSize
     Object.keys(this.dataWindow).forEach(key => {
       if (this.dataWindow[key].length > windowSize) {
@@ -159,7 +159,7 @@ class MockPerformanceAnomalyDetector {
     })
   }
 
-  _realtimeAnomalyCheck(dataPoint) {
+  _realtimeAnomalyCheck (dataPoint) {
     const anomalies = []
 
     // 簡化的閾值檢測
@@ -186,7 +186,7 @@ class MockPerformanceAnomalyDetector {
     }
   }
 
-  _handleDetectedAnomalies(anomalies) {
+  _handleDetectedAnomalies (anomalies) {
     anomalies.forEach(anomaly => {
       this.anomalies.unshift(anomaly)
 
@@ -196,7 +196,7 @@ class MockPerformanceAnomalyDetector {
     })
   }
 
-  _triggerAutoResponse(anomaly) {
+  _triggerAutoResponse (anomaly) {
     switch (anomaly.type) {
       case 'MEMORY_SPIKE':
         console.log(`🤖 自動回應: 檢測到記憶體激增 (${anomaly.value} bytes)`)
@@ -207,7 +207,7 @@ class MockPerformanceAnomalyDetector {
     }
   }
 
-  generateAnomalyReport() {
+  generateAnomalyReport () {
     return {
       timestamp: Date.now(),
       detectionStatus: {
@@ -221,13 +221,13 @@ class MockPerformanceAnomalyDetector {
     }
   }
 
-  stopDetection() {
+  stopDetection () {
     this.isDetecting = false
   }
 }
 
 // 模擬錯誤建立函式
-function createMockError(type, message, details = {}) {
+function createMockError (type, message, details = {}) {
   const error = new Error(message)
   error.code = type
   error.subType = 'MOCK_ERROR'
@@ -238,7 +238,7 @@ function createMockError(type, message, details = {}) {
   return error
 }
 
-async function validateMonitoringSystem() {
+async function validateMonitoringSystem () {
   try {
     console.log('1️⃣ 驗證即時效能監控功能...')
     await validateRealtimeMonitoring()
@@ -259,7 +259,7 @@ async function validateMonitoringSystem() {
   }
 }
 
-async function validateRealtimeMonitoring() {
+async function validateRealtimeMonitoring () {
   const monitor = new MockErrorCodesPerformanceMonitor({
     memoryThreshold: 1000,
     creationTimeThreshold: 0.5
@@ -307,7 +307,7 @@ async function validateRealtimeMonitoring() {
   monitor.stopMonitoring()
 }
 
-async function validateAnomalyDetection() {
+async function validateAnomalyDetection () {
   const detector = new MockPerformanceAnomalyDetector({
     windowSize: 30,
     confidenceThreshold: 0.8,
@@ -371,14 +371,14 @@ async function validateAnomalyDetection() {
   detector.stopDetection()
 }
 
-async function validateIntegratedWorkflow() {
+async function validateIntegratedWorkflow () {
   const monitor = new MockErrorCodesPerformanceMonitor()
   const detector = new MockPerformanceAnomalyDetector()
 
   console.log('   🔄 執行整合工作流程...')
 
-  // 步驟 1: 監控錯誤建立
-  const error = monitor.monitorErrorCreation(() => {
+  // 步驟 1: 監控錯誤建立（呼叫以記錄監控數據，回傳值此處不需保留）
+  monitor.monitorErrorCreation(() => {
     return createMockError('NETWORK_ERROR', '整合測試錯誤')
   })
 

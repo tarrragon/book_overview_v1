@@ -10,8 +10,8 @@
  * @author Claude Code Assistant
  */
 
-const { MigrationProgressTracker, MIGRATION_STATUS, MIGRATION_ITEM_TYPE } = require('../src/core/migration/MigrationProgressTracker')
-const { MigrationValidator, VALIDATION_RESULT, VALIDATION_TYPE } = require('../src/core/migration/MigrationValidator')
+const { MigrationProgressTracker, MIGRATION_STATUS } = require('../src/core/migration/MigrationProgressTracker')
+const { MigrationValidator, VALIDATION_RESULT } = require('../src/core/migration/MigrationValidator')
 const { StandardErrorMigrationAnalyzer } = require('../src/core/migration/StandardErrorMigrationAnalyzer')
 const { AutoMigrationConverter } = require('../src/core/migration/AutoMigrationConverter')
 
@@ -22,7 +22,7 @@ const path = require('path')
  * 遷移進度管理器類別
  */
 class MigrationProgressManager {
-  constructor(options = {}) {
+  constructor (options = {}) {
     this.projectRoot = options.projectRoot || process.cwd()
 
     // 初始化組件
@@ -54,7 +54,7 @@ class MigrationProgressManager {
   /**
    * 初始化遷移進度管理
    */
-  async initialize() {
+  async initialize () {
     console.log('🚀 初始化遷移進度管理器...')
 
     try {
@@ -69,7 +69,7 @@ class MigrationProgressManager {
   /**
    * 開始完整的遷移流程
    */
-  async startMigrationFlow(options = {}) {
+  async startMigrationFlow (options = {}) {
     console.log('🎯 開始完整遷移流程...')
 
     const sessionId = await this.progressTracker.startMigrationSession({
@@ -110,7 +110,6 @@ class MigrationProgressManager {
 
       console.log('✅ 遷移流程完成')
       return flowResult
-
     } catch (error) {
       console.error('❌ 遷移流程失敗:', error.message)
       flowResult.error = error.message
@@ -122,7 +121,7 @@ class MigrationProgressManager {
   /**
    * 追蹤單一檔案的遷移
    */
-  async trackFileMigration(filePath, migrationItems) {
+  async trackFileMigration (filePath, migrationItems) {
     console.log(`📝 追蹤檔案遷移: ${filePath}`)
 
     try {
@@ -153,7 +152,6 @@ class MigrationProgressManager {
 
       console.log(`✅ 檔案遷移追蹤完成: ${filePath}`)
       return { itemIds, validationResult, backupPath }
-
     } catch (error) {
       console.error(`❌ 檔案遷移追蹤失敗: ${filePath}`, error.message)
       throw error
@@ -163,7 +161,7 @@ class MigrationProgressManager {
   /**
    * 批量處理遷移項目
    */
-  async processBatchMigration(fileList, options = {}) {
+  async processBatchMigration (fileList, options = {}) {
     console.log(`📦 開始批量遷移: ${fileList.length} 個檔案`)
 
     const batchResult = {
@@ -215,7 +213,6 @@ class MigrationProgressManager {
         } else {
           batchResult.failedFiles++
         }
-
       } catch (error) {
         console.error(`❌ 處理檔案失敗: ${filePath}`, error.message)
         batchResult.files.push({
@@ -240,7 +237,7 @@ class MigrationProgressManager {
   /**
    * 獲取遷移進度報告
    */
-  async getProgressReport() {
+  async getProgressReport () {
     const progress = this.progressTracker.getProgress()
     const detailedReport = await this.progressTracker.generateDetailedReport()
 
@@ -254,7 +251,7 @@ class MigrationProgressManager {
   /**
    * 驗證專案整體狀態
    */
-  async validateProjectStatus() {
+  async validateProjectStatus () {
     console.log('🏗 驗證專案整體狀態...')
 
     const projectValidation = await this.validator.validateProject()
@@ -274,7 +271,7 @@ class MigrationProgressManager {
   /**
    * 回滾遷移
    */
-  async rollbackMigration(itemIds) {
+  async rollbackMigration (itemIds) {
     console.log(`🔄 回滾遷移項目: ${itemIds.length} 個項目`)
 
     const rollbackResults = []
@@ -289,7 +286,6 @@ class MigrationProgressManager {
           itemId,
           status: 'success'
         })
-
       } catch (error) {
         console.error(`❌ 回滾失敗: ${itemId}`, error.message)
         rollbackResults.push({
@@ -311,7 +307,7 @@ class MigrationProgressManager {
   /**
    * 執行分析階段
    */
-  async _runAnalysisPhase(options) {
+  async _runAnalysisPhase (options) {
     const analysisResult = await this.analyzer.analyzeForMigration()
 
     // 從分析結果中提取受影響的檔案
@@ -339,7 +335,7 @@ class MigrationProgressManager {
   /**
    * 執行轉換階段
    */
-  async _runConversionPhase(options) {
+  async _runConversionPhase (options) {
     const conversionResult = await this.converter.convertFiles({
       mode: 'AUTO_CONVERT',
       riskThreshold: options.riskThreshold,
@@ -368,8 +364,7 @@ class MigrationProgressManager {
   /**
    * 執行驗證階段
    */
-  async _runValidationPhase(options) {
-    const progress = this.progressTracker.getProgress()
+  async _runValidationPhase (options) {
     const completedFiles = Array.from(this.progressTracker.migrationState.files.keys())
       .filter(filePath => {
         const fileState = this.progressTracker.migrationState.files.get(filePath)
@@ -400,7 +395,7 @@ class MigrationProgressManager {
   /**
    * 執行報告階段
    */
-  async _runReportingPhase() {
+  async _runReportingPhase () {
     const detailedReport = await this.progressTracker.generateDetailedReport()
     const projectValidation = await this.validator.validateProject()
 
@@ -421,7 +416,7 @@ class MigrationProgressManager {
   /**
    * 生成流程總結
    */
-  async _generateFlowSummary(flowResult) {
+  async _generateFlowSummary (flowResult) {
     const progress = this.progressTracker.getProgress()
 
     return {
@@ -437,7 +432,7 @@ class MigrationProgressManager {
   /**
    * 判斷整體狀態
    */
-  _determineOverallStatus(progressReport, projectValidation) {
+  _determineOverallStatus (progressReport, projectValidation) {
     const migrationComplete = progressReport.basic.percentage === 100
     const validationPassed = projectValidation.overall === VALIDATION_RESULT.PASS
 
@@ -455,7 +450,7 @@ class MigrationProgressManager {
   /**
    * 生成狀態建議
    */
-  _generateStatusRecommendations(progressReport, projectValidation) {
+  _generateStatusRecommendations (progressReport, projectValidation) {
     const recommendations = []
 
     if (progressReport.basic.percentage < 100) {
@@ -476,14 +471,14 @@ class MigrationProgressManager {
   /**
    * 生成項目 ID
    */
-  _generateItemId(filePath, item) {
+  _generateItemId (filePath, item) {
     return `${filePath}:${item.line}:${item.column || 0}:${item.type}`
   }
 }
 
 // ==================== CLI 介面 ====================
 
-async function main() {
+async function main () {
   const args = process.argv.slice(2)
   const command = args[0]
 
@@ -493,7 +488,7 @@ async function main() {
     await manager.initialize()
 
     switch (command) {
-      case 'start':
+      case 'start': {
         const options = {
           mode: args.includes('--auto') ? 'AUTO_CONVERT' : 'SUGGEST_ONLY',
           riskThreshold: args.includes('--high-risk') ? 'high' : 'medium'
@@ -501,21 +496,25 @@ async function main() {
         const result = await manager.startMigrationFlow(options)
         console.log('🎉 遷移流程結果:', JSON.stringify(result.summary, null, 2))
         break
+      }
 
-      case 'status':
+      case 'status': {
         const status = await manager.validateProjectStatus()
         console.log('📊 專案狀態:', JSON.stringify(status, null, 2))
         break
+      }
 
-      case 'report':
+      case 'report': {
         const report = await manager.getProgressReport()
         console.log('📋 進度報告:', JSON.stringify(report.basic, null, 2))
         break
+      }
 
-      case 'validate':
+      case 'validate': {
         const validation = await manager.validator.validateProject()
         console.log('🔍 驗證結果:', JSON.stringify(validation, null, 2))
         break
+      }
 
       default:
         console.log(`
@@ -540,7 +539,6 @@ async function main() {
         `)
         break
     }
-
   } catch (error) {
     console.error('❌ 執行失敗:', error.message)
     process.exit(1)

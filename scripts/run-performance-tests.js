@@ -18,7 +18,7 @@ require('module').globalPaths.push(path.join(rootDir, 'tests'))
 const Module = require('module')
 const originalRequire = Module.prototype.require
 
-Module.prototype.require = function(id) {
+Module.prototype.require = function (id) {
   if (id.startsWith('src/')) {
     const resolvedPath = path.join(rootDir, id)
     return originalRequire.call(this, resolvedPath)
@@ -33,7 +33,7 @@ console.log('🚀 開始執行 ErrorCodes 效能基準測試...\n')
 let ErrorCodes
 let UC02ErrorAdapter
 
-async function runPerformanceTests() {
+async function runPerformanceTests () {
   try {
     // 為了演示，先使用基本的錯誤建立測試
     // 將會模擬 UC02ErrorAdapter 的功能
@@ -61,7 +61,7 @@ async function runPerformanceTests() {
           severity: 'MODERATE',
           timestamp: Date.now()
         }
-        error.toJSON = function() {
+        error.toJSON = function () {
           return {
             message: this.message,
             name: this.name,
@@ -94,7 +94,7 @@ async function runPerformanceTests() {
     }
 
     console.log('✅ 模組載入成功')
-    console.log(`📊 ErrorCodes 系統版本: v5.0.0`)
+    console.log('📊 ErrorCodes 系統版本: v5.0.0')
     console.log(`📈 可用錯誤類型: ${Object.keys(ErrorCodes).length} 種\n`)
 
     // 測試 1: 單一錯誤建立效能
@@ -119,7 +119,6 @@ async function runPerformanceTests() {
     console.log('- 批次錯誤處理: ✅ 線性擴展性良好')
     console.log('- 記憶體使用: ✅ 符合目標 (< 1000 bytes/error)')
     console.log('- UC02 適配器: ✅ 跨UC錯誤傳播效能良好')
-
   } catch (error) {
     console.error('❌ 效能測試執行失敗:', error.message)
     console.error(error.stack)
@@ -127,7 +126,7 @@ async function runPerformanceTests() {
   }
 }
 
-async function testSingleErrorCreationPerformance() {
+async function testSingleErrorCreationPerformance () {
   const iterations = 1000
   const times = []
   const memoryUsages = []
@@ -181,17 +180,17 @@ async function testSingleErrorCreationPerformance() {
   if (avgTime > 0.5) {
     console.warn(`   ⚠️  警告: 平均建立時間 ${avgTime.toFixed(3)}ms 超過目標 0.5ms`)
   } else {
-    console.log(`   ✅ 平均建立時間符合 Phase 2 目標 (< 0.5ms)`)
+    console.log('   ✅ 平均建立時間符合 Phase 2 目標 (< 0.5ms)')
   }
 
   if (avgMemory > 1000) {
     console.warn(`   ⚠️  警告: 平均記憶體使用 ${avgMemory} bytes 超過目標 1000 bytes`)
   } else {
-    console.log(`   ✅ 平均記憶體使用符合 Phase 2 目標 (< 1000 bytes)`)
+    console.log('   ✅ 平均記憶體使用符合 Phase 2 目標 (< 1000 bytes)')
   }
 }
 
-async function testBatchErrorCreationPerformance() {
+async function testBatchErrorCreationPerformance () {
   const batchSizes = [10, 50, 100, 500, 1000]
   const errorTypes = [
     'DATA_DUPLICATE_DETECTION_FAILED',
@@ -241,7 +240,7 @@ async function testBatchErrorCreationPerformance() {
   }
 }
 
-async function testMemoryUsage() {
+async function testMemoryUsage () {
   const testCases = [
     { size: 1, description: '單一錯誤' },
     { size: 100, description: '小批次錯誤' },
@@ -291,12 +290,12 @@ async function testMemoryUsage() {
     if (memoryPerError > 1000) {
       console.warn(`      ⚠️  每個錯誤記憶體使用 ${memoryPerError.toFixed(0)} bytes 超過目標 1000 bytes`)
     } else {
-      console.log(`      ✅ 記憶體使用符合 Phase 2 目標`)
+      console.log('      ✅ 記憶體使用符合 Phase 2 目標')
     }
   }
 }
 
-async function testUC02AdapterPerformance() {
+async function testUC02AdapterPerformance () {
   const uc02ErrorTypes = [
     'DATA_DUPLICATE_DETECTION_FAILED',
     'DATA_PROGRESS_VALIDATION_ERROR',
@@ -360,9 +359,9 @@ async function testUC02AdapterPerformance() {
 
   // 驗證效能目標
   if (avgConvertTime > 0.5 || avgAdaptTime > 0.5) {
-    console.warn(`      ⚠️  適配器效能可能需要優化`)
+    console.warn('      ⚠️  適配器效能可能需要優化')
   } else {
-    console.log(`      ✅ UC02 適配器效能符合要求`)
+    console.log('      ✅ UC02 適配器效能符合要求')
   }
 }
 

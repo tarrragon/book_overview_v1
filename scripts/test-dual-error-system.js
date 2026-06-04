@@ -20,7 +20,7 @@ require('module').globalPaths.push(path.join(rootDir, 'src'))
 const Module = require('module')
 const originalRequire = Module.prototype.require
 
-Module.prototype.require = function(id) {
+Module.prototype.require = function (id) {
   if (id.startsWith('src/')) {
     const resolvedPath = path.join(rootDir, id)
     return originalRequire.call(this, resolvedPath)
@@ -65,7 +65,7 @@ const TEST_CASES = {
 /**
  * 主要測試函式
  */
-async function runDualSystemTests() {
+async function runDualSystemTests () {
   console.log('🧪 開始雙重錯誤系統測試...\n')
 
   try {
@@ -96,9 +96,12 @@ async function runDualSystemTests() {
     // 壓力測試
     console.log('💪 壓力測試')
     await stressTest()
+    console.log('')
+
+    // 特定情境測試（快取效能 / 錯誤鏈 / 記憶體洩漏）
+    await testSpecificScenarios()
 
     console.log('✅ 所有測試完成！')
-
   } catch (error) {
     console.error('❌ 測試失敗:', error.message)
     process.exit(1)
@@ -109,7 +112,7 @@ async function runDualSystemTests() {
  * 測試特定橋接模式
  * @param {string} mode - 橋接模式
  */
-async function testBridgeMode(mode) {
+async function testBridgeMode (mode) {
   const bridge = new DualErrorSystemBridge({
     mode,
     enableLogging: false,
@@ -149,7 +152,6 @@ async function testBridgeMode(mode) {
           }
           break
       }
-
     } catch (error) {
       console.log(`   ❌ ${testName}: ${error.message}`)
     }
@@ -164,7 +166,7 @@ async function testBridgeMode(mode) {
  * 測試相容性等級
  * @param {string} level - 相容性等級
  */
-async function testCompatibilityLevel(level) {
+async function testCompatibilityLevel (level) {
   const bridge = new DualErrorSystemBridge({
     mode: DUAL_SYSTEM_MODES.PARALLEL,
     compatibilityLevel: level,
@@ -179,7 +181,8 @@ async function testCompatibilityLevel(level) {
 
   for (const [testName, testError] of Object.entries(TEST_CASES)) {
     try {
-      const bridgedError = bridge.bridgeError(testError)
+      // 呼叫 bridgeError 觸發驗證；無效輸入會 throw，由 catch 區塊處理
+      bridge.bridgeError(testError)
       successCount++
       console.log(`   ✅ ${testName}: 通過驗證`)
     } catch (error) {
@@ -199,7 +202,7 @@ async function testCompatibilityLevel(level) {
 /**
  * 遷移過程模擬測試
  */
-async function testMigrationSimulation() {
+async function testMigrationSimulation () {
   const bridge = new DualErrorSystemBridge({
     mode: DUAL_SYSTEM_MODES.TRANSITIONAL,
     enableLogging: true,
@@ -243,7 +246,7 @@ async function testMigrationSimulation() {
 /**
  * 效能基準測試
  */
-async function performanceTest() {
+async function performanceTest () {
   const bridge = new DualErrorSystemBridge({
     mode: DUAL_SYSTEM_MODES.PARALLEL,
     enableMetrics: true,
@@ -283,7 +286,7 @@ async function performanceTest() {
 /**
  * 壓力測試
  */
-async function stressTest() {
+async function stressTest () {
   const bridge = new DualErrorSystemBridge({
     mode: DUAL_SYSTEM_MODES.PARALLEL,
     enableMetrics: true,
@@ -330,7 +333,6 @@ async function stressTest() {
     if (report.healthIndicators.overall === 'poor') {
       console.warn('   ⚠️  系統在高負載下表現不佳')
     }
-
   } catch (error) {
     console.error('   ❌ 壓力測試失敗:', error.message)
   }
@@ -339,7 +341,7 @@ async function stressTest() {
 /**
  * 測試特定情境
  */
-async function testSpecificScenarios() {
+async function testSpecificScenarios () {
   console.log('🎭 特定情境測試')
 
   // 情境 1: 快取效能測試
@@ -358,7 +360,7 @@ async function testSpecificScenarios() {
 /**
  * 快取效能測試
  */
-async function testCachePerformance() {
+async function testCachePerformance () {
   const bridge = new DualErrorSystemBridge({
     mode: DUAL_SYSTEM_MODES.PARALLEL,
     enableMetrics: true,
@@ -397,7 +399,7 @@ async function testCachePerformance() {
 /**
  * 錯誤鏈測試
  */
-async function testErrorChaining() {
+async function testErrorChaining () {
   const bridge = new DualErrorSystemBridge({
     mode: DUAL_SYSTEM_MODES.PARALLEL,
     enableLogging: false
@@ -427,7 +429,6 @@ async function testErrorChaining() {
     } else {
       console.log('     ⚠️  可能遺失原始錯誤資訊')
     }
-
   } catch (error) {
     console.log(`     ❌ 錯誤鏈測試失敗: ${error.message}`)
   }
@@ -436,7 +437,7 @@ async function testErrorChaining() {
 /**
  * 記憶體洩漏測試
  */
-async function testMemoryLeaks() {
+async function testMemoryLeaks () {
   const bridge = new DualErrorSystemBridge({
     mode: DUAL_SYSTEM_MODES.PARALLEL,
     enableMetrics: true,

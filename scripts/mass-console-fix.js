@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
 const fs = require('fs')
-const path = require('path')
 const { execSync } = require('child_process')
 
 console.log('🔧 正在搜尋所有含有 console 警告的測試檔案...')
 
 // 取得所有含有 console 使用的測試檔案
-const testFiles = execSync(`grep -r "console\\.(log\\|warn\\|error\\|info\\|debug)" tests/ --include="*.js" -l`, { encoding: 'utf-8' })
+const testFiles = execSync('grep -r "console\\.(log\\|warn\\|error\\|info\\|debug)" tests/ --include="*.js" -l', { encoding: 'utf-8' })
   .trim()
   .split('\n')
   .filter(file => file.length > 0)
@@ -19,7 +18,7 @@ testFiles.forEach(file => {
 
   console.log(`處理: ${file}`)
 
-  let content = fs.readFileSync(file, 'utf8')
+  const content = fs.readFileSync(file, 'utf8')
   let modified = false
 
   const lines = content.split('\n')
@@ -46,9 +45,9 @@ testFiles.forEach(file => {
 
   if (modified) {
     fs.writeFileSync(file, result.join('\n'), 'utf8')
-    console.log(`  ✅ 已修復`)
+    console.log('  ✅ 已修復')
   } else {
-    console.log(`  ⏭️  無需修復`)
+    console.log('  ⏭️  無需修復')
   }
 })
 

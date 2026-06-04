@@ -41,7 +41,9 @@ function resolveChromePath () {
 async function launchBrowser () {
   const chromePath = resolveChromePath()
   const opts = {
-    headless: false, devtools: false, protocolTimeout: 180000,
+    headless: false,
+    devtools: false,
+    protocolTimeout: 180000,
     args: [
       `--disable-extensions-except=${EXTENSION_PATH}`,
       `--load-extension=${EXTENSION_PATH}`,
@@ -161,7 +163,6 @@ async function main () {
       }
     })
     console.log('ESM inline test:', esmTest)
-
   } catch (e) {
     console.error('Spike v8 失敗:', e)
     process.exitCode = 1

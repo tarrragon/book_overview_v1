@@ -32,7 +32,7 @@ const files = [
   'tests/test-setup.js'
 ]
 
-function fixConsoleInFile(filePath) {
+function fixConsoleInFile (filePath) {
   const fullPath = path.resolve(filePath)
 
   if (!fs.existsSync(fullPath)) {
@@ -47,7 +47,6 @@ function fixConsoleInFile(filePath) {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
-      const nextLine = i < lines.length - 1 ? lines[i + 1] : ''
 
       // 檢查當前行是否包含 console 語句
       if (/console\.(log|warn|error|info|debug)/.test(line)) {
@@ -81,7 +80,7 @@ function fixConsoleInFile(filePath) {
   }
 }
 
-function main() {
+function main () {
   console.log('🔧 開始批量修復測試檔案中的 console warnings...\n')
 
   let fixedCount = 0
@@ -95,10 +94,10 @@ function main() {
   }
 
   console.log('\n🎉 批量修復完成！')
-  console.log(`📋 修復摘要：`)
+  console.log('📋 修復摘要：')
   console.log(`- 檢查了 ${totalCount} 個檔案`)
   console.log(`- 修復了 ${fixedCount} 個檔案`)
-  console.log(`\n🔍 建議執行以下指令檢查結果：`)
+  console.log('\n🔍 建議執行以下指令檢查結果：')
   console.log('npm run lint | grep no-console')
 }
 

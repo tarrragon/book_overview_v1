@@ -4,9 +4,9 @@
  * @fileoverview Readmoo Migration Validation Script
  * @version v2.0.0
  * @since 2025-08-15
- * 
+ *
  * 快速驗證腳本，用於驗證 Readmoo 平台遷移驗證系統的實作
- * 
+ *
  * 功能：
  * - 快速執行核心驗證功能
  * - 驗證事件系統整合
@@ -50,7 +50,7 @@ global.performance = {
 
 // 簡單的 Readmoo 適配器模擬
 class MockReadmooAdapter {
-  constructor() {
+  constructor () {
     this.mockBooks = [
       {
         id: 'readmoo-validation-book-1',
@@ -73,10 +73,10 @@ class MockReadmooAdapter {
     ]
   }
 
-  async extractBookData(context) {
+  async extractBookData (context) {
     // 模擬網路延遲
     await new Promise(resolve => setTimeout(resolve, 50))
-    
+
     if (context.url && context.url.includes('readmoo.com')) {
       return [...this.mockBooks]
     } else {
@@ -84,16 +84,16 @@ class MockReadmooAdapter {
     }
   }
 
-  validateExtractedData(data) {
+  validateExtractedData (data) {
     if (!Array.isArray(data)) return false
-    
+
     return data.every(item => {
-      return item.id && item.title && item.author && 
+      return item.id && item.title && item.author &&
              typeof item.progress === 'number' && item.platform === 'READMOO'
     })
   }
 
-  isOnBookLibraryPage(url) {
+  isOnBookLibraryPage (url) {
     return url && url.includes('readmoo.com/library')
   }
 }
@@ -101,7 +101,7 @@ class MockReadmooAdapter {
 /**
  * 主要驗證函數
  */
-async function runValidation() {
+async function runValidation () {
   console.log('🚀 開始 Readmoo 平台遷移驗證...\n')
 
   try {
@@ -110,7 +110,7 @@ async function runValidation() {
     const eventBus = new EventBus()
     const platformDetectionService = new PlatformDetectionService(eventBus)
     const readmooAdapter = new MockReadmooAdapter()
-    
+
     const migrationValidator = new ReadmooPlatformMigrationValidator({
       eventBus,
       readmooAdapter,
@@ -154,32 +154,31 @@ async function runValidation() {
     for (const testCase of testCases) {
       console.log(`🧪 測試案例: ${testCase.name}`)
       console.log(`   URL: ${testCase.context.url}`)
-      
+
       const startTime = Date.now()
-      
+
       try {
         const result = await migrationValidator.validateReadmooMigration(testCase.context)
         const endTime = Date.now()
-        
+
         const testResult = {
           ...testCase,
           result,
           duration: endTime - startTime,
           success: result.isValid === testCase.expectedValid
         }
-        
+
         results.push(testResult)
-        
+
         if (testResult.success) {
           console.log(`   ✅ 測試通過 (${testResult.duration}ms)`)
         } else {
           console.log(`   ❌ 測試失敗 - 預期: ${testCase.expectedValid}, 實際: ${result.isValid}`)
         }
-        
+
         if (result.errors.length > 0) {
           console.log(`   錯誤: ${result.errors.join(', ')}`)
         }
-        
       } catch (error) {
         console.log(`   💥 測試異常: ${error.message}`)
         results.push({
@@ -189,13 +188,13 @@ async function runValidation() {
           duration: Date.now() - startTime
         })
       }
-      
+
       console.log('')
     }
 
     // 測試事件系統整合
     console.log('🎭 測試事件系統整合...')
-    
+
     const eventPromises = []
     const testEvents = [
       'PLATFORM.READMOO.VALIDATION.COMPLETED',
@@ -217,7 +216,7 @@ async function runValidation() {
     await eventBus.emit('EXTRACTION.READMOO.DATA.COMPLETED', { test: true })
 
     const eventResults = await Promise.all(eventPromises)
-    
+
     eventResults.forEach(eventResult => {
       if (eventResult.received) {
         console.log(`   ✅ 事件 ${eventResult.eventType} 正常`)
@@ -231,7 +230,7 @@ async function runValidation() {
     // 測試驗證報告生成
     console.log('📊 生成驗證報告...')
     const report = migrationValidator.getValidationReport()
-    
+
     console.log(`   總驗證次數: ${report.overview.totalValidations}`)
     console.log(`   成功率: ${(report.overview.successRate * 100).toFixed(1)}%`)
     console.log(`   平均驗證時間: ${report.overview.averageValidationTime.toFixed(1)}ms`)
@@ -254,7 +253,6 @@ async function runValidation() {
       console.log('\n⚠️  部分測試失敗，請檢查實作。')
       process.exit(1)
     }
-
   } catch (error) {
     console.error('💥 驗證過程發生錯誤:', error.message)
     console.error(error.stack)
@@ -265,13 +263,13 @@ async function runValidation() {
 /**
  * 資料完整性測試
  */
-async function testDataIntegrity() {
+async function testDataIntegrity () {
   console.log('🔍 測試資料完整性驗證...')
-  
+
   const eventBus = new EventBus()
   const platformDetectionService = new PlatformDetectionService(eventBus)
   const readmooAdapter = new MockReadmooAdapter()
-  
+
   const migrationValidator = new ReadmooPlatformMigrationValidator({
     eventBus,
     readmooAdapter,
@@ -283,14 +281,14 @@ async function testDataIntegrity() {
     { id: '1', title: '書籍1', author: '作者1', progress: 50 },
     { id: '2', title: '書籍2', author: '作者2', progress: 75 }
   ]
-  
+
   const afterData = [
     { id: '1', title: '書籍1', author: '作者1', progress: 50 },
     { id: '2', title: '書籍2', author: '作者2', progress: 75 }
   ]
 
   const integrityResult = await migrationValidator.validateDataIntegrity(beforeData, afterData)
-  
+
   if (integrityResult.isValid) {
     console.log('   ✅ 資料完整性驗證通過')
     console.log(`   完整性分數: ${integrityResult.data.integrityScore}`)
@@ -308,7 +306,7 @@ async function testDataIntegrity() {
   ]
 
   const lossResult = await migrationValidator.validateDataIntegrity(beforeData, incompleteAfterData)
-  
+
   if (!lossResult.isValid && lossResult.data.dataLoss > 0) {
     console.log('   ✅ 資料遺失檢測正常')
   } else {
@@ -319,7 +317,7 @@ async function testDataIntegrity() {
 }
 
 // 主程式入口
-async function main() {
+async function main () {
   console.log('🔧 Readmoo Platform Migration Validator 快速驗證腳本')
   console.log('=' * 60)
   console.log('')
