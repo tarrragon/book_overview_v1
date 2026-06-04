@@ -4,8 +4,8 @@ title: "UI Design System 規格"
 status: approved
 source_proposal: PROP-008
 created: "2026-04-08"
-updated: "2026-04-08"
-version: "1.0.0"
+updated: "2026-06-05"
+version: "2.0.0"
 owner: ""
 domain: ui
 subdomain: design-system
@@ -15,10 +15,13 @@ related_specs: [SPEC-OVERVIEW-TAG]
 
 # UI Design System 規格
 
-**版本**: 1.0.0
+**版本**: 2.0.0
 **建立日期**: 2026-04-08
+**最後更新**: 2026-06-05（Phase 2 完成）
 **來源**: PROP-008 統一 UI Design System（從 APP 專案移植）
 **APP 基準**: `book_overview_app/lib/core/ui/ui_config.dart` + `flat_design_config.dart`
+
+> **Phase 2 完成（2026-06-05）**：design-system.css 產生機制落地（build 自動產生）、頁面硬編碼色值全面改 CSS var()、漸層全面移除改扁平色、徽章配色更新為 WCAG AA 深字淺底新值。See tickets 0.19.1-W2-001 ~ W2-004。
 
 ---
 
@@ -95,16 +98,20 @@ src/core/design-system/
 |-------|------|------|
 | `tagDefault` | `#808080` | Tag Category 預設色 |
 
-### 2.6 品牌梯度
+### 2.6 品牌梯度（DEPRECATED）
 
-| Token | 色值 |
-|-------|------|
-| `gradientStart` | `#2196F3`（primary） |
-| `gradientEnd` | `#1976D2`（primaryDark） |
+> **DEPRECATED — 0.19.1-W2-001 D2 決策廢棄**：全專案 UI 無漸層色（W1 章程）。以下 token 已廢棄，CSS 中改用扁平色替代。
 
-CSS 表達：`linear-gradient(135deg, #2196F3 0%, #1976D2 100%)`
+| Token | 色值 | 狀態 |
+|-------|------|------|
+| `gradientStart` | `#2196F3`（primary） | DEPRECATED — 改用 `primary` |
+| `gradientEnd` | `#1976D2`（primaryDark） | DEPRECATED — 改用 `primaryDark` |
+
+~~CSS 表達：`linear-gradient(135deg, #2196F3 0%, #1976D2 100%)`~~
 
 **取代舊值**：`#667eea` → `#764ba2`（紫色梯度已廢棄）
+
+**D2 替代方案**：凡規格或實作使用漸層的場景，一律改用扁平色 `primary` (`#2196F3`) 或 `primaryDark` (`#1976D2`)。
 
 ---
 
@@ -112,16 +119,16 @@ CSS 表達：`linear-gradient(135deg, #2196F3 0%, #1976D2 100%)`
 
 ### 3.1 配色對照表
 
-Badge 樣式：淡色底（主色 15% alpha）+ 深色字（主色原色）。
+Badge 樣式：不透明淺色底（bg）+ 深色字（fg），全 6 狀態達 WCAG AA 4.5:1（D3 修正，0.19.1-W2-001）。
 
-| 狀態 | Token | 主色（fg） | CSS 背景色 | CSS class |
-|------|-------|----------|-----------|-----------|
-| unread / notStarted | `primaryLightest` | `#E3F2FD` | `rgba(227,242,253,0.15)` | `status-unread` |
-| queued | `primaryMedium` | `#64B5F6` | `rgba(100,181,246,0.15)` | `status-queued` |
-| reading | `primary` | `#2196F3` | `rgba(33,150,243,0.15)` | `status-reading` |
-| finished | `positive` | `#4CAF50` | `rgba(76,175,80,0.15)` | `status-finished` |
-| abandoned | `negative` | `#FF9800` | `rgba(255,152,0,0.15)` | `status-abandoned` |
-| reference | `primaryDark` | `#1976D2` | `rgba(25,118,210,0.15)` | `status-reference` |
+| 狀態 | 文字色（fg） | 背景色（bg） | 對比度 | CSS class |
+|------|------------|------------|--------|-----------|
+| unread | `#546E7A` | `#ECEFF1` | 4.68:1 | `status-unread` |
+| queued | `#0D47A1` | `#BBDEFB` | 6.15:1 | `status-queued` |
+| reading | `#0D47A1` | `#E3F2FD` | 7.56:1 | `status-reading` |
+| finished | `#1B5E20` | `#C8E6C9` | 5.85:1 | `status-finished` |
+| abandoned | `#804000` | `#FFE0B2` | 6.25:1 | `status-abandoned` |
+| reference | `#311B92` | `#EDE7F6` | 10.20:1 | `status-reference` |
 
 ### 3.2 Badge HTML 結構
 
@@ -131,7 +138,9 @@ Badge 樣式：淡色底（主色 15% alpha）+ 深色字（主色原色）。
 </span>
 ```
 
-### 3.3 Badge CSS 規則
+### 3.3 Badge CSS 規則（D3 修正後 — WCAG AA 深字淺底）
+
+> **D3 設計變更（0.19.1-W2-001）**：舊設計「彩色文字 + 15% alpha 透明背景」對淺色狀態（unread 1.12:1）幾乎不可見，違反 WCAG AA 4.5:1。新設計改為「深色文字 + 不透明淺色背景」，6 狀態全達 WCAG AA。`colors.js` STATUS_COLORS 為 SSOT，下方 CSS 值與之對應。
 
 ```css
 .reading-status-badge {
@@ -142,12 +151,13 @@ Badge 樣式：淡色底（主色 15% alpha）+ 深色字（主色原色）。
   font-weight: 500;
 }
 
-.status-unread    { background-color: rgba(227,242,253,0.15); color: #E3F2FD; }
-.status-queued    { background-color: rgba(100,181,246,0.15); color: #64B5F6; }
-.status-reading   { background-color: rgba(33,150,243,0.15);  color: #2196F3; }
-.status-finished  { background-color: rgba(76,175,80,0.15);   color: #4CAF50; }
-.status-abandoned { background-color: rgba(255,152,0,0.15);   color: #FF9800; }
-.status-reference { background-color: rgba(25,118,210,0.15);  color: #1976D2; }
+/* D3 新值：深字淺底，與 colors.js STATUS_COLORS 一致 */
+.status-unread    { background-color: #ECEFF1; color: #546E7A; }
+.status-queued    { background-color: #BBDEFB; color: #0D47A1; }
+.status-reading   { background-color: #E3F2FD; color: #0D47A1; }
+.status-finished  { background-color: #C8E6C9; color: #1B5E20; }
+.status-abandoned { background-color: #FFE0B2; color: #804000; }
+.status-reference { background-color: #EDE7F6; color: #311B92; }
 ```
 
 ### 3.4 中文標籤對照
@@ -369,8 +379,8 @@ Badge 樣式：淡色底（主色 15% alpha）+ 深色字（主色原色）。
   /* 字體 */
   --font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
-  /* 梯度 */
-  --gradient-primary: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  /* 梯度：DEPRECATED — D2 廢棄，改用扁平色 --color-primary / --color-primary-dark */
+  /* --gradient-primary: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); */
 }
 ```
 
@@ -378,11 +388,14 @@ Badge 樣式：淡色底（主色 15% alpha）+ 深色字（主色原色）。
 
 ## 11. 跨平台對齊要求
 
-### 11.1 APP 端同步修改
+### 11.1 APP 端同步修改（book_overview_app follow-up）
 
-| 檔案 | 修改 | 原因 |
+> **D4 決策（0.19.1-W2-001）**：APP 端對齊不納入本次，標為 `book_overview_app` follow-up。原因：跨 repo 範圍蔓延，本 Wave 聚焦 Chrome Extension。
+
+| 檔案 | 修改 | 狀態 |
 |------|------|------|
-| `reading_status_badge.dart` | reference 色從 `UIColors.primary` 改為 `UIColors.primaryDark` | 解決 reading/reference 撞色 |
+| `reading_status_badge.dart` | D3 新配色：深字淺底 6 組（對應 STATUS_COLORS 新值） | **book_overview_app follow-up** |
+| `ui_config.dart` | 漸層 token 對應廢棄 | **book_overview_app follow-up** |
 
 ### 11.2 Extension 端需更新的現有檔案
 
@@ -440,4 +453,5 @@ Badge 樣式：淡色底（主色 15% alpha）+ 深色字（主色原色）。
 
 | 版本 | 日期 | 變更 |
 |------|------|------|
+| v2.0.0 | 2026-06-05 | Phase 2 完成：§2.6 漸層 token 標記 DEPRECATED、§3.1/3.3 徽章配色更新為 D3 WCAG AA 深字淺底新值（6 組）、§10 梯度 CSS var 標記廢棄、§11.1 APP 對齊改標 book_overview_app follow-up（ticket 0.19.1-W2-001.4） |
 | v1.0.0 | 2026-04-08 | 初始版本（從 PROP-008 v2.1 轉為正式規格） |
