@@ -7,6 +7,11 @@
 const fs = require('fs');
 const path = require('path');
 
+// Design System CSS 產生器（0.19.1-W2-001 D1）：
+// design-system.css 為 generated artifact，由 colors.js/spacing.js/typography.js
+// 產出。build flow 開頭呼叫產生器，確保複製到 build/ 的 CSS 為最新。
+const { generate: generateDesignSystemCss } = require('./generate-design-system-css.js');
+
 // esbuild lazy require：避免單元測試在 jsdom 環境載入本檔時
 // 因 TextEncoder/Uint8Array 不相容崩潰。實際 build flow 仍正常使用。
 let esbuild;
@@ -494,6 +499,13 @@ async function build() {
     // esbuild early validation（W1-080）：在副作用前 fail-fast 確認 esbuild 可用，
     // 避免清空 build/ 目錄 + 複製檔案完成後才在 bundleEntryPoints 撞到模組錯誤。
     ensureEsbuildAvailable();
+
+    // Design System CSS 產生（0.19.1-W2-001 D1）：
+    // 在複製 src/ 之前重新產生 design-system.css，確保 build/{mode}/src/core/
+    // design-system/design-system.css 與 3 個 .js 來源一致。filesToCopy 含 src/，
+    // 故 generated CSS 隨 src/ 一併複製進 build 目錄（依現有 copy 流程慣例）。
+    const dsCss = generateDesignSystemCss();
+    console.log(`[DESIGN-SYSTEM] 已產生 ${path.relative(SOURCE_DIR, dsCss.outputPath)}`);
 
     // 版號 sanity check（W1-074 -> W1-083 SSOT 反轉）
     //

@@ -37,28 +37,20 @@ const COLORS = Object.freeze({
   tagDefault: '#808080'
 })
 
-const GRADIENT = Object.freeze({
-  start: COLORS.primary,
-  end: COLORS.primaryDark,
-  css: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`
-})
-
-// rgba 背景色生成（從 hex fg 色值產生 15% alpha 背景）
-function hexToRgba (hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')'
-}
-
-// ReadingStatus 配色映射（Section 3）
+// ReadingStatus 配色映射（Section 3，D3 修正後）
+//
+// 設計變更（0.19.1-W2-001 D3 決策）：
+//   舊設計「彩色文字 + 15% alpha 背景」對淺色狀態（unread 1.12:1）幾乎不可見，
+//   違反 WCAG AA 4.5:1。新設計改為「深色文字 + 不透明淺色背景」，6 狀態
+//   全達 WCAG AA（最低 unread 4.68:1）。同時廢棄 GRADIENT 常數與 hexToRgba
+//   函式（漸層全面移除改扁平色，bg 改為不透明色不再需要 alpha 計算）。
 const STATUS_COLORS = Object.freeze({
-  unread: Object.freeze({ fg: COLORS.primaryLightest, bg: hexToRgba(COLORS.primaryLightest, 0.15) }),
-  queued: Object.freeze({ fg: COLORS.primaryMedium, bg: hexToRgba(COLORS.primaryMedium, 0.15) }),
-  reading: Object.freeze({ fg: COLORS.primary, bg: hexToRgba(COLORS.primary, 0.15) }),
-  finished: Object.freeze({ fg: COLORS.success, bg: hexToRgba(COLORS.success, 0.15) }),
-  abandoned: Object.freeze({ fg: COLORS.warning, bg: hexToRgba(COLORS.warning, 0.15) }),
-  reference: Object.freeze({ fg: COLORS.primaryDark, bg: hexToRgba(COLORS.primaryDark, 0.15) })
+  unread: Object.freeze({ fg: '#546E7A', bg: '#ECEFF1' }),
+  queued: Object.freeze({ fg: '#0D47A1', bg: '#BBDEFB' }),
+  reading: Object.freeze({ fg: '#0D47A1', bg: '#E3F2FD' }),
+  finished: Object.freeze({ fg: '#1B5E20', bg: '#C8E6C9' }),
+  abandoned: Object.freeze({ fg: '#804000', bg: '#FFE0B2' }),
+  reference: Object.freeze({ fg: '#311B92', bg: '#EDE7F6' })
 })
 
-module.exports = { COLORS, GRADIENT, STATUS_COLORS }
+module.exports = { COLORS, STATUS_COLORS }
