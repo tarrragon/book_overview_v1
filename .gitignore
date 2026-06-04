@@ -87,8 +87,9 @@ __pycache__/
 **/.zhtw-mcp-skip
 **/.pytest_cache/
 
-# Claude handoff archives (session-local)
-.claude/handoff/archive/
+# Claude handoff (session-bound local-only, sync class C — 不版控、不同步)
+# 對齊 sync manifest LOCAL_ONLY_PATTERNS 的 "handoff"（0.19.1-W1-032）
+.claude/handoff/
 
 # Claude dispatch tracker (runtime state, auto-managed by hooks)
 .claude/dispatch-active.json
