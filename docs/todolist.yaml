@@ -1,6 +1,6 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-05-27"
+last_updated: "2026-06-05"
 
 versions:
   - version: "0.17.0"
@@ -32,7 +32,7 @@ versions:
     description: "端到端驗證、打包與內測準備（實機測試 + 可分發打包 + 安裝指南）"
 
   - version: "0.19.1"
-    status: active
+    status: completed
     description: "UI 一致性改善（emoji 清理、欄位動態化、顏色規範收斂）"
 
   - version: "0.20.0"
