@@ -36,7 +36,7 @@ versions:
     description: "UI 一致性改善（emoji 清理、欄位動態化、顏色規範收斂）"
 
   - version: "0.20.0"
-    status: planned
+    status: active
     description: "中文圖書分類法 + Tag 管理功能"
 
   - version: "0.16.3"
