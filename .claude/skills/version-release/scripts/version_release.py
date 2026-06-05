@@ -1337,25 +1337,17 @@ def update_changelog(version: str, dry_run: bool = False) -> bool:
             print_warning(f"CHANGELOG.md 已包含 v{version} 條目，跳過插入")
             return True
 
-        # 無 In-Development 區段且版本未存在：維持原有插入模板行為（向後相容）
-        # 插入到 "## [" 之前（在 "格式基於" 之後）
-        insert_pos = changelog_content.find("## [")
-        if insert_pos > 0:
-            updated_content = (
-                changelog_content[:insert_pos]
-                + new_version_block
-                + changelog_content[insert_pos:]
-            )
-
-            if not dry_run:
-                with open(changelog_path, "w", encoding="utf-8") as f:
-                    f.write(updated_content)
-
-            print_success(f"CHANGELOG.md 已更新版本 {version}")
-            return True
-        else:
-            print_error("CHANGELOG.md 格式不符")
-            return False
+        # 無 In-Development 區段且版本未存在：fail-loud（0.20.0-W1-019 缺陷 A 修復）
+        # 不再插入 UC-XX 空殼 placeholder 模板，避免發布空殼 CHANGELOG。
+        # 發布前應由人手動撰寫版本區段（或建立 "## [v{version}] - In Development"
+        # 開發期區段供 release 自動 finalize）。
+        _ = new_version_block  # 保留模板供未來人工撰寫參考，不再自動插入
+        print_error(
+            f"CHANGELOG.md 缺少 v{version} 版本區段，發布中止。\n"
+            f"   請先手動撰寫 '## [{version}] - {today}' 區段，"
+            f"或建立 '## [v{version}] - In Development' 開發期區段供 release 自動 finalize。"
+        )
+        return False
 
     except Exception as e:
         print_error(f"更新 CHANGELOG.md 失敗: {e}")
@@ -2158,6 +2150,16 @@ def git_merge_and_push(version: str, dry_run: bool = False) -> bool:
     use_feature_branch = release_workflow == "feature-branch"
 
     try:
+        # 3.0 標記 todolist 版本 active → completed（0.20.0-W1-019 缺陷 B 修復）
+        # 必須在 commit/push 之前，使 todolist completed 標記納入同一推送，
+        # 不再成為 push 後的孤兒未提交變更。
+        print_info("[FLAG] 標記 todolist 版本 completed")
+        todolist_path = root / "docs" / "todolist.yaml"
+        if not mark_version_completed(todolist_path, version, dry_run):
+            print_warning(
+                f"todolist.yaml 版本 {version} 標記 completed 失敗（不中止發布，請手動確認）"
+            )
+
         # 3.1 提交變更
         print_info("[SYNC] 提交所有變更")
         if not commit_changes(version, dry_run):
@@ -2508,14 +2510,9 @@ def main():
                 print_error("\nGit 操作失敗，發布已中止")
                 return 1
 
-            # 標記 todolist 版本狀態 active → completed（避免後續 start 被前版本驗證阻擋）
-            print_section("Step: Mark Version Completed")
-            todolist_path = get_project_root() / "docs" / "todolist.yaml"
-            completed_ok = mark_version_completed(todolist_path, version, dry_run)
-            if not completed_ok:
-                print_warning(
-                    f"todolist.yaml 版本 {version} 標記 completed 失敗（不中止發布，請手動確認）"
-                )
+            # 註：todolist 版本 active → completed 標記已移至 git_merge_and_push 內
+            # 的 commit/push 之前（0.20.0-W1-019 缺陷 B），確保標記納入同一推送，
+            # 不再成為 push 後的孤兒未提交變更。
 
             # 打印摘要
             print_summary(version, ok, dry_run)
