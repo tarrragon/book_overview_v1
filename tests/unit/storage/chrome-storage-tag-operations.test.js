@@ -236,7 +236,8 @@ describe('Tag Categories CRUD 操作', () => {
   })
 
   describe('deleteTagCategory', () => {
-    test('刪除非系統 category 應成功並 cascade 刪除所屬 tags', async () => {
+    // SPEC-010 場景組 C2：刪葉節 category，所屬 tag 轉 Uncategorized（不刪 tag、不動 Book.tagIds）
+    test('刪除非系統葉節 category 應成功並將所屬 tags 轉至 Uncategorized', async () => {
       seedCategories(store, [
         createMockTagCategory({ id: 'cat_001', name: '自訂', isSystem: false })
       ])
@@ -252,14 +253,20 @@ describe('Tag Categories CRUD 操作', () => {
 
       expect(result.success).toBe(true)
 
+      // 葉 category 已刪，但惰性建立的 Uncategorized 系統 category 存在
       const categories = await TagStorageAdapter.getAllTagCategories()
-      expect(categories).toHaveLength(0)
+      expect(categories.some(c => c.id === 'cat_001')).toBe(false)
+      const uncategorized = categories.find(c => c.isSystem === true)
+      expect(uncategorized).toBeDefined()
 
+      // tag 不被刪除，categoryId 轉至 Uncategorized
       const tags = await TagStorageAdapter.getAllTags()
-      expect(tags).toHaveLength(0)
+      expect(tags).toHaveLength(2)
+      tags.forEach(t => expect(t.categoryId).toBe(uncategorized.id))
 
+      // Book.tagIds 不變，書籍仍引用 tag_A
       const booksByTag = await TagStorageAdapter.getBooksByTag('tag_A')
-      expect(booksByTag).toHaveLength(0)
+      expect(booksByTag).toHaveLength(1)
     })
 
     test('isSystem=true 的 category 不可刪除', async () => {
@@ -851,7 +858,9 @@ describe('原子操作一致性', () => {
   })
 
   describe('deleteCategory 原子性', () => {
-    test('刪除 category 應依序：移除書籍引用 -> 刪除 tags -> 刪除 category', async () => {
+    // SPEC-010 場景組 C2：刪葉 category 的步驟序列為 tag 轉 Uncategorized -> 刪 category
+    // （tag 不刪、Book.tagIds 不變），整體原子寫入
+    test('刪除葉 category 應依序：tag 轉 Uncategorized -> 刪除 category（tag 與書籍引用保留）', async () => {
       seedTags(store, [
         createMockTag({ id: 'tag_A', name: 'A', categoryId: 'cat_001' }),
         createMockTag({ id: 'tag_B', name: 'B', categoryId: 'cat_001' })
@@ -864,20 +873,25 @@ describe('原子操作一致性', () => {
 
       expect(result.success).toBe(true)
 
-      // 書籍引用已移除
+      // 書籍引用保留（tag 未刪，Book.tagIds 不變）
       const book1Tags = await TagStorageAdapter.getTagsForBook('book_1')
-      expect(book1Tags).toHaveLength(0)
+      expect(book1Tags).toHaveLength(1)
 
-      // tags 已刪除
-      const tags = await TagStorageAdapter.getAllTags()
-      expect(tags).toHaveLength(0)
-
-      // category 已刪除
+      // tag 保留並轉至 Uncategorized
       const categories = await TagStorageAdapter.getAllTagCategories()
-      expect(categories).toHaveLength(0)
+      const uncategorized = categories.find(c => c.isSystem === true)
+      expect(uncategorized).toBeDefined()
+      const tags = await TagStorageAdapter.getAllTags()
+      expect(tags).toHaveLength(2)
+      tags.forEach(t => expect(t.categoryId).toBe(uncategorized.id))
+
+      // 原 category 已刪除
+      expect(categories.some(c => c.id === 'cat_001')).toBe(false)
     })
 
-    test('中間步驟失敗時應回滾所有已完成步驟', async () => {
+    // SPEC-010 場景組 C-rollback：刪除途中 storage 寫入失敗 -> cascade_partial、rolledBack:true，
+    // 並回滾至刪除前快照（category 與 tag 原狀保留）
+    test('中間步驟失敗時應回滾所有已完成步驟（cascade_partial）', async () => {
       seedTags(store, [
         createMockTag({ id: 'tag_A', name: 'A', categoryId: 'cat_001' })
       ])
@@ -885,14 +899,14 @@ describe('原子操作一致性', () => {
         createMockBookV2({ id: 'book_1', tagIds: ['tag_A'] })
       ])
 
-      // 模擬寫入 tags 時觸發 lastError
+      // 模擬刪除流程的 category 寫入步驟失敗（leaf delete 序列：先寫 tags 再寫 categories）
       let writeCount = 0
       const originalSet = chrome.storage.local.set.getMockImplementation()
       chrome.storage.local.set.mockImplementation((items, callback) => {
         writeCount++
-        // 第二次寫入（刪除 tags）失敗
-        if (writeCount === 2 && items.tags !== undefined) {
-          chrome.runtime.lastError = { message: 'Write tags failed' }
+        // 第一次寫入後（tags 轉移已完成）的 category 寫入失敗，觸發回滾
+        if (writeCount === 2 && items.tag_categories !== undefined) {
+          chrome.runtime.lastError = { message: 'Write categories failed' }
           if (callback) callback()
           delete chrome.runtime.lastError
           return
@@ -906,12 +920,19 @@ describe('原子操作一致性', () => {
       chrome.storage.local.set.mockImplementation(originalSet)
       delete chrome.runtime.lastError
 
-      // 失敗後回滾
+      // 失敗後回滾：cascade_partial + rolledBack:true 契約
       expect(result.success).toBe(false)
+      expect(result.error).toBe('cascade_partial')
+      expect(result.rolledBack).toBe(true)
 
-      // category 和 tags 仍存在
+      // category 仍存在（回滾至快照）
       const categories = await TagStorageAdapter.getAllTagCategories()
-      expect(categories).toHaveLength(1)
+      expect(categories.some(c => c.id === 'cat_001')).toBe(true)
+
+      // tag 回滾至原 categoryId
+      const tags = await TagStorageAdapter.getAllTags()
+      expect(tags).toHaveLength(1)
+      expect(tags[0].categoryId).toBe('cat_001')
     })
   })
 

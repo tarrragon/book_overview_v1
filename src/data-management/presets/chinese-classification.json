@@ -1,0 +1,22 @@
+{
+  "uncategorizedCategoryId": "sys_cat_uncategorized",
+  "uncategorizedCategoryName": "Uncategorized",
+  "presets": [
+    { "id": "sys_cat_0", "name": "0 總類", "parentId": null },
+    { "id": "sys_cat_1", "name": "1 哲學類", "parentId": null },
+    { "id": "sys_cat_2", "name": "2 宗教類", "parentId": null },
+    { "id": "sys_cat_3", "name": "3 自然科學類", "parentId": null },
+    { "id": "sys_cat_4", "name": "4 應用科學類", "parentId": null },
+    { "id": "sys_cat_5", "name": "5 社會科學類", "parentId": null },
+    { "id": "sys_cat_6", "name": "6 史地類：中國史地", "parentId": null },
+    { "id": "sys_cat_7", "name": "7 史地類：世界史地", "parentId": null },
+    { "id": "sys_cat_8", "name": "8 語言文學類", "parentId": null },
+    { "id": "sys_cat_9", "name": "9 藝術類", "parentId": null },
+    { "id": "sys_cat_00", "name": "00 特藏", "parentId": "sys_cat_0" },
+    { "id": "sys_cat_01", "name": "01 目錄學", "parentId": "sys_cat_0" },
+    { "id": "sys_cat_02", "name": "02 圖書館學", "parentId": "sys_cat_0" },
+    { "id": "sys_cat_11", "name": "11 思想、學術", "parentId": "sys_cat_1" },
+    { "id": "sys_cat_12", "name": "12 中國哲學", "parentId": "sys_cat_1" },
+    { "id": "sys_cat_85", "name": "85 各國文學總集", "parentId": "sys_cat_8" }
+  ]
+}

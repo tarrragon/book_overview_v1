@@ -71,7 +71,11 @@ const backgroundMessages = new MessageDictionary({
   EMERGENCY_ERROR: '[FAIL] [緊急模式] 事件處理錯誤 ({eventType})',
   INIT_FLOW_START: '開始 Background Service Worker 初始化流程',
   INIT_FLOW_SUCCESS: 'Background Service Worker 初始化成功完成',
-  INIT_FLOW_FAILED: 'Background Service Worker 初始化最終失敗'
+  INIT_FLOW_FAILED: 'Background Service Worker 初始化最終失敗',
+  PRESET_INIT_START: '[FIX] 載入賴永祥分類法預裝樹 ({trigger})',
+  PRESET_INIT_OK: '[OK] 預裝樹載入完成 (共 {count} 節點)',
+  PRESET_INIT_SKIP: '[SKIP] 預裝樹載入失敗或配額不足，記待補旗標 ({error})',
+  PRESET_INIT_ERROR: '[FAIL] 預裝樹載入異常 ({trigger})'
 })
 
 // W1-110.1: Logger 第三參數注入 backgroundMessages local dict
@@ -142,6 +146,35 @@ addEventListener('unhandledrejection', (event) => {
  *   （GET_SYSTEM_STATUS），其餘訊息回傳 undefined，交由 coordinator 內
  *   MessageRouter 註冊的 listener 處理，避免 sendResponse 通道雙重佔用。
  */
+/**
+ * 載入賴永祥分類法預裝樹（場景組 D 接線）。
+ *
+ * 業務情境：MV3 onInstalled（首裝/更新）與 onStartup（喚醒補償）皆呼叫
+ * initializePresets——其確定性 ID upsert 冪等，已存在節點跳過、僅補缺失，
+ * 故兩個生命週期事件重複觸發不會重建或產生重複節點（D3 補償安全）。
+ *
+ * 設計考量：採惰性 require（非頂層 import），避免 listener 同步註冊階段
+ * 連帶載入 adapter 與其相依模組；實際載入工作延後至事件觸發時執行，符合
+ * MV3「listener 註冊同步、callback 執行延後」規範。失敗（配額不足/寫入錯誤）
+ * 不拋出，記日誌待補旗標，避免影響其餘生命週期流程。
+ *
+ * @param {string} trigger - 觸發來源（'onInstalled' | 'onStartup'），供日誌標示
+ */
+async function loadClassificationPresets (trigger) {
+  try {
+    log.info('PRESET_INIT_START', { trigger })
+    const TagStorageAdapter = require('../storage/adapters/tag-storage-adapter')
+    const result = await TagStorageAdapter.initializePresets()
+    if (result && result.success) {
+      log.info('PRESET_INIT_OK', { count: result.count })
+    } else {
+      log.warn('PRESET_INIT_SKIP', { error: (result && result.error) || 'unknown' })
+    }
+  } catch (error) {
+    log.error('PRESET_INIT_ERROR', { trigger, error: error?.message })
+  }
+}
+
 function registerLifecycleListeners () {
   try {
     log.info('REGISTER_LIFECYCLE')
@@ -150,6 +183,9 @@ function registerLifecycleListeners () {
     if (chrome.runtime.onInstalled) {
       chrome.runtime.onInstalled.addListener(async (details) => {
         log.info('EXTENSION_INSTALLED', { reason: details.reason })
+
+        // 場景組 D：首裝/更新載入賴永祥分類法預裝樹（冪等 upsert）
+        await loadClassificationPresets('onInstalled')
 
         if (backgroundCoordinator && backgroundCoordinator.eventBus) {
           await backgroundCoordinator.eventBus.emit('SYSTEM.INSTALLED', {
@@ -165,6 +201,9 @@ function registerLifecycleListeners () {
     if (chrome.runtime.onStartup) {
       chrome.runtime.onStartup.addListener(async () => {
         log.info('EXTENSION_STARTUP')
+
+        // 場景組 D：喚醒補償載入（冪等，補注 onInstalled 可能遺漏的節點）
+        await loadClassificationPresets('onStartup')
 
         if (backgroundCoordinator && backgroundCoordinator.eventBus) {
           await backgroundCoordinator.eventBus.emit('SYSTEM.STARTUP', {
