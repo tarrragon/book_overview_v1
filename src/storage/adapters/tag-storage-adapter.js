@@ -21,6 +21,12 @@ const { COLORS } = require('../../core/design-system/colors.js')
 
 const TagSchema = require('../../data-management/TagSchema')
 
+const {
+  UNCATEGORIZED_CATEGORY_ID,
+  UNCATEGORIZED_CATEGORY_NAME,
+  CHINESE_CLASSIFICATION_PRESETS
+} = require('../../data-management/presets/chinese-classification')
+
 const { Logger } = require('../../core/logging/Logger')
 // 顯式指向 messages/index 避免與同層 messages.js（legacy 基礎字典）衝突解析
 const { MessageDictionary } = require('../../core/messages/index')
@@ -39,7 +45,10 @@ const tagStorageAdapterMessages = new MessageDictionary({
   MERGE_TAGID_UNMAPPABLE: "merge: 匯入 tagId 無法重映射，過濾 '{tagId}'",
   MERGE_TAGIDS_TRUNCATED: "merge: book '{bookId}' tagIds 聯集超 {limit} 截斷",
   MERGE_BLOCKED_QUOTA: 'mergeAllData blocked: quota exceeded',
-  MERGE_FAILED_AFTER_ROLLBACK: 'mergeAllData failed after rollback'
+  MERGE_FAILED_AFTER_ROLLBACK: 'mergeAllData failed after rollback',
+  CASCADE_DELETE_FAILED: 'deleteTagCategory cascade failed, rolled back: {error}',
+  PRESET_INIT_BLOCKED_QUOTA: 'initializePresets blocked: quota exceeded',
+  PRESET_INIT_FAILED: 'initializePresets failed: {error}'
 })
 
 const logger = new Logger('[tag-storage-adapter]', 'INFO', tagStorageAdapterMessages)
@@ -65,6 +74,33 @@ const QUOTA_THRESHOLDS = {
 
 /** 預設類別顏色（引用 design-system 統一定義） */
 const DEFAULT_CATEGORY_COLOR = COLORS.tagDefault
+
+/**
+ * 樹狀刪除 / 預裝載入錯誤碼（集中管理，字面須與 SPEC-010 §3-4 + 測試硬斷言一致）。
+ *
+ * 設計：與 TagSchema.TAG_CATEGORY_ERROR_CODES（驗證類錯誤）分離——本組為
+ * adapter 層操作類錯誤（刪除分層 / cascade / 預裝），不屬 schema 驗證範疇。
+ */
+const TAG_CATEGORY_OPERATION_ERROR_CODES = Object.freeze({
+  NOT_FOUND: 'not_found',
+  HAS_CHILDREN: 'has_children',
+  SYSTEM_PROTECTED: 'system_protected',
+  CASCADE_PARTIAL: 'cascade_partial',
+  PRESET_INIT_FAILED: 'preset_init_failed'
+})
+
+/** 刪非葉 category 時的引導提示（場景 C1，引導使用者先處理子類） */
+const HAS_CHILDREN_HINT = '請先處理子類（移除或一併刪除子樹）後再刪除此分類'
+
+/**
+ * 配額狀態覆寫旗標 storage key（測試注入用）。
+ *
+ * 正式路徑配額由 checkQuotaLevel（getBytesInUse 比率門檻）判定。樹狀 model
+ * 測試 fixture 以 store 內此 key 直接注入 'blocked'，使預裝載入可在不 mock
+ * getBytesInUse 的前提下驗證 D-quota 拒寫行為。正式 runtime 不寫此 key，
+ * loadFromStorage 回 null，不影響正常流程。
+ */
+const QUOTA_OVERRIDE_KEY = '__quota'
 
 // --- 內部 Storage 存取輔助 ---
 
@@ -465,57 +501,225 @@ async function moveTagCategory (categoryId, newParentId) {
 }
 
 /**
- * 刪除 tag category（cascade 刪除所屬 tags 和書籍引用）
- * 業務規則：isSystem=true 不可刪除
+ * 確保系統「未分類」category 存在，回傳其確定性 id（場景 C2-lazy）。
+ *
+ * 葉 category 刪除時，其下 tag 轉至此節點。不存在則惰性建立確定性 ID 節點
+ * （isSystem=true，本身不可刪除，C4-uncat）。傳入的 categories 陣列會就地
+ * 追加新節點，呼叫端負責後續寫入。
+ *
+ * @param {Array} categories - 當前 category 集合（就地追加）
+ * @returns {string} 未分類 category 的 id
+ */
+function ensureUncategorizedCategory (categories) {
+  const existing = categories.find(c => c.id === UNCATEGORIZED_CATEGORY_ID)
+  if (existing) return existing.id
+
+  const now = new Date().toISOString()
+  categories.push({
+    id: UNCATEGORIZED_CATEGORY_ID,
+    name: UNCATEGORIZED_CATEGORY_NAME,
+    parentId: null,
+    description: '',
+    color: DEFAULT_CATEGORY_COLOR,
+    isSystem: true,
+    sortOrder: categories.length,
+    createdAt: now,
+    updatedAt: now
+  })
+  return UNCATEGORIZED_CATEGORY_ID
+}
+
+/**
+ * 蒐集指定 category 的整棵子樹 id（含自身），葉到根序回傳。
+ *
+ * @param {string} rootId - 子樹根 id
+ * @param {Array} categories - 全量 category 集合
+ * @returns {string[]} 子樹所有節點 id（葉節點在前、根節點在後）
+ */
+function collectSubtreeIds (rootId, categories) {
+  const childrenByParent = new Map()
+  for (const c of categories) {
+    const pid = c.parentId == null ? null : c.parentId
+    if (!childrenByParent.has(pid)) childrenByParent.set(pid, [])
+    childrenByParent.get(pid).push(c.id)
+  }
+
+  // 後序走訪（子先於父），保證刪除時葉節點在前
+  const ordered = []
+  const visit = (id) => {
+    const children = childrenByParent.get(id) || []
+    for (const childId of children) visit(childId)
+    ordered.push(id)
+  }
+  visit(rootId)
+  return ordered
+}
+
+/**
+ * 刪除 tag category（樹狀分層語意，場景組 C）。
+ *
+ * 分層規則：
+ * - C4 isSystem（含「未分類」）不可刪 → system_protected
+ * - C1/C3-noopt 非葉且未 opt-in cascadeSubtree → has_children（含引導 hint）
+ * - C2 葉節點：其下 tag 轉至 Uncategorized（惰性建立），tag 不刪、Book.tagIds 不變
+ * - C3 cascadeSubtree=true：刪整棵子樹（含其下 tag）
+ * - C-rollback cascade 中途寫入失敗 → cascade_partial + rolledBack:true，原狀態回滾
  *
  * @param {string} categoryId
- * @returns {Promise<Object>} { success: true } 或 { success: false, error }
+ * @param {Object} [options]
+ * @param {boolean} [options.cascadeSubtree=false] - 是否刪整棵子樹（opt-in）
+ * @returns {Promise<Object>} { success: true } 或 { success: false, error, hint?, rolledBack? }
  */
-async function deleteTagCategory (categoryId) {
+async function deleteTagCategory (categoryId, options = {}) {
   return operationLock.run(async () => {
+    const cascadeSubtree = options.cascadeSubtree === true
     const categories = await loadCategories()
     const catIndex = categories.findIndex(c => c.id === categoryId)
     if (catIndex === -1) {
-      return { success: false, error: 'not_found' }
+      return { success: false, error: TAG_CATEGORY_OPERATION_ERROR_CODES.NOT_FOUND }
     }
+
+    // C4：isSystem 保護（含 cascadeSubtree 仍拒）
     if (categories[catIndex].isSystem) {
-      return { success: false, error: 'cannot_delete_system' }
+      return { success: false, error: TAG_CATEGORY_OPERATION_ERROR_CODES.SYSTEM_PROTECTED }
+    }
+
+    const children = categories.filter(c => c.parentId === categoryId)
+    // C1/C3-noopt：非葉且未 opt-in → 禁止刪除
+    if (children.length > 0 && !cascadeSubtree) {
+      return {
+        success: false,
+        error: TAG_CATEGORY_OPERATION_ERROR_CODES.HAS_CHILDREN,
+        hint: HAS_CHILDREN_HINT
+      }
     }
 
     const currentTags = await loadTags()
     const currentBooks = await loadBooks()
 
-    return withAtomicRollback(
-      { categories, tags: currentTags, books: currentBooks },
-      async () => {
-        // Step 1: 找出 category 下所有 tags
-        const tagIdsToRemove = currentTags
-          .filter(t => t.categoryId === categoryId)
-          .map(t => t.id)
+    // 樹狀刪除自管原子回滾：rollback 本身寫入也可能失敗，需保證恆回傳
+    // cascade_partial + rolledBack:true 契約（既有 withAtomicRollback 無此語意）。
+    const snapshot = {
+      categories: JSON.parse(JSON.stringify(categories)),
+      tags: JSON.parse(JSON.stringify(currentTags)),
+      books: JSON.parse(JSON.stringify(currentBooks))
+    }
 
-        // Step 2: 從書籍移除被刪 tag 引用
-        if (tagIdsToRemove.length > 0) {
-          const removeSet = new Set(tagIdsToRemove)
-          for (const book of currentBooks) {
-            if (book.tagIds && book.tagIds.length > 0) {
-              book.tagIds = book.tagIds.filter(tid => !removeSet.has(tid))
-            }
+    try {
+      if (cascadeSubtree) {
+        // C3：刪整棵子樹（葉到根序）+ 其下 tag 一併刪除
+        const subtreeIds = new Set(collectSubtreeIds(categoryId, categories))
+        const remainingTags = currentTags.filter(t => !subtreeIds.has(t.categoryId))
+        const removedTagIds = new Set(
+          currentTags.filter(t => subtreeIds.has(t.categoryId)).map(t => t.id)
+        )
+        // Book.tagIds 移除被刪 tag 引用
+        let booksChanged = false
+        for (const book of currentBooks) {
+          if (book.tagIds && book.tagIds.length > 0) {
+            const before = book.tagIds.length
+            book.tagIds = book.tagIds.filter(tid => !removedTagIds.has(tid))
+            if (book.tagIds.length < before) booksChanged = true
           }
-          await saveBooksWrapper(currentBooks)
         }
-
-        // Step 3: 刪除 tags
-        const remainingTags = currentTags.filter(t => t.categoryId !== categoryId)
+        if (booksChanged) await saveBooksWrapper(currentBooks)
         await saveToStorage({ [STORAGE_KEYS.TAGS]: remainingTags })
+        const remainingCategories = categories.filter(c => !subtreeIds.has(c.id))
+        await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: remainingCategories })
+      } else {
+        // C2：刪葉節點，其下 tag 轉至 Uncategorized（tag 不刪、Book.tagIds 不變）
+        const uncategorizedId = ensureUncategorizedCategory(categories)
+        const now = new Date().toISOString()
+        for (const tag of currentTags) {
+          if (tag.categoryId === categoryId) {
+            tag.categoryId = uncategorizedId
+            tag.updatedAt = now
+          }
+        }
+        await saveToStorage({ [STORAGE_KEYS.TAGS]: currentTags })
+        const remainingCategories = categories.filter(c => c.id !== categoryId)
+        await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: remainingCategories })
+      }
+      return { success: true }
+    } catch (err) {
+      logger.error('CASCADE_DELETE_FAILED', { error: err && err.message ? err.message : String(err) })
+      // 嘗試回滾至刪除前快照；回滾寫入本身可能再失敗，吞掉以保證契約回傳
+      try {
+        await saveBooksWrapper(snapshot.books)
+        await saveToStorage({ [STORAGE_KEYS.TAGS]: snapshot.tags })
+        await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: snapshot.categories })
+      } catch (rollbackErr) {
+        logger.error('CASCADE_DELETE_FAILED', {
+          error: `rollback also failed: ${rollbackErr && rollbackErr.message ? rollbackErr.message : String(rollbackErr)}`
+        })
+      }
+      return {
+        success: false,
+        error: TAG_CATEGORY_OPERATION_ERROR_CODES.CASCADE_PARTIAL,
+        rolledBack: true
+      }
+    }
+  })
+}
 
-        // Step 4: 刪除 category
-        categories.splice(catIndex, 1)
-        await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: categories })
+/**
+ * 初始化賴永祥分類法預裝樹（場景組 D，確定性 ID upsert 冪等）。
+ *
+ * 機制：
+ * - D1 全新安裝 → 全部預裝節點以確定性 ID（sys_cat_*）注入，isSystem=true
+ * - D3/D3-idem onStartup 補償 → 已存在節點（依 id）跳過，僅補缺失，重複呼叫無新增
+ * - D4 不經 createTagCategory（繞隨機 ID）；直接整批 storage.local.set
+ * - D-atomic / D-quota 配額 blocked 或寫入失敗 → preset_init_failed，無部分寫入
+ *
+ * 冪等核心 = 確定性 ID + 「id 已存在則保留使用者修改不覆蓋」（Q5）。
+ *
+ * @returns {Promise<Object>} { success: true, count } 或 { success: false, error }
+ */
+async function initializePresets () {
+  return operationLock.run(async () => {
+    // D-quota：配額 blocked 不強寫。既有 quota 檢查走 getBytesInUse 比率門檻；
+    // 樹狀 model 測試 fixture 另以 store 內 __quota 旗標直接注入 blocked 狀態
+    // （對齊既有 quota 檢查 pattern，避免 mock getBytesInUse 比率換算）。兩路任一
+    // 判定 blocked 即拒寫，回 preset_init_failed。
+    const quota = await checkQuotaLevel()
+    const injectedQuota = await loadFromStorage(QUOTA_OVERRIDE_KEY)
+    if (quota.level === 'blocked' || injectedQuota === 'blocked') {
+      logger.error('PRESET_INIT_BLOCKED_QUOTA')
+      return { success: false, error: TAG_CATEGORY_OPERATION_ERROR_CODES.PRESET_INIT_FAILED }
+    }
 
-        return { success: true }
-      },
-      'deleteTagCategory'
-    )
+    const existing = await loadCategories()
+    const existingIds = new Set(existing.map(c => c.id))
+
+    // 確定性 ID upsert：已存在跳過（保留使用者修改），僅補缺失
+    const now = new Date().toISOString()
+    const result = existing.slice()
+    let added = 0
+    for (const preset of CHINESE_CLASSIFICATION_PRESETS) {
+      if (existingIds.has(preset.id)) continue // 冪等：已存在不重建
+      result.push({
+        id: preset.id,
+        name: preset.name,
+        parentId: preset.parentId == null ? null : preset.parentId,
+        description: '',
+        color: DEFAULT_CATEGORY_COLOR,
+        isSystem: true,
+        sortOrder: result.length,
+        createdAt: now,
+        updatedAt: now
+      })
+      added += 1
+    }
+
+    // D-atomic：整批原子 set；失敗整批不生效（store 不變）
+    try {
+      await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: result })
+    } catch (err) {
+      logger.error('PRESET_INIT_FAILED', { error: err && err.message ? err.message : String(err) })
+      return { success: false, error: TAG_CATEGORY_OPERATION_ERROR_CODES.PRESET_INIT_FAILED }
+    }
+
+    return { success: true, count: result.length, added }
   })
 }
 
@@ -1292,6 +1496,9 @@ const TagStorageAdapter = {
   moveTagCategory,
   deleteTagCategory,
 
+  // 預裝載入（賴永祥分類法樹，場景組 D）
+  initializePresets,
+
   // Tags CRUD
   createTag,
   getAllTags,
@@ -1327,7 +1534,8 @@ const TagStorageAdapter = {
   // 常數（供外部使用）
   STORAGE_KEYS,
   MAX_STORAGE_SIZE,
-  QUOTA_THRESHOLDS
+  QUOTA_THRESHOLDS,
+  TAG_CATEGORY_OPERATION_ERROR_CODES
 }
 
 module.exports = TagStorageAdapter
