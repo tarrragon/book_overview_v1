@@ -1180,11 +1180,43 @@ function truncateName (value, maxLength) {
  * @returns {string}
  */
 /**
- * scoped category 合併（樹狀 model A3-2）：以 makeCategoryKey(parentId, name) 為同一性鍵，
- * 使不同 parent 下的同名次類在 merge 後各自保留，不被全域同名誤併。
+ * 跨裝置 category 衝突解析：較新 updatedAt 勝（Last-Write-Wins）。
  *
- * 本 ticket（W2-009.1 場景組 A）僅實作 category scoped 去重的最小路徑（A3-2 對應契約）；
- * 完整 merge 管線（tag/book 重映射、tombstone、LWW）仍由既有三參數 computeMergeResult 承擔。
+ * 兩記錄缺 updatedAt 時退回保留 incoming（最後寫入優先語意）；
+ * 僅一方有 updatedAt 時，有時間者視為較新（明確時間優於無時間）。
+ *
+ * @param {Object} localRecord - 本地同 id 記錄
+ * @param {Object} incomingRecord - 匯入同 id 記錄
+ * @returns {Object} 較新的記錄（淺拷貝）
+ */
+function resolveCategoryConflictByLWW (localRecord, incomingRecord) {
+  const localTime = localRecord.updatedAt ? Date.parse(localRecord.updatedAt) : NaN
+  const incomingTime = incomingRecord.updatedAt ? Date.parse(incomingRecord.updatedAt) : NaN
+  const localValid = !Number.isNaN(localTime)
+  const incomingValid = !Number.isNaN(incomingTime)
+
+  // 兩方皆有有效時間 → 取較新；平手取 incoming（最後寫入優先）
+  if (localValid && incomingValid) {
+    return incomingTime >= localTime ? { ...incomingRecord } : { ...localRecord }
+  }
+  // 僅一方有時間 → 有時間者較新
+  if (incomingValid) return { ...incomingRecord }
+  if (localValid) return { ...localRecord }
+  // 皆無時間 → 退回 incoming（最後寫入優先）
+  return { ...incomingRecord }
+}
+
+/**
+ * scoped category 合併（樹狀 model A3-2 + 跨裝置同步場景組 E2-b）。
+ *
+ * 三條合併軸：
+ * - 同 id（E2-b）：跨裝置同一節點衝突，以 updatedAt LWW 收斂；勝出方 deleted=true
+ *   則該 id 成為 tombstone，不出現於非刪除結果（E2-b-tomb 刪除不復活）。
+ * - 異 id 同 scoped 鍵（A3-2）：不同來源的同層同名次類視為同一鍵，保留本地不重複新增。
+ * - 異 id 異 scoped 鍵：incoming 為新節點，追加。
+ *
+ * 設計：id 軸優先於 scoped 鍵軸——同 id 必為「同一節點的兩裝置版本」，scoped 鍵僅用於
+ * 無 id 對應時的同層同名收斂。tombstone 以 deleted 旗標傳播，刪除項不因本地殘留而復活。
  *
  * @param {Object} input - { localCategories, incomingCategories, localTags, incomingTags }
  * @returns {{ categories: Array, tags: Array }}
@@ -1195,20 +1227,52 @@ function computeScopedCategoryMerge (input) {
   const localTags = (input && input.localTags) || []
   const incomingTags = (input && input.incomingTags) || []
 
-  const resultCategories = localCategories.slice()
-  // scoped 鍵 → category，供 O(1) 同鍵收斂（key = makeCategoryKey(parentId, name)）
+  // id → 合併後記錄（同 id 走 LWW）；tombstone id 集合用於最終過濾刪除項
+  const byId = new Map()
+  const tombstoned = new Set()
+  for (const cat of localCategories) {
+    byId.set(cat.id, { ...cat })
+  }
+
+  // scoped 鍵 → category：供異 id 同層同名收斂（A3-2）；以本地既有節點建立
   const byScopedKey = new Map()
-  for (const cat of resultCategories) {
+  for (const cat of byId.values()) {
     byScopedKey.set(TagSchema.makeCategoryKey(cat.parentId, cat.name), cat)
   }
 
   for (const impCat of incomingCategories) {
-    const key = TagSchema.makeCategoryKey(impCat.parentId, impCat.name)
-    if (!byScopedKey.has(key)) {
-      resultCategories.push({ ...impCat })
-      byScopedKey.set(key, impCat)
+    // 軸 1：同 id 衝突 → LWW 收斂（含 tombstone 傳播）
+    if (impCat.id != null && byId.has(impCat.id)) {
+      const winner = resolveCategoryConflictByLWW(byId.get(impCat.id), impCat)
+      byId.set(impCat.id, winner)
+      if (winner.deleted === true) tombstoned.add(impCat.id)
+      else tombstoned.delete(impCat.id)
+      continue
     }
-    // 同 scoped 鍵則視為同一節點，保留本地（不重複新增）
+    // 純 incoming tombstone（本地無此 id）：記錄刪除標記，不復活
+    if (impCat.deleted === true) {
+      if (impCat.id != null) {
+        byId.set(impCat.id, { ...impCat })
+        tombstoned.add(impCat.id)
+      }
+      continue
+    }
+    // 軸 2：異 id 同 scoped 鍵 → 視為同一節點，保留本地不新增（A3-2）
+    const scopedKey = TagSchema.makeCategoryKey(impCat.parentId, impCat.name)
+    if (byScopedKey.has(scopedKey)) {
+      continue
+    }
+    // 軸 3：異 id 異 scoped 鍵 → 新節點追加
+    const added = { ...impCat }
+    byId.set(impCat.id, added)
+    byScopedKey.set(scopedKey, added)
+  }
+
+  // tombstone 過濾：刪除標記的 id 不出現於結果（刪除不復活）
+  const resultCategories = []
+  for (const [id, cat] of byId.entries()) {
+    if (tombstoned.has(id) || cat.deleted === true) continue
+    resultCategories.push(cat)
   }
 
   return { categories: resultCategories, tags: localTags.concat(incomingTags) }

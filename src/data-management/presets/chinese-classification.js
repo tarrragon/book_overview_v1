@@ -17,8 +17,15 @@
  *
  * 規格來源：SPEC-010 §3 場景組 D / docs/bookstores、PROP-007
  *
- * @version 1.0.0
+ * 資料 SSOT：本模組的常數與預裝節點清單來自同層 `chinese-classification.json`
+ * （場景組 E3 打包決策）。將資料外置為 JSON 純資料檔，使其能作為 bundle 打包資產
+ * 在 build.js 的複製清單中被明示列出，且 esbuild bundle SW 時直接內嵌（非執行期 fetch）。
+ * 本 `.js` 模組僅負責讀取 JSON、凍結預裝清單並維持既有匯出 API 穩定。
+ *
+ * @version 1.1.0
  */
+
+const classificationData = require('./chinese-classification.json')
 
 /**
  * 系統「未分類」category 的確定性 ID。
@@ -26,38 +33,21 @@
  * 葉 category 刪除時，其下 tag 的 categoryId 轉至此節點（場景 C2）。
  * 列為 isSystem 預裝節點，本身不可刪除（場景 C4-uncat）。
  */
-const UNCATEGORIZED_CATEGORY_ID = 'sys_cat_uncategorized'
+const UNCATEGORIZED_CATEGORY_ID = classificationData.uncategorizedCategoryId
 
 /** 系統「未分類」category 顯示名稱 */
-const UNCATEGORIZED_CATEGORY_NAME = 'Uncategorized'
+const UNCATEGORIZED_CATEGORY_NAME = classificationData.uncategorizedCategoryName
 
 /**
  * 賴永祥分類法預裝樹（精簡集：10 主類 + 代表性次類）。
  *
  * 每節點僅含結構欄位（id / name / parentId）；isSystem / 時間戳由
- * initializePresets 注入，保證預裝節點一律 isSystem=true。
+ * initializePresets 注入，保證預裝節點一律 isSystem=true。資料來自
+ * chinese-classification.json，此處凍結避免呼叫端意外變更共用清單。
  */
-const CHINESE_CLASSIFICATION_PRESETS = Object.freeze([
-  // === 主類（depth 0） ===
-  { id: 'sys_cat_0', name: '0 總類', parentId: null },
-  { id: 'sys_cat_1', name: '1 哲學類', parentId: null },
-  { id: 'sys_cat_2', name: '2 宗教類', parentId: null },
-  { id: 'sys_cat_3', name: '3 自然科學類', parentId: null },
-  { id: 'sys_cat_4', name: '4 應用科學類', parentId: null },
-  { id: 'sys_cat_5', name: '5 社會科學類', parentId: null },
-  { id: 'sys_cat_6', name: '6 史地類：中國史地', parentId: null },
-  { id: 'sys_cat_7', name: '7 史地類：世界史地', parentId: null },
-  { id: 'sys_cat_8', name: '8 語言文學類', parentId: null },
-  { id: 'sys_cat_9', name: '9 藝術類', parentId: null },
-
-  // === 代表性次類（depth 1） ===
-  { id: 'sys_cat_00', name: '00 特藏', parentId: 'sys_cat_0' },
-  { id: 'sys_cat_01', name: '01 目錄學', parentId: 'sys_cat_0' },
-  { id: 'sys_cat_02', name: '02 圖書館學', parentId: 'sys_cat_0' },
-  { id: 'sys_cat_11', name: '11 思想、學術', parentId: 'sys_cat_1' },
-  { id: 'sys_cat_12', name: '12 中國哲學', parentId: 'sys_cat_1' },
-  { id: 'sys_cat_85', name: '85 各國文學總集', parentId: 'sys_cat_8' }
-])
+const CHINESE_CLASSIFICATION_PRESETS = Object.freeze(
+  classificationData.presets.map((node) => Object.freeze({ ...node }))
+)
 
 module.exports = {
   UNCATEGORIZED_CATEGORY_ID,
