@@ -462,13 +462,45 @@ async function updateTagCategory (categoryId, updates) {
 }
 
 /**
- * 移動 tag category 至新父節點（樹狀重組）。
+ * 計算指定子樹的最大相對深度（根為 0，最深葉的相對層數）。
  *
- * 樹防護：循環引用（移至自身或子孫）、深度超限、目標 parent 引用存在性。
+ * 移動子樹時，移動後最深節點深度 = 目標父深度 + 1 + 子樹最大相對深度。
+ * 用於 moveTagCategory 的「整體拒不部分移」深度檢查（場景 F-move-depth / Q2）。
+ *
+ * @param {string} rootId - 子樹根 id
+ * @param {Array} categories - 全量 category 集合
+ * @returns {number} 子樹最大相對深度（單一節點為 0）
+ */
+function subtreeMaxRelativeDepth (rootId, categories) {
+  const childrenByParent = new Map()
+  for (const c of categories) {
+    const pid = c.parentId == null ? null : c.parentId
+    if (!childrenByParent.has(pid)) childrenByParent.set(pid, [])
+    childrenByParent.get(pid).push(c.id)
+  }
+  // 後序計算每節點的子樹高度；防環以已訪集合保護
+  const visited = new Set()
+  const heightOf = (id) => {
+    if (visited.has(id)) return 0
+    visited.add(id)
+    const children = childrenByParent.get(id) || []
+    let max = 0
+    for (const childId of children) {
+      const h = heightOf(childId) + 1
+      if (h > max) max = h
+    }
+    return max
+  }
+  return heightOf(rootId)
+}
+
+/**
+ * 移動 tag category 至新父節點（樹狀重組，場景組 B + F 完整契約）。
+ *
+ * 樹防護：循環引用（移至自身或子孫）、深度超限、目標 parent 引用存在性、兄弟唯一鍵。
+ * 深度檢查為「整體拒不部分移」（Q2）：以「目標父深度 + 1 + 移動子樹最大相對深度」評估
+ * 移動後最深節點，任一超 MAX_DEPTH 即整體拒絕（F-move-depth），不發生部分移動。
  * 驗證失敗時不寫入並回對應 error code，保證樹不變（B1 場景）。
- *
- * 注意：本 ticket（W2-009.1 場景組 B）僅實作 B1 循環防護所需的最小移動路徑；
- * 「目標深度 + 子樹最大相對深度」整體深度檢查屬後續場景組 F 的 move 完整契約。
  *
  * @param {string} categoryId - 要移動的 category id
  * @param {string|null} newParentId - 新父節點 id（null 為移至根層）
@@ -488,9 +520,21 @@ async function moveTagCategory (categoryId, newParentId) {
     const siblings = categories.filter(
       c => c.id !== category.id && (c.parentId == null ? null : c.parentId) === targetParentId
     )
+    // 基礎防護：循環 / 引用存在性 / 兄弟唯一鍵 + 被移節點自身深度
     const validation = TagSchema.validateTagCategory(merged, siblings, categories)
     if (!validation.valid) {
       return { success: false, error: pickCategoryErrorCode(validation) }
+    }
+
+    // 整體子樹深度檢查（F-move-depth / Q2）：移動後最深節點深度超限即整體拒絕。
+    // 移動後子樹根深度 = 目標父深度 + 1；最深葉再加子樹最大相對深度。
+    const targetParentDepth = TagSchema.depthOfParent(targetParentId, categories)
+    const subtreeDepth = subtreeMaxRelativeDepth(categoryId, categories)
+    if (targetParentDepth + 1 + subtreeDepth > TagSchema.TAG_TREE_MAX_DEPTH) {
+      return {
+        success: false,
+        error: TagSchema.TAG_CATEGORY_ERROR_CODES.MAX_DEPTH_EXCEEDED
+      }
     }
 
     category.parentId = targetParentId
@@ -498,6 +542,103 @@ async function moveTagCategory (categoryId, newParentId) {
     await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: categories })
     return { success: true }
   })
+}
+
+/**
+ * 重新命名 tag category（場景組 F1）。
+ *
+ * 兄弟唯一鍵防護：rename 後若與同 parentId 兄弟產生 makeCategoryKey 衝突 → duplicate_name；
+ * 與不同 parent 子節點同名則允許（F1-ok，scoped 鍵天然隔離）。複用 validateTagCategory
+ * 的 scoped 兄弟唯一鍵檢查，確保鍵生成邏輯零內聯重寫（ARCH-020）。
+ *
+ * @param {string} categoryId - 要改名的 category id
+ * @param {string} newName - 新名稱
+ * @returns {Promise<Object>} { success: true } 或 { success: false, error }
+ */
+async function renameTagCategory (categoryId, newName) {
+  return operationLock.run(async () => {
+    const categories = await loadCategories()
+    const index = categories.findIndex(c => c.id === categoryId)
+    if (index === -1) {
+      return { success: false, error: TAG_CATEGORY_OPERATION_ERROR_CODES.NOT_FOUND }
+    }
+
+    const category = categories[index]
+    const parentId = category.parentId == null ? null : category.parentId
+    const merged = { ...category, name: newName }
+    const siblings = categories.filter(
+      c => c.id !== category.id && (c.parentId == null ? null : c.parentId) === parentId
+    )
+    const validation = TagSchema.validateTagCategory(merged, siblings, categories)
+    if (!validation.valid) {
+      return { success: false, error: pickCategoryErrorCode(validation) }
+    }
+
+    category.name = newName
+    category.updatedAt = new Date().toISOString()
+    await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: categories })
+    return { success: true }
+  })
+}
+
+/**
+ * 取得指定 category 的祖先鏈（由近到遠，不含自身）。
+ *
+ * in-memory 沿 parentId 鏈上溯計算（環境假設無大量節點效能瓶頸）。防環以
+ * 已訪集合保護，遇環即停止。
+ *
+ * @param {string} categoryId
+ * @returns {Promise<Array>} 祖先 category 物件陣列（由父到根）
+ */
+async function getAncestors (categoryId) {
+  const categories = await loadCategories()
+  const byId = new Map(categories.map(c => [c.id, c]))
+  const ancestors = []
+  const visited = new Set([categoryId])
+  const cursor = byId.get(categoryId)
+  let parentId = cursor ? (cursor.parentId == null ? null : cursor.parentId) : null
+  while (parentId != null && !visited.has(parentId)) {
+    const node = byId.get(parentId)
+    if (!node) break
+    ancestors.push(node)
+    visited.add(parentId)
+    parentId = node.parentId == null ? null : node.parentId
+  }
+  return ancestors
+}
+
+/**
+ * 取得指定 category 的所有子孫（不含自身，後序：子先於父）。
+ *
+ * in-memory 沿 parentId 鏈下溯。複用 collectSubtreeIds 的後序走訪並去除根自身，
+ * 保證唯一子樹定義來源（避免子樹蒐集邏輯分裂）。
+ *
+ * @param {string} categoryId
+ * @returns {Promise<Array>} 子孫 category 物件陣列
+ */
+async function getDescendants (categoryId) {
+  const categories = await loadCategories()
+  const byId = new Map(categories.map(c => [c.id, c]))
+  const subtreeIds = collectSubtreeIds(categoryId, categories)
+  return subtreeIds
+    .filter(id => id !== categoryId)
+    .map(id => byId.get(id))
+    .filter(Boolean)
+}
+
+/**
+ * 取得指定 category 的完整路徑（由根到自身）。
+ *
+ * @param {string} categoryId
+ * @returns {Promise<Array>} 路徑 category 物件陣列（根 → ... → 自身）；不存在回空陣列
+ */
+async function getCategoryPath (categoryId) {
+  const categories = await loadCategories()
+  const self = categories.find(c => c.id === categoryId)
+  if (!self) return []
+  const ancestors = await getAncestors(categoryId)
+  // getAncestors 為由父到根，反轉為根到父後接上自身
+  return [...ancestors.slice().reverse(), self]
 }
 
 /**
@@ -886,6 +1027,128 @@ async function deleteTag (tagId) {
         return { success: true }
       },
       'deleteTag'
+    )
+  })
+}
+
+/**
+ * 依分類名稱搜尋 tag，可選聚合子樹（場景組 F2）。
+ *
+ * 比對方式：query 以 trim + 大小寫不敏感子字串比對 category 名稱，命中 category 即為
+ * 搜尋目標。includeSubtree=true 時追加命中 category 的所有子孫 category（樹聚合），
+ * 回傳所有掛在目標 category 集合下的 tag；false 時僅回傳直掛命中 category 的 tag。
+ *
+ * 子樹蒐集複用 collectSubtreeIds（唯一子樹定義來源），不重複實作下溯邏輯。
+ *
+ * @param {string} query - 搜尋字串（比對 category 名稱）
+ * @param {Object} [options]
+ * @param {boolean} [options.includeSubtree=false] - 是否聚合命中 category 的子樹
+ * @returns {Promise<{ tags: Array }>}
+ */
+async function searchTags (query, options = {}) {
+  const includeSubtree = options.includeSubtree === true
+  const normalizedQuery = String(query == null ? '' : query).trim().toLowerCase()
+
+  const categories = await loadCategories()
+  const tags = await loadTags()
+
+  // 命中 category：名稱含 query（大小寫不敏感）
+  const matchedCategoryIds = new Set()
+  for (const cat of categories) {
+    const name = String(cat.name == null ? '' : cat.name).toLowerCase()
+    if (normalizedQuery !== '' && name.includes(normalizedQuery)) {
+      matchedCategoryIds.add(cat.id)
+    }
+  }
+
+  // 目標 category 集合：命中 category（+ includeSubtree 時其子樹）
+  const targetCategoryIds = new Set(matchedCategoryIds)
+  if (includeSubtree) {
+    for (const rootId of matchedCategoryIds) {
+      for (const id of collectSubtreeIds(rootId, categories)) {
+        targetCategoryIds.add(id)
+      }
+    }
+  }
+
+  const resultTags = tags.filter(t => targetCategoryIds.has(t.categoryId))
+  return { tags: resultTags }
+}
+
+/**
+ * 批量移動 tag 至目標 category（場景組 F3）。
+ *
+ * 逐 tag 將 categoryId 改為 targetCategoryId；不存在的 tag id 計入 failed（部分成功
+ * 不中斷其餘，F3-partial）。單次原子寫入存活 tag 集合，回 { moved, failed }。
+ *
+ * @param {string[]} tagIds - 要移動的 tag id 陣列
+ * @param {string} targetCategoryId - 目標 category id
+ * @returns {Promise<{ moved: number, failed: number }>}
+ */
+async function batchMoveTags (tagIds, targetCategoryId) {
+  return operationLock.run(async () => {
+    const ids = Array.isArray(tagIds) ? tagIds : []
+    const tags = await loadTags()
+    const byId = new Map(tags.map(t => [t.id, t]))
+    const now = new Date().toISOString()
+
+    let moved = 0
+    let failed = 0
+    for (const id of ids) {
+      const tag = byId.get(id)
+      if (!tag) { failed += 1; continue } // 不存在 tag → 計入 failed
+      tag.categoryId = targetCategoryId
+      tag.updatedAt = now
+      moved += 1
+    }
+
+    await saveToStorage({ [STORAGE_KEYS.TAGS]: tags })
+    return { moved, failed }
+  })
+}
+
+/**
+ * 批量刪除 tag（場景組 F-batchDel）。
+ *
+ * 逐 tag 刪除並從書籍引用移除；不存在的 tag id 計入 failed（不中斷其餘）。
+ * 回 { deleted, failed }。單次原子寫入存活 tag 與書籍集合。
+ *
+ * @param {string[]} tagIds - 要刪除的 tag id 陣列
+ * @returns {Promise<{ deleted: number, failed: number }>}
+ */
+async function batchDeleteTags (tagIds) {
+  return operationLock.run(async () => {
+    const ids = Array.isArray(tagIds) ? tagIds : []
+    const tags = await loadTags()
+    const existingIds = new Set(tags.map(t => t.id))
+
+    // 區分存在 / 不存在；不存在計入 failed
+    const toDelete = new Set()
+    let failed = 0
+    for (const id of ids) {
+      if (existingIds.has(id)) toDelete.add(id)
+      else failed += 1 // ghost id → 計入 failed
+    }
+
+    const currentBooks = await loadBooks()
+    return withAtomicRollback(
+      { tags, books: currentBooks },
+      async () => {
+        // Step 1: 從所有書籍移除被刪 tag 的引用
+        for (const book of currentBooks) {
+          if (book.tagIds && book.tagIds.some(tid => toDelete.has(tid))) {
+            book.tagIds = book.tagIds.filter(tid => !toDelete.has(tid))
+          }
+        }
+        await saveBooksWrapper(currentBooks)
+
+        // Step 2: 刪除存在的 tag
+        const remaining = tags.filter(t => !toDelete.has(t.id))
+        await saveToStorage({ [STORAGE_KEYS.TAGS]: remaining })
+
+        return { deleted: toDelete.size, failed }
+      },
+      'batchDeleteTags'
     )
   })
 }
@@ -1558,7 +1821,13 @@ const TagStorageAdapter = {
   getTagCategory,
   updateTagCategory,
   moveTagCategory,
+  renameTagCategory,
   deleteTagCategory,
+
+  // 樹查詢（祖先 / 子孫 / 路徑，場景組 F）
+  getAncestors,
+  getDescendants,
+  getCategoryPath,
 
   // 預裝載入（賴永祥分類法樹，場景組 D）
   initializePresets,
@@ -1570,6 +1839,11 @@ const TagStorageAdapter = {
   getTagsForBook,
   updateTag,
   deleteTag,
+
+  // Tag 管理 UI 服務（搜尋 / 批量，場景組 F）
+  searchTags,
+  batchMoveTags,
+  batchDeleteTags,
 
   // Book-Tag 關聯
   addTagToBook,
