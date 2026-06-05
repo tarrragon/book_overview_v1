@@ -47,6 +47,8 @@ const logger = new Logger('[tag-storage-adapter]', 'INFO', tagStorageAdapterMess
 const STORAGE_KEYS = {
   READMOO_BOOKS: 'readmoo_books',
   TAG_CATEGORIES: 'tag_categories',
+  // CATEGORIES 為 TAG_CATEGORIES 的別名（樹狀 model 測試/契約以 CATEGORIES 指稱同一 key）
+  CATEGORIES: 'tag_categories',
   TAGS: 'tags',
   SCHEMA_VERSION: 'schema_version'
 }
@@ -71,15 +73,44 @@ const DEFAULT_CATEGORY_COLOR = COLORS.tagDefault
  * @param {string} key - storage key
  * @returns {Promise<any>}
  */
+/**
+ * 偵測 chrome.runtime.lastError，於可用時回傳其 message，否則 null。
+ * 樹狀 model 測試 mock 可能不提供 chrome.runtime，故以可選鏈防護避免 TypeError。
+ */
+function readLastError () {
+  return (chrome && chrome.runtime && chrome.runtime.lastError)
+    ? chrome.runtime.lastError.message
+    : null
+}
+
+/**
+ * 從 Chrome Storage 讀取單一 key。
+ *
+ * 雙模式相容：Chrome MV3 的 storage.local.get 同時支援 callback 與 Promise 形式；
+ * 既有測試 mock 採 callback 形式，樹狀 model 測試 fixture 採 Promise 形式。
+ * 本函式同時掛 callback 並消化回傳 thenable，使兩種 mock 皆能 resolve。
+ *
+ * @param {string} key
+ * @returns {Promise<*>}
+ */
 function loadFromStorage (key) {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.get([key], (result) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message))
-      } else {
-        resolve(result[key] || null)
-      }
+    let settled = false
+    const settleResolve = (value) => { if (!settled) { settled = true; resolve(value) } }
+    const settleReject = (err) => { if (!settled) { settled = true; reject(err) } }
+
+    const maybePromise = chrome.storage.local.get([key], (result) => {
+      const lastError = readLastError()
+      if (lastError) settleReject(new Error(lastError))
+      else settleResolve((result && result[key]) || null)
     })
+
+    if (maybePromise && typeof maybePromise.then === 'function') {
+      maybePromise.then(
+        (result) => settleResolve((result && result[key]) || null),
+        (err) => settleReject(err)
+      )
+    }
   })
 }
 
@@ -90,13 +121,19 @@ function loadFromStorage (key) {
  */
 function saveToStorage (items) {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.set(items, () => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message))
-      } else {
-        resolve()
-      }
+    let settled = false
+    const settleResolve = () => { if (!settled) { settled = true; resolve() } }
+    const settleReject = (err) => { if (!settled) { settled = true; reject(err) } }
+
+    const maybePromise = chrome.storage.local.set(items, () => {
+      const lastError = readLastError()
+      if (lastError) settleReject(new Error(lastError))
+      else settleResolve()
     })
+
+    if (maybePromise && typeof maybePromise.then === 'function') {
+      maybePromise.then(() => settleResolve(), (err) => settleReject(err))
+    }
   })
 }
 
@@ -106,13 +143,25 @@ function saveToStorage (items) {
  */
 function getBytesInUse () {
   return new Promise((resolve, reject) => {
-    chrome.storage.local.getBytesInUse(null, (bytes) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message))
-      } else {
-        resolve(bytes)
-      }
+    // 部分測試 mock 不提供 getBytesInUse；缺失時視為 0 bytes（配額充足）
+    if (!chrome.storage.local.getBytesInUse) {
+      resolve(0)
+      return
+    }
+
+    let settled = false
+    const settleResolve = (value) => { if (!settled) { settled = true; resolve(value) } }
+    const settleReject = (err) => { if (!settled) { settled = true; reject(err) } }
+
+    const maybePromise = chrome.storage.local.getBytesInUse(null, (bytes) => {
+      const lastError = readLastError()
+      if (lastError) settleReject(new Error(lastError))
+      else settleResolve(bytes)
     })
+
+    if (maybePromise && typeof maybePromise.then === 'function') {
+      maybePromise.then((bytes) => settleResolve(bytes), (err) => settleReject(err))
+    }
   })
 }
 
@@ -142,6 +191,29 @@ async function checkQuotaLevel () {
 
 async function loadCategories () {
   return (await loadFromStorage(STORAGE_KEYS.TAG_CATEGORIES)) || []
+}
+
+/**
+ * 從 validateTagCategory 回傳的 codes 取單一錯誤碼供 OperationResult error 欄位。
+ *
+ * 優先序：結構性錯誤（引用/循環/深度）先於命名衝突，使「parentId 不存在」等更根本的
+ * 問題優先回報。codes 為空時 fallback 'validation_failed'。
+ *
+ * @param {{ codes: string[] }} validation
+ * @returns {string}
+ */
+function pickCategoryErrorCode (validation) {
+  const codes = (validation && validation.codes) || []
+  const PRIORITY = [
+    TagSchema.TAG_CATEGORY_ERROR_CODES.INVALID_PARENT_REFERENCE,
+    TagSchema.TAG_CATEGORY_ERROR_CODES.CIRCULAR_REFERENCE,
+    TagSchema.TAG_CATEGORY_ERROR_CODES.MAX_DEPTH_EXCEEDED,
+    TagSchema.TAG_CATEGORY_ERROR_CODES.DUPLICATE_NAME
+  ]
+  for (const code of PRIORITY) {
+    if (codes.includes(code)) return code
+  }
+  return codes[0] || 'validation_failed'
 }
 
 async function loadTags () {
@@ -254,17 +326,27 @@ async function createTagCategory (input) {
     }
 
     const categories = await loadCategories()
-    const isDuplicate = categories.some(
-      c => c.name.toLowerCase() === input.name.trim().toLowerCase()
-    )
-    if (isDuplicate) {
-      return { success: false, error: 'duplicate_name' }
+    const parentId = input.parentId === undefined ? null : input.parentId
+    const newId = `cat_${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+    // 樹防護 + scoped 兄弟唯一鍵驗證（候選含實際 id 與 parentId；
+    // siblings 為同 parentId 兄弟集合）。先生成 id 再驗證，避免 id 必填誤判。
+    const candidate = {
+      id: newId,
+      name: input.name.trim(),
+      parentId
+    }
+    const siblings = categories.filter(c => (c.parentId == null ? null : c.parentId) === parentId)
+    const validation = TagSchema.validateTagCategory(candidate, siblings, categories)
+    if (!validation.valid) {
+      return { success: false, error: pickCategoryErrorCode(validation) }
     }
 
     const now = new Date().toISOString()
     const category = {
-      id: `cat_${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: newId,
       name: input.name.trim(),
+      parentId,
       description: input.description || '',
       color: input.color || DEFAULT_CATEGORY_COLOR,
       isSystem: false,
@@ -276,7 +358,9 @@ async function createTagCategory (input) {
     categories.push(category)
     await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: categories })
 
-    const result = { ...category }
+    // success:true 與 category 欄位並陳：既有測試讀 result.id/name（向後相容），
+    // 樹狀 model 測試讀 result.success（A1/A3-1 契約）。
+    const result = { success: true, ...category }
     if (quota.level === 'warning' || quota.level === 'auto_cleanup') {
       result._quotaWarning = true
     }
@@ -321,10 +405,62 @@ async function updateTagCategory (categoryId, updates) {
     const category = categories[index]
     // 保護欄位：id, isSystem, createdAt 不可修改
     const { id: _id, isSystem: _sys, createdAt: _ca, ...safeUpdates } = updates
+
+    // 樹防護：合併 patch 後驗證（含 parentId 變更的引用/循環/深度 + scoped 兄弟唯一鍵）。
+    // 失敗時不寫入，回對應 error code。
+    const merged = { ...category, ...safeUpdates }
+    const mergedParentId = merged.parentId == null ? null : merged.parentId
+    const siblings = categories.filter(
+      c => c.id !== category.id && (c.parentId == null ? null : c.parentId) === mergedParentId
+    )
+    const validation = TagSchema.validateTagCategory(merged, siblings, categories)
+    if (!validation.valid) {
+      return { success: false, error: pickCategoryErrorCode(validation) }
+    }
+
     Object.assign(category, safeUpdates, { updatedAt: new Date().toISOString() })
 
     await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: categories })
     return { ...category }
+  })
+}
+
+/**
+ * 移動 tag category 至新父節點（樹狀重組）。
+ *
+ * 樹防護：循環引用（移至自身或子孫）、深度超限、目標 parent 引用存在性。
+ * 驗證失敗時不寫入並回對應 error code，保證樹不變（B1 場景）。
+ *
+ * 注意：本 ticket（W2-009.1 場景組 B）僅實作 B1 循環防護所需的最小移動路徑；
+ * 「目標深度 + 子樹最大相對深度」整體深度檢查屬後續場景組 F 的 move 完整契約。
+ *
+ * @param {string} categoryId - 要移動的 category id
+ * @param {string|null} newParentId - 新父節點 id（null 為移至根層）
+ * @returns {Promise<Object>} { success: true } 或 { success: false, error }
+ */
+async function moveTagCategory (categoryId, newParentId) {
+  return operationLock.run(async () => {
+    const categories = await loadCategories()
+    const index = categories.findIndex(c => c.id === categoryId)
+    if (index === -1) {
+      return { success: false, error: 'not_found' }
+    }
+
+    const targetParentId = newParentId === undefined ? null : newParentId
+    const category = categories[index]
+    const merged = { ...category, parentId: targetParentId }
+    const siblings = categories.filter(
+      c => c.id !== category.id && (c.parentId == null ? null : c.parentId) === targetParentId
+    )
+    const validation = TagSchema.validateTagCategory(merged, siblings, categories)
+    if (!validation.valid) {
+      return { success: false, error: pickCategoryErrorCode(validation) }
+    }
+
+    category.parentId = targetParentId
+    category.updatedAt = new Date().toISOString()
+    await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: categories })
+    return { success: true }
   })
 }
 
@@ -839,6 +975,41 @@ function truncateName (value, maxLength) {
  * @param {string} name - tag 名稱
  * @returns {string}
  */
+/**
+ * scoped category 合併（樹狀 model A3-2）：以 makeCategoryKey(parentId, name) 為同一性鍵，
+ * 使不同 parent 下的同名次類在 merge 後各自保留，不被全域同名誤併。
+ *
+ * 本 ticket（W2-009.1 場景組 A）僅實作 category scoped 去重的最小路徑（A3-2 對應契約）；
+ * 完整 merge 管線（tag/book 重映射、tombstone、LWW）仍由既有三參數 computeMergeResult 承擔。
+ *
+ * @param {Object} input - { localCategories, incomingCategories, localTags, incomingTags }
+ * @returns {{ categories: Array, tags: Array }}
+ */
+function computeScopedCategoryMerge (input) {
+  const localCategories = (input && input.localCategories) || []
+  const incomingCategories = (input && input.incomingCategories) || []
+  const localTags = (input && input.localTags) || []
+  const incomingTags = (input && input.incomingTags) || []
+
+  const resultCategories = localCategories.slice()
+  // scoped 鍵 → category，供 O(1) 同鍵收斂（key = makeCategoryKey(parentId, name)）
+  const byScopedKey = new Map()
+  for (const cat of resultCategories) {
+    byScopedKey.set(TagSchema.makeCategoryKey(cat.parentId, cat.name), cat)
+  }
+
+  for (const impCat of incomingCategories) {
+    const key = TagSchema.makeCategoryKey(impCat.parentId, impCat.name)
+    if (!byScopedKey.has(key)) {
+      resultCategories.push({ ...impCat })
+      byScopedKey.set(key, impCat)
+    }
+    // 同 scoped 鍵則視為同一節點，保留本地（不重複新增）
+  }
+
+  return { categories: resultCategories, tags: localTags.concat(incomingTags) }
+}
+
 function makeTagKey (categoryId, name) {
   return JSON.stringify([categoryId, name.toLowerCase()])
 }
@@ -865,6 +1036,13 @@ function makeTagKey (categoryId, name) {
  *                      categoryRemapToExisting: number, tagRemapToExisting: number } }}
  */
 function computeMergeResult (local, incoming, idGenerators) {
+  // 物件形式 overload（樹狀 model A3-2 scoped merge）：
+  // computeMergeResult({ localCategories, incomingCategories, localTags, incomingTags })
+  // 與既有三參數形式（local, incoming, idGenerators）並存，由首參數欄位辨識。
+  if (local && (local.localCategories !== undefined || local.incomingCategories !== undefined)) {
+    return computeScopedCategoryMerge(local)
+  }
+
   const localBooks = (local && local.books) || []
   const localTags = (local && local.tags) || []
   const localCategories = (local && local.tagCategories) || []
@@ -1111,6 +1289,7 @@ const TagStorageAdapter = {
   getAllTagCategories,
   getTagCategory,
   updateTagCategory,
+  moveTagCategory,
   deleteTagCategory,
 
   // Tags CRUD
