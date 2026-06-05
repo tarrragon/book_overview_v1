@@ -366,18 +366,23 @@ describe('Background Service Worker Local MessageDictionary', () => {
     })
 
     /**
-     * EMERGENCY_FAILED：activateEmergencyMode 內 createEmergencyEventBus 或
-     * onMessage addListener 拋錯時觸發。本測試用 chrome.runtime.onMessage
-     * addListener throw 模擬。
+     * EMERGENCY_FAILED：activateEmergencyMode 內 createEmergencyEventBus 拋錯時觸發。
+     *
+     * 架構變更（0.20.0-W2-002）：onMessage.addListener 已移至模組頂層同步註冊
+     * （registerLifecycleListeners），activateEmergencyMode 不再自行 addListener。
+     * 因此原「onMessage addListener throw」改以 createEmergencyEventBus 內部
+     * `new Map()` throw 模擬 emergency 設定失敗，觸發 activateEmergencyMode catch。
      */
     describe('EMERGENCY_FAILED（activateEmergencyMode catch 路徑）', () => {
+      let originalMap
+
       beforeEach(() => {
         jest.useFakeTimers()
 
-        // onMessage.addListener throw → activateEmergencyMode 進入 catch
-        globalThis.chrome.runtime.onMessage.addListener = jest.fn().mockImplementation(() => {
-          throw new Error('mock onMessage failure')
-        })
+        // createEmergencyEventBus 內 `new Map()` throw → activateEmergencyMode 進入 catch。
+        // 注意：頂層 registerLifecycleListeners 在 require 當下（emergency 前）即執行，
+        // 此時 Map 尚未被替換，故不受影響；僅 emergency 階段的 new Map() 受影響。
+        originalMap = globalThis.Map
 
         jest.doMock('src/background/background-coordinator', () => {
           return jest.fn().mockImplementation(() => ({
@@ -397,10 +402,20 @@ describe('Background Service Worker Local MessageDictionary', () => {
 
       afterEach(() => {
         jest.useRealTimers()
+        globalThis.Map = originalMap
       })
 
-      test('activateEmergencyMode onMessage addListener throw 時 EMERGENCY_FAILED 應渲染', async () => {
+      test('activateEmergencyMode createEmergencyEventBus throw 時 EMERGENCY_FAILED 應渲染', async () => {
         require('src/background/background')
+
+        // require 完成（含頂層 registerLifecycleListeners）後才啟用 throwing Map，
+        // 確保僅 emergency 階段的 createEmergencyEventBus `new Map()` 受影響。
+        globalThis.Map = class extends originalMap {
+          constructor () {
+            super()
+            throw new Error('mock emergency event bus failure')
+          }
+        }
 
         await jest.advanceTimersByTimeAsync(2000)
         await jest.advanceTimersByTimeAsync(2000)

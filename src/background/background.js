@@ -121,6 +121,106 @@ addEventListener('unhandledrejection', (event) => {
 })
 
 /**
+ * 同步註冊 Service Worker 生命週期 listener（MV3 鐵則，0.20.0-W2-002）
+ *
+ * 業務情境：MV3 service worker 非持久（約 30 秒無活動即被終止）。Chrome 要求
+ * 事件 listener 在 SW 腳本「初始評估的同步階段」就 addListener，否則 SW 被
+ * 喚醒/重啟時，事件可能在 listener 註冊前派發而靜默漏接。
+ *
+ * 缺陷修正：原 onInstalled / onStartup 包在 registerServiceWorkerEvents() 內，
+ * 而該函式於 initializeBackgroundSystem() 的多個 await（coordinator.initialize /
+ * start）之後（約行 188）才被呼叫——違反 MV3 鐵則。onMessage 過去更僅在
+ * emergency 模式才註冊，正常路徑下喚醒期間完全漏接。本函式將三個 addListener
+ * 提至模組頂層同步階段；callback 內部的 async 工作（emit / 路由）不變，於事件
+ * 實際觸發時才執行，此時 backgroundCoordinator 多已就緒（callback 內已有
+ * null guard）。
+ *
+ * 設計考量：
+ * - listener 「註冊」在同步階段；callback「執行」在事件觸發時（延後），符合
+ *   MV3 規範且不需等待 init 完成。
+ * - onMessage 頂層 listener 僅處理 early-boot / emergency 的 baseline 回應
+ *   （GET_SYSTEM_STATUS），其餘訊息回傳 undefined，交由 coordinator 內
+ *   MessageRouter 註冊的 listener 處理，避免 sendResponse 通道雙重佔用。
+ */
+function registerLifecycleListeners () {
+  try {
+    log.info('REGISTER_LIFECYCLE')
+
+    // Chrome Extension 安裝事件
+    if (chrome.runtime.onInstalled) {
+      chrome.runtime.onInstalled.addListener(async (details) => {
+        log.info('EXTENSION_INSTALLED', { reason: details.reason })
+
+        if (backgroundCoordinator && backgroundCoordinator.eventBus) {
+          await backgroundCoordinator.eventBus.emit('SYSTEM.INSTALLED', {
+            reason: details.reason,
+            previousVersion: details.previousVersion,
+            timestamp: Date.now()
+          })
+        }
+      })
+    }
+
+    // Chrome Extension 啟動事件
+    if (chrome.runtime.onStartup) {
+      chrome.runtime.onStartup.addListener(async () => {
+        log.info('EXTENSION_STARTUP')
+
+        if (backgroundCoordinator && backgroundCoordinator.eventBus) {
+          await backgroundCoordinator.eventBus.emit('SYSTEM.STARTUP', {
+            timestamp: Date.now()
+          })
+        }
+      })
+    }
+
+    // Chrome Extension 訊息事件（baseline / emergency 回應）
+    // 設計意圖：正常訊息路由由 coordinator 內 MessageRouter 的 onMessage
+    // listener 負責。此頂層 listener 在系統尚未就緒（init 進行中）或進入
+    // emergency 模式時，對 GET_SYSTEM_STATUS 提供 baseline 回應；其餘訊息
+    // 回傳 undefined（不佔用 sendResponse 通道），讓 MessageRouter listener 接手。
+    if (chrome.runtime.onMessage) {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        // 系統正常就緒後，交由 MessageRouter 處理（回傳 undefined 不攔截）
+        if (isInitialized && !emergencyMode) {
+          return undefined
+        }
+
+        // init 進行中或 emergency 模式：提供 baseline 狀態回應
+        if (message && message.type === 'GET_SYSTEM_STATUS') {
+          if (emergencyMode) {
+            log.info('EMERGENCY_MESSAGE', { message })
+          }
+          sendResponse({
+            success: true,
+            data: {
+              mode: emergencyMode ? 'emergency' : 'initializing',
+              timestamp: Date.now(),
+              message: emergencyMode ? '系統運行於緊急模式' : '系統初始化中'
+            }
+          })
+          return true
+        }
+
+        // 其他訊息在未就緒狀態下無法路由，回覆受限提示
+        sendResponse({
+          success: false,
+          error: emergencyMode ? '系統運行於緊急模式，功能受限' : '系統初始化中，請稍後再試'
+        })
+        return true
+      })
+    }
+
+    log.info('LIFECYCLE_COMPLETE')
+  } catch (error) {
+    log.error('LIFECYCLE_FAILED', error)
+  }
+}
+
+// MV3 鐵則：在模組頂層同步階段註冊 listener（不可延後到 init 完成之後）
+registerLifecycleListeners()
+
+/**
  * 主要初始化函數
  *
  * 負責功能：
@@ -184,8 +284,8 @@ async function initializeBackgroundSystem () {
       log.info('CHROMEBRIDGE_READY')
     }
 
-    // 註冊 Service Worker 生命週期事件
-    await registerServiceWorkerEvents()
+    // 生命週期事件 listener 已於模組頂層同步階段註冊（registerLifecycleListeners，
+    // MV3 鐵則 0.20.0-W2-002），此處不再延後註冊。
 
     return backgroundCoordinator
   } catch (error) {
@@ -206,56 +306,6 @@ async function initializeBackgroundSystem () {
 }
 
 /**
- * 註冊 Service Worker 生命週期事件
- *
- * 負責功能：
- * - 處理 Chrome Extension 安裝和更新事件
- * - 管理 Service Worker 啟動和關閉事件
- * - 實現系統健康監控和自動恢復
- * - 處理意外關閉和重新啟動邏輯
- */
-async function registerServiceWorkerEvents () {
-  try {
-    log.info('REGISTER_LIFECYCLE')
-
-    // Chrome Extension 安裝事件
-    if (chrome.runtime.onInstalled) {
-      chrome.runtime.onInstalled.addListener(async (details) => {
-        log.info('EXTENSION_INSTALLED', { reason: details.reason })
-
-        if (backgroundCoordinator && backgroundCoordinator.eventBus) {
-          await backgroundCoordinator.eventBus.emit('SYSTEM.INSTALLED', {
-            reason: details.reason,
-            previousVersion: details.previousVersion,
-            timestamp: Date.now()
-          })
-        }
-      })
-    }
-
-    // Chrome Extension 啟動事件
-    if (chrome.runtime.onStartup) {
-      chrome.runtime.onStartup.addListener(async () => {
-        log.info('EXTENSION_STARTUP')
-
-        if (backgroundCoordinator && backgroundCoordinator.eventBus) {
-          await backgroundCoordinator.eventBus.emit('SYSTEM.STARTUP', {
-            timestamp: Date.now()
-          })
-        }
-      })
-    }
-
-    // error 和 unhandledrejection handler 已在檔案頂層同步註冊，
-    // 避免 Chrome 警告 "Event handler must be added on initial evaluation"
-
-    log.info('LIFECYCLE_COMPLETE')
-  } catch (error) {
-    log.error('LIFECYCLE_FAILED', error)
-  }
-}
-
-/**
  * 啟動緊急模式
  *
  * 負責功能：
@@ -272,32 +322,10 @@ async function activateEmergencyMode () {
     // 建立簡化的事件總線
     createEmergencyEventBus()
 
-    // 註冊基本的訊息處理
-    if (chrome.runtime.onMessage) {
-      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-        log.info('EMERGENCY_MESSAGE', { message })
-
-        // 基本的回應處理
-        if (message.type === 'GET_SYSTEM_STATUS') {
-          sendResponse({
-            success: true,
-            data: {
-              mode: 'emergency',
-              timestamp: Date.now(),
-              message: '系統運行於緊急模式'
-            }
-          })
-          return true
-        }
-
-        // 其他訊息的通用回應
-        sendResponse({
-          success: false,
-          error: '系統運行於緊急模式，功能受限'
-        })
-        return true
-      })
-    }
+    // 訊息處理：onMessage listener 已於模組頂層同步註冊
+    // （registerLifecycleListeners，MV3 鐵則 0.20.0-W2-002）。emergencyMode
+    // 旗標已於本函式開頭設為 true，頂層 handler 會據此切換為 emergency baseline
+    // 回應，不再於此重複註冊 addListener（避免延後註冊 + 雙重 listener）。
 
     log.info('EMERGENCY_COMPLETE')
   } catch (error) {
