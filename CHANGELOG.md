@@ -2,6 +2,45 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [0.19.1] - 2026-06-05
+
+### UI 一致性改善與 .claude 跨框架同步機制重構
+
+**版本目標**：UI 視覺一致性收斂（emoji 全清理、design-system 變數橋接、popup/overview 視覺重塑）+ .claude 跨專案同步機制（push/pull）三方合併重構 + 框架規則文件強化。
+
+**產品功能——UI 視覺與一致性**：
+- [變更] popup/overview 視覺重塑：主色改 #1A56DB、中性 surface 三級、卡片視覺權重分層，跳脫 Material 預設藍與漸層氾濫（W3-001 系列）
+- [變更] design-system Phase 2 落地：建立 design-system.css build 產生器（3 個 JS 來源 → CSS）含 snapshot test 與 CI 一致性檢查，overview.css / popup.html 全面改用 CSS 變數 var()，移除所有漸層改扁平色，徽章改深字淺底提升對比度（W2-001 系列）
+- [新增] design-system 補 shadow/overlay token，收斂 overview/popup 8 處純黑 rgba（W2-002）
+- [修復] overview 表頭欄位動態化：補齊標籤欄使 5 欄內容與標題列一致，新增欄位數一致性測試守衛（W1-002 系列）
+
+**產品功能——emoji 全面清理**：
+- [移除] src/ 全專案 emoji 改 ASCII 前綴（85 檔約 1840 處），含 e2e-contract §3.4 前綴規範與豁免聲明（W1-005 系列）
+- [清理] tests/ 裝飾性 emoji，npm test 全綠驗證（W1-005.3）
+- [新增] emoji 預防機制（ESLint / pre-commit / CI 三道防線），防止新 emoji 引入（W1-001）
+- [清理] 全 src 殘留 ASCII 佔位符（emoji 移除遺留標記，W2-004）
+
+**框架品質——.claude 跨專案同步機制重構**：
+- [重構] sync pull 三方合併改造（base snapshot 統一模型），push 改 git-archive（W1-028、W1-029）
+- [新增] push 機密洩漏防護：gitignored / untracked 檔案不推上公開 repo（W1-019）
+- [新增] sync pull import-time PC 編號撞號偵測與自動重編號（W1-017）
+- [重構] local-only 檔案分類 SSOT manifest 模組，三腳本與 hook 統一 import（W1-027）
+- [新增] sync-state schema 擴充（單一 last_synced_base_sha）+ status 適配（W1-025）
+- [修復] exec-bit 還原覆蓋 skills/*/hooks/、pull preserve 解析 fail-loud + 備份排除 .venv（W1-020、W1-021）
+- [修復] clean-check 改用 should_exclude + .gitignore 補齊 11 項漂移（W1-030）
+- [新增] session-start hook gitignore↔manifest 交叉驗證 + handoff 規則對齊（W1-031、W1-032）
+- [修復] ticket track list priority 排序 datetime.date vs str 混型 TypeError（W1-015）
+
+**框架品質——規則、文件與工具**：
+- [修正] version-release CLI release 收尾完整性：CHANGELOG finalize + 版本狀態自動 active→completed（W1-004）
+- [整合] 外部 impeccable 設計 skill vendoring 至 .claude/skills/，納入 sync（W1-006）
+- [改善] command-entrance-gate-hook 引導式互動 + 描述性前綴 / merge 誤判修補（W1-036）
+- [採用] CC 2.1.163 #4：subagent-stop-dispatch-cleanup / agent-commit-verification hook 改用 hookSpecificOutput.additionalContext，含版本相容 fallback（W1-043~046）
+- [新增] 規則：ANA 全量 grep/regex 範圍驗證完整性、src 字串輸出變更 acceptance 必含測試套件驗證（W1-039、W1-040）
+- [新增] error-pattern：機械替換工具誤傷偵測目標字面（W1-041）
+- [修正] 框架文件工具名 / 權限前綴漂移：codegraph_status、serena MCP 前綴、search-tools-guide 版本無關化（W1-033、W1-034、W1-037）
+- [修復] test_monorepo_version_sync.py collection error（W1-038）
+
 ## [0.19.0] - 2026-06-02
 
 ### 端到端驗證、打包、內測準備與流程規格化
