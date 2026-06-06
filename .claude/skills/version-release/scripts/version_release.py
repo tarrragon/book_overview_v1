@@ -491,8 +491,20 @@ def check_technical_debt_status(version: str) -> Dict:
 
     # 掃描版本系列的票目錄
     # 修復 Bug 2b：使用完整版本號而非硬編碼 .0
+    # 0.20.0-W2-016：對齊行 449 的 config pattern，支援巢狀 worklog 結構
+    #   （docs/work-logs/v{major}/v{major_minor}/v{version}/tickets）；
+    #   保留扁平 fallback（docs/work-logs/v{version}/tickets）相容舊 v0.18.0。
     worklog_dir = root / "docs" / "work-logs"
-    tickets_dir = worklog_dir / f"v{version}" / "tickets"
+    config = load_version_release_config(root)
+    pattern = config.get(
+        "worklog_path_pattern",
+        DEFAULT_VERSION_RELEASE_CONFIG["worklog_path_pattern"],
+    )
+    version_subdir = resolve_worklog_dir(root, version, pattern)
+    tickets_dir = version_subdir / "tickets"
+    if not tickets_dir.exists():
+        # 扁平 fallback（向後相容舊結構 v0.18.0）
+        tickets_dir = worklog_dir / f"v{version}" / "tickets"
 
     result = {
         "passed": True,
