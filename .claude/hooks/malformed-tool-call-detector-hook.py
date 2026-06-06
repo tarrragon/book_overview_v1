@@ -60,12 +60,20 @@ def log(message: str) -> None:
 
 
 def strip_code_regions(text: str) -> str:
-    """剝除 fenced code block 與 inline code，避免「在程式碼/反引號內合法引用
-    <invoke 字面」造成誤判（例如說明本問題時）。"""
-    # 先移除 ``` ... ``` fenced block（含語言標註）
+    """剝除 fenced code block、backtick 引述與縮排 code block，避免「在程式碼／
+    反引號內合法引用 <invoke 字面」造成誤判（例如說明本問題時）。
+
+    剝除順序（W2-011.1 false-positive 修復）：
+      1. fenced block（``` ... ```）—— 須最先，避免後續 backtick 規則誤切三引號內部。
+      2. backtick 引述—— 改用 `[^`]*` 允許跨行（根因 B：多行反引號引述漏剝）。
+      3. 4-space／tab 縮排 code block—— 整行剝為空白（根因 A：縮排引述標記命中 signature）。
+    """
+    # 1. 先移除 ``` ... ``` fenced block（含語言標註）
     text = re.sub(r"```.*?```", " ", text, flags=re.DOTALL)
-    # 再移除 `...` inline code
-    text = re.sub(r"`[^`\n]*`", " ", text)
+    # 2. 再移除 `...` backtick 引述；不排除換行以支援跨行引述（根因 B）
+    text = re.sub(r"`[^`]*`", " ", text, flags=re.DOTALL)
+    # 3. 最後將 4-space／tab 縮排行整行清空（Markdown 縮排 code block，根因 A）
+    text = re.sub(r"(?m)^(?: {4}|\t).*$", "", text)
     return text
 
 
