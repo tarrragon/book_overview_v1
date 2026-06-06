@@ -472,13 +472,16 @@ class Logger {
 // 預設實例快取
 Logger._defaultInstance = null
 
-// 匯出類別
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    Logger,
-    LOG_LEVELS
-  }
-} else if (typeof window !== 'undefined') {
+// classic script（非模組）全域掛載：popup.js fallback chain（window.Logger）需要。
+// 原 `if (module.exports) {...} else if (window) {...}` 的 CJS 分支已移除：
+// - Jest（CJS）：Babel（.babelrc modules:'commonjs'）將下方 ESM `export` 轉為
+//   exports.Logger / exports.LOG_LEVELS，require() 消費者照常取得具名匯出，
+//   無需顯式 module.exports。
+// - esbuild bundle（ESM）：透過下方 `export` 解析；bundle 內 CJS require() 消費者
+//   由 esbuild __toCommonJS interop 路由，亦不經 module.exports。
+// 因此 module.exports 在兩條消費路徑皆為死碼，移除可消除 esbuild
+// commonjs-variable-in-esm warning（1.0.0-W2-004），同時保留 window 全域掛載。
+if (typeof window !== 'undefined') {
   window.Logger = Logger
   window.LOG_LEVELS = LOG_LEVELS
 }

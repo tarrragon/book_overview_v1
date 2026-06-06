@@ -345,10 +345,16 @@ const GlobalMessages = new MessageDictionary()
 // - shallow freeze 足夠：messages 結構為 { key: string }，無 nested object 需 deep freeze。
 Object.freeze(GlobalMessages.messages)
 
-// 匯出類別和全域實例
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { MessageDictionary, GlobalMessages }
-} else if (typeof window !== 'undefined') {
+// classic script（非模組）全域掛載：window 全域使用情境保留。
+// 原 `if (module.exports) {...} else if (window) {...}` 的 CJS 分支已移除：
+// - Jest（CJS）：Babel（.babelrc modules:'commonjs'）將下方 ESM `export` 轉為
+//   exports.MessageDictionary / exports.GlobalMessages，require() 消費者照常
+//   取得具名匯出，無需顯式 module.exports。
+// - esbuild bundle（ESM）：透過下方 `export` 解析；bundle 內 CJS require() 消費者
+//   由 esbuild __toCommonJS interop 路由，亦不經 module.exports。
+// 因此 module.exports 在兩條消費路徑皆為死碼，移除可消除 esbuild
+// commonjs-variable-in-esm warning（1.0.0-W2-004），同時保留 window 全域掛載。
+if (typeof window !== 'undefined') {
   window.MessageDictionary = MessageDictionary
   window.GlobalMessages = GlobalMessages
 }
