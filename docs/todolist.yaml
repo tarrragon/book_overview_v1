@@ -1,8 +1,17 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-06-06"
+last_updated: "2026-06-07"
 
 versions:
+  - version: "1.0.0"
+    status: active
+    description: "內測版本 — 可打包分發 + Readmoo 提取 + 匯出入 + 跨裝置同步（含跨配套 APP v3 canonical）正常 + Skill Market 上架前置"
+    worklog: "docs/work-logs/v1/v1.0/v1.0.0/"
+    notes: |
+      範圍由 v1.0.0 發佈就緒度盤點定案（2026-06-07）。
+      W1 Skill Market 前置 / W2 打包 blocker / W3 提取重驗 / W4 匯出入 v3 完整化（V1 端可控）/
+      W5 跨 APP v3 同步契約落地（跨 repo，blockedBy APP book_overview_app 0.32.0）/ W6 發佈收尾。
+
   - version: "0.17.0"
     status: completed
     description: "Tag-based Book Model 重構（PROP-007）— 47 Ticket 完成"
