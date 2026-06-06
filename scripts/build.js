@@ -507,23 +507,25 @@ async function build () {
     const dsCss = generateDesignSystemCss()
     console.log(`[DESIGN-SYSTEM] 已產生 ${path.relative(SOURCE_DIR, dsCss.outputPath)}`)
 
-    // 版號 sanity check（W1-074 -> W1-083 SSOT 反轉）
+    // 版號 sanity check（W1-074 -> W1-083 SSOT 反轉 -> 1.0.0-W2-003 移除寫入副作用）
     //
     // Why: build:prod 產出的 ZIP 會分發給內測使用者，需確認 package.json
     // （ npm/Chrome Extension 生態唯一版本源）對應的 worklog 目錄存在，
-    // 並將 worklog 狀態標記自動 sync 為「開發中」，避免人工遺漏導致
-    // 「ZIP 帶錯版號」或「worklog 標記與實際版本漂移」（W1-077 ANA 結論）。
+    // 避免「ZIP 帶錯版號」（W1-077 ANA 結論）。本檢查為唯讀斷言，不改寫任何
+    // git 追蹤檔案。
     //
-    // 兩階段流程：
-    //   1. validateVersionAlignment：以 package.json 為源，斷言對應 worklog
-    //      目錄與 main.md 存在；不存在 fail-fast（如 bump 至全新版號但忘記
-    //      建 worklog 目錄）。
-    //   2. syncWorklogStatus：通過 validate 後自動將 worklog 標記同步為
-    //      「開發中」，補救「狀態漂移」情境（如新版本目錄已建立但標記仍為
-    //      已完成 / 缺漏）。
+    // 1.0.0-W2-003：移除 build 流程對 worklog 的自動改寫（原 syncWorklogStatus
+    // 呼叫）。理由——build 概念上是唯讀產出操作，但 syncWorklogStatus 會在每次
+    // prod build 靜默 mutate git 追蹤的 worklog main.md（如把已釋出版本的
+    // 「已完成」標記改回「開發中」），打包者未察覺即誤 commit、污染 commit 邊界
+    // （W2-001 驗收時實際觸發一次，PM 須手動 git checkout 還原）。worklog 狀態
+    // 的生命週期改由 version-release skill 顯式管理（start 子命令標記「進行中」、
+    // release 子命令標記「已完成」），單一權威來源，避免 build 與 release 兩處
+    // 搶寫 worklog 標記。syncWorklogStatus 純函式仍保留匯出供需要的流程使用，
+    // 僅不再由 build() 自動觸發。
     //
     // 觸發條件：
-    //   - production mode 強制執行（除非 --skip-version-check）
+    //   - production mode 強制執行唯讀版號斷言（除非 --skip-version-check）
     //   - development mode 預設略過，避免 dev 期短暫不一致干擾
     //
     // 逃生閥：--skip-version-check flag（dev 期暫時不一致時使用）
@@ -536,28 +538,14 @@ async function build () {
         console.error(result.error)
         console.error('[VERSION CHECK] 修復建議：')
         console.error('  1. 確認 docs/work-logs/v{M}/v{M.m}/v{M.m.p}/v{M.m.p}-main.md 已建立（W1-081：major 層動態化）')
-        console.error('  2. 執行 version-release skill 的 start 子命令自動建立 worklog 結構')
+        console.error('  2. 執行 version-release skill 的 start 子命令自動建立 worklog 結構並標記狀態')
         console.error('  3. dev 期暫時不一致：使用 --skip-version-check flag 繞過')
         process.exit(1)
       }
 
       console.log(`[VERSION CHECK] package.json (${result.actualVersion}) 對應 worklog 存在`)
-
-      // Auto-sync worklog 狀態標記至「開發中」（W1-083 補救路徑）
-      const syncResult = syncWorklogStatus(packageJson.version, WORK_LOGS_ROOT)
-      if (!syncResult.ok) {
-        console.warn(`[WORKLOG SYNC] ${syncResult.error}`)
-        // 不 fail-fast：validate 已通過，sync 失敗不阻擋 build
-        // 但顯示警告讓開發者注意 worklog 結構異常
-      } else if (syncResult.changed) {
-        console.log(
-          `[WORKLOG SYNC] worklog 標記自動更新「${syncResult.previousStatus}」-> 「開發中」: ${syncResult.mainFile}`
-        )
-      } else {
-        console.log('[WORKLOG SYNC] worklog 標記已為「開發中」(no-op)')
-      }
     } else if (MODE === 'production' && SKIP_VERSION_CHECK) {
-      console.warn('[VERSION CHECK] 已透過 --skip-version-check 略過版號 sanity check + worklog sync')
+      console.warn('[VERSION CHECK] 已透過 --skip-version-check 略過版號 sanity check')
     }
 
     // 清理輸出目錄
