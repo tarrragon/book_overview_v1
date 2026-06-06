@@ -2,6 +2,34 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [v0.20.0] - In Development
+
+### 中文圖書分類法 + Tag 樹狀管理 + background Service Worker 穩定性
+
+**版本目標**：導入賴永祥《中文圖書分類法》二層預裝 + Tag 樹狀 model（階層分類與篩選），強化 background Service Worker MV3 生命週期穩定性（listener 註冊時機 + init 期間訊息不漏接），並補強框架品質（malformed tool-call 防護 + version-release CLI 修復）。
+
+**產品功能——Tag 樹狀 model 與中文圖書分類法**：
+- [新增] Tag 樹狀 model（TagCategory + parentId 階層）：唯一鍵 scoped、parentId 樹防護、cascade 分層刪除（W2-001/004/007/008/009 系列）
+- [新增] 賴永祥《中文圖書分類法》二層預裝（10 主類 + 100 次類，扁平類號-類目對照）+ 預裝載入機制（W2-003/004/009.2）
+- [新增] Tag 管理 UI（場景組 F）+ 同步打包 scoped merge（W2-009.3）
+- [變更] 遷移 deleteTagCategory 既有測試至新 cascade 分層契約（W2-010）
+- [決策] 賴永祥類目散布授權採方案 1（功能資料 tag 節點，傾向著作權法第 9 條免保護），內測階段不函詢 NCL（W2-005，重評 trigger：NCL 異議 / 正式上架 Chrome Web Store）
+
+**產品功能——background Service Worker MV3 穩定性**：
+- [修復] background.js SW 事件 listener（onInstalled/onMessage/onStartup）改頂層同步註冊，修正多 await 後延後註冊的 MV3 缺陷（W2-002）
+- [修復] background.js init 期間訊息緩衝 + init 後 flush 至 MessageRouter，消除 SW 喚醒期間業務訊息漏接（緩衝上限 50 + overflow 保護，W2-006/006.1）
+- [驗證] chrome-devtools 實機驗證 listener 家族 SW 喚醒期間訊息不漏接（SW 無崩潰 + 三 listener 同步註冊 + cold-start popup 握手端到端成功，W2-014）
+- [調查] popup↔SW cold-start 握手 flaky 調查：乾淨環境 N=6 全 GREEN 無真實 flaky，識別 robustness gap 延後 v1.1.0（W2-015 → 1.1.0-W1-019）
+
+**框架品質——malformed tool-call 防護**：
+- [新增] Stop-hook 偵測未解析 malformed tool-call 標記並強制重發（含內嵌 self-test、meta-context 豁免、retry-continuation 簽章涵蓋，W2-011 系列）
+- [調查] PM 工具調用間歇游離 count token 致 malformed tool-call 根因（W2-012）
+- [新增] context-depth-warning hook：cache_read 接近 ~200K tokens 時提示考慮 /clear/handoff，降低 malformed 復發窗口（W2-013）
+
+**框架品質——version-release CLI 修復**：
+- [修復] version-release release 收尾：CHANGELOG 空殼插入 + Mark Completed 步驟順序（W1-019）
+- [修復] version-release TD 票目錄路徑支援巢狀 worklog 結構，修正 false negative 漏檢（W2-016）
+
 ## [0.19.1] - 2026-06-05
 
 ### UI 一致性改善與 .claude 跨框架同步機制重構
