@@ -12,6 +12,7 @@
  * - manifest.json 必須位於 ZIP 根層，符合 Chrome unpacked 載入要求。
  *   做法為在 build/production/ 目錄內執行 zip，使壓縮路徑相對於該目錄。
  * - 排除 .backup* 開發殘留檔案，避免污染分發產物。
+ * - 打包前清理 dist/ 內舊版本 ZIP（只保留當前版本），避免多版本累積誤分發。
  * - 使用系統 zip 命令而非 archiver npm 套件，避免為內測打包工具引入新依賴。
  *   開發環境（macOS/Linux）與 CI 均預裝 zip；不可用時給出明確錯誤指引。
  *
@@ -135,6 +136,42 @@ function verifyZip (zipPath) {
 }
 
 /**
+ * 清理 dist/ 內舊版本的擴充功能 ZIP，只保留當前版本
+ *
+ * Why: createZip 只移除「同名」ZIP，版本號 bump 後舊版 ZIP
+ * （如 readmoo-book-extractor-v0.18.0.zip）會持續累積於 dist/。
+ * 分發時可能誤拿舊檔，且 dist/ 體積無限制成長。
+ *
+ * Consequence: 不清理會讓 dist/ 同時存在多版本 ZIP，分發者需自行辨識
+ * 哪個是最新版，增加誤分發舊版的風險。
+ *
+ * Action: 打包前掃描 dist/，刪除所有符合 readmoo-book-extractor-v*.zip
+ * 命名規則但版本不等於當前版本的檔案。當前版本 ZIP 不刪（交由 createZip
+ * 以「移除同名再重壓」處理），其他命名的檔案不動（避免誤刪非本工具產物）。
+ *
+ * @param {string} currentVersion 當前打包版本（來源 build/production/manifest.json）
+ */
+function cleanStaleZips (currentVersion) {
+  const currentZipName = `readmoo-book-extractor-v${currentVersion}.zip`
+  // 僅比對本工具的命名規則 readmoo-book-extractor-v<version>.zip，
+  // 避免誤刪 dist/ 內其他來源的檔案。
+  const zipPattern = /^readmoo-book-extractor-v.+\.zip$/
+
+  const entries = fs.readdirSync(DIST_DIR)
+  for (const entry of entries) {
+    if (entry === currentZipName) {
+      continue
+    }
+    if (!zipPattern.test(entry)) {
+      continue
+    }
+
+    fs.rmSync(path.join(DIST_DIR, entry))
+    console.log(`[CLEAN] 移除舊版本 ZIP：dist/${entry}`)
+  }
+}
+
+/**
  * 主要打包流程
  */
 function packageExtension () {
@@ -149,6 +186,9 @@ function packageExtension () {
   if (!fs.existsSync(DIST_DIR)) {
     fs.mkdirSync(DIST_DIR, { recursive: true })
   }
+
+  // 清理舊版本 ZIP（保留當前版本），避免 dist/ 累積多版本造成誤分發
+  cleanStaleZips(version)
 
   const zipName = `readmoo-book-extractor-v${version}.zip`
   const zipPath = path.join(DIST_DIR, zipName)
