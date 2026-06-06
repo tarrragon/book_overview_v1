@@ -17,6 +17,8 @@
 // 統一日誌管理系統
 import { Logger } from '../core/logging/Logger.js'
 import { MessageDictionary } from '../core/messages/MessageDictionary.js'
+import { OperationResult } from '../core/errors/OperationResult.js'
+import { ErrorCodes } from '../core/errors/ErrorCodes.js'
 
 /**
  * Background Service Worker local MessageDictionary (W1-110.1)
@@ -75,7 +77,10 @@ const backgroundMessages = new MessageDictionary({
   PRESET_INIT_START: '[FIX] 載入賴永祥分類法預裝樹 ({trigger})',
   PRESET_INIT_OK: '[OK] 預裝樹載入完成 (共 {count} 節點)',
   PRESET_INIT_SKIP: '[SKIP] 預裝樹載入失敗或配額不足，記待補旗標 ({error})',
-  PRESET_INIT_ERROR: '[FAIL] 預裝樹載入異常 ({trigger})'
+  PRESET_INIT_ERROR: '[FAIL] 預裝樹載入異常 ({trigger})',
+  INIT_BUFFER_FLUSH: '[FIX] Flush init 期間緩衝訊息 (共 {count} 條)',
+  INIT_BUFFER_OVERFLOW: '[WARN] init 緩衝已滿，拒絕訊息 ({type}，上限 {limit})',
+  INIT_BUFFER_FLUSH_ERROR: '[FAIL] 緩衝訊息 flush 失敗 ({type})'
 })
 
 // W1-110.1: Logger 第三參數注入 backgroundMessages local dict
@@ -108,6 +113,26 @@ const MAX_INITIALIZATION_ATTEMPTS = 3
 
 // 緊急模式標記
 let emergencyMode = false
+
+/**
+ * init 期間訊息緩衝（0.20.0-W2-006.1，W2-006 方案 A）
+ *
+ * 業務情境：W2-002 已將頂層 onMessage listener 同步註冊（MV3 鐵則），但真正
+ * 的業務訊息路由 listener 由 coordinator 內 MessageRouter 在 await init 之後
+ * 才註冊。MV3 service worker 非持久，SW 在 init await 期間被喚醒時，業務訊息
+ * 會在 MessageRouter listener 註冊前派發 → 靜默漏接。
+ *
+ * 解法：init 期間（isInitialized=false 且非 emergency）頂層 listener 將業務
+ * 訊息三元組緩衝於模組頂層陣列，並 return true 保持 sendResponse 通道開啟；
+ * initializeBackgroundSystem 完成後 flushPendingMessages 逐一交
+ * backgroundCoordinator.messageRouter.routeMessage 路由，原 sendResponse
+ * 通道得以回應。
+ *
+ * 上限保護：緩衝達 MAX_PENDING_MESSAGES 條時，新訊息直接回 OperationResult
+ * 失敗回應（避免無上限記憶體成長 / SW 喚醒風暴堆積）。
+ */
+const pendingMessages = []
+const MAX_PENDING_MESSAGES = 50
 
 // Service Worker 全域錯誤處理（必須在頂層同步註冊，避免 Chrome 警告）
 // 設計意圖：Chrome 要求 error/unhandledrejection handler 在 SW 腳本初始評估階段註冊，
@@ -213,11 +238,14 @@ function registerLifecycleListeners () {
       })
     }
 
-    // Chrome Extension 訊息事件（baseline / emergency 回應）
+    // Chrome Extension 訊息事件（baseline / 緩衝 / emergency 回應）
     // 設計意圖：正常訊息路由由 coordinator 內 MessageRouter 的 onMessage
-    // listener 負責。此頂層 listener 在系統尚未就緒（init 進行中）或進入
-    // emergency 模式時，對 GET_SYSTEM_STATUS 提供 baseline 回應；其餘訊息
-    // 回傳 undefined（不佔用 sendResponse 通道），讓 MessageRouter listener 接手。
+    // listener 負責。此頂層 listener 處理三種未就緒情境：
+    // 1. 系統正常就緒 → 回傳 undefined 不攔截，讓 MessageRouter listener 接手。
+    // 2. init 進行中（非 emergency）→ GET_SYSTEM_STATUS 回 baseline 狀態；
+    //    其餘業務訊息緩衝（W2-006.1），init 完成後 flush 至 MessageRouter。
+    // 3. emergency 模式 → GET_SYSTEM_STATUS 回 emergency baseline；其餘回受限提示
+    //    （無 coordinator 可 flush，故不緩衝）。
     if (chrome.runtime.onMessage) {
       chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // 系統正常就緒後，交由 MessageRouter 處理（回傳 undefined 不攔截）
@@ -225,7 +253,7 @@ function registerLifecycleListeners () {
           return undefined
         }
 
-        // init 進行中或 emergency 模式：提供 baseline 狀態回應
+        // GET_SYSTEM_STATUS：未就緒狀態下提供 baseline 狀態回應（不緩衝）
         if (message && message.type === 'GET_SYSTEM_STATUS') {
           if (emergencyMode) {
             log.info('EMERGENCY_MESSAGE', { message })
@@ -241,12 +269,17 @@ function registerLifecycleListeners () {
           return true
         }
 
-        // 其他訊息在未就緒狀態下無法路由，回覆受限提示
-        sendResponse({
-          success: false,
-          error: emergencyMode ? '系統運行於緊急模式，功能受限' : '系統初始化中，請稍後再試'
-        })
-        return true
+        // emergency 模式：無 coordinator 可 flush，業務訊息回受限提示
+        if (emergencyMode) {
+          sendResponse({
+            success: false,
+            error: '系統運行於緊急模式，功能受限'
+          })
+          return true
+        }
+
+        // init 進行中：緩衝業務訊息三元組，init 完成後 flush 至 MessageRouter
+        return bufferMessageDuringInit(message, sender, sendResponse)
       })
     }
 
@@ -258,6 +291,86 @@ function registerLifecycleListeners () {
 
 // MV3 鐵則：在模組頂層同步階段註冊 listener（不可延後到 init 完成之後）
 registerLifecycleListeners()
+
+/**
+ * 緩衝 init 期間的業務訊息（0.20.0-W2-006.1，W2-006 方案 A）
+ *
+ * 業務情境：init 進行中時，coordinator 內 MessageRouter listener 尚未註冊，
+ * 業務訊息無法路由。將三元組緩衝於頂層 pendingMessages 陣列，init 完成後由
+ * flushPendingMessages 逐一交 MessageRouter；同步 return true 保持 sendResponse
+ * 通道開啟，使 flush 時的回應得以送回原 caller。
+ *
+ * 上限保護：緩衝達 MAX_PENDING_MESSAGES 時，新訊息直接回 OperationResult
+ * 失敗回應（不入緩衝），避免無上限記憶體成長。
+ *
+ * @param {Object} message - 訊息物件
+ * @param {Object} sender - 發送者資訊
+ * @param {Function} sendResponse - 回應函數（須保持通道供 flush 時回應）
+ * @returns {boolean} true 保持 sendResponse 通道開啟（MV3 鐵則）
+ */
+function bufferMessageDuringInit (message, sender, sendResponse) {
+  if (pendingMessages.length >= MAX_PENDING_MESSAGES) {
+    const error = new Error('系統初始化中訊息緩衝已滿，請稍後再試')
+    error.code = ErrorCodes.OPERATION_ERROR
+    sendResponse(OperationResult.failure(error).toJSON())
+    log.warn('INIT_BUFFER_OVERFLOW', { type: message?.type, limit: MAX_PENDING_MESSAGES })
+    return true
+  }
+
+  pendingMessages.push({ message, sender, sendResponse })
+  return true
+}
+
+/**
+ * Flush init 期間緩衝的訊息至 MessageRouter（0.20.0-W2-006.1）
+ *
+ * 業務情境：initializeBackgroundSystem 完成（isInitialized=true）後呼叫，將
+ * 緩衝的業務訊息三元組逐一交 backgroundCoordinator.messageRouter.routeMessage
+ * 路由，使 init await 期間漏接的訊息得以正常處理並回應原 caller。
+ *
+ * 設計考量：
+ * - 逐一處理保持 FIFO 順序（與緩衝順序一致）。
+ * - 單條路由失敗不中斷後續 flush（錯誤隔離），個別失敗以 OperationResult
+ *   回原 sendResponse 並記日誌。
+ * - flush 後清空緩衝；coordinator 或 messageRouter 缺失時降級回受限提示，
+ *   避免靜默吞掉已緩衝訊息。
+ *
+ * @returns {Promise<void>}
+ */
+async function flushPendingMessages () {
+  if (pendingMessages.length === 0) {
+    return
+  }
+
+  log.info('INIT_BUFFER_FLUSH', { count: pendingMessages.length })
+
+  // 取出全部緩衝並清空，避免 flush 期間新訊息混入重複處理
+  const buffered = pendingMessages.splice(0, pendingMessages.length)
+  const messageRouter = backgroundCoordinator && backgroundCoordinator.messageRouter
+
+  for (const { message, sender, sendResponse } of buffered) {
+    try {
+      if (messageRouter && typeof messageRouter.routeMessage === 'function') {
+        await messageRouter.routeMessage(message, sender, sendResponse)
+      } else {
+        // 降級：coordinator/messageRouter 缺失，回受限提示不靜默吞掉
+        const error = new Error('訊息路由器不可用，緩衝訊息無法路由')
+        error.code = ErrorCodes.OPERATION_ERROR
+        sendResponse(OperationResult.failure(error).toJSON())
+      }
+    } catch (error) {
+      log.error('INIT_BUFFER_FLUSH_ERROR', { type: message?.type, error: error?.message })
+      try {
+        const flushError = new Error(error?.message || '緩衝訊息路由失敗')
+        flushError.code = ErrorCodes.OPERATION_ERROR
+        sendResponse(OperationResult.failure(flushError).toJSON())
+      } catch (responseError) {
+        // sendResponse 通道可能已關閉，記錄不再拋出（錯誤隔離）
+        log.error('INIT_BUFFER_FLUSH_ERROR', { type: message?.type, error: responseError?.message })
+      }
+    }
+  }
+}
 
 /**
  * 主要初始化函數
@@ -301,6 +414,11 @@ async function initializeBackgroundSystem () {
 
     // 標記初始化完成
     isInitialized = true
+
+    // Flush init 期間緩衝的業務訊息至 MessageRouter（0.20.0-W2-006.1）。
+    // 此時 coordinator 已 start（MessageRouter listener 已註冊），init 後新訊息
+    // 由 MessageRouter listener 直接接手，僅 init await 期間漏接的緩衝訊息需 flush。
+    await flushPendingMessages()
 
     // 記錄成功狀態
     const stats = backgroundCoordinator.getCoordinatorStats()
