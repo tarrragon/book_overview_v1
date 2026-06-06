@@ -2,8 +2,7 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
-## [v0.20.0] - In Development
-
+## [0.20.0] - 2026-06-06
 ### 中文圖書分類法 + Tag 樹狀管理 + background Service Worker 穩定性
 
 **版本目標**：導入賴永祥《中文圖書分類法》二層預裝 + Tag 樹狀 model（階層分類與篩選），強化 background Service Worker MV3 生命週期穩定性（listener 註冊時機 + init 期間訊息不漏接），並補強框架品質（malformed tool-call 防護 + version-release CLI 修復）。
