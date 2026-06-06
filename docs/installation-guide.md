@@ -1,6 +1,6 @@
 # Readmoo 書庫管理器 - 安裝指南
 
-> **適用版本**: v0.19.0 內測版
+> **適用版本**: v1.0.0 內測版
 > **適用對象**: 內測使用者（依 [use-cases.md](use-cases.md) Primary Actor，一般電腦使用者）
 > **平台需求**: Chrome 瀏覽器（Manifest V3）
 
@@ -10,14 +10,14 @@
 
 ## 1. 下載
 
-**版本說明**：本版本為 v0.19.0 內測版。公開分發策略（Chrome Web Store / GitHub Release）待 v1.0 正式版確定後再行公告。
+**版本說明**：本版本為 v1.0.0 內測版。公開分發策略（Chrome Web Store / GitHub Release）待正式版確定後再行公告。
 
 ### 1.1 主要取得管道：聯繫內測負責人
 
 本版本採封閉內測，請聯繫內測負責人取得安裝 ZIP 檔案：
 
-- 檔名範例：`readmoo-book-extractor-v0.19.0.zip`
-- 檔案大小：約 1.27 MB
+- 檔名範例：`readmoo-book-extractor-v1.0.0.zip`
+- 檔案大小：約 1.3 MB（最終值以 v1.0.0 發佈 ZIP 為準，發佈時校驗）
 - 取得方式：透過內測負責人指定的傳輸通道（Email / 雲端共享連結）
 
 ### 1.2 Fallback：本地建置（具開發環境者）
@@ -41,15 +41,15 @@ npm run package
 建置完成後，產物位於：
 
 ```
-dist/readmoo-book-extractor-v0.19.0.zip
+dist/readmoo-book-extractor-v1.0.0.zip
 ```
 
 ### 1.3 校驗
 
 取得 ZIP 後，解壓前後可確認以下兩點：
 
-- ZIP 檔案大小約 1.27 MB（顯著偏離此值代表檔案可能損毀或版本不符）
-- 解壓後根目錄含 `manifest.json`，其中 `"version": "0.19.0"` 對應本版本
+- ZIP 檔案大小約 1.3 MB（最終值以 v1.0.0 發佈 ZIP 為準；顯著偏離代表檔案可能損毀或版本不符）
+- 解壓後根目錄含 `manifest.json`，其中 `"version": "1.0.0"` 對應本版本
 
 ---
 
@@ -73,7 +73,7 @@ dist/readmoo-book-extractor-v0.19.0.zip
 |------|---------|
 | macOS | 內建 Archive Utility（雙擊 ZIP 即可解壓） |
 | Windows | 檔案總管右鍵「解壓縮全部」 |
-| CLI | `unzip readmoo-book-extractor-v0.19.0.zip -d ~/readmoo-extractor/` |
+| CLI | `unzip readmoo-book-extractor-v1.0.0.zip -d ~/readmoo-extractor/` |
 
 ### 2.3 解壓後目錄結構驗證
 
@@ -141,7 +141,7 @@ chrome://extensions/
 Extension 載入成功後，`chrome://extensions/` 頁面上會出現一張新的 Extension 卡片，預期觀察到：
 
 - **名稱**：「Readmoo 書庫數據提取器」
-- **版本號**：與 `manifest.json` 中的 `version` 欄位一致（v0.19.0 內測版為 `0.19.0`）
+- **版本號**：與 `manifest.json` 中的 `version` 欄位一致（v1.0.0 內測版為 `1.0.0`）
 - **Service worker 連結**：可點擊（顯示為藍色超連結）
 - **啟用 toggle**：預設開啟（藍色）
 - **無紅色錯誤提示**
@@ -314,7 +314,7 @@ Extension 卡片成功出現後，請繼續第 5 章節「安裝後驗證 checkl
 - [使用情境（use-cases.md）](use-cases.md) — 完整功能範圍與 UC-01~UC-06
 - [文件導引（README.md）](README.md) — 全部專案文件入口
 - [自動化驗證腳本（W1-066）](../scripts/validate-manifest.js) — 安裝前 manifest 結構驗證
-- [v0.19.0 工作日誌](work-logs/v0/v0.19/v0.19.0/v0.19.0-main.md) — 版本進度追蹤
+- [v1.0.0 工作日誌](work-logs/v1/v1.0/v1.0.0/v1.0.0-main.md) — 版本進度追蹤
 
 ---
 
@@ -324,3 +324,4 @@ Extension 卡片成功出現後，請繼續第 5 章節「安裝後驗證 checkl
 |------|------|
 | v0.19.0（初版） | 5 章節骨架 + 安裝後驗證 checklist（0.19.0-W1-067 落地） |
 | v0.19.0（完成） | 章節 1~4 與 FAQ 內容補完（0.19.0-W1-002.3 落地） |
+| v1.0.0（版本對齊） | 版本字面對齊 v1.0.0（版本號 / 檔名 / 校驗值 / worklog 連結）；檔案大小最終值由 v1.0.0 發佈產物校驗（1.0.0-W2-002 落地，最終數值 pass 於 1.0.0-W6-003） |
