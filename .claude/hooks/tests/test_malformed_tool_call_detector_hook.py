@@ -62,6 +62,24 @@ def test_true_positive_detected(hook_mod):
         assert hook_mod.detect(text) != "", f"真陽 fixture '{name}' 漏抓"
 
 
+def test_signature_five_paired_close_present(hook_mod):
+    """signature 5（成對閉合 <invoke>…</invoke>）必須存在且涵蓋非行首完整 invoke。
+
+    W2-011.4：涵蓋「漏 antml 前綴的完整 invoke 字面」缺口。pattern 須能在散文
+    夾住的完整工具呼叫（非行首）命中，且不誤觸 fenced 引述的成對標記。
+    """
+    patterns = [p.pattern for p in hook_mod.SIGNATURE_PATTERNS]
+    assert any(
+        "invoke" in p and "</" in p and "*?" in p for p in patterns
+    ), "signature 5（成對閉合非貪婪 <invoke>…</invoke>）遺失"
+    # 真陽：非行首完整 invoke 須命中
+    tp = hook_mod.SELF_TEST_TRUE_POSITIVES["paired_close_non_linestart"]
+    assert hook_mod.detect(tp) != "", "成對閉合非行首真陽應被攔截"
+    # 真陰：fenced 引述的成對標記不應命中（strip 後消失）
+    tn = hook_mod.SELF_TEST_TRUE_NEGATIVES["paired_close_fenced_prose"]
+    assert hook_mod.detect(tn) == "", "fenced 引述的成對標記不應誤觸 signature 5"
+
+
 def test_signature_four_preserved(hook_mod):
     """signature 4（游離 token 接 invoke）必須存在且仍可攔截（禁削弱）。"""
     patterns = [p.pattern for p in hook_mod.SIGNATURE_PATTERNS]
