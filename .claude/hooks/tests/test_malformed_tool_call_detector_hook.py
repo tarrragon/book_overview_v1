@@ -73,6 +73,44 @@ def test_signature_four_preserved(hook_mod):
 
 
 # ---------------------------------------------------------------------------
+# meta-context 豁免（W2-011.3，PC-099 對齊）
+# ---------------------------------------------------------------------------
+
+
+def _residual_meta_prose(hook_mod):
+    """構造 IMP .1 strip 修復後仍殘留的誤報：純散文嵌入裸標記（無 code 包覆）。"""
+    open_tag = hook_mod._OPEN  # "<invoke"（字串拼接組裝，避免本檔被掃描誤觸）
+    return (
+        "本 hook 偵測的問題是這樣：模型輸出時若把標記寫成\n"
+        f"{open_tag} name=\"Foo\"> 這種裸形式（漏 antml 前綴），harness 無法解析。"
+    )
+
+
+def test_residual_meta_prose_without_marker_still_detected(hook_mod):
+    """真陽保留：無 exempt marker 的散文裸標記仍須命中（豁免不削弱攔截力）。"""
+    text = _residual_meta_prose(hook_mod)
+    assert hook_mod.detect(text) != "", "殘留 meta 散文（無 marker）應仍被攔截"
+
+
+def test_meta_context_marker_suppresses_detection(hook_mod):
+    """治本：同一散文加上顯式 exempt marker → 整段豁免（回傳空字串）。"""
+    text = _residual_meta_prose(hook_mod)
+    marked = "<!-- malformed-detector-exempt: 討論偵測本身 -->\n" + text
+    assert hook_mod.detect(marked) == "", "含 exempt marker 的 meta 散文應被豁免"
+
+
+def test_marker_does_not_suppress_real_malformed_call(hook_mod):
+    """真陽不被誤豁免：真實壞呼叫（無 marker）不受豁免機制影響。
+
+    豁免僅在訊息顯式含 marker 時生效；真正寫壞的工具呼叫由 harness 渲染而成，
+    絕不含此 meta 註解，故 true-positive 攔截力不被削弱。
+    """
+    for name, text in hook_mod.SELF_TEST_TRUE_POSITIVES.items():
+        assert "malformed-detector-exempt" not in text
+        assert hook_mod.detect(text) != "", f"真陽 fixture '{name}' 不應受豁免影響"
+
+
+# ---------------------------------------------------------------------------
 # 內嵌 self-test（W2-011.2 acceptance）
 # ---------------------------------------------------------------------------
 

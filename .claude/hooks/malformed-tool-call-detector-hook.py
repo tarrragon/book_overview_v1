@@ -24,6 +24,12 @@ Action:
   讀 transcript 最後一則 assistant 訊息，剝除 fenced code block 與 inline code
   後，掃描殘餘文字是否出現未解析工具標記簽章。命中 → exit 2 + stderr 指引重發；
   否則 exit 0 放行。雙通道可觀測性（stderr + 檔案日誌）遵循 quality-baseline 規則 4。
+
+  meta-context 豁免（W2-011.3，PC-099 對齊）：訊息含顯式標記
+    <!-- malformed-detector-exempt: <reason> -->
+  時整段豁免——用於「正常討論本失敗形態本身」的散文（裸標記嵌入說明句、無 code
+  包覆）。真正寫壞的工具呼叫由 harness 渲染而成，絕不含此 meta 註解，故不削弱
+  true-positive 攔截力。
 """
 
 import json
@@ -46,6 +52,29 @@ SIGNATURE_PATTERNS = [
     # 游離 token（如 count）單獨一行後緊接 <invoke（本 session 實際反覆出現的形態）
     re.compile(r"(?m)^[ \t]*[A-Za-z]{1,12}[ \t]*\n[ \t]*<\s*invoke\b", re.IGNORECASE),
 ]
+
+# meta-context 豁免標記（PC-099 對齊，治本特異性）。
+#
+# 動機（W2-011.3）：IMP .1 strip_code_regions 修復後，仍殘留一類誤報——
+# 「行首裸 <invoke>/<parameter>/</invoke> 字面出現在純散文」（無 fenced /
+# inline backtick / 4-space 縮排包覆）。最典型場景是「meta 自我引用」：在訊息或
+# ticket 中正常討論本 hook 偵測的失敗形態本身（例如本 ticket 工作流、hook
+# docstring 解說、PC error-pattern 撰寫），散文句中嵌入裸標記字面作說明。
+#
+# 此時無法靠 strip code 區塊解決（作者刻意不包 code 以利閱讀），且 linux taste
+# veto 禁止再疊 signature regex 特例。PC-099 既有治本機制是「自我引用/meta-context
+# 顯式豁免」——本 hook 採同構設計：作者在該訊息任意位置放下列顯式標記即整段豁免。
+#
+#   <!-- malformed-detector-exempt: <reason> -->
+#
+# 為何此標記不會被真陽繞過：真正寫壞的工具呼叫由 harness 把 tool-call 結構
+# 當文字渲染而成，模型當下意圖是「執行工具」而非「撰寫 meta 註解」，故產出絕不
+# 含此 HTML 註解標記。本 session 6 次真實攔截皆為純壞標記，無一含此 marker，
+# 故豁免不削弱 true-positive 攔截力（與 signature 4 防削弱要求一致）。
+EXEMPT_MARKER = re.compile(
+    r"<!--\s*malformed-detector-exempt\s*:\s*.+?\s*-->",
+    re.IGNORECASE | re.DOTALL,
+)
 
 
 def log(message: str) -> None:
@@ -114,7 +143,16 @@ def last_assistant_text(transcript_path: str) -> str:
 
 
 def detect(text: str) -> str:
-    """回傳命中的簽章描述（空字串=未命中）。"""
+    """回傳命中的簽章描述（空字串=未命中）。
+
+    偵測順序：
+      1. meta-context 豁免（PC-099 對齊）：訊息含顯式 exempt marker → 整段豁免
+         （回傳空字串）。優先於 signature 比對，使「正常討論本失敗形態本身」的
+         meta 散文不被誤判（W2-011.3 治本）。
+      2. 剝除 code 區塊（fenced / inline backtick / 縮排）後比對 signature。
+    """
+    if EXEMPT_MARKER.search(text):
+        return ""
     cleaned = strip_code_regions(text)
     for pattern in SIGNATURE_PATTERNS:
         if pattern.search(cleaned):
@@ -159,6 +197,15 @@ SELF_TEST_TRUE_NEGATIVES = {
     # 單行 inline backtick 內的標記字面
     "inline_backtick": (
         f"請用帶前綴的 `{_OPEN}>` 標記，不要寫成裸的。"
+    ),
+    # meta-context 豁免（W2-011.3 治本，PC-099 對齊）：
+    # 純散文中嵌入裸標記字面（無 code 包覆，strip 後仍命中 signature），
+    # 但含顯式 exempt marker → 應整段豁免。模擬「正常討論本失敗形態本身」。
+    "meta_context_exempt": (
+        "<!-- malformed-detector-exempt: 本段討論 malformed 標記偵測本身 -->\n"
+        "本 hook 偵測的問題是這樣：模型輸出時若把標記寫成\n"
+        f"{_OPEN} name=\"Foo\"> 這種裸形式（漏 antml 前綴），harness 無法解析。\n"
+        f"收尾標記寫成 {_CLOSE} 出現在純文字也代表寫壞了。"
     ),
 }
 
