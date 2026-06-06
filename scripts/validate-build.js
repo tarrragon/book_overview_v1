@@ -64,6 +64,34 @@ function getFileSizeKB (filePath) {
 }
 
 /**
+ * PNG 檔案簽章（magic bytes）：89 50 4E 47 0D 0A 1A 0A
+ *
+ * Why: icons 欄位曾發生 SVG 內容偽裝成 .png 副檔名（W2-001），Chrome MV3
+ * 不支援 SVG 圖示而靜默不渲染。僅檢查副檔名或檔案存在無法攔截此問題，
+ * 必須讀取檔頭比對 PNG signature 才能確認是真 PNG。
+ */
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+
+/**
+ * 檢查檔案內容是否為真正的 PNG（依檔頭 magic bytes 判定，非依副檔名）
+ *
+ * @param {string} filePath 圖示檔案路徑
+ * @returns {boolean} true 表示檔頭符合 PNG signature
+ */
+function isRealPng (filePath) {
+  if (!fileExists(filePath)) return false
+  const fd = fs.openSync(filePath, 'r')
+  try {
+    const header = Buffer.alloc(PNG_SIGNATURE.length)
+    const bytesRead = fs.readSync(fd, header, 0, PNG_SIGNATURE.length, 0)
+    if (bytesRead < PNG_SIGNATURE.length) return false
+    return header.equals(PNG_SIGNATURE)
+  } finally {
+    fs.closeSync(fd)
+  }
+}
+
+/**
  * 驗證目錄結構
  */
 function validateDirectoryStructure () {
@@ -207,17 +235,25 @@ function validateIcons () {
 
   iconSizes.forEach(size => {
     const iconPath = path.join(BUILD_DIR, 'assets', 'icons', `icon-${size}.png`)
-    if (fileExists(iconPath)) {
-      const sizeKB = getFileSizeKB(iconPath)
-      logSuccess(`圖示存在: icon-${size}.png (${sizeKB} KB)`)
-
-      // 檢查圖示檔案大小合理性
-      if (sizeKB > 50) {
-        logWarning(`圖示檔案較大: icon-${size}.png (${sizeKB} KB)，建議優化`)
-      }
-    } else {
+    if (!fileExists(iconPath)) {
       logError(`圖示檔案缺失: icon-${size}.png`)
       allExists = false
+      return
+    }
+
+    // 檢查檔案內容是否為真 PNG（攔截 SVG 偽裝成 .png 的情況，W2-001）
+    if (!isRealPng(iconPath)) {
+      logError(`圖示格式錯誤: icon-${size}.png 非有效 PNG（檔頭不符 magic bytes，可能為 SVG 偽裝）`)
+      allExists = false
+      return
+    }
+
+    const sizeKB = getFileSizeKB(iconPath)
+    logSuccess(`圖示存在且格式正確: icon-${size}.png (${sizeKB} KB)`)
+
+    // 檢查圖示檔案大小合理性
+    if (sizeKB > 50) {
+      logWarning(`圖示檔案較大: icon-${size}.png (${sizeKB} KB)，建議優化`)
     }
   })
 
