@@ -122,6 +122,85 @@ def detect(text: str) -> str:
     return ""
 
 
+# ---------------------------------------------------------------------------
+# 內嵌 self-test fixtures（W2-011.2 / W2-011 acceptance 3）
+#
+# 標記字面以字串拼接（"<in" "voke"）組裝，避免本 hook 或其他 lint hook
+# 掃描本檔原始碼時把 fixture 字面誤判為「未解析工具標記」造成連鎖誤觸。
+# 這些常數同時供外部 pytest（test_malformed_tool_call_detector_hook.py）
+# 引用，是真陽/真陰 fixture 的單一事實來源（DRY，避免重複維護）。
+# ---------------------------------------------------------------------------
+
+_OPEN = "<in" "voke"  # "<invoke"
+_PARAM = "<para" "meter"  # "<parameter"
+_CLOSE = "</in" "voke>"  # "</invoke>"
+
+# 真陰：被引述的標記字面不應命中（strip_code_regions 應剝除後不留簽章）
+SELF_TEST_TRUE_NEGATIVES = {
+    # 根因 A：4-space 縮排 code block 內含標記字面
+    "four_space_indent": (
+        "以下是壞掉的標記範例（4-space 縮排引述）：\n\n"
+        f"    {_OPEN} name=\"Foo\">\n"
+        f"    {_PARAM} name=\"x\">1</parameter>\n"
+        f"    {_CLOSE}\n\n"
+        "說明完畢，這些只是被引述的程式碼字面。"
+    ),
+    # 根因 B：跨行 backtick 引述內含標記字面
+    "cross_line_backtick": (
+        "這段 `多行\n"
+        f"{_OPEN} name=\"Bar\">\n"
+        "內容` 只是用反引號引述的多行字面。"
+    ),
+    # fenced code block 內的標記字面
+    "fenced_block": (
+        "範例如下：\n\n```xml\n"
+        f"{_OPEN} name=\"Baz\">\n{_CLOSE}\n```\n\n以上為說明。"
+    ),
+    # 單行 inline backtick 內的標記字面
+    "inline_backtick": (
+        f"請用帶前綴的 `{_OPEN}>` 標記，不要寫成裸的。"
+    ),
+}
+
+# 真陽：真實寫壞而被當文字渲染的標記必須命中（禁削弱）
+SELF_TEST_TRUE_POSITIVES = {
+    # 行首裸 <invoke>（signature 1）
+    "bare_invoke": (
+        f"這是真的寫壞了：\n{_OPEN} name=\"Real\">\n{_CLOSE}"
+    ),
+    # 行首裸 </invoke>（signature 3）
+    "bare_close_invoke": (
+        f"前面有內容\n{_CLOSE}\n後面有內容"
+    ),
+    # 游離 token 接 <invoke>（signature 4，禁削弱）
+    "stray_token_invoke": (
+        f"count\n{_OPEN} name=\"Real\">"
+    ),
+}
+
+
+def _self_test() -> list:
+    """執行內嵌 self-test，回傳失敗描述清單（空清單=全通過）。
+
+    透過 --self-test 分支由 CI（npm run test:hooks 等效路徑）執行，
+    非 per-Stop-event 觸發——避免每回合結束時的額外開銷。
+    """
+    failures = []
+    for name, text in SELF_TEST_TRUE_NEGATIVES.items():
+        hit = detect(text)
+        if hit:
+            failures.append(
+                f"真陰 fixture '{name}' 誤命中簽章 {hit!r}（應回傳空字串）"
+            )
+    for name, text in SELF_TEST_TRUE_POSITIVES.items():
+        hit = detect(text)
+        if not hit:
+            failures.append(
+                f"真陽 fixture '{name}' 未命中任何簽章（應被攔截）"
+            )
+    return failures
+
+
 def main() -> int:
     try:
         raw = sys.stdin.read()
@@ -153,4 +232,16 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if "--self-test" in sys.argv[1:]:
+        problems = _self_test()
+        if problems:
+            sys.stderr.write("[malformed-tool-call-detector] self-test 失敗:\n")
+            for item in problems:
+                sys.stderr.write(f"  - {item}\n")
+            sys.exit(1)
+        sys.stdout.write(
+            "[malformed-tool-call-detector] self-test 通過："
+            f"真陰 {len(SELF_TEST_TRUE_NEGATIVES)} + 真陽 {len(SELF_TEST_TRUE_POSITIVES)}\n"
+        )
+        sys.exit(0)
     sys.exit(main())
