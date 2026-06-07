@@ -1,7 +1,18 @@
 # 本地特化檔案 — sync-pull 時不會被遠端覆蓋或刪除
 # 路徑相對於 .claude/ 目錄
+#
+# preserve（first-line）= 原地保留，sync 後直接可用。
+# W1-004 已為 cleanup_stale_files 加 git 追蹤感知（safety net）：未列於此但受 git
+# 追蹤的本地獨有檔不會被靜默刪除，會移至 .sync-conflicts/（需手動取回）。
+# 故重要的本專案特有防護應登錄於此（原地保留優於移 conflict）。
 preserve:
   - hooks/main-thread-edit-restriction-hook.py
   - hooks/handoff-prompt-reminder-hook.py
   - hooks/lib/hook_messages.py
   - error-patterns/architecture/ARCH-021-module-assembly-omission.md
+  # 本專案特有防護（2026-06-07 W1-005，sync full overlay 曾誤刪，見 W1-003 議題三）
+  - error-patterns/process-compliance/PC-177-malformed-tool-call-rendered-as-text.md
+  - hooks/malformed-tool-call-detector-hook.py
+  - hooks/tests/test_malformed_tool_call_detector_hook.py
+  - hooks/context-depth-warning-hook.py
+  - hooks/tests/test_context_depth_warning_hook.py
