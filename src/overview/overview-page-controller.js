@@ -211,7 +211,7 @@ class OverviewPageController extends EventHandlerClass {
       // 表格相關元素
       table: ['tableBody', 'booksTable'],
       // 操作按鈕元素
-      buttons: ['exportCSVBtn', 'exportJSONBtn', 'exportJSONv2Btn', 'importJSONBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn', 'selectAllHeaderCheckbox'],
+      buttons: ['exportCSVBtn', 'exportJSONBtn', 'importJSONBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn', 'selectAllHeaderCheckbox'],
       // 檔案載入相關元素
       fileLoad: ['fileUploader', 'jsonFileInput', 'loadFileBtn', 'loadSampleBtn', 'sortSelect', 'sortDirection'],
       // 狀態顯示元素
@@ -292,18 +292,12 @@ class OverviewPageController extends EventHandlerClass {
       })
     }
 
-    // 主「匯出 JSON」鈕（W4-001）：改走 v3 canonical（book-interchange-v1），
+    // 「匯出 JSON」鈕（W4-001 → W4-007）：v3 canonical（book-interchange-v1）為唯一 JSON 匯出入口，
     // 觸發 exporter _exportToJSONCanonical 路徑（everything-as-tags + tagTree）。
+    // v2 匯出 UI 已於 W4-007 移除（reality-test：v2 對 APP everything-as-tags 多值資料有損，無前向消費者）。
     if (this.elements.exportJSONBtn) {
       this.elements.exportJSONBtn.addEventListener('click', () => {
         this.handleExportJSONv3()
-      })
-    }
-
-    // 次選「匯出 JSON (v2 相容)」鈕（W4-001）：保留既有 v2 路徑，向後相容。
-    if (this.elements.exportJSONv2Btn) {
-      this.elements.exportJSONv2Btn.addEventListener('click', () => {
-        this.handleExportJSONv2()
       })
     }
 
@@ -959,43 +953,9 @@ class OverviewPageController extends EventHandlerClass {
     }
   }
 
-  // ========== v2 匯出方法（委派至 BookDataExporter，Interchange Format v2） ==========
-
-  /**
-   * 處理 JSON 匯出（v2 路徑，W1-042.1）
-   *
-   * 改接 BookDataExporter 的 v2 路徑，產出符合 Interchange Format v2 規格的 JSON：
-   * - 頂層含 metadata（formatVersion 2.0.0）/ tagCategories / tags / books 四區段
-   * - 書籍欄位用 readingStatus（非 status）、tagIds（非 tags）
-   *
-   * v2 路徑需 tags / tagCategories 資料，故從 Chrome Storage 讀取，方法為 async。
-   *
-   * @returns {Promise<void>}
-   */
-  async handleExportJSONv2 () {
-    const books = this._getBooksForExport()
-    if (!books || books.length === 0) {
-      alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
-      return
-    }
-
-    try {
-      const { tags, tagCategories } = await this._loadTagData()
-      const exporter = new BookDataExporter(books)
-      const json = exporter.exportToJSON({
-        formatVersion: CONSTANTS.EXPORT_V2.FORMAT_VERSION,
-        fieldPreset: CONSTANTS.EXPORT_V2.FIELD_PRESET,
-        tags,
-        tagCategories
-      })
-      this._triggerExportDownload(json, 'json', CONSTANTS.EXPORT_V2.JSON_MIME)
-    } catch (error) {
-      // 匯出失敗（storage 讀取或序列化錯誤）須讓使用者可見，避免靜默無回饋
-      // eslint-disable-next-line no-console
-      console.error('[ERROR] v2 JSON 匯出失敗:', error)
-      this.showError('JSON 匯出失敗: ' + (error && error.message ? error.message : error))
-    }
-  }
+  // ========== v2 CSV 匯出方法（委派至 BookDataExporter，Interchange Format v2） ==========
+  // 註：v2 JSON 匯出方法（handleExportJSONv2）已於 W4-007 移除（v3 為唯一 JSON 匯出入口，
+  // reality-test 確認 v2 JSON 無前向消費者）。CSV v2 仍為 spreadsheet 受眾的主要匯出格式，保留。
 
   /**
    * 處理 CSV 匯出（v2 路徑，W1-042.1）

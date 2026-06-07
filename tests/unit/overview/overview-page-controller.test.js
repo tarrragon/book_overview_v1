@@ -1454,16 +1454,17 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
   })
 
   // ---------------------------------------------------------------------------
-  // Group H：Overview 匯出 UI 接 v3 canonical 入口（1.0.0-W4-001）
+  // Group H：Overview 匯出 UI 接 v3 canonical 入口（1.0.0-W4-001 → W4-007）
   //
   // 根因：Overview 匯出 UI 從不傳 options.formatVersion=3.0.0，故 exporter 已實作的
   // v3 canonical（book-interchange-v1 everything-as-tags）路徑永遠走不到。
-  // 設計（方案 B）：主「匯出 JSON」改走 v3 canonical（handleExportJSONv3）；
-  // 新增「匯出 JSON (v2 相容)」次選鈕（exportJSONv2Btn）走既有 v2（handleExportJSONv2）。
+  // 設計：主「匯出 JSON」改走 v3 canonical（handleExportJSONv3）為唯一 JSON 匯出入口。
+  // W4-007：v2 相容鈕（exportJSONv2Btn / handleExportJSONv2）已移除（reality-test 確認
+  // v2 JSON 無前向消費者，對 APP everything-as-tags 多值資料有損）；本 group 原 v2 鈕
+  // 測試一併移除，僅保留 v3 canonical 測試。
   //
   // RED 斷言聚焦「實際匯出 JSON 字面」而非僅 spy 呼叫（避免 PC-165 false-positive fix）：
-  // v3 匯出檔 format='book-interchange-v1' / formatVersion='3.0.0' / tagTree 非空；
-  // v2 相容鈕匯出檔仍 formatVersion='2.0.0'。
+  // v3 匯出檔 format='book-interchange-v1' / formatVersion='3.0.0' / tagTree 非空。
   //
   // 關鍵考量（PM 已驗證）：v3 canonical 由 book 物件自身欄位（tagIds → tags.custom →
   // tagTree.custom）衍生 tagTree（everything-as-tags），不需另傳 storage tags/tagCategories。
@@ -1495,8 +1496,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     }
 
     beforeEach(() => {
-      // 本 group 需 exportJSONBtn（v3）與 exportJSONv2Btn（v2 相容）兩鈕，
-      // 故建立含兩鈕的獨立 DOM（共享 beforeEach DOM 不含 v2 相容鈕）。
+      // 本 group 需 exportJSONBtn（v3）鈕，故建立含該鈕的獨立 DOM。
+      // W4-007：v2 相容鈕（exportJSONv2Btn）已移除，DOM 不再包含。
       v3Dom = new JSDOM(`
         <!DOCTYPE html>
         <html lang="zh-TW">
@@ -1506,7 +1507,6 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
           <input type="text" id="searchBox">
           <button id="exportCSVBtn">匯出 CSV</button>
           <button id="exportJSONBtn">匯出 JSON</button>
-          <button id="exportJSONv2Btn">匯出 JSON (v2 相容)</button>
           <table id="booksTable"><tbody id="tableBody"></tbody></table>
           <div id="loadingIndicator" style="display:none;">
             <div class="loading-text">載入中...</div>
@@ -1652,23 +1652,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(parsed.formatVersion).toBe('3.0.0')
     })
 
-    test('acceptance 3：點擊 exportJSONv2Btn 仍走 v2（formatVersion=2.0.0，不破壞既有 v2）', async () => {
-      v3Controller.filteredBooks = [makeBookWithTags()]
-      let captured = null
-      jest.spyOn(v3Controller, '_triggerExportDownload').mockImplementation((content) => {
-        captured = content
-      })
-      v3Controller.setupEventListeners()
-
-      v3Document.getElementById('exportJSONv2Btn').click()
-      await Promise.resolve()
-      await Promise.resolve()
-
-      expect(captured).not.toBeNull()
-      const parsed = JSON.parse(captured)
-      // v2 相容鈕：metadata.formatVersion 為 2.0.0（v2 結構，非 canonical root）
-      expect(parsed.metadata.formatVersion).toBe('2.0.0')
-      expect(parsed.format).toBeUndefined()
-    })
+    // W4-007：原「acceptance 3：點擊 exportJSONv2Btn 仍走 v2」測試已移除
+    // （exportJSONv2Btn 與 handleExportJSONv2 已移除，v3 為唯一 JSON 匯出入口）。
   })
 })

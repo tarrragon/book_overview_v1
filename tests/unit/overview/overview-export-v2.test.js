@@ -1,16 +1,18 @@
 /**
- * Overview 匯出按鈕 v2 路徑測試（W1-042.1）
+ * Overview CSV 匯出 v2 路徑測試（W1-042.1 → W4-007）
  *
  * 測試範圍：
- * - handleExportJSONv2 產出符合 Interchange Format v2 的 JSON
- *   （metadata/formatVersion、tagCategories、tags 頂層；書籍用 readingStatus/tagIds）
  * - handleExportCSVv2 產出符合 csv-export-spec v2 的 CSV
  *   （英文 headers，含 readingStatus / tagNames / tagCategories）
- * - selection-aware：有選取書本時僅匯出選取項
+ * - selection-aware：有選取書本時僅匯出選取項（CSV 每書一列）
  * - tags / tagCategories 從 TagStorageAdapter 讀取並注入 v2 匯出
  *
  * 背景：W1-042 ANA 指出 overview 匯出按鈕原接 v1 簡易匯出器 book-exporter.js，
- * 產出不符 v2 規格。本 ticket 將按鈕改接 BookDataExporter v2 路徑。
+ * 產出不符 v2 規格，W1-042.1 將按鈕改接 BookDataExporter v2 路徑。
+ *
+ * W4-007：JSON v2 匯出 UI 與 handleExportJSONv2 方法移除（v3 canonical 為唯一 JSON
+ * 匯出入口；reality-test 確認 v2 JSON 無前向消費者）。本檔原 JSON v2 測試已移除，
+ * 保留 CSV v2 測試（CSV 仍為 spreadsheet 受眾主要格式）。
  *
  * @jest-environment jsdom
  */
@@ -91,7 +93,6 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
         <input type="text" id="searchBox">
         <button id="exportCSVBtn">匯出 CSV</button>
         <button id="exportJSONBtn">匯出 JSON</button>
-        <button id="exportJSONv2Btn">匯出 JSON (v2 相容)</button>
         <table id="booksTable"><tbody id="tableBody"></tbody></table>
         <div id="loadingIndicator" style="display:none;">
           <div class="loading-text">載入中...</div>
@@ -138,76 +139,10 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
     jest.clearAllMocks()
   })
 
-  describe('handleExportJSONv2 — Interchange Format v2 JSON', () => {
-    test('JSON 頂層含 metadata（formatVersion 2.0.0）/ tagCategories / tags / books', async () => {
-      controller.filteredBooks = [makeV2Book()]
-
-      let captured = null
-      jest.spyOn(controller, '_triggerExportDownload').mockImplementation((content) => {
-        captured = content
-      })
-
-      await controller.handleExportJSONv2()
-
-      expect(captured).not.toBeNull()
-      const parsed = JSON.parse(captured)
-      expect(parsed.metadata).toBeDefined()
-      expect(parsed.metadata.formatVersion).toBe('2.0.0')
-      expect(parsed.metadata.source).toBe('readmoo-book-extractor')
-      expect(Array.isArray(parsed.tagCategories)).toBe(true)
-      expect(Array.isArray(parsed.tags)).toBe(true)
-      expect(Array.isArray(parsed.books)).toBe(true)
-    })
-
-    test('tags / tagCategories 頂層由 TagStorageAdapter 注入', async () => {
-      controller.filteredBooks = [makeV2Book()]
-      jest.spyOn(controller, '_triggerExportDownload').mockImplementation(() => {})
-
-      let captured = null
-      jest.spyOn(controller, '_triggerExportDownload').mockImplementation((content) => {
-        captured = content
-      })
-
-      await controller.handleExportJSONv2()
-
-      const parsed = JSON.parse(captured)
-      expect(parsed.tags).toHaveLength(1)
-      expect(parsed.tags[0].id).toBe('tag-1')
-      expect(parsed.tagCategories).toHaveLength(1)
-      expect(parsed.tagCategories[0].id).toBe('cat-1')
-      expect(parsed.metadata.totalTags).toBe(1)
-      expect(parsed.metadata.totalTagCategories).toBe(1)
-    })
-
-    test('書籍欄位使用 readingStatus / tagIds（非 status / tags）', async () => {
-      controller.filteredBooks = [makeV2Book()]
-      let captured = null
-      jest.spyOn(controller, '_triggerExportDownload').mockImplementation((content) => {
-        captured = content
-      })
-
-      await controller.handleExportJSONv2()
-
-      const book = JSON.parse(captured).books[0]
-      expect(book.readingStatus).toBe('finished')
-      expect(Array.isArray(book.tagIds)).toBe(true)
-      expect(book.tagIds).toEqual(['tag-1'])
-      // v1 欄位名不應出現
-      expect(book.status).toBeUndefined()
-    })
-
-    test('無資料時不下載並提示使用者', async () => {
-      controller.filteredBooks = []
-      const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {})
-      global.alert = window.alert
-      const downloadSpy = jest.spyOn(controller, '_triggerExportDownload')
-
-      await controller.handleExportJSONv2()
-
-      expect(downloadSpy).not.toHaveBeenCalled()
-      expect(alertSpy).toHaveBeenCalled()
-    })
-  })
+  // 1.0.0-W4-007：handleExportJSONv2 已移除（v3 canonical 為唯一 JSON 匯出入口，
+  // reality-test 確認 v2 JSON 無前向消費者）。原 JSON v2 describe block 連同
+  // exportJSONv2Btn click 測試一併移除。CSV v2 路徑（handleExportCSVv2）仍為
+  // spreadsheet 受眾主要格式，保留以下測試。
 
   describe('handleExportCSVv2 — csv-export-spec v2 CSV', () => {
     test('CSV headers 為英文欄位名且含 readingStatus / tagNames / tagCategories', async () => {
@@ -263,7 +198,9 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
     })
   })
 
-  describe('selection-aware 匯出', () => {
+  describe('selection-aware 匯出（CSV v2 路徑）', () => {
+    // 1.0.0-W4-007：原本以 handleExportJSONv2 驗證 selection-aware（_getBooksForExport），
+    // JSON v2 移除後改用 handleExportCSVv2 驗證同一 selection 行為（CSV 每書一列）。
     test('有選取書本時僅匯出選取項', async () => {
       controller.filteredBooks = [
         makeV2Book({ id: 'book-001', title: '三體' }),
@@ -276,11 +213,15 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
         captured = content
       })
 
-      await controller.handleExportJSONv2()
+      await controller.handleExportCSVv2()
 
-      const parsed = JSON.parse(captured)
-      expect(parsed.books).toHaveLength(1)
-      expect(parsed.books[0].id).toBe('book-002')
+      // 排除 # source-limited 註解列與 header 列後，僅剩 1 筆資料列（book-002）
+      const dataLines = captured.split('\n').filter(l => l.trim() && !l.startsWith('#'))
+      expect(dataLines).toHaveLength(2) // header + 1 資料列
+      // 斷言 id 欄（每列首欄）僅含選取的 book-002；避免比對全文（cover URL 含
+      // book-001.jpg 字面，會誤觸 not.toContain('book-001')）
+      const dataRowIds = dataLines.slice(1).map(line => line.split(',')[0])
+      expect(dataRowIds).toEqual(['book-002'])
     })
 
     test('無選取時匯出全部 filteredBooks', async () => {
@@ -295,26 +236,16 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
         captured = content
       })
 
-      await controller.handleExportJSONv2()
+      await controller.handleExportCSVv2()
 
-      expect(JSON.parse(captured).books).toHaveLength(2)
+      const dataLines = captured.split('\n').filter(l => l.trim() && !l.startsWith('#'))
+      expect(dataLines).toHaveLength(3) // header + 2 資料列
     })
   })
 
   describe('匯出按鈕點擊觸發 v2 路徑', () => {
-    // 1.0.0-W4-001：主「匯出 JSON」鈕（exportJSONBtn）改走 v3 canonical；
-    // v2 相容路徑改由新增的「匯出 JSON (v2 相容)」鈕（exportJSONv2Btn）觸發。
-    test('點擊 exportJSONv2Btn 觸發 handleExportJSONv2', async () => {
-      controller.filteredBooks = [makeV2Book()]
-      const v2Spy = jest.spyOn(controller, 'handleExportJSONv2').mockResolvedValue()
-      // 重新註冊監聽器以綁定 spy 後的方法
-      controller.setupEventListeners()
-
-      document.getElementById('exportJSONv2Btn').click()
-
-      expect(v2Spy).toHaveBeenCalled()
-    })
-
+    // 1.0.0-W4-007：exportJSONv2Btn 已移除，原「點擊 exportJSONv2Btn 觸發 handleExportJSONv2」
+    // 測試一併移除。CSV v2 鈕（exportCSVBtn）仍走 handleExportCSVv2，保留以下測試。
     test('點擊 exportCSVBtn 觸發 handleExportCSVv2', async () => {
       controller.filteredBooks = [makeV2Book()]
       const v2Spy = jest.spyOn(controller, 'handleExportCSVv2').mockResolvedValue()

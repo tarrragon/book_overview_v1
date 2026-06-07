@@ -4,10 +4,15 @@
  * 負責功能：
  * - 在真實 Chrome + 已載入 Extension 環境下，驗證 UC-03 匯出鏈完整路徑：
  *   提取 fixture 5 本書 -> 開啟 overview -> 真實 click #exportJSONBtn / #exportCSVBtn
- *   -> overview-page-controller handleExportJSONv2 / handleExportCSVv2
- *   -> BookDataExporter v2 -> blob 下載
- * - 攔截下載 blob 內容並斷言匯出格式合規（Interchange Format v2 / CSV tag 欄 + 閱讀狀態欄）
+ *   -> overview-page-controller handleExportJSONv3 / handleExportCSVv2
+ *   -> BookDataExporter -> blob 下載
+ * - 攔截下載 blob 內容並斷言匯出格式合規：
+ *   JSON 為 book-interchange-v1 canonical（W4-007 後 exportJSONBtn 唯一入口）；
+ *   CSV 為 Interchange Format v2（tag 欄 + 閱讀狀態欄）
  * - 補 W1-001.2 手動驗證後缺少的自動化 regression 防護（quality-baseline 規則 5）
+ *
+ * W4-007：v2 JSON 匯出鈕（exportJSONv2Btn）移除，v3 canonical 為唯一 JSON 匯出入口。
+ *   G2 JSON group 改點 exportJSONBtn 並斷言 v3 canonical 契約。CSV（G3）維持 v2 不變。
  *
  * 測試定位（§3.5 B1）：
  * - regression 鎖定型 E2E。常態 GREEN，鎖定匯出格式不因後續重構而回歸。
@@ -32,8 +37,8 @@
  *   resolve 時 evaluate 無 timeout hang，W4-001.1 spike 實證）。
  *
  * 規格依據：
- * - JSON：docs/spec/export-interchange-format-v2.md §3（root 含 metadata / tagCategories /
- *   tags / books 四區段，metadata.formatVersion='2.0.0'，書 tagIds 為陣列）
+ * - JSON：docs/spec/book-interchange-v1.md（root 含 format='book-interchange-v1' /
+ *   formatVersion='3.0.0'，books 為 canonical everything-as-tags，book.tags 物件分組）
  * - CSV：docs/spec/export-interchange-format-v2.md §5（COMPLETE_V2 preset header
  *   含 readingStatus / tagIds / tagNames / tagCategories，陣列以 '; ' 分隔）
  * - overview 匯出採 COMPLETE_V2 preset（overview-page-controller CONSTANTS.EXPORT_V2.FIELD_PRESET）
@@ -54,11 +59,8 @@ const {
   JEST_TEST_TIMEOUT
 } = require('./helpers/timeouts')
 
-// v1.1 model readingStatus 6 狀態 enum（與 export-interchange-format-v2.md §3.6 一致）
+// v1.1 model readingStatus 6 狀態 enum（CSV 匯出 readingStatus 欄合法值；G3 使用）
 const READING_STATUS_ENUM = ['unread', 'reading', 'finished', 'queued', 'abandoned', 'reference']
-
-// Interchange Format v2 root 必含的四個頂層區段（spec §3.1）
-const V2_ROOT_SECTIONS = ['metadata', 'tagCategories', 'tags', 'books']
 
 // COMPLETE_V2 CSV header 必含的 tag 與閱讀狀態相關欄位（spec §5.1）
 // readingStatus 為承載 6 狀態 model 的欄位；tagIds/tagNames/tagCategories 為 tag 欄位
@@ -231,20 +233,23 @@ describe('UC-03 資料匯出 E2E (W4-001.1)', () => {
     })
   })
 
-  // ========== G2：UC-03 JSON 匯出（acceptance #1，Interchange Format v2）==========
+  // ========== G2：UC-03 JSON 匯出（acceptance #1，book-interchange-v1 canonical）==========
+  //
+  // W4-007：exportJSONBtn 為唯一 JSON 匯出入口，產出 v3 canonical（book-interchange-v1
+  // everything-as-tags）。v2 JSON 匯出鈕（exportJSONv2Btn）已移除，故本 group 改點
+  // exportJSONBtn 並斷言 v3 canonical 契約（format / formatVersion / tagTree / book.tags）。
 
-  describe('G2 UC-03 JSON 匯出 (Interchange Format v2)', () => {
+  describe('G2 UC-03 JSON 匯出 (book-interchange-v1 canonical)', () => {
     let jsonExport = null
 
     beforeAll(async () => {
       if (setupError) return
-      // 1.0.0-W4-001：主「匯出 JSON」鈕（exportJSONBtn）改走 v3 canonical；
-      // v2 相容路徑移至 exportJSONv2Btn，故本 v2 契約測試改點 v2 相容鈕。
-      const captured = await clickExportAndCaptureBlob(overviewPage, 'exportJSONv2Btn')
+      // W4-007：主「匯出 JSON」鈕（exportJSONBtn）為唯一 JSON 入口，走 v3 canonical。
+      const captured = await clickExportAndCaptureBlob(overviewPage, 'exportJSONBtn')
       jsonExport = { mime: captured.type, parsed: JSON.parse(captured.text) }
     }, JEST_TEST_TIMEOUT)
 
-    test('[SETUP] G2-1 click #exportJSONv2Btn 攔截到 JSON blob 且可解析', () => {
+    test('[SETUP] G2-1 click #exportJSONBtn 攔截到 JSON blob 且可解析', () => {
       assertSetupSucceeded()
       // 匯出按鈕點到時 overview 須有資料；NO_DATA_EXPORT dialog 觸發代表無資料，
       // 後續格式斷言失去意義
@@ -255,28 +260,20 @@ describe('UC-03 資料匯出 E2E (W4-001.1)', () => {
       expect(jsonExport.parsed).toBeInstanceOf(Object)
     })
 
-    test('[JSON] G2-2 root 含 Interchange Format v2 四個頂層區段', () => {
+    test('[JSON] G2-2 root 為 book-interchange-v1 canonical（format / formatVersion / books）', () => {
       assertSetupSucceeded()
-      V2_ROOT_SECTIONS.forEach(section => {
-        expect(Object.prototype.hasOwnProperty.call(jsonExport.parsed, section)).toBe(true)
-      })
-      expect(Array.isArray(jsonExport.parsed.tagCategories)).toBe(true)
-      expect(Array.isArray(jsonExport.parsed.tags)).toBe(true)
+      // v3 canonical root：format='book-interchange-v1' / formatVersion='3.0.0'
+      expect(jsonExport.parsed.format).toBe('book-interchange-v1')
+      expect(jsonExport.parsed.formatVersion).toBe('3.0.0')
       expect(Array.isArray(jsonExport.parsed.books)).toBe(true)
     })
 
-    test('[JSON] G2-3 metadata.formatVersion 為 2.0.0 且 totalBooks 一致', () => {
+    test('[JSON] G2-3 books 數量與提取書數一致', () => {
       assertSetupSucceeded()
-      const metadata = jsonExport.parsed.metadata
-      expect(metadata).toBeInstanceOf(Object)
-      expect(metadata.formatVersion).toBe('2.0.0')
-      expect(metadata.source).toBe('readmoo-book-extractor')
-      // totalBooks 與 books 陣列長度交叉驗證（spec §3.2）
-      expect(metadata.totalBooks).toBe(jsonExport.parsed.books.length)
       expect(jsonExport.parsed.books.length).toBe(FIXTURE_BOOK_COUNT)
     })
 
-    test('[JSON] G2-4 每本書 readingStatus 為 6 狀態合法值且 tagIds 為陣列', () => {
+    test('[JSON] G2-4 每本書為 canonical everything-as-tags（tags 物件，author 入 tags）', () => {
       assertSetupSucceeded()
       const books = jsonExport.parsed.books
       expect(books.length).toBe(FIXTURE_BOOK_COUNT)
@@ -285,11 +282,11 @@ describe('UC-03 資料匯出 E2E (W4-001.1)', () => {
         expect(book.id.length).toBeGreaterThan(0)
         expect(typeof book.title).toBe('string')
         expect(book.title.length).toBeGreaterThan(0)
-        // readingStatus 為 6 狀態 enum 合法成員（spec §3.6）
-        expect(READING_STATUS_ENUM).toContain(book.readingStatus)
-        // 強制規範（spec §3.5）：書無 tag 時 tagIds 為空陣列，不可省略欄位
-        expect(Object.prototype.hasOwnProperty.call(book, 'tagIds')).toBe(true)
-        expect(Array.isArray(book.tagIds)).toBe(true)
+        // canonical：everything-as-tags（book.tags 為物件，author/platform/custom 分組）
+        expect(book.tags).toBeInstanceOf(Object)
+        expect(Array.isArray(book.tags.author)).toBe(true)
+        // v1/v2 平面欄位 authors 不應出現在 canonical book
+        expect(book.authors).toBeUndefined()
       })
     })
   })
