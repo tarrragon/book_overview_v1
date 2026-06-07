@@ -97,6 +97,19 @@ function loadDeviceAFixture () {
 }
 
 /**
+ * 載入 v3 round-trip 用「含非標準欄位」書籍 fixture（多尺寸 cover / progressInfo /
+ * 多 author / isbn），用以驗證 canonical 往返後 _passthrough 完整保留。
+ * @returns {Array<Object>} 內部 v2 book model 陣列
+ */
+function loadV3PassthroughFixture () {
+  const raw = fs.readFileSync(
+    path.join(__dirname, 'fixtures', 'device-a-v3-passthrough.json'),
+    'utf8'
+  )
+  return JSON.parse(raw).books
+}
+
+/**
  * 載入裝置 B 既有書庫 fixture（合併模式測試用，含 1 本與 A 同 id 書籍）。
  * @returns {{ books, tags, tagCategories }} v2 三區段
  */
@@ -140,6 +153,46 @@ function exportToV2Json ({ books, tags, tagCategories }) {
     tagCategories,
     pretty: false
   })
+}
+
+/**
+ * 由內部 v2 books 匯出 canonical（book-interchange-v1 v3）JSON 字串。
+ * 模擬 overview「匯出 JSON（v3 canonical）」按鈕的產出（W4-001 接線）。
+ *
+ * v3 為 everything-as-tags：authors/source/publisher/isbn/tagIds/readingStatus
+ * 全部映射為 tags 節點，root 含 format='book-interchange-v1' / formatVersion='3.0.0'
+ * / books / tagTree（不需傳 tags/tagCategories 三區段，與 v2 不同）。
+ *
+ * @param {Array<Object>} books - 內部 v2 book model 陣列
+ * @returns {string} v3 canonical JSON 字串
+ */
+function exportToV3Json (books) {
+  const exporter = new BookDataExporter(books)
+  return exporter.exportToJSON({
+    formatVersion: '3.0.0',
+    pretty: false
+  })
+}
+
+/**
+ * 斷言匯出字串確為 v3 canonical（book-interchange-v1）root（防 false positive）。
+ *
+ * 設計理由（PC-165）：v2 與 v3 對 id/title/authors/source/readingStatus/progress/tagIds
+ * 的還原皆無損，若僅比對還原後欄位，core 測試在「export 誤走 v2」時仍會通過。
+ * 每個 v3 round-trip 測試先過此守衛，確保斷言驗證的是 canonical 路徑而非泛 round-trip。
+ *
+ * @param {string} jsonString - 匯出的 JSON 字串
+ * @returns {Object} 已解析的 canonical root（供 caller 進一步斷言）
+ */
+function assertCanonicalRoot (jsonString) {
+  const root = JSON.parse(jsonString)
+  expect(root.format).toBe('book-interchange-v1')
+  expect(root.formatVersion).toBe('3.0.0')
+  // everything-as-tags 證據：canonical book 以 tags 承載 author 等（非平鋪欄位）
+  if (Array.isArray(root.books) && root.books.length > 0) {
+    expect(root.books[0].tags).toBeDefined()
+  }
+  return root
 }
 
 /**
@@ -580,6 +633,223 @@ describe('跨裝置 JSON round-trip — UC-05（0.19.0-W1-003.1）', () => {
       expect(summary.categoryCount.a).toBe(summary.categoryCount.b)
       expect(summary.statusDistribution.a).toEqual(summary.statusDistribution.b)
       expect(summary.manualStatusCount.a).toBe(summary.manualStatusCount.b)
+    })
+  })
+
+  // ==========================================================================
+  // Group D：v3 canonical（book-interchange-v1）端到端 round-trip
+  //   對應 ticket 1.0.0-W4-002 acceptance：
+  //     - export v3 → 序列化字串 → import 還原 整合鏈（acceptance 1）
+  //     - round-trip 無損：everything-as-tags + _passthrough 保留（acceptance 2）
+  //
+  //   與 Group A/B/C（v2.0.0）的差異：
+  //     - v3 為 everything-as-tags：authors/source/publisher/isbn/tagIds/readingStatus
+  //       全部映射為 canonical tags 節點，匯出 root 為 book-interchange-v1 結構。
+  //     - ContentParser 內部 detectInterchangeSource='canonical' → mapCanonicalToV1Book
+  //       逐本還原為內部 v2 book model（無需手動指定格式）。
+  //
+  //   設計考量：
+  //     - 純資料 round-trip，不經 chrome.storage（v3 匯出不讀三區段，免綁 storage mock）。
+  //     - 無計時硬門檻（test-assertion-design 規則 1）。
+  //     - 斷言對齊「實際無損契約」（PC-165）：逐本欄位 + tag 還原 + _passthrough 值比對，
+  //       非僅檢查「import 未報錯」。
+  // ==========================================================================
+  describe('Group D：v3 canonical 端到端 round-trip（1.0.0-W4-002）', () => {
+    test('TC-D1 [acceptance 1] export v3 → 序列化 → import 還原書籍數量一致', () => {
+      // === Step 1：裝置 A 以 v3 canonical 匯出 ===
+      const aBooks = loadDeviceAFixture().books
+      const exportedJson = exportToV3Json(aBooks)
+
+      // 匯出 root 應為 book-interchange-v1 canonical 結構（format/formatVersion 自描述）
+      const exportedRoot = JSON.parse(exportedJson)
+      expect(exportedRoot.format).toBe('book-interchange-v1')
+      expect(exportedRoot.formatVersion).toBe('3.0.0')
+      expect(Array.isArray(exportedRoot.books)).toBe(true)
+      expect(exportedRoot.books).toHaveLength(aBooks.length)
+      // everything-as-tags 證據：canonical book 以 tags 承載 author/platform 等（非平鋪欄位）
+      expect(exportedRoot.books[0].tags).toBeDefined()
+
+      // === Step 2：模擬雲端傳輸（純字串往返）===
+      const downloadedJson = simulateCloudTransport(exportedJson)
+
+      // === Step 3：裝置 B 匯入（ContentParser 自動路由 canonical，免指定格式）===
+      const imported = parseImportContent(downloadedJson)
+
+      // === Step 4：驗證還原書籍數量一致（誤差 = 0）===
+      expect(Array.isArray(imported.books)).toBe(true)
+      expect(imported.books).toHaveLength(aBooks.length)
+    })
+
+    test('TC-D2 [acceptance 1] canonical 來源自動偵測（ContentParser 不需手動指定格式）', () => {
+      const aBooks = loadDeviceAFixture().books
+      const exportedJson = exportToV3Json(aBooks)
+      const downloadedJson = simulateCloudTransport(exportedJson)
+
+      // ContentParser.parse 僅給 fileFormat='json'，未告知 v3；
+      // 內部 detectInterchangeSource 應辨識 format='book-interchange-v1' → 'canonical'
+      const imported = parseImportContent(downloadedJson)
+
+      // 應成功回傳 ImportResult 三欄位（INV-1，恆為陣列）
+      expect(Array.isArray(imported.books)).toBe(true)
+      expect(Array.isArray(imported.tags)).toBe(true)
+      expect(Array.isArray(imported.tagCategories)).toBe(true)
+      // canonical 來源不產出 tag 三區段（tag 樹由 tagTree 重建屬後續範圍）
+      expect(imported.tags).toHaveLength(0)
+      expect(imported.tagCategories).toHaveLength(0)
+    })
+
+    test('TC-D3 [acceptance 2] everything-as-tags 逐本核心欄位無損還原', () => {
+      const aBooks = loadDeviceAFixture().books
+      const exportedJson = exportToV3Json(aBooks)
+      assertCanonicalRoot(exportedJson) // 守衛：確為 v3 canonical 而非泛 round-trip
+      const downloadedJson = simulateCloudTransport(exportedJson)
+      const imported = parseImportContent(downloadedJson)
+
+      const restoredById = new Map(imported.books.map((b) => [b.id, b]))
+      aBooks.forEach((src) => {
+        const restored = restoredById.get(src.id)
+        // id 保留（C4 禁重生）
+        expect(restored).toBeDefined()
+        // title 無損
+        expect(restored.title).toBe(src.title)
+        // readingStatus 經 §7 雙向正規化往返後還原（六態各驗於 fixture）
+        expect(restored.readingStatus).toBe(src.readingStatus)
+        // progress（百分比）還原
+        expect(restored.progress).toBe(src.progress)
+        // source（platform tag 收斂回固定欄位）還原
+        expect(restored.source).toBe(src.source)
+        // publisher（publisher tag 收斂回固定欄位）還原
+        expect(restored.publisher).toBe(src.publisher)
+      })
+    })
+
+    test('TC-D4 [acceptance 2] authors（多值）經 canonical 往返後完整還原', () => {
+      const aBooks = loadDeviceAFixture().books
+      const exportedJson = exportToV3Json(aBooks)
+      assertCanonicalRoot(exportedJson) // 守衛：確為 v3 canonical
+      const downloadedJson = simulateCloudTransport(exportedJson)
+      const imported = parseImportContent(downloadedJson)
+
+      const restoredById = new Map(imported.books.map((b) => [b.id, b]))
+      aBooks.forEach((src) => {
+        const restored = restoredById.get(src.id)
+        // author tag 多值不收斂；往返後 authors[] name 順序與內容完全一致
+        expect(restored.authors).toEqual(src.authors)
+      })
+
+      // 顯式覆蓋多 author 案例（rt-book-06 有 2 位作者）與空 author 案例（rt-book-10）
+      const multiAuthor = restoredById.get('rt-book-06')
+      expect(multiAuthor.authors.length).toBeGreaterThanOrEqual(2)
+      const emptyAuthor = restoredById.get('rt-book-10')
+      expect(emptyAuthor.authors).toEqual([])
+    })
+
+    test('TC-D5 [acceptance 2] tagIds（custom tag 往返）逐本還原', () => {
+      const aBooks = loadDeviceAFixture().books
+      const exportedJson = exportToV3Json(aBooks)
+      assertCanonicalRoot(exportedJson) // 守衛：確為 v3 canonical
+      const downloadedJson = simulateCloudTransport(exportedJson)
+      const imported = parseImportContent(downloadedJson)
+
+      const restoredById = new Map(imported.books.map((b) => [b.id, b]))
+      aBooks.forEach((src) => {
+        const restored = restoredById.get(src.id)
+        // tagIds → custom tag（id=name=tagId）→ tagIds 往返後 id 與順序一致
+        expect(restored.tagIds).toEqual(src.tagIds)
+      })
+
+      // 有 tag / 無 tag 的書都正確處理（避免「全空也通過」假陽性）
+      const withTags = imported.books.filter((b) => b.tagIds.length > 0)
+      const withoutTags = imported.books.filter((b) => b.tagIds.length === 0)
+      expect(withTags.length).toBeGreaterThan(0)
+      expect(withoutTags.length).toBeGreaterThan(0)
+    })
+
+    test('TC-D6 [acceptance 2] 六種閱讀狀態經 v3 canonical 往返全保留', () => {
+      const aBooks = loadDeviceAFixture().books
+
+      // 前置條件：fixture 涵蓋六態（unread/reading/finished/queued/abandoned/reference）
+      const srcStatuses = new Set(aBooks.map((b) => b.readingStatus))
+      expect(srcStatuses).toEqual(
+        new Set(['unread', 'reading', 'finished', 'queued', 'abandoned', 'reference'])
+      )
+
+      const exportedJson = exportToV3Json(aBooks)
+      assertCanonicalRoot(exportedJson) // 守衛：確為 v3 canonical
+      const downloadedJson = simulateCloudTransport(exportedJson)
+      const imported = parseImportContent(downloadedJson)
+
+      const restoredStatuses = new Set(imported.books.map((b) => b.readingStatus))
+      expect(restoredStatuses).toEqual(srcStatuses)
+    })
+
+    test('TC-D7 [acceptance 2] _passthrough 保留（含非標準欄位的書往返後不丟失）', () => {
+      // 放入含「多尺寸 cover + progressInfo + 多 author + isbn」的書，
+      // 這些欄位經 mapCanonicalToV1Book 收斂後應存入 _passthrough（C1 禁丟失）。
+      const ptBooks = loadV3PassthroughFixture()
+      const exportedJson = exportToV3Json(ptBooks)
+      const downloadedJson = simulateCloudTransport(exportedJson)
+      const imported = parseImportContent(downloadedJson)
+
+      expect(imported.books).toHaveLength(1)
+      const restored = imported.books[0]
+      const src = ptBooks[0]
+
+      // 基礎欄位無損
+      expect(restored.id).toBe(src.id)
+      expect(restored.title).toBe(src.title)
+
+      // _passthrough 存在且承載非標準資訊（rebuildFromPassthrough 路徑）
+      expect(restored._passthrough).toBeDefined()
+      expect(typeof restored._passthrough).toBe('object')
+
+      // 多尺寸 cover：original 收斂回固定 cover，其餘尺寸入 _passthrough.cover（U19）
+      expect(restored.cover).toBe(src.cover.original)
+      expect(restored._passthrough.cover).toEqual({
+        thumbnail: src.cover.thumbnail,
+        medium: src.cover.medium
+      })
+
+      // progressInfo 多欄位：percentage 收斂回 progress，其餘入 progressInfo（U20）
+      expect(restored.progress).toBe(src.progress)
+      expect(restored.progressInfo).toEqual(src.progressInfo)
+
+      // 多 author 的 tag 陣列（含 id）存入 _passthrough.tags.author（C1，U17）
+      expect(restored.authors).toEqual(src.authors)
+      expect(restored._passthrough.tags).toBeDefined()
+      expect(Array.isArray(restored._passthrough.tags.author)).toBe(true)
+      expect(restored._passthrough.tags.author.map((n) => n.name)).toEqual(src.authors)
+
+      // isbn 收斂回 identifiers.isbn（單值不入 passthrough）
+      expect(restored.identifiers.isbn).toBe(src.identifiers.isbn)
+    })
+
+    test('TC-D8 [acceptance 2] 二次 round-trip 穩定（export→import→export→import 冪等）', () => {
+      // 驗證 round-trip 收斂後再次往返不再變動（無損的更強證據，避免單次往返恰好抵銷的假陽性）
+      const aBooks = loadDeviceAFixture().books
+
+      const firstJson = exportToV3Json(aBooks)
+      assertCanonicalRoot(firstJson) // 守衛：首次匯出確為 v3 canonical
+      const firstImport = parseImportContent(simulateCloudTransport(firstJson))
+
+      const secondJson = exportToV3Json(firstImport.books)
+      assertCanonicalRoot(secondJson) // 守衛：二次匯出（內部 v2 出發）仍為 v3 canonical
+      const secondImport = parseImportContent(simulateCloudTransport(secondJson))
+
+      // 兩次匯入結果逐本核心欄位完全一致（收斂後冪等）
+      const firstById = new Map(firstImport.books.map((b) => [b.id, b]))
+      secondImport.books.forEach((second) => {
+        const first = firstById.get(second.id)
+        expect(first).toBeDefined()
+        expect(second.title).toBe(first.title)
+        expect(second.authors).toEqual(first.authors)
+        expect(second.source).toBe(first.source)
+        expect(second.publisher).toBe(first.publisher)
+        expect(second.readingStatus).toBe(first.readingStatus)
+        expect(second.progress).toBe(first.progress)
+        expect(second.tagIds).toEqual(first.tagIds)
+      })
+      expect(secondImport.books).toHaveLength(firstImport.books.length)
     })
   })
 })

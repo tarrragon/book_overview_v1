@@ -1,0 +1,25 @@
+{
+  "_doc": "v3 canonical round-trip 整合測試 fixture：一本含『非標準/多值』欄位的書，用以驗證 export v3 → 序列化 → import 還原後 _passthrough 完整保留（rebuildFromPassthrough 路徑）。所屬 ticket: 1.0.0-W4-002。涵蓋：多尺寸 cover、progressInfo 多欄位、多 author（往返後存於 _passthrough.tags.author）、identifiers.isbn、source/publisher。",
+  "books": [
+    {
+      "id": "v3-pt-book-01",
+      "title": "含非標準欄位的書",
+      "authors": ["作者甲", "Author Jia"],
+      "source": "readmoo",
+      "publisher": "某出版社",
+      "identifiers": { "isbn": "9781234567890" },
+      "readingStatus": "reading",
+      "isManualStatus": false,
+      "tagIds": ["tag_passthrough"],
+      "cover": {
+        "original": "https://example.com/cover-original.jpg",
+        "thumbnail": "https://example.com/cover-thumb.jpg",
+        "medium": "https://example.com/cover-medium.jpg"
+      },
+      "progress": 30,
+      "progressInfo": { "currentPage": 50, "totalPages": 200 },
+      "createdAt": "2026-05-01T00:00:00.000Z",
+      "updatedAt": "2026-05-10T00:00:00.000Z"
+    }
+  ]
+}
