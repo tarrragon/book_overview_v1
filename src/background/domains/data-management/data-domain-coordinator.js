@@ -141,6 +141,11 @@ class DataDomainCoordinator extends BaseModule {
 
     // v1.0 階段設定 - 部分服務暫時擱置
     // 未來實作的服務（使用 Mock 保持架構完整）
+    //
+    // 同步方向說明：v1.0 不提供自動跨裝置同步。真正的跨裝置資料交換
+    // 走 v3 canonical 匯出入（book-interchange-v1，everything-as-tags），
+    // 由匯出/匯入流程承擔，非以下 Mock 服務。這些 Mock 僅為架構佔位，
+    // 名稱即明示為未實作，不代表已有自動同步能力。
     this.services.migration = new MockService('SchemaMigrationService')
     this.services.synchronization = new MockService('SynchronizationOrchestrator')
     this.services.conflictResolution = new MockService('ConflictDetectionService')
