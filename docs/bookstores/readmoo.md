@@ -216,26 +216,28 @@ W6-012.2.1 調整 `bookData.id` 生成策略：
 
 書庫頁採虛擬 scroll：944 本書時 DOM 僅渲染前 96 個 `.library-item`。完整提取需 scroll 觸發 lazy load（透過底部「更多...」按鈕或 scroll-to-end）。提取流程應等待 `.library-item` 數量穩定於目標總數（從「擁有 N 本書，其中封存 X 本，借出 Y 本」文字解析）後才開始。
 
-**實作對照**（截至 v0.18.0）：
+**實作對照**（截至 v1.0.0，W3-001 實機重驗 2026-06-07）：
 
 | 元件 | 狀態 | 說明 |
 |------|------|------|
-| `src/content/adapters/readmoo-adapter.js#extractAllBooks` | 缺少 scroll-to-end loop | 僅呼叫 `waitForBookElements()`（任何 > 0 即 resolve），未驗證 count 達 target；首批 96 後直接消費，造成 96/944（約 10%）提取缺口 |
-| `src/content/adapters/readmoo-adapter.js#waitForBookElements` | 設計為「等待出現」非「等待完整」 | resolve 條件 `length > 0`（adapter line 282），不等 count 穩定 |
-| `src/content/content-modular.js` SPA 路由監聽 | 未串接 | `event-utils.onURLChange` 已備但未調用，路由切換返回 library 時只看到當下 DOM snapshot |
-| `docs/bookstores/readmoo.md` §MCP E2E checklist Step 3 演算法 | 規格已書面化，未進入 production code | 僅用於手動 e2e 驗證 |
+| `src/content/adapters/readmoo-adapter.js#extractAllBooks` | 已落地 scroll-to-end（W1-030） | 先呼叫 `loadAllBooksLazy()` 捲動載入全部，再以 `waitForBookElements({timeoutMs:5000})` 作降級安全網（R6）。W3-001 實機：no-scroll 直接提取自動載入 950/950 |
+| `src/content/adapters/readmoo-adapter.js#loadAllBooksLazy` | 已實作（W1-030） | 多策略捲動（底部「更多...」/「載入更多...」按鈕 + document scroll）；停止條件 count == target OR 連續無變化 OR 輪數上限；target 由 `getExpectedBookCount()` 解析「擁有 N 本書，其中封存 X 本，借出 Y 本」得出 |
+| `src/content/adapters/readmoo-adapter.js#waitForBookElements` | 降級安全網（非主路徑） | resolve 條件 `length > 0`；捲動成功後 DOM 已就緒即立即 resolve，僅在 `loadAllBooksLazy` 異常時作 fallback |
+| `src/content/content-modular.js` SPA 路由監聽 | 已串接 | `pageDetector.onUrlChange(...)`（content-modular.js:172）監聽路由變更；page-detector 發出「URL 變更檢測」debug log（W3-001 實機確認觸發） |
+| `docs/bookstores/readmoo.md` §MCP E2E checklist Step 3 演算法 | 已進入 production | Step 3 的手動 evaluate_script 與 production `loadAllBooksLazy` 邏輯等價；checklist 保留作獨立人工驗證手段 |
 
-**修復追蹤**：W6-021 ANA 結論——需 spawn IMP 將 Step 3 演算法落地到 production extraction code（採 `loadAllBooksLazy()` 新 method 保留呼叫者選擇權；loop 結束條件：count == target OR 連續 3 輪無變化 OR 30 輪上限）。
+**歷史**：原 96/944（約 10%）提取缺口（W6-012.9.4 觀察、W6-021 ANA 結論需 spawn IMP）已由 W1-030 `loadAllBooksLazy` 修復。W3-001（2026-06-07）實機重驗確認：fresh reload（DOM 96）→ 不手動捲動直接提取 → 自動載入並提取 950 本（library DOM 由 96 展開至 950）。
 
-**SPA 路由切換補充**（W6-012.9.4 + W6-021 ANA）：
+**SPA 路由初始 DOM count**（W6-012.9.4 觀察 + W3-001 重驗）：
 
-| 進入方式 | 觀察到的初始 DOM count | 缺 lazy load 的影響 |
-|----------|----------------------|---------------------|
-| 直接 reload `/library` | 96（首批 render） | 提取 96/944（10%） |
+| 進入方式 | 初始 DOM count | 提取行為（W1-030 後） |
+|----------|----------------|---------------------|
+| 直接 reload `/library` | 96（首批 render） | 提取時 `loadAllBooksLazy` 自動捲載全部 |
 | SPA 路由切換返回（從閱讀器返回書庫） | 96（MutationObserver 命中後 resolve） | 同上 |
-| 小書庫帳號（< 96 本） | 全部 render | 無感（首批即完整） |
+| hash 重導同 URL（已在 library） | 保留既載入 count（不重置） | 同上（W3-001 觀察：再次導航同 URL 為 hash 級 no-op，DOM 維持先前載入量） |
+| 小書庫帳號（< 96 本） | 全部 render | 首批即完整 |
 
-故「SPA 路由切換 96 命中」**並非路由切換特有缺陷**——而是提取流程普遍缺少 lazy load 處理；reload 路徑同樣受影響，只是 W6-012.9.4 未對照書庫總數所以漏看。
+說明：初始 DOM 僅 96 是虛擬 scroll 特性而非缺陷；提取流程的 `loadAllBooksLazy` 會在提取時自動捲載至 target，故初始 count 不影響最終提取完整性。
 
 ### WAIT_FOR_BOOK_ELEMENTS_TIMEOUT 觸發情境（W6-012.9.4 ANA 結論）
 
@@ -359,11 +361,13 @@ mcp__chrome-devtools__evaluate_script(
 ### Step 6：切換 overview.html 驗證顯示
 
 ```
-mcp__chrome-devtools__navigate_page(type="url", url="chrome-extension://<id>/overview.html")
+mcp__chrome-devtools__navigate_page(type="url", url="chrome-extension://<id>/src/overview/overview.html")
 mcp__chrome-devtools__take_snapshot()
 ```
 
-**驗證**：「總書籍數」顯示與 Step 5 一致（**W6-012.1 修復前此步會失敗，顯示 0**）。
+**注意路徑**：overview 頁實際路徑為 `src/overview/overview.html`（manifest `web_accessible_resources` 與 `build/development/src/overview/overview.html` 佐證），**非**根目錄 `overview.html`（後者導航回 `net::ERR_FILE_NOT_FOUND`，W3-001 實機確認）。
+
+**驗證**：「總書籍數」顯示與 Step 5 一致（W3-001 實機：顯示 950，`[data-book-id]` 書卡 950）（**W6-012.1 修復前此步會失敗，顯示 0**）。
 
 ### Step 7：CSV 匯出（等 W6-012.1 修復後可測）
 
@@ -394,6 +398,7 @@ mcp__chrome-devtools__click(uid="<匯出 CSV button uid>")
 
 ---
 
-**Last Updated**: 2026-05-24
+**Last Updated**: 2026-06-07
+**Version**: 1.4.0 — W3-002 落地（源 W3-001 實機重驗）：更新「實作對照表」反映現行實作（extractAllBooks 已串 loadAllBooksLazy / waitForBookElements 降為安全網 / SPA 路由已串接 pageDetector.onUrlChange / Step 3 演算法已進 production），移除 stale lazy-load 缺口敘述並改記為歷史；修正 §MCP E2E Checklist Step 6 overview 路徑為 `src/overview/overview.html`
 **Version**: 1.3.0 — 更新 `.library-item` DOM 結構為 v0.19.0 確認版（補 .info 三子節點、.openbook-overlay 三子節點明列）；新增「作者欄位 Source Limitation」章節記錄 W1-061 ANA 結論
 **Version**: 1.2.0 — 新增「ID 演進歷程」章節，記錄 `cover-XXX` → `reader-{privacyBookId}` 決策脈絡與遷移流程（W6-012.2.2.3）
