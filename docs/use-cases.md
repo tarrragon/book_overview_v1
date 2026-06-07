@@ -7,7 +7,7 @@
 > **v1.1 變更說明**（PROP-007 tag-based model 對齊）：
 > - 閱讀狀態從 3 種（未開始/進行中/已完成）擴充為 6 種（新增 queued/abandoned/reference）
 > - 書籍分類從階層式改為 tag-based（tag_categories + tags）
-> - 匯出格式升級為 Interchange Format v2
+> - 匯出 JSON 格式升級為 book-interchange-v1 canonical（v3 everything-as-tags，跨專案 SSOT）
 > - 各 UC 新增 tag-based model 影響分析和邊界條件
 
 ## Use Case 概述
@@ -172,14 +172,14 @@
 **成功標準**:
 
 - 匯出的資料完整性 100%
-- JSON檔案符合 Interchange Format v2 規格
-- CSV檔案可在Excel中正常開啟
+- JSON 格式符合 book-interchange-v1 canonical 規格（v3 everything-as-tags，跨專案 SSOT）
+- CSV 格式適合在 Excel 等軟體中開啟
 - 檔案下載成功率 100%
 
 **Tag-based Model 影響**（v1.1）:
 
-- JSON 匯出格式升級為 Interchange Format v2（含 tags 按類別、tag_tree 結構）。tag_tree 序列化格式待定義於匯出規格文件。
-- 新增匯出選項：v2 格式（預設）和 v1 相容格式
+- JSON 匯出唯一格式為 book-interchange-v1 canonical（v3 everything-as-tags），為跨專案互通的 SSOT，可與 book_overview_app（Flutter）雙向 round-trip。
+- 移除 v2 作為 JSON 匯出預設或唯一選項的表述；v2 為內部過渡格式，不作為對外匯出規格。
 - CSV 匯出需包含 tag 欄位（以分隔符序列化）和 6 種閱讀狀態 詳見 [CSV 匯出欄位規格](./spec/csv-export-spec.md)。
 - 匯出欄位集定義需更新（BASIC/EXTENDED/COMPLETE 等加入 tag 相關欄位） 詳見 [CSV 匯出欄位規格](./spec/csv-export-spec.md)。
 - **新邊界條件**：書籍無 tag 時匯出為空陣列而非省略欄位
@@ -225,16 +225,22 @@
 
 **成功標準**:
 
-- 檔案格式驗證準確率 100%（v1 和 v2 格式皆可）
+- 檔案格式自動偵測準確率 100%（canonical / v2 / app-legacy / v1 四來源皆可）
 - 資料載入完整性 100%
 - 去重邏輯準確率 > 99%
 - 載入1000筆資料時間 < 5秒
 
 **Tag-based Model 影響**（v1.1）:
 
-- 匯入需支援 v1 和 v2 兩種格式（自動偵測版本）
+- 匯入自動偵測版本，支援四來源：
+  - canonical（book-interchange-v1 v3，`data.format === 'book-interchange-v1'`）
+  - v2（內部格式，`metadata.formatVersion` 以 `'2.'` 開頭）
+  - app-legacy（APP 備份格式，`backup_info` / `export_info` wrapper + `books` 陣列）
+  - v1（flat 陣列 / `{books:[]}` 無版本標記）
+- canonical 匯入：直接載入 everything-as-tags 結構，無需轉換
 - v1 格式匯入時自動轉換：isNew/isFinished → 6 種閱讀狀態、無 tag → 空 tag 集合
-- v2 格式匯入至 v2 系統：直接載入，tag 依合併/覆蓋模式處理
+- v2 格式匯入：直接載入，tag 依合併/覆蓋模式處理
+- app-legacy 匯入：解析 wrapper 後依內部格式處理（止血路徑）
 - 合併模式下 tag 採聯集策略（匯入 tag 加入既有 tag，不刪除）
 - 覆蓋模式下 tag 完全替換
 - **新邊界條件**：
@@ -287,8 +293,9 @@
 
 **Tag-based Model 影響**（v1.1）:
 
+- 同步格式為 book-interchange-v1 canonical（v3 everything-as-tags），可與 book_overview_app（Flutter）雙向 round-trip，為跨設備跨專案的 SSOT。
 - 同步資料包含 tag_categories 和 tags（資料量增加）
-- 設備間格式版本不一致時需處理（A 裝置 v2、B 裝置 v1）
+- 設備間格式版本不一致時自動偵測來源（canonical / v2 / app-legacy / v1 四來源）並處理轉換
 - tag 衝突解決：同一書籍在不同裝置有不同 tag 時取聯集
 - **新邊界條件**：
   - A 裝置刪除了某個 tag_category，B 裝置的書籍仍引用該 category → 匯入時自動重建 category
@@ -444,9 +451,9 @@
 | -------- | -------------- | --------------------------------------- | --------------- | ---------- |
 | UC-01    | 資料提取、UI   | BookDataExtractor, ReadmooAdapter       | 中（狀態對映 + 遷移） | 高 |
 | UC-02    | 資料提取、去重 | BookDataExtractor, generateStableBookId | 高（tag 合併 + 狀態轉換） | 高 |
-| UC-03    | 資料匯出       | JSONExportHandler, exportToCSV          | 高（Format v2） | 高 |
-| UC-04    | 資料匯入、去重 | loadFromFile, 格式驗證                  | 高（v1/v2 相容 + tag 合併） | 高 |
-| UC-05    | 匯出、匯入     | 完整匯出入流程                          | 中（tag 衝突） | 中 |
+| UC-03    | 資料匯出       | JSONExportHandler, exportToCSV          | 高（canonical v3 為 JSON 唯一格式，跨專案 SSOT） | 高 |
+| UC-04    | 資料匯入、去重 | loadFromFile, 格式驗證                  | 高（detector 四來源自動偵測：canonical/v2/app-legacy/v1 + tag 合併） | 高 |
+| UC-05    | 匯出、匯入     | 完整匯出入流程                          | 高（canonical 跨設備跨專案 round-trip + 四來源偵測 + tag 衝突） | 中 |
 | UC-06    | UI、資料存儲   | Overview頁面, 搜尋篩選                  | 高（tag 篩選 + 6 狀態） | 高（升級） |
 | UC-07    | 錯誤處理       | 全系統錯誤處理機制                      | 高（遷移 + tag 修復） | 高（升級） |
 
@@ -464,9 +471,9 @@
 - [ ] 6 種閱讀狀態皆有測試覆蓋
 - [ ] 自動狀態轉換和手動設定的交互已驗證
 - [ ] tag CRUD 操作測試完整
-- [ ] v1 → v2 資料遷移邊界條件已覆蓋
+- [ ] v1 → canonical 資料遷移邊界條件已覆蓋
 - [ ] tag 合併策略（聯集）測試完整
-- [ ] Interchange Format v2 round-trip 測試通過
+- [ ] book-interchange-v1 canonical round-trip 測試通過
 
 ### 使用者體驗檢查
 
