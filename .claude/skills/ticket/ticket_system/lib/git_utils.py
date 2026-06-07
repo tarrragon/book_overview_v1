@@ -14,15 +14,28 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+# 快命令（rev-parse / add / diff）預設逾時：git hang（等認證 / index.lock）時
+# 不無限等待。commit 含 pre-commit husky，呼叫端另傳較長值。
+_FAST_GIT_TIMEOUT = 5
+_COMMIT_GIT_TIMEOUT = 30
 
-def _run_git(cwd: str, *args: str) -> subprocess.CompletedProcess:
-    """在指定 cwd 執行 git 命令並回傳結果（不拋例外，由呼叫端判 returncode）。"""
+
+def _run_git(
+    cwd: str, *args: str, timeout: int = _FAST_GIT_TIMEOUT
+) -> subprocess.CompletedProcess:
+    """在指定 cwd 執行 git 命令並回傳結果（不拋例外，由呼叫端判 returncode）。
+
+    timeout 預設 5s（rev-parse / add / diff 等快命令）；commit 含 pre-commit
+    husky 較慢，呼叫端傳 ``_COMMIT_GIT_TIMEOUT``。逾時拋 subprocess.TimeoutExpired，
+    由呼叫端 try/except 涵蓋（graceful degrade，不無限等待 git hang）。
+    """
     return subprocess.run(
         ["git", *args],
         cwd=cwd,
         capture_output=True,
         text=True,
         check=False,
+        timeout=timeout,
     )
 
 
@@ -78,7 +91,10 @@ def _auto_commit_ticket_md(path: str, ticket_id: str, section: str) -> str:
 
     # 4. 精確路徑 commit（僅該 ticket md，避免夾帶 index 內其他 staged 變更）
     message = f"chore({ticket_id}): append-log {section}"
-    commit_result = _run_git(cwd, "commit", "-m", message, "--", str(md_path))
+    commit_result = _run_git(
+        cwd, "commit", "-m", message, "--", str(md_path),
+        timeout=_COMMIT_GIT_TIMEOUT,
+    )
     if commit_result.returncode != 0:
         return "git_failed"
 

@@ -750,6 +750,10 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
     # 全失效，避免未 commit working tree 被覆蓋回 placeholder（W1-017 ANA）。
     # graceful degrade：非 git repo / index.lock 競爭 / commit 失敗 → append-log
     # 仍 exit 0 + stderr 警告，body 保留 working tree（下次操作或手動 commit 持久化）。
+    # 函式內 import（非循環依賴規避——git_utils 僅 import subprocess+pathlib，
+    # 無循環）。理由：(1) 便於測試在此 import 點 patch git_utils 替身，隔離真實
+    # git 副作用；(2) 將 auto-commit 限定於此 graceful degrade 邊界內，import
+    # 失敗不影響 append-log 主流程（body 已 save_ticket 寫入 working tree）。
     from ticket_system.lib import git_utils
     try:
         commit_status = git_utils._auto_commit_ticket_md(

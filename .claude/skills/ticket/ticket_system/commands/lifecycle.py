@@ -1738,11 +1738,16 @@ def _handle_pending_children_block(
 def _auto_stage_git_add(paths: List[str]) -> None:
     """W11-035：薄封裝 subprocess.run 以便測試替身 patch 此 symbol，
     避免污染全域 subprocess.run（會影響 get_project_root 等 git 呼叫）。
+
+    W7-003.1：加 5s timeout，git hang（等認證 / index.lock）時不無限等待。
+    逾時拋 subprocess.TimeoutExpired，由呼叫端 ``_auto_stage_completion_files``
+    的 except 涵蓋（graceful degrade，不中斷 complete 流程）。
     """
     subprocess.run(
         ["git", "add", *paths],
         capture_output=True,
         check=False,
+        timeout=5,
     )
 
 
