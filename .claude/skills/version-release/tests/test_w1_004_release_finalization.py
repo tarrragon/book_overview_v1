@@ -60,22 +60,20 @@ class TestChangelogFinalize:
         # 不產生第二個 0.19.1 區段（finalize 而非新增）
         assert content.count("0.19.1]") == 1
 
-    def test_no_in_development_section_fails_loud(
+    def test_no_in_development_section_falls_back_to_template(
         self, tmp_path, monkeypatch
     ):
-        """無 In-Development 區段且版本未存在：0.20.0-W1-019 缺陷 A 起改 fail-loud，
-        不再插入 placeholder 空殼模板（取代原 fallback-to-template 行為）。"""
+        """無 In-Development 區段且版本未存在：維持原有插入模板行為（向後相容）"""
         body = "## [0.19.0] - 2026-06-02\n\n### 既有內容\n"
         changelog = self._write_changelog(tmp_path, body)
-        before = changelog.read_text(encoding="utf-8")
         monkeypatch.setattr(vr, "get_project_root", lambda: tmp_path)
 
         result = vr.update_changelog("0.19.1", dry_run=False)
-        assert result is False
+        assert result is True
 
         content = changelog.read_text(encoding="utf-8")
-        assert content == before
-        assert "UC-XX 功能名稱" not in content
+        today = datetime.now().strftime("%Y-%m-%d")
+        assert f"## [0.19.1] - {today}" in content
 
     def test_already_finalized_version_is_idempotent(self, tmp_path, monkeypatch):
         """版本已 finalize（header 帶日期）：冪等跳過，不重複插入"""
@@ -178,107 +176,3 @@ class TestMarkVersionCompleted:
         data = yaml.safe_load(todolist.read_text(encoding="utf-8"))
         statuses = {v["version"]: v["status"] for v in data["versions"]}
         assert statuses["0.19.0"] == "completed"
-
-
-# ---------------------------------------------------------------------------
-# 0.20.0-W1-019 缺陷 A：版本區段不存在時 fail-loud（不插空殼 placeholder）
-# ---------------------------------------------------------------------------
-class TestChangelogFailLoud:
-    HEADER = "# 變更紀錄\n\n本文件記錄所有重要變更。\n\n"
-
-    def _write_changelog(self, tmp_path, body: str) -> Path:
-        path = tmp_path / "CHANGELOG.md"
-        path.write_text(self.HEADER + body, encoding="utf-8")
-        return path
-
-    def test_missing_version_section_fails_loud(self, tmp_path, monkeypatch):
-        """版本區段不存在且無 In-Development：回傳 False，不插入空殼 placeholder"""
-        body = "## [0.19.0] - 2026-06-02\n\n### 既有內容\n"
-        changelog = self._write_changelog(tmp_path, body)
-        before = changelog.read_text(encoding="utf-8")
-        monkeypatch.setattr(vr, "get_project_root", lambda: tmp_path)
-
-        result = vr.update_changelog("0.20.0", dry_run=False)
-
-        # fail-loud：回傳 False（中止發布），不靜默插空殼
-        assert result is False
-        content = changelog.read_text(encoding="utf-8")
-        # 不插入 placeholder 空殼模板
-        assert "UC-XX 功能名稱" not in content
-        assert "新增功能項目" not in content
-        # 檔案內容未被修改
-        assert content == before
-
-    def test_missing_version_section_dry_run_also_fails(self, tmp_path, monkeypatch):
-        """dry_run 模式下版本區段不存在仍 fail-loud，不寫檔"""
-        body = "## [0.19.0] - 2026-06-02\n\n### 既有內容\n"
-        changelog = self._write_changelog(tmp_path, body)
-        before = changelog.read_text(encoding="utf-8")
-        monkeypatch.setattr(vr, "get_project_root", lambda: tmp_path)
-
-        result = vr.update_changelog("0.20.0", dry_run=True)
-        assert result is False
-        assert changelog.read_text(encoding="utf-8") == before
-
-
-# ---------------------------------------------------------------------------
-# 0.20.0-W1-019 缺陷 B：Mark Completed 在 git push 之前
-# ---------------------------------------------------------------------------
-class TestMarkCompletedBeforePush:
-    def test_mark_completed_runs_before_push_in_git_flow(
-        self, tmp_path, monkeypatch
-    ):
-        """git_merge_and_push 內 mark_version_completed 在 commit/push 之前被呼叫，
-        使 todolist completed 標記納入同一推送，不成孤兒未提交。"""
-        call_order = []
-
-        monkeypatch.setattr(vr, "get_project_root", lambda: tmp_path)
-        monkeypatch.setattr(
-            vr, "load_version_release_config", lambda root: {
-                "tag_format": "v{version}",
-                "release_workflow": "trunk",
-            }
-        )
-
-        def fake_mark(path, version, dry_run=False):
-            call_order.append("mark")
-            return True
-
-        def fake_commit(version, dry_run=False):
-            call_order.append("commit")
-            return True
-
-        monkeypatch.setattr(vr, "mark_version_completed", fake_mark)
-        monkeypatch.setattr(vr, "commit_changes", fake_commit)
-
-        # 攔截所有 git subprocess（push/tag/checkout/pull）記錄 push 時機
-        import subprocess as sp
-
-        orig_run = sp.run
-
-        def fake_run(args, *a, **kw):
-            if isinstance(args, list) and "push" in args:
-                call_order.append("push")
-
-            class R:
-                returncode = 0
-                stdout = ""
-                stderr = ""
-
-            return R()
-
-        monkeypatch.setattr(vr.subprocess, "run", fake_run)
-
-        result = vr.git_merge_and_push("0.20.0", dry_run=False)
-        assert result is True
-
-        # mark 必須在第一個 push 之前
-        assert "mark" in call_order
-        assert "push" in call_order
-        assert call_order.index("mark") < call_order.index("push"), (
-            f"mark 應在 push 之前，實際順序：{call_order}"
-        )
-        # 且 mark 在 commit 之前（使標記納入該 commit）
-        assert call_order.index("mark") < call_order.index("commit"), (
-            f"mark 應在 commit 之前，實際順序：{call_order}"
-        )

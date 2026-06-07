@@ -491,20 +491,8 @@ def check_technical_debt_status(version: str) -> Dict:
 
     # 掃描版本系列的票目錄
     # 修復 Bug 2b：使用完整版本號而非硬編碼 .0
-    # 0.20.0-W2-016：對齊行 449 的 config pattern，支援巢狀 worklog 結構
-    #   （docs/work-logs/v{major}/v{major_minor}/v{version}/tickets）；
-    #   保留扁平 fallback（docs/work-logs/v{version}/tickets）相容舊 v0.18.0。
     worklog_dir = root / "docs" / "work-logs"
-    config = load_version_release_config(root)
-    pattern = config.get(
-        "worklog_path_pattern",
-        DEFAULT_VERSION_RELEASE_CONFIG["worklog_path_pattern"],
-    )
-    version_subdir = resolve_worklog_dir(root, version, pattern)
-    tickets_dir = version_subdir / "tickets"
-    if not tickets_dir.exists():
-        # 扁平 fallback（向後相容舊結構 v0.18.0）
-        tickets_dir = worklog_dir / f"v{version}" / "tickets"
+    tickets_dir = worklog_dir / f"v{version}" / "tickets"
 
     result = {
         "passed": True,
@@ -1349,17 +1337,25 @@ def update_changelog(version: str, dry_run: bool = False) -> bool:
             print_warning(f"CHANGELOG.md 已包含 v{version} 條目，跳過插入")
             return True
 
-        # 無 In-Development 區段且版本未存在：fail-loud（0.20.0-W1-019 缺陷 A 修復）
-        # 不再插入 UC-XX 空殼 placeholder 模板，避免發布空殼 CHANGELOG。
-        # 發布前應由人手動撰寫版本區段（或建立 "## [v{version}] - In Development"
-        # 開發期區段供 release 自動 finalize）。
-        _ = new_version_block  # 保留模板供未來人工撰寫參考，不再自動插入
-        print_error(
-            f"CHANGELOG.md 缺少 v{version} 版本區段，發布中止。\n"
-            f"   請先手動撰寫 '## [{version}] - {today}' 區段，"
-            f"或建立 '## [v{version}] - In Development' 開發期區段供 release 自動 finalize。"
-        )
-        return False
+        # 無 In-Development 區段且版本未存在：維持原有插入模板行為（向後相容）
+        # 插入到 "## [" 之前（在 "格式基於" 之後）
+        insert_pos = changelog_content.find("## [")
+        if insert_pos > 0:
+            updated_content = (
+                changelog_content[:insert_pos]
+                + new_version_block
+                + changelog_content[insert_pos:]
+            )
+
+            if not dry_run:
+                with open(changelog_path, "w", encoding="utf-8") as f:
+                    f.write(updated_content)
+
+            print_success(f"CHANGELOG.md 已更新版本 {version}")
+            return True
+        else:
+            print_error("CHANGELOG.md 格式不符")
+            return False
 
     except Exception as e:
         print_error(f"更新 CHANGELOG.md 失敗: {e}")
@@ -2162,16 +2158,6 @@ def git_merge_and_push(version: str, dry_run: bool = False) -> bool:
     use_feature_branch = release_workflow == "feature-branch"
 
     try:
-        # 3.0 標記 todolist 版本 active → completed（0.20.0-W1-019 缺陷 B 修復）
-        # 必須在 commit/push 之前，使 todolist completed 標記納入同一推送，
-        # 不再成為 push 後的孤兒未提交變更。
-        print_info("[FLAG] 標記 todolist 版本 completed")
-        todolist_path = root / "docs" / "todolist.yaml"
-        if not mark_version_completed(todolist_path, version, dry_run):
-            print_warning(
-                f"todolist.yaml 版本 {version} 標記 completed 失敗（不中止發布，請手動確認）"
-            )
-
         # 3.1 提交變更
         print_info("[SYNC] 提交所有變更")
         if not commit_changes(version, dry_run):
@@ -2522,9 +2508,14 @@ def main():
                 print_error("\nGit 操作失敗，發布已中止")
                 return 1
 
-            # 註：todolist 版本 active → completed 標記已移至 git_merge_and_push 內
-            # 的 commit/push 之前（0.20.0-W1-019 缺陷 B），確保標記納入同一推送，
-            # 不再成為 push 後的孤兒未提交變更。
+            # 標記 todolist 版本狀態 active → completed（避免後續 start 被前版本驗證阻擋）
+            print_section("Step: Mark Version Completed")
+            todolist_path = get_project_root() / "docs" / "todolist.yaml"
+            completed_ok = mark_version_completed(todolist_path, version, dry_run)
+            if not completed_ok:
+                print_warning(
+                    f"todolist.yaml 版本 {version} 標記 completed 失敗（不中止發布，請手動確認）"
+                )
 
             # 打印摘要
             print_summary(version, ok, dry_run)

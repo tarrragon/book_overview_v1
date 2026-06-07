@@ -1,3 +1,1051 @@
+## [1.42.0] - 2026-06-05
+
+### Summary
+feat: 7 過載代理人 model sonnet→inherit（sonnet 1m 訂閱停用）; chore: sync-pull 同步框架配置（base 138bf04e，27 delta 無衝突）
+
+Changes: 1 feat, 1 chore
+
+- feat: 7 過載代理人 model sonnet→inherit（sonnet 1m 訂閱停用）
+- chore: sync-pull 同步框架配置（base 138bf04e，27 delta 無衝突）
+
+---
+
+## [1.41.0] - 2026-06-05
+
+### Summary
+feat: SubagentStop hook 改用 additionalContext + 版本相容 fallback; feat: command-entrance-gate-hook 引導式互動 + 描述性前綴/merge 誤判修補; fix: 移除過時 Flutter-monorepo 測試解除 collection error (+11 more)
+
+Changes: 2 feat, 2 fix, 8 docs, 2 chore
+
+- feat: SubagentStop hook 改用 additionalContext + 版本相容 fallback
+- feat: command-entrance-gate-hook 引導式互動 + 描述性前綴/merge 誤判修補
+- fix: 移除過時 Flutter-monorepo 測試解除 collection error
+- fix: version-release release 收尾完整性（CHANGELOG finalize + todolist 自動 completed）
+- docs: 新增 PC-176 + 補強 PC-172（codegraph 跨電腦乒乓兩個錯誤學習）
+- docs: src 字串輸出變更 acceptance 必含測試套件規則
+- docs: ANA 全量 grep/regex 範圍驗證完整性規範
+- docs: 新增 IMP-079 批次替換工具誤傷偵測目標字面 error-pattern
+- docs: 新增 PC-175 框架跨 sync 攜帶來源專案類型專屬資產
+- docs: search-tools-guide 速查表版本無關化，杜絕 MCP 工具名漂移
+- docs: PC-174 根因段補顯式 Consequence
+- docs: 新增 PC-174 命令閘門誤判描述性陳述 + 硬阻擋應改引導式
+- chore: #9 PC-157 $TMPDIR workaround 驗證 + 版本註記
+- chore: CC 2.1.162/2.1.163 release 影響評估 ANA
+
+---
+
+## [1.40.1] - 2026-06-04
+
+### Summary
+fix: 統一 settings template serena MCP 權限前綴; docs: 新增 PC-173 框架 MCP 工具名與實機暴露漂移; docs: 修正 project-init/search-tools-guide MCP 工具名漂移 (+3 more)
+
+Changes: 1 fix, 3 docs, 2 chore
+
+- fix: 統一 settings template serena MCP 權限前綴
+- docs: 新增 PC-173 框架 MCP 工具名與實機暴露漂移
+- docs: 修正 project-init/search-tools-guide MCP 工具名漂移
+- docs: 新增 PC-172 wrapper command 參數推斷未經 runtime 驗證
+- chore: 對齊 .gitignore handoff 規則與 sync manifest GITIGNORE_EXPECTED
+- chore: 修正 sync_exclude_manifest.py + test 檔執行權限為 755
+
+---
+
+## [1.40.0] - 2026-06-03
+
+### Summary
+feat: session-start hook gitignore↔manifest 交叉驗證; feat: sync-pull import-time PC 編號撞號偵測與自動重編號; feat: push git-archive 改造（C1+K）取代磁碟 copy_filtered (+11 more)
+
+Changes: 5 feat, 1 refactor, 5 fix, 3 docs
+
+- feat: session-start hook gitignore↔manifest 交叉驗證
+- feat: sync-pull import-time PC 編號撞號偵測與自動重編號
+- feat: push git-archive 改造（C1+K）取代磁碟 copy_filtered
+- feat: pull 三方合併改造（A3+L+M）取代全量 overlay
+- feat: sync-state 加單一 last_synced_base_sha + status 顯示
+- refactor: 建 sync 排除分類 SSOT manifest，根治 push/status 漂移
+- fix: pull robustness — preserve fail-loud (H) + 備份排除工具產物 (Q)
+- fix: exec-bit 還原遞迴覆蓋 skills/*/hooks/（缺陷 G）
+- fix: push clean-check 改 should_exclude 過濾 porcelain + .gitignore 補齊漂移項
+- fix: push 機密洩漏防護 abort gitignored/untracked .claude 檔
+- fix: 修復 track list priority 排序 datetime.date vs str 混型 TypeError
+- docs: D2 PC 編號區段 policy + sync README base snapshot 更新
+- docs: 修正 README-subtree-sync.md 與程式碼對齊三處矛盾
+- docs: 新增 PC-171（上游 PC-165 重編號避免本地撞號）
+
+---
+
+## [1.39.2] - 2026-06-03
+
+### Summary
+chore: 更新 sync-state（sync-push bookkeeping）
+
+Changes: 1 chore
+
+- chore: 更新 sync-state（sync-push bookkeeping）
+
+---
+
+## [1.39.1] - 2026-06-03
+
+### Summary
+fix: app shell 新增資料管理導航入口; chore: sync-pull .claude framework 更新（claude.git）; chore: 移除誤入的 worktree gitlink
+
+Changes: 1 fix, 2 chore
+
+- fix: app shell 新增資料管理導航入口
+- chore: sync-pull .claude framework 更新（claude.git）
+- chore: 移除誤入的 worktree gitlink
+
+---
+
+## [1.39.0] - 2026-06-03
+
+### Summary
+feat: vendoring impeccable 設計 skill 至框架（納入 sync）; feat: config 化 version-release CLI 硬編碼假設支援 all-on-main; feat: 新增 parallel-claim-audit-hook 記錄 claim 時同 wave 快照（非阻擋） (+16 more)
+
+Changes: 4 feat, 13 docs, 2 chore
+
+- feat: vendoring impeccable 設計 skill 至框架（納入 sync）
+- feat: config 化 version-release CLI 硬編碼假設支援 all-on-main
+- feat: 新增 parallel-claim-audit-hook 記錄 claim 時同 wave 快照（非阻擋）
+- feat: 新增 cc-release-impact-review skill
+- docs: ARCH-015 整合四測矩陣 + 選項 3 決策落地
+- docs: ARCH-015 實測回填 — CC 2.1.161 #15 解鎖 worktree 內 .claude/ 編輯
+- docs: CC 2.1.161 框架影響評估 + 三衍生落地
+- docs: 標註 CC 2.1.161 #18 修復（subagent 卡 running 已消解）
+- docs: 更新 ARCH-015 標註 CC 2.1.161 #15 修復資訊（worktree 背景編輯解鎖）
+- docs: 第三方 CC skill vendoring 四陷阱（process-compliance）
+- docs: 文件化 subagent claim 推薦用法（半成功 root cause 已治本，不需 code fix）
+- docs: Layer 2 修正 — 三明示補全與正向錨點前置
+- docs: SOP 化 cc runtime worktree base 過舊處理流程
+- docs: 釐清 frontmatter exempt marker 不一致（ 已消解）
+- docs: 收尾 workflow 評估（不引入）+ MCP env 補記
+- docs: AUQ 規則新增維度 A 前置關卡（對齊 CC ）
+- docs: 落地 框架調整（worktree 清理 SOP + PC-059 釐清 + OTEL 補記）
+- chore: 提交遺留 mode 變更 test_parallel_claim_audit_hook.py (644->755)
+- chore: 推進 last-reviewed 至 2.1.160
+
+---
+
+## [1.38.1] - 2026-06-01
+
+### Summary
+fix: 修復 command-entrance-gate-hook 三層誤判（組合 F）; fix: migrate 反向引用更新保留被引用 ticket body
+
+Changes: 2 fix
+
+- fix: 修復 command-entrance-gate-hook 三層誤判（組合 F）
+- fix: migrate 反向引用更新保留被引用 ticket body
+
+---
+
+## [1.38.0] - 2026-06-01
+
+### Summary
+feat: 移除 --skip-verify flag + 拆 ticket track verify 子命令; feat: 擴 VALID_SECTIONS 加 Task Summary + Completion Info; feat: Phase 3 GREEN hook 訊息中性化 + Phase 4 評估 (+23 more)
+
+Changes: 6 feat, 2 refactor, 2 fix, 14 docs, 2 test
+
+- feat: 移除 --skip-verify flag + 拆 ticket track verify 子命令
+- feat: 擴 VALID_SECTIONS 加 Task Summary + Completion Info
+- feat: Phase 3 GREEN hook 訊息中性化 + Phase 4 評估
+- feat: dashboard 醒目標記 trigger-bound ticket
+- feat: saffron + agent-definition-standard 跨 ticket 物件操作禁令
+- feat: standalone --skip-verify 加 deprecation warning + AC2/AC3/AC4 評估
+- refactor: 移除 light evaluation_level enum ( 結論落地)
+- refactor: IMP-078 認知負擔重構（363→251 行 / 10→7 H2 / API SSOT 整併）
+- fix: post-test-hook 綠燈字面誤判修復
+- fix: worktree skill project_root 推導改用雙策略 fallback
+- docs: PC-166 補「情境因子 vs 根因」區分章節
+- docs: record merge interruption + --no-verify empty merge commit pattern (.3 incident)
+- docs: 建立 PC-168 flaky baseline lucky streak + quality-baseline 規則 1 邊界並列引用
+- docs: 建立 W4 session SOP 驗證 case study 並固化 8 case source data
+- docs: 新增「分析代理人 worktree 內無 commit ticket body」error pattern
+- docs: 補追 stale ticket cleanup 案例 + SOP
+- docs: Phase 4 評估結論 + load_top_ready docstring 小修
+- docs: 升級 PC-077 為 behavior-loop-details 派發決策矩陣
+- docs: Layer 2 審查修正 proposal-evaluation-gate.md
+- docs: IMP-075/076/077 補抽象層級分析章節
+- docs: IMP-078 + PC-165 並列關係雙向修訂（3 項）
+- docs: IMP-078 hot-fix（Rule 8 marker + bundle crypto + global.gc + no-restricted-imports）
+- docs: 新建 IMP-078 CE-Node 環境前提誤判 error-pattern
+- docs: PC-166 新增防護 D 區分 confabulation vs 異地真實執行
+- test: Phase 2 RED 新增 hook 訊息中性化測試
+- test: Phase 2 RED + spawn
+
+---
+
+## [1.37.0] - 2026-05-29
+
+### Summary
+feat: 新增 uv-tool ownership-guard hook 防跨專案全域工具污染; fix: phase4-hook 跳過 Context Bundle auto-extracted 區塊; fix: --acceptance 分隔符支援反斜線跳脫 + 拆條警告 (+10 more)
+
+Changes: 1 feat, 5 fix, 6 docs, 1 chore
+
+- feat: 新增 uv-tool ownership-guard hook 防跨專案全域工具污染
+- fix: phase4-hook 跳過 Context Bundle auto-extracted 區塊
+- fix: --acceptance 分隔符支援反斜線跳脫 + 拆條警告
+- fix: 修復 no_bare_status allowlist 行號漂移並去耦合
+- fix: 修復 error_channel + hook_health 兩 pre-existing 測試失敗
+- fix: release 依 blockedBy 決定目標狀態（空回 pending 非一律 blocked）
+- docs: 套用 basil Layer 2 審查修正 PC-166
+- docs: 記錄 PM confabulation 事件並建立 PC-166 防護
+- docs: 套用 basil Layer 2 審查 Warning 修正
+- docs: PC-142 新增 case 5 frontmatter 引用 + 防護同步 修復
+- docs: 新增規則六「長背景任務可觀測性」至 bash-tool-usage-rules
+- docs: 移除 basil-hook-architect.md 殘留 ticket ID 引用（規則 8 清理）
+- chore: 固化 uv-tool ownership-guard hook 執行權限位
+
+---
+
+## [1.36.1] - 2026-05-29
+
+### Summary
+chore: chmod +x test_session_start_gitignore_check_hook.py
+
+Changes: 1 chore
+
+- chore: chmod +x test_session_start_gitignore_check_hook.py
+
+---
+
+## [1.36.0] - 2026-05-28
+
+### Summary
+feat: session-start gitignore 必要 entry 檢查 hook; feat: sync-pull 自動清理超期 backup_dir; chore: untrack PM_INTERVENTION_REQUIRED runtime state
+
+Changes: 2 feat, 1 chore
+
+- feat: session-start gitignore 必要 entry 檢查 hook
+- feat: sync-pull 自動清理超期 backup_dir
+- chore: untrack PM_INTERVENTION_REQUIRED runtime state
+
+---
+
+## [1.35.3] - 2026-05-28
+
+### Summary
+fix: sync-push 無變更時 early-exit 避免空 commit
+
+Changes: 1 fix
+
+- fix: sync-push 無變更時 early-exit 避免空 commit
+
+---
+
+## [1.35.2] - 2026-05-28
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.35.1] - 2026-05-28
+
+### Summary
+fix: phase4-hook frontmatter YAML 區塊跳過 (PC-142 case 5); fix: 強化 project-init OUTDATED 警示顯眼度; fix: 修正 mcp_detector.py codegraph binary 名稱 (+5 more)
+
+Changes: 3 fix, 5 docs
+
+- fix: phase4-hook frontmatter YAML 區塊跳過 (PC-142 case 5)
+- fix: 強化 project-init OUTDATED 警示顯眼度
+- fix: 修正 mcp_detector.py codegraph binary 名稱
+- docs: ticket-lifecycle.md 三明示文字微調
+- docs: SKILL.md dashboard-first 落地（補前 session 遺留 commit）
+- docs: 新建 PC-164 MCP binary 名稱同源誤判 anti-pattern
+- docs: PC-163 Layer 2 補強 — 表格後橋接 + 防護三層適用條件
+- docs: 新建 PC-163 PM-worktree ticket md 偏離 error-pattern
+
+---
+
+## [1.35.0] - 2026-05-27
+
+### Summary
+feat: 升級 skill-cli-error-feedback-hook 加入系統功能缺失分類; feat: 並行受控實驗 + PC-137/ARCH-015 規則升級; feat: 建立 pm-rules/ticket-handoff-archaeology.md（接手考古 SOP） (+78 more)
+
+Changes: 19 feat, 4 refactor, 6 fix, 37 docs, 10 chore, 5 test
+
+- feat: 升級 skill-cli-error-feedback-hook 加入系統功能缺失分類
+- feat: 並行受控實驗 + PC-137/ARCH-015 規則升級
+- feat: 建立 pm-rules/ticket-handoff-archaeology.md（接手考古 SOP）
+- feat: 新增 install-guide-edit-reminder-hook (PC-159 Hook 層)
+- feat: 升級至 hook-system-methodology § 6 觀察類工具雙重身份設計
+- feat: SessionStart source diagnostic hook 用於 bg session resume 觀察
+- feat: 為 3 hook 啟用 continueOnBlock（4 處註冊）
+- feat: handoff gc 新增 --force 清理 task-chain handoff
+- feat: resume 擴充 target_ticket_id 反向查找
+- feat: inline pyproject_scanner API 消除 CLI sys.path hack
+- feat: claim 預設不執行 AC verification + complete 並行安全分析
+- feat: cbm + codegraph MCP detector 整合 project-init check
+- feat: S6 wire complete status precondition (B11/B13/B15 green)
+- feat: S5 wire set-acceptance status precondition (B6-B10 + E2 green)
+- feat: S3 wire append-log status precondition (B1-B5 + E1 green)
+- feat: S1 add require_in_progress helper (status precondition)
+- feat: append-log CLI 自動降級 H2 → H3（ 方案 B 落地）
+- feat: ticket create ID 掃描改用 main ref 聯集（B3 GREEN）
+- feat: 建立 test-assertion-design skill
+- refactor: charset guard find_violations 重構為 CATEGORY_MAP 統一 lookup
+- refactor: 刪除 handoff hook dead code get_active_version
+- refactor: 部分拆分 handoff-auto-resume-stop-hook 抽出 session 管理模組
+- refactor: has_background_agents 提升出 scan 迴圈為一次性 bool
+- fix: 清理 衍生：substring 比對 + cache 殘留 + sync-preserve 過時 + schema PC 引用
+- fix: post-test-hook 加 ticket body 寫入豁免
+- fix: 移除 SKILL.md 3 個 ✓ emoji 違反規則 3
+- fix: 修復 install + runtime path 兩個 framework bug
+- fix: 修正 .mcp.json --load-extension 路徑（採方案 B）
+- fix: 縮窄 post-test-hook ANALYZER_WARNING_PATTERNS 避免誤報 jest console.warn
+- docs: basil Layer 2 補審查回應 - 補三明示 Consequence/Action + 表格 OR 說明
+- docs: ticket-body-schema.md IMP 安裝指令 acceptance 條件補強 (PC-159 三層防護收尾)
+- docs: Layer 2 補修 basil 審查 2W+2I 回饋
+- docs: 升級 worktree-operations 與 parallel-dispatch 為策略 C
+- docs: parallel-dispatch.md 新增 bgIsolation:none 並行安全警告
+- docs: worktree-operations.md 新增 bgIsolation 策略選擇章節
+- docs: 錯誤學習雙通道 + 衍生 追蹤建立
+- docs: 對齊 CC plugin 管理機制
+- docs: 新增 /goal × acceptance 邊界章節
+- docs: PC-092 v2 案例補強（/ 並行 commit）+ PM 自評
+- docs: 鏡像 memory 升級四問檢查至 auto-load + pm-role 路由補強
+- docs: ANA 驗收修正 + PC-161 固化 + .1 closed
+- docs: PC-160 PM 跳過升級評估閘門直接寫 memory 處理 session 浮現洞察
+- docs: .2 實機驗證落地 + SessionStart source 對照表
+- docs: footer 描述移除具體 ticket ID 純粹符合 PC-083
+- docs: session-switching-sop 補充 /resume bg session 場景
+- docs: 新增 claude agents --json 速查附錄段落
+- docs: 整併 acceptance 反模式表 DRY + Why 欄 + Action 步驟
+- docs: Layer 2 修正反模式範例英文混入
+- docs: 遷移既有 acceptance 「npm test 100%」為 complete-time 語義 + 文件規範完善
+- docs: Layer 2 微調收尾責任段落
+- docs: 補強 mint-format-specialist 收尾責任段落
+- docs: PC-074 補升級備註指向 language-constraints 規則 5
+- docs: language-constraints 新增規則 5 字元集子集動態驗證
+- docs: 文件落地三 MCP 路由與 cbm 限制（方案 B 改良）
+- docs: 建立 PC-159 安裝指令未在 fresh shell 驗證
+- docs: 新增 PC-158 — mint-format-specialist 視覺標記場景 emoji 違規
+- docs: 新增三 MCP 設計對照表與三刀流工作流決策樹至 search-tools-guide skill
+- docs: 新增 IMP-077 測試 helper 設計反模式
+- docs: 新增 IMP-076 skill packaging install/runtime 二態盲點（ 衍生）
+- docs: 新增 PC-157 + IMP-075（.2 衍生）
+- docs: language-constraints 規則 3 補規格文件 emoji 豁免條款
+- docs: 修正 PC-115 既有 6 處「數據」→「資料」 + Session 總結 worklog
+- docs: Layer 2 basil 審查修補 + PC-115 deadlock 變體章節 + spawn
+- docs: PM cwd auto-switch 到 agent worktree 錯誤模式記錄
+- docs: 新增 PC-155 auto-stage × worktree 並行編輯同檔造成 merge conflict
+- docs: 落地 worktree 派發防護方案 A1+B1
+- chore: gitignore 擴大 hook-logs 覆蓋嵌套 skill 目錄 + 接受 IMP-054 auto exec bit
+- chore: allow ZIP install verification commands (.2 leftover)
+- chore: 補 test_post_test_hook.py exec bit
+- chore: spawn ticket 落地 + dispatch plan 註記
+- chore: 正規化版本發布時的權限需求變更檢查
+- chore: 固化 worktree 派發失敗為 PC-154 error-pattern
+- chore: 補提交 .2 第二次中斷紀錄 + 修正 handoff gitignore
+- chore: 收斂 test-assertion 設計檔為 skill stub
+- chore: compositional-writing 多輪審查第 2 輪修正 + complete
+- chore: 套用第 1 輪審查 F1-F7 修正到 test-assertion-design skill
+- test: test_mcp_detector 9 情境覆蓋 success/missing/index
+- test: S7 add precondition × file_lock safety tests (D1-D2)
+- test: S4 add force-usage logging tests (C1-C4 complete)
+- test: S2 add conftest precondition fixtures
+- test: TDD Phase 1-2 — B3 ID 掃描 main ref 功能設計 + RED 測試
+
+---
+
+## [1.34.0] - 2026-05-21
+
+### Summary
+feat: stop-worklog-handoff-sync-check-hook 整合 background_tasks 降級誤報; feat: handoff-auto-resume hook 整合 background_tasks 取代 started_at 推斷; feat: pm-role.md caveat 區塊信號判讀規則 + PC-153 新建 (+88 more)
+
+Changes: 29 feat, 3 refactor, 16 fix, 29 docs, 8 chore, 6 test
+
+- feat: stop-worklog-handoff-sync-check-hook 整合 background_tasks 降級誤報
+- feat: handoff-auto-resume hook 整合 background_tasks 取代 started_at 推斷
+- feat: pm-role.md caveat 區塊信號判讀規則 + PC-153 新建
+- feat: 遷移 worktree skill 專用 hook (7 個) 至 .claude/skills/worktree/hooks/
+- feat: 遷移 wrap-decision-tripwire-hook 至 .claude/skills/wrap-decision/hooks/
+- feat: 遷移 ticket skill 專用 hook (20 個) 至 .claude/skills/ticket/hooks/
+- feat: uv-tool-staleness-check-hook 偵測 7 skill source vs installed 漂移
+- feat: branch-status-reminder 列全量 + PC-076 防護落地
+- feat: 實作 ticket track hook-health CLI 子命令
+- feat: 擴充 hook-health-monitor 加觸發頻率掃描與 session marker
+- feat: hook_health 核心引擎（scan/classify/evaluate/marker）
+- feat: ticket migrate collision detection (dry-run warn + default reject + --force-overwrite)
+- feat: ticket complete 自動 git add metadata + 提示 commit 指令（方案 D）
+- feat: PC-093 exempt 白名單納入 history 類別
+- feat: commands/ 下 4 檔批量加 file_lock 保護
+- feat: lifecycle.py 4 處 load→save 加 file_lock
+- feat: file_lock 包圍 extract_and_write_context_bundle load→modify→save
+- feat: fcntl Windows conditional import + explicit NotImplementedError fallback
+- feat: Phase 3 GREEN — 注入 _file_lock 於 update_* 消除 logical race
+- feat: worktree merge reminder cleanup + SessionStart audit (PC-149)
+- feat: enhance git-index-lock-cleanup hook with GUI app detection hint
+- feat: add ticket track dispatch-readiness CLI (pending review)
+- feat: complete dispatch-validate CLI (linux+basil reviewed)
+- feat: add ticket track dispatch-validate CLI (Context Bundle sanity check)
+- feat: add CLI append-log H2 content warning
+- feat: add PreCommit homoglyph guard hook (PC-150 protection)
+- feat: phase4-decision-enforcement-hook fenced code block 豁免
+- feat: ticket track parallel-check 子命令偵測子任務衝突
+- feat: sync-claude-push 改善 revert commit 分類與淨效應摘要
+- refactor: 抽 lib/file_lock.py + _append_unique_to_list_field helper
+- refactor: improve dispatch-readiness code quality
+- refactor: improve dispatch-validate code quality
+- fix: ticket track append-log 替換 Schema 章節 placeholder
+- fix: 修正 pm-role.md + PC-153 共 13 處「信號→訊號」跨海峽用語
+- fix: get_tickets_dir 移除存在性檢查，v1+ 主版本三層化
+- fix: _ABSOLUTE_CLAUDE_PATTERN 加 lookbehind 防雙層 .claude/ 多重匹配誤判
+- fix: 修 test_track_batch 3 個 stale exit code 期望（1→2）+ PC-151 basil 修訂
+- fix: 修 test_track_acceptance 4 個 stale exit code 期望（1→2）
+- fix: 擴充 phase-completion-gate-hook 主檔 regex 涵蓋 -main/-work-log suffix
+- fix: dedupe ticket frontmatter I/O in handoff stop hook
+- fix: align ticket CLI exit codes to three-value contract
+- fix: correct dispatch-active.json path in checkpoint_state
+- fix: worktree skill path/import mismatch
+- fix: runqueue --context=resume 優先讀 target_ticket_id
+- fix: 移除 settings.local.json PreToolUse:Agent 重複註冊
+- fix: 修復 mint 形似字混淆「汲染」→「汙染」3 處
+- fix: validator _is_placeholder 對非表格描述性 N/A 字面豁免（PC-138/PC-144 家族延伸）
+- fix: agent-dispatch-validation-hook 補 pyyaml dep 修 ModuleNotFoundError
+- docs: hook-architect-technical-reference 補 + -143 缺口
+- docs: 追加 案例（acceptance 列表中文描述 inline N/A）
+- docs: PC-068 擴充 ANA 階段案例
+- docs: migrate-command.md 加入「前置檢查（強制）」章節
+- docs: sync migrate-command.md with --force-overwrite flag and collision detection behavior
+- docs: 落地 PC-152 ticket migrate 撞既有目標 ID 靜默覆寫
+- docs: 同步 ticket complete --no-stage flag 至 SKILL.md / ticket-lifecycle.md
+- docs: 新增 stale test exit code 期望飄移錯誤模式
+- docs: Phase 4 評估完成 — 三視角共識無阻擋性重構，4 項延後追蹤建 spawned tickets
+- docs: 啟用 Claude Code worktree.bgIsolation:none 設定
+- docs: neutralize ticket ID references in single-source-io rules
+- docs: add single-source I/O collection rules SSOT
+- docs: neutralize ticket ID references in cli-exit-code-rules
+- docs: add CLI exit code layering spec + complete parent ticket
+- docs: add 3b dispatch-readiness check section to task-splitting.md
+- docs: fix language-constraints violation in track-command.md
+- docs: 修正 basil Layer 2 審查發現（H3 層級說明 + 場景辨識訊號）
+- docs: 新增 PM 預寫策略放 Context Bundle 三條款規範
+- docs: add normalize whitelist and grep verification to mint agent
+- docs: merged worktree no post-complete cleanup + fix
+- docs: IMP-074 + ticket H2→H3 schema fix
+- docs: askuserquestion-rules 新增規則 7 多子任務必含平行派發選項
+- docs: 新增 IMP-073 Logger 方法解構導致 this 遺失 + promise hang error-pattern
+- docs: PC-148 Layer 2 修正 + complete
+- docs: 建立 PC-148 hook 雙重註冊 error-pattern
+- docs: 修正 compositional-writing Layer 2 C 段 5 類風格建議
+- docs: 補 fixture ImportError 靜默 fallback 註解
+- docs: 新增 2 原則卡 + 3-reviewer 33 issue 修正
+- docs: 追加案例 #2 agent-dispatch-validation-hook 漏 sync
+- chore: chmod +x 6 個 hook lib/tests 檔案
+- chore: 修正 hook tests 執行權限（IMP-054 自動套用）
+- chore: sync pre-existing W17 ticket metadata and worklog updates
+- chore: commit orphaned complete metadata + settings allow Skill(error-pattern)
+- chore: 完成 ticket（status=completed）
+- chore: complete ANA ticket pair + spawn 4 children
+- chore: 收尾 /041 ticket md 與 effort test 檔 exec mode 修正
+- chore: l10n-sync-verification-hook 加 continueOnBlock:true
+- test: handoff-auto-resume hook main stdin 整合測試 4 路徑
+- test: 補實作檔案（fork mode assert）
+- test: Phase 2 RED v2 — 模擬 update_* race 確認真紅
+- test: Phase 2 RED 7 測試實作 全紅 baseline
+- test: Phase 2 RED 測試 — worktree merge reminder + SessionStart audit
+- test: 新增 conftest autouse fixture mock track_snapshot 檔案系統掃描
+
+---
+
+## [1.33.0] - 2026-05-14
+
+### Summary
+feat: 6 個中頻 strict-validator hook 加 effort 感知; feat: 類別 A 剩餘 6 hook 加 effort 感知; feat: hook 系統 effort 感知（類別 A 高頻 4 hook） (+9 more)
+
+Changes: 4 feat, 4 refactor, 2 fix, 1 docs, 1 chore
+
+- feat: 6 個中頻 strict-validator hook 加 effort 感知
+- feat: 類別 A 剩餘 6 hook 加 effort 感知
+- feat: hook 系統 effort 感知（類別 A 高頻 4 hook）
+- feat: dispatch-active GC + TTL 降為 1h
+- refactor: 補齊 _update_ticket_id_references 六欄位 + 收斂 monkeypatch + 降低 local import
+- refactor: test_migrate_reverse_refs.py Phase 4 三項共識重構
+- refactor: process-skip-guard-hook 三項細節改善
+- refactor: 統一 hook active ticket 解析機制
+- fix: 修復 create.py child_info/new_ticket where 字串格式防護
+- fix: ticket create 對 parent ticket 字串格式 where/who 防護
+- docs: 固化「事實判斷必擋 + effort 解耦」設計鐵則為 hook 設計指引
+- chore: 遷移 settings.json hook command 至 args 陣列形式
+
+---
+
+## [1.32.0] - 2026-05-14
+
+### Summary
+feat: 派發前假設驗證機制 Phase A 落地; feat: cognitive-load.md 新增監測校準框架章節 + 結案; feat: proposal-evaluation-gate hook 新增 status=draft 豁免 + 規則 light 收斂純語意 (+48 more)
+
+Changes: 9 feat, 5 refactor, 11 fix, 23 docs, 3 chore
+
+- feat: 派發前假設驗證機制 Phase A 落地
+- feat: cognitive-load.md 新增監測校準框架章節 + 結案
+- feat: proposal-evaluation-gate hook 新增 status=draft 豁免 + 規則 light 收斂純語意
+- feat: ticket complete 加入 pending children blocking + --force 豁免
+- feat: Phase 3b 實作完成 — ticket track list --top 10 + --all
+- feat: 新增 ticket track dashboard 聚合視圖（Phase 3b）
+- feat: 新增 ticket track td-status 子命令（PC-094 TD 清單校準）
+- feat: 審查模式關鍵字豁免 worktree 強制
+- feat: build staleness check SessionStart hook
+- refactor: process-skip-guard main emit 點收斂
+- refactor: Phase A 精準裁剪，總 token 減 ~5.5K
+- refactor: is_stale_in_progress 改為 compute_stale_minutes 薄包裝（DRY）
+- refactor: 遷移泛化 3 個 .claude/ 違反規則 8 檔案
+- refactor: error_pattern_attribution 6 項低優整理
+- fix: phase-completion-gate 三層 guard 過濾 ticket md 文本引用誤判
+- fix: sync ALLOWED_FILTER_SITES resume.py 193 to 195
+- fix: 對齊 VALID_SECTIONS 與 ticket-body-schema.md 補入「重現實驗結果」
+- fix: phase4-hook 跳過 Schema placeholder 區塊內 PC-093-exempt 範例字串
+- fix: phase4-hook 拒絕訊息加白名單清單 + inline 提示
+- fix: self_check_visibility_checker 改前綴匹配支援 H3 補充說明
+- fix: ticket-quality-gate-hook type-aware 觸發 + 移除 Flutter 硬編碼
+- fix: _is_placeholder 表格情境豁免 + acceptance_auditor consolidate (PC-138 / PC-144 治本)
+- fix: 泛化 thyme-extension-engineer 與 oregano-data-miner 移除產品名稱與書城列舉
+- fix: phase4-hook 新增 [ref] 行豁免修復 Context Bundle 誤判
+- fix: phase4-hook 新增 rule-quote 豁免類別（PC-093 治本）
+- docs: 規則文件收斂 //PC-146 修復對應
+- docs: 新增 PC-146 PC-093 exempt marker 位置誤用
+- docs: 新增 PC-145 Stale CLI install 偽裝 validator bug
+- docs: priority normalization 介面評估結論採方案 C（維持 + cross-ref）
+- docs: 新增 PC-144 validator TODO/TBD 字面誤判 placeholder
+- docs: 跨模組 _ private import 評估結論採方案 B（rule of three 未達）
+- docs: cognitive-load.md 補三明示缺口（Layer 2 follow-up）
+- docs: Layer 2 修正 claude-code-tools-reference.md
+- docs: 補 initialPrompt/memory 節三明示（二次審查修正）
+- docs: 補充代理人 frontmatter 撰寫指南（8 新欄位 + 升級建議清單）
+- docs: 新增 Claude Code 進階工具參考索引
+- docs: 補 reference-stability-rules.md 規則 8 豁免機制章節
+- docs: ANA 評估 7 個 .claude/ 規則 8 違反 + B 類 5 檔加豁免註解 + spawn /
+- docs: 補 ticket SKILL.md dashboard + list 預設行為文件
+- docs: 補入案例 4 ( complete) + 跨 session 重現警示
+- docs: 補 /080 遷移成果記錄與路徑修正
+- docs: 新增 PC-143 lavender Phase 1 spec 對既有 CLI 行為假設未驗證
+- docs: 新增 PC-142 phase4-hook 字面抓觸發詞誤判規則引用
+- docs: 新增 PC-141 監測類 ANA acceptance 未預先區分訊號類型
+- docs: 新增 PC-140 + IMP-072 記錄本 session 兩個 framework bug
+- docs: 補 SKILL.md td-status 同步 + ticket completed 收尾
+- docs: Layer 2 修正（P2 違規）
+- docs: 同步 td-status 子命令到決策層文件
+- chore: test_ticket_quality_gate_type_aware.py +x 權限修正
+- chore: 補 漏帶的 chmod +x
+- chore: 補齊 test_build_staleness_check_hook 測試檔執行權限
+
+---
+
+## [1.31.0] - 2026-05-12
+
+### Summary
+feat: 新增 chrome-extension-mcp-debug SKILL; feat: 新增 ticket track stale-list 子命令列舉 stale ticket 明細; feat: framework-rule-edit hook 補 edit metrics log (+134 more)
+
+Changes: 35 feat, 5 refactor, 25 fix, 59 docs, 13 chore
+
+- feat: 新增 chrome-extension-mcp-debug SKILL
+- feat: 新增 ticket track stale-list 子命令列舉 stale ticket 明細
+- feat: framework-rule-edit hook 補 edit metrics log
+- feat: humanize PC-093 hook invalid exempt marker output
+- feat: hook-completeness-check 支援雙層 hook 架構掃描
+- feat: wrap-tripwire context-aware blacklist filter (.1.1.2)
+- feat: wrap-tripwire pytest 環境豁免 (.1.1.1)
+- feat: 建立 .claude/hooks/pyproject.toml + CLAUDE.md §5
+- feat: PC-115 重啟調查收斂 + 並行派發 ≤ 2 防護落地
+- feat: PC-115 trigger 計數機制設計落地
+- feat: 擴充 ana_spawn_consistency_checker 支援 heading-based spawn 偵測
+- feat: auq-option-pattern-detector 新增 §3.4-bis 表格選項偵測 + E6 豁免
+- feat: handoff --next CLI 與 target_ticket_id 欄位（L2-A）
+- feat: SessionStart 提示語改寫 + Stop hook terminal 過濾
+- feat: 實作 ana_spawn_consistency_checker + acceptance-gate-hook Step 2.5.2 整合
+- feat: basil-writing-critic Layer 3 升級加入 zhtw-mcp 機械層審查
+- feat: 新增 acceptance-gate-hook Layer 1 自檢可觀測性 checker
+- feat: hook 註冊 + SOP/SKILL.md 引用 + follow-up
+- feat: 實作 handoff --from-worklog CLI + Stop hook 雙軌同步偵測
+- feat: S1 lib/worklog_parser.py + 12 RED tests 全綠
+- feat: branch-verify-hook 跨專案豁免清單退化 + deny 切換指令
+- feat: main-thread hook 跨專案編輯放行
+- feat: wrap-tripwire hook S2 log 補 matched_keyword/prompt_excerpt
+- feat: 建立 Hook 降級觀察期方法論與快速恢復機制
+- feat: ANA 5/5 + Method 6 落地（hook log 反推 12 簡體字）
+- feat: ANA 5/5 完成 + detector self-test 第五層落地
+- feat: codepoint-aware 污染偵測工具落地，實證 推論
+- feat: acceptance-gate 純文件 IMP 訊息差異化
+- feat: 新增 wrap-skill-yaml-consistency-hook + 雙向映射檔
+- feat: 整合 zhtw-mcp 跨專案可用性檢查（hook + sync 排除）
+- feat: proposal-evaluation-gate PreToolUse Hook 落地
+- feat: PROP 模板新增 Reality Test 必填章節
+- feat: 實作兄弟 blockedBy 4 條件違規偵測 Hook
+- feat: 新增 cognitive-load.md 3b 派發前閾值章節
+- feat: hook-completeness-check 自動 commit chmod 修正
+- refactor: hook is_ticket_completed delegate 至 lib SSOT
+- refactor: branch-verify-hook 改用 git_utils.find_target_repo
+- refactor: 降級 Phase 3b P3 五 Hook（worklog-format / utf8-integrity / language-guard / comment-qa / file-type-permission）
+- refactor: 降級 Phase 3b P1 三 Hook（parallel-dispatch / bash-edit-guard / acceptance-gate）
+- refactor: zhtw-mcp hook 探測機制改為 file-based 三層 scope
+- fix: commit-msg-layer2-marker-check-hook 補 uv-run shebang + pep723 pyyaml dep
+- fix: 移除 TestK_DocSync test_k2/k3 對齊 / 解耦
+- fix: 4 檔測試 assert 對齊（Group 4+5+6+7 共 11 failures）
+- fix: stop hook 測試對齊現行 API（Group 2+3 共 18 failures）
+- fix: test_ticket_tracker.py 廢棄 CSV tracker 整檔 skip
+- fix: test_analytics.py stale module reference 整檔 skip
+- fix: tech-debt-reminder 改用 hook_utils.parse_ticket_frontmatter
+- fix: 5 hook 改用 hook_utils helper 支援 ticket 雙結構
+- fix: 三 handoff hook silent fallback 改 noisy（PC-135 防護落地）
+- fix: 補 pyyaml dep 修 .1 regression
+- fix: lib handoff_utils SSOT delegate find_ticket_file 修子進程環境 stale GC
+- fix: handoff-prompt-reminder 路徑解析改用 find_ticket_file 支援三層階層
+- fix: 修復 stop-worklog-handoff-sync-check-hook 三根因
+- fix: handoff 機制 L1 三項同步修復（GC delegate + 移除 to-source + terminal 防護）
+- fix: stop-worklog-handoff-sync-check-hook 加 _extract_handoff_section helper（SOT-mirror）修 false positive
+- fix: 修復 agent-commit-verification-hook SubagentStop schema 違反
+- fix: 修復 subagent-stop-dispatch-cleanup-hook SubagentStop event schema 違反
+- fix: stop-worklog-handoff-sync-check-hook 改用 top-level systemMessage
+- fix: runqueue --context=resume 解析 direction 取出 target
+- fix: handoff stop hook 計數前 stale 過濾 + 剛建豁免窗口
+- fix: phase-completion-gate-hook 排除 ticket md 與 worklog 主檔
+- fix: ticket-quality-gate keyword 縮緊 + 路徑黑名單
+- fix: hook stdin field naming camelCase → snake_case
+- fix: layer-boundary-validator + doc-sync-check 補 pyyaml uv script 依賴
+- fix: 縮窄 detect_task_type explicit phase 掃描至第一行
+- docs: 補修整檔 emoji 違規（language-constraints 規則 3）
+- docs: 套用 Layer 2 審查修正——SKILL Workflow C 三明示與分類完整性
+- docs: MCP E2E 驗證 checklist 落地 readmoo.md + SKILL 書庫類範例
+- docs: 建立 docs/bookstores/ 書城測試目標 reference 架構
+- docs: 套用 Layer 2 P2 修正——SKILL 三明示與結構一致性
+- docs: Layer 2 補修 §3 三明示 (Why/Consequence/Action)
+- docs: framework-asset-separation §3 Skill Hook 雙層架構規範
+- docs: 執行 方案 D 混合策略遷移
+- docs: 建立 PC-139 index.lock GUI app fork 為衝突來源 error-pattern
+- docs: ARCH-020 Layer 2 P1 修正
+- docs: ARCH-020 補測試檔 script header 反模式變體條款
+- docs: 修正 PC-138/IMP-071 Layer 2 P1 違規
+- docs: 新增 TEST-007 archived 模組測試處理 idiom
+- docs: 新增 PC-138 + IMP-071 ( 雙通道記錄)
+- docs: ANA complete + spawn / (yaml deps gap)
+- docs: 清理 hook-downgrade-observation.md 22 處 W10-* 引用
+- docs: 清理 hook-downgrade-observation.md 8 處 / ticket ID 引用
+- docs: cognitive-load.md §3b 章節 ticket ID 引用抽象化
+- docs: hook-downgrade-observation 加入兩類機制定義與 Extended 觀察數據
+- docs: 新增 PC-137 並行派發 .claude/ Edit deny 反模式
+- docs: ANA retrospective complete + PC-136 落地 + W17 ticket 鏈收尾
+- docs: 落地 PC-136 規則層三層升級（quality-common §1.2.6 + ANA 方法論 callees + 派發模板）
+- docs: PC-135 子代理人 pytest 通過 vs hook 子進程環境失準
+- docs: 升級 handoff 純指針設計原則至框架方法論層
+- docs: 落地 AUQ S1-S6 訊號 + 三明示自檢 checklist
+- docs: sync handoff --next / target_ticket_id to SKILL references
+- docs: 改寫 ticket_system 4 處「待恢復任務」對齊 L2-B 設計
+- docs: 建立 PC-134 ANA-self-reference-irony error-pattern
+- docs: 三份規則文件同步修訂——ANA Solution spawn 規劃落地強制條款
+- docs: 新增 PM ANA 驗收 checklist 三明示問題（Solution spawn 一致性）
+- docs: bay-quality-auditor 審計 Phase 3b Hook 削減比 57.8% vs 預估 85% 差距 27.2 ppt + spawn
+- docs: PC-133 代理人對同性質任務接受/拒絕不一致
+- docs: Layer 2 P1+P2 修正 + trigger 計數機制 spawn
+- docs: PC-115 真根因收斂為候選 1 transient runtime（4 子實驗閉環）
+- docs: cognitive-load.md 跨進程同步修復豁免條款落地（ ANA 收斂）
+- docs: 整合 hindsight + multi-pass 顆粒度
+- docs: 案例 2 三明示形式對稱化（Layer 2 P2 建議落地）
+- docs: 擴充案例 2 — PM append-log 違反
+- docs: 外部佐證落地 + Anthropic Issue 監測 tracker
+- docs: 新增 — Hook self-check 警示是被忽視的反推資料源
+- docs: 新增 — 外部工具權威性預設質疑
+- docs: 新增「動態驗證取代靜態維護」根本性解法章節
+- docs: 撰寫 PC-130 規範性文字 dogfooding 違規 error-pattern
+- docs: 新增 ARCH-022 hook 用 CLI 探測產生跨界隱性副作用
+- docs: 釐清 ANA 路線方法論補強
+- docs: 新建 IMP-070 error-pattern hook stdin 欄位命名混淆
+- docs: 新增 uv script transitive 依賴未宣告 — `lib/` 共用模組引入 yaml 不自動安裝
+- docs: 新增 規則存在但 agent 行為層未遵守 — agent-definition-standard 規範與實際輸出落差
+- docs: P2 雙 hook 改善 — checklist 補強 + deny 訊息現況驗證
+- docs: WRAP_SKILL_TRIGGER 訊息 Layer 2 殘留違規精緻化
+- docs: agent-dispatch-template Layer 2 剩餘違規批次修正
+- docs: AGENT_PRELOAD 規則 7 新增程式碼大檔讀取子節
+- docs: 解決 ARCH-010 編號衝突，重編號 module-assembly-omission 為 ARCH-021
+- docs: SKILL 外部依賴追蹤規則降級執行
+- docs: 補 #11 前置條件三明示完整化
+- docs: 新增 /clear 前 main 未提交變更強制檢查規則
+- docs: sync compositional-writing and wrap-decision
+- docs: 套用 compositional-writing 改寫 parallel-evaluation 5 檔
+- docs: 擴充 decision-trigger-binding 涵蓋將來/以後 + worklog 排程原則
+- chore: 建立父+5子 ticket 收斂 Chrome Extension MCP 實機驗證後續
+- chore: 補齊 6 個 hook 檔案執行權限（IMP-054）
+- chore: 累積 handoff archive 清理權限（.4 stale handoff JSON）
+- chore: 累積本機 Bash 權限（worklog/handoff/git lock cleanup）
+- chore: 補上測試檔執行權限 (IMP-054)
+- chore: session 2+3 base rate 完成 — 6/6 Edit success, deny 0%
+- chore: session 1 base rate 數據點 — 2/2 Edit success
+- chore: ticket complete + tests exec bit 補齊
+- chore: 同步 hook 自動產出 — .4 結案 ticket md + main worklog 條目 + pyyaml 評估報告刷新
+- chore: 拆分 11 PROP 子 ticket — 5 standard + 6 heavy
+- chore: ticket complete + hook 設可執行
+- chore: hook-completeness-check 自動修正 exec bit (IMP-054)
+- chore: auto-fix executable permissions for hook files (IMP-054)
+
+---
+
+## [1.30.0] - 2026-05-04
+
+### Summary
+feat: commit-msg Layer 2 marker check hook 補事後維度防護; feat: framework-rule-edit-skill-trigger-hook + lifecycle.py 改用 framework_paths SSOT; feat: 擴增 claim WRAP 三問新增 S 問（framework 路徑提示） (+8 more)
+
+Changes: 3 feat, 2 refactor, 4 docs, 2 chore
+
+- feat: commit-msg Layer 2 marker check hook 補事後維度防護
+- feat: framework-rule-edit-skill-trigger-hook + lifecycle.py 改用 framework_paths SSOT
+- feat: 擴增 claim WRAP 三問新增 S 問（framework 路徑提示）
+- refactor: framework-paths SSOT 拆 strict/broad + lifecycle.py S 問改用 broad
+- refactor: 抽出 framework-paths.yaml SSOT + lib/framework_paths.py 共用模組
+- docs: 設計 Layer 1 自檢 prompt 模板
+- docs: agent-dispatch-template 新增 PM 自做 framework 規則編輯流程章節
+- docs: Layer 2 審查後微調規則 6 為機會成本語氣
+- docs: 新增 ai-communication-rules 規則 6 估時禁令條款
+- chore: 補正 hook 檔案執行權限為 755
+- chore: Layer 2 by basil-writing-critic — 吸納 3 P2 修正
+
+---
+
+## [1.29.0] - 2026-05-03
+
+### Summary
+feat: 規則 6.1 框架 ticket 版本歸屬補強 + PC-121; feat: runqueue stale in_progress 標註; feat: runqueue readiness 標註 (+52 more)
+
+Changes: 24 feat, 3 refactor, 8 fix, 15 docs, 2 chore, 3 test
+
+- feat: 規則 6.1 框架 ticket 版本歸屬補強 + PC-121
+- feat: runqueue stale in_progress 標註
+- feat: runqueue readiness 標註
+- feat: handoff 寫入 exit_status 欄位
+- feat: runqueue --context=resume 讀 handoff exit_status 並標 tag
+- feat: handoff --auto 整合 Context Bundle 抽取器
+- feat: session-start NeedsContext 警示摘要（盲區 E）
+- feat: worktree-zombie-cleanup-hook (SessionStart PID 死活檢測 + 自動 GC)
+- feat: skill-cli-error-feedback-hook 補充模式（偵測 ErrorEnvelope 標記跳過引導）
+- feat: create.py 業務錯誤改走 ErrorEnvelope 結構化通道
+- feat: argparse 業務錯誤改走 format_error 結構化路徑
+- feat: format_error 升級為雙路徑（legacy str + ErrorEnvelope）
+- feat: ticket track log 新增 --section 過濾參數
+- feat: append-log section 標題容錯（A+B 合併方案）
+- feat: ticket track show 作為 full 的 alias
+- feat: add-spawned 支援 nargs='+' 多 ID 對齊 Unix 慣例
+- feat: ticket skill sync-check hook（C 路徑落地）
+- feat: 套用 multi-view review 修正規則檔 （AC-5 待 PM 二次 review）
+- feat: 補強 ticket skill 行為變更同步檢查規則（AC-4 待 PM multi-view）
+- feat: 決策樹閉環流程（無法立刻決策時的合法 5 step）
+- feat: 落地禁用無 ticket trigger 延後決策原則
+- feat: multi_view_checker 加 nested YAML 結構誤用提示
+- feat: Stop hook should_preserve_pending_json 對齊 CLI stale 規則
+- feat: 抽 handoff_utils.is_handoff_stale 共用函式 + 4 情境單元測試
+- refactor: acceptance-gate hook ana_spawned_checker 退場
+- refactor: process-skip-guard get_active_in_progress_ticket short-circuit
+- refactor: 抽取 section_locator helper 移除 4 處 section pattern 重複
+- fix: test_create_source_ticket 5 斷言對齊 ErrorEnvelope 新格式
+- fix: 修復 complete schema 錯誤訊息使用不存在的 append-log --content
+- fix: handoff-reminder-hook 套用 stale 過濾並提示已過濾數
+- fix: track_relations closed/superseded 分組 + grep lint 防護
+- fix: handoff/auditor/checkpoint 6 處 terminal 對齊
+- fix: view 層 board+stuck_anas+query 3 處 terminal 對齊
+- fix: chain_analyzer.py 8 處 terminal 語意對齊
+- fix: lifecycle 內部 terminal 語意一致性對齊
+- docs: 升級 提煉 memory 為 framework 規則
+- docs: 統一 ANA 落地語意 + 建立 field-semantics.md SSOT
+- docs: track-command.md 同步 runqueue exit_status tag 說明
+- docs: worktree SKILL 新增 Agent isolation worktree GC 機制章節
+- docs: 新增 PC-120 + 修正 multi-view 整合無 trigger 延後違規
+- docs: 新增 PC-119 parallel-evaluation 用法誤解 — 單派 linux 視角
+- docs: 補強 .5 group 引導文件 PC-105 防護（ErrorEnvelope / hook envelope 偵測說明）
+- docs: 撰寫 PC-118 ticket skill 行為變更未同步決策層反模式
+- docs: ana-solution-schema 加 forbidden_format 段落明示禁 nested
+- docs: 新增 PC error pattern — ANA multi_view_status nested YAML hook 誤判
+- docs: 落地 4 反模式防護三件式
+- docs: PC-115 真因調查計畫 + 4 spawned 子實驗 ticket
+- docs: Hypothesis K 強形式被否證
+- docs: PC-115 五輪實驗 + Hypothesis K + tickets 紀錄
+- docs: 更新 subagent .claude/ Edit deny 根因為 runtime hardcoded（）
+- chore: hook-completeness-check 自動加上 test file 執行權限 (IMP-054)
+- chore: 補齊 4 hook test 檔案執行權限
+- test: 新增 5+ 錯誤通道整合測試（驗證 .5 group 端到端行為）
+- test: 補多行 nested YAML invalid 分支測試 case
+- test: 三方 handoff stale 一致性整合測試（9 case 矩陣）
+
+---
+
+## [1.28.0] - 2026-04-30
+
+### Summary
+feat: resume --list 改採 runqueue 排序; feat: 落地 agent 自律 complete 收尾責任; feat: ANA ticket metadata validation hook (+19 more)
+
+Changes: 4 feat, 8 refactor, 2 fix, 4 docs, 2 chore, 2 test
+
+- feat: resume --list 改採 runqueue 排序
+- feat: 落地 agent 自律 complete 收尾責任
+- feat: ANA ticket metadata validation hook
+- feat: active-dispatch guard for process-skip-guard-hook
+- refactor: 解耦 wrap-decision 外部引用 + 移除違規 README
+- refactor: extract _is_fully_unblocked predicate
+- refactor: extract cascade messages to command_lifecycle_messages
+- refactor: introduce ChildOutcome + classify/dispatch in cascade
+- refactor: inject ticket_map into _cascade_unblock_children + extract _post_complete_cascade
+- refactor: AUQ hook keyword dedup + DRY
+- refactor: extract where.files parsing to hook_utils
+- refactor: Phase 4b polish _resolve_path_classification
+- fix: _is_placeholder regex 加字邊界避免 substring 誤判
+- fix: process-skip-guard PEP 723 缺 pyyaml + IMP-069 錯誤學習
+- docs: 整合官方 skill-creator 規範並以 compositional-writing 重寫
+- docs: add UTF-8 enforcement template to hook-architect-technical-reference
+- docs: record PC-113 + PC-114 error patterns + memory
+- docs: 補完 track-command.md 常見錯誤實測症狀
+- chore: restore exec bit on transcript_tail_reader and related test files
+- chore: complete ticket body + YAML quote fix
+- test: add cascade save-order contract tests + docstring
+- test: add boundary tests for _resolve_path_classification
+
+---
+
+## [1.27.1] - 2026-04-29
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.27.0] - 2026-04-29
+
+### Summary
+feat: phase3b 完成 16 整合測試 GREEN（migrate 反向引用 W11 重組情境）; feat: phase3b 完成 type/phase guard + 關鍵字精確化 GREEN; feat: GREEN — _resolve_path_classification helper L1+L2+L3 整合 (+12 more)
+
+Changes: 9 feat, 2 docs, 4 chore, 1 test
+
+- feat: phase3b 完成 16 整合測試 GREEN（migrate 反向引用 W11 重組情境）
+- feat: phase3b 完成 type/phase guard + 關鍵字精確化 GREEN
+- feat: GREEN — _resolve_path_classification helper L1+L2+L3 整合
+- feat: 新增 Schema H2 idempotent dedupe 防止重複 placeholder
+- feat: upgrade PROP-009 checklist validation from WARNING to blocking
+- feat: mcp-write-tool guard hook + tool-selection rule
+- feat: WRAP 研究 serena MCP 必要性 + 修正 search-tools-guide 過時紀錄
+- feat: AGENT_PRELOAD + thyme 加入工具選擇規則防止 serena MCP 誤選與 early stop
+- feat: basil v4 改用 progressive disclosure 載入策略
+- docs: 新增 PC-112 — subagent 對非程式碼檔案誤選 MCP 寫入工具
+- docs: PC-059 retry6 補強 — 主 repo cwd .claude/ subagent Edit 失效
+- chore: phase2 sage 測試設計 RED 骨架
+- chore: 寫入 Context Bundle + claim ticket
+- chore: worklog + settings.local.json 同步
+- test: Phase 2 RED — _resolve_path_classification helper 測試
+
+---
+
+## [1.26.0] - 2026-04-28
+
+### Summary
+feat: 情境 C/D/F/G 加入 basil-writing-critic 視角; feat: 新增 basil-writing-critic 至 registry.yaml 和 decision-tree.md; feat: stuck-anas CLI + source ANA / group 提示行（.13/.14 方案 D） (+6 more)
+
+Changes: 3 feat, 1 refactor, 2 docs, 3 chore
+
+- feat: 情境 C/D/F/G 加入 basil-writing-critic 視角
+- feat: 新增 basil-writing-critic 至 registry.yaml 和 decision-tree.md
+- feat: stuck-anas CLI + source ANA / group 提示行（.13/.14 方案 D）
+- refactor: track.py 雙 dict 消除 5 命令 if-elif 雙軌
+- docs: agents README 新增 basil 前綴群組命名說明
+- docs: 補強 multi-pass review 層次意識（writing-articles.md ）
+- chore: complete IMP — basil agent 手抄改 @-import 重構
+- chore: complete IMP — wrap-decision SKILL 納入決策路徑層因子 5-8
+- chore: complete IMP — PM session 結束自檢 checklist
+
+---
+
+## [1.25.0] - 2026-04-27
+
+### Summary
+feat: error-pattern README 新增「抽象層級分析」必填章節 + PC-111 backfill; feat: compositional-writing SKILL 原則 3 升級為「意圖顯性與層級貼合」
+
+Changes: 2 feat
+
+- feat: error-pattern README 新增「抽象層級分析」必填章節 + PC-111 backfill
+- feat: compositional-writing SKILL 原則 3 升級為「意圖顯性與層級貼合」
+
+---
+
+## [1.24.0] - 2026-04-27
+
+### Summary
+feat: IMP-B/C/D 落地（PC-111 升級 + 2 張新 IMP ticket）; feat: pm-judgment-interference-map （ IMP-A 直接落地）; feat: 強化 agent 自定義 H2 防護（PC-110 根因 B 落地） (+26 more)
+
+Changes: 7 feat, 3 fix, 16 docs, 3 chore
+
+- feat: IMP-B/C/D 落地（PC-111 升級 + 2 張新 IMP ticket）
+- feat: pm-judgment-interference-map （ IMP-A 直接落地）
+- feat: 強化 agent 自定義 H2 防護（PC-110 根因 B 落地）
+- feat: ANA 雙根因分析落地 + IMP-1/2 + PC-110
+- feat: 擴充 charset hook 涵蓋 emoji + PC-085 + 隱含表達 6 句型
+- feat: agent-prompt-length-guard 新增軟提示層偵測缺模板關鍵字
+- feat: 擴充 agent-ticket-validation 白名單支援情報蒐集類 agent
+- fix: validate_execution_log_by_type 章節定位改用 line-anchored regex 避免 backtick 誤判
+- fix: validator + hook body-check false negative 症狀修復
+- fix: 修復 body-check h3 子標題誤判章節結束 bug
+- docs: frontend-with-playwright 更新主文與 references + 新增 principles 卡片
+- docs: compositional-writing 更新主文與 references + 新增 principles 卡片
+- docs: 新增 requirement-protocol skill — 從需求確認到實作的對話協議
+- docs: 新增 frontend-with-playwright skill — 框架無關前端開發協議 + Playwright 驗證
+- docs: compositional-writing 五大原則 → 六大原則 + 情境 5b 文集管理
+- docs: session-switching-sop — worklog/CLI handoff 雙軌同步
+- docs: PC-111 新增 R5 素材跨層誤推 + 素材溯源鏈 + R1 改寫
+- docs: .2 pm-judgment-interference-map
+- docs: PC-111 PM 論述編造 + 根因淺層歸因雙層錯誤
+- docs: ARCH-020 驗證邏輯跨進程重複實作架構教訓
+- docs: 新增 parallel-evaluation --skip-basil opt-out + 重寫 thyme-doc-integrator description
+- docs: basil-writing-critic v2（3 職責 + Hook 層化 + 6 句型偵測）
+- docs: 建立 basil-writing-critic agent definition 檔案
+- docs: .1 + .3 派發流程範本化前台產出
+- docs: 更新 hook 技術參考文件補充 / 新功能
+- docs: 新增二次審查強制執行原則至 document-writing-style 與 compositional-writing
+- chore: 修正 新建 hook 檔案執行權限 (IMP-054 auto-fix)
+- chore: auto-fix exec bit for test_language_guard.py (IMP-054)
+- chore: HookCheck 自動加上 test 檔執行權限 (IMP-054)
+
+---
+
+## [1.23.1] - 2026-04-22
+
+### Summary
+docs: add rule 6 — positive framing in anti-pattern sections
+
+Changes: 1 docs
+
+- docs: add rule 6 — positive framing in anti-pattern sections
+
+---
+
+## [1.23.0] - 2026-04-22
+
+### Summary
+feat: 新增 SessionStart Hook 偵測 .claude/ 未排除檔案 (.3); docs: 補充 sync 腳本排除清單分類規範與開發 checklist; docs: add PC-109 runtime state missing sync exclusion (.2)
+
+Changes: 1 feat, 2 docs
+
+- feat: 新增 SessionStart Hook 偵測 .claude/ 未排除檔案 (.3)
+- docs: 補充 sync 腳本排除清單分類規範與開發 checklist
+- docs: add PC-109 runtime state missing sync exclusion (.2)
+
+---
+
+## [1.22.2] - 2026-04-22
+
+### Summary
+fix: 修復 sync 腳本遺漏 runtime state 排除清單
+
+Changes: 1 fix
+
+- fix: 修復 sync 腳本遺漏 runtime state 排除清單
+
+---
+
+## [1.22.1] - 2026-04-22
+
+### Summary
+docs: 新增「最重要的話優先說」資訊優先序原則
+
+Changes: 1 docs
+
+- docs: 新增「最重要的話優先說」資訊優先序原則
+
+---
+
+## [1.22.0] - 2026-04-22
+
+### Summary
+feat: show runqueue after auto handoff; fix: remove dead version flag from ticket track; docs: complete dispatch plan templates (+6 more)
+
+Changes: 1 feat, 1 fix, 7 docs
+
+- feat: show runqueue after auto handoff
+- fix: remove dead version flag from ticket track
+- docs: complete dispatch plan templates
+- docs: update hook system guidance
+- docs: expand worktree operation guidance
+- docs: clarify hook test execution with uv
+- docs: record subagent completion lifecycle pattern
+- docs: point handoff prompt to runqueue
+- docs: switch ticket resume entry to runqueue
+
+---
+
+## [1.21.1] - 2026-04-21
+
+### Summary
+docs: 補完 check/set-acceptance 語法組合表 + 決策樹 + 5 常見錯誤警示; docs: 補列 set-blocked-by / set-related-to / set-acceptance CLI 範例
+
+Changes: 2 docs
+
+- docs: 補完 check/set-acceptance 語法組合表 + 決策樹 + 5 常見錯誤警示
+- docs: 補列 set-blocked-by / set-related-to / set-acceptance CLI 範例
+
+---
+
+## [1.21.0] - 2026-04-21
+
+### Summary
+feat: 落地 軸 C 規則面（runqueue spawned 加權）; feat: session-start hook 新增 spawned pending 提醒; feat: 落地 軸 D 規則面（session-switching-sop Spawned 推進清單） (+4 more)
+
+Changes: 5 feat, 1 fix, 1 docs
+
+- feat: 落地 軸 C 規則面（runqueue spawned 加權）
+- feat: session-start hook 新增 spawned pending 提醒
+- feat: 落地 軸 D 規則面（session-switching-sop Spawned 推進清單）
+- feat: 落地 軸 B priority 繼承 + PC-105 CLI autopilot
+- feat: 落地 軸 A+C 規則擴充 + PC-075 擴充（/042 complete）
+- fix: _is_placeholder 剝除 HTML 註解後再判斷實質內容
+- docs: 核心文件路徑示範改三層結構（v{major}/v{minor}/v{patch}/tickets）
+
+---
+
+## [1.20.0] - 2026-04-21
+
+### Summary
+feat: 優化 Context Bundle extractor P2 風格與增強項; feat: Context Bundle CLI wire-in (create + claim); feat: 實作 Context Bundle 自動抽取機制 (+25 more)
+
+Changes: 12 feat, 1 fix, 11 docs, 4 chore
+
+- feat: 優化 Context Bundle extractor P2 風格與增強項
+- feat: Context Bundle CLI wire-in (create + claim)
+- feat: 實作 Context Bundle 自動抽取機制
+- feat: NeedsContext + Exit Status protocol + hook listener
+- feat: sync completed_at to body Completion Info on ticket complete
+- feat: type-aware ticket body schema
+- feat: append-log VALID_SECTIONS 加入 Context Bundle
+- feat: dispatch hook fallback 讀 ticket where.files
+- feat: 新建 session-start-scheduler-hint-hook（排程上下文恢復）
+- feat: 實作 ticket track runqueue 統一 scheduler CLI
+- feat: ticket handoff --auto 自動生成模式
+- feat: group ticket + 11 children 清理 遺漏項
+- fix: patch validate_execution_log_by_type mock + close ticket
+- docs: 新增 PC-107 Phase 3b 派發前未走拆分檢查
+- docs: agent body 填寫責任標準化
+- docs: 文件化 create --source-ticket 副作用 + parent vs source 對比表
+- docs: PC-106 規則失效跳過讀 code + .2 claim
+- docs: PC-105 新功能實作後缺乏文件引導整合（雙通道）
+- docs: 補 runqueue scheduler CLI 引導文件（4 檔）
+- docs: SKILL.md 補 ticket show 子命令使用範例與短 flag 對照
+- docs: PC-104 Agent 執行邊界誤判導致結果未落地（雙通道）
+- docs: 新增 PC-103 大型類比框架維度漏排（雙通道）
+- docs: 補 group + 11 children Context Bundle + group methodology
+- docs: 新增 PC-100 / PC-101 錯誤學習（雙通道記錄）
+- chore: 並行 session 未提交變更收整（scheduler hint hook 測試 + + worklog）
+- chore: complete .4 hook + group 收尾
+- chore: show enhancement commit（他人並行產出收整）
+- chore: .1 ticket show 實作登錄 + worklog 更新（pre-dispatch）
+
+---
+
+## [1.19.0] - 2026-04-20
+
+### Summary
+feat: 新增 ticket track dispatch-check CLI (PC-050 CLI 化); docs: worklog 進度追加 + PC-077 累積 Meta 循環案例; docs: 建立 plugin 管理準則文件 (+1 more)
+
+Changes: 1 feat, 2 docs, 1 chore
+
+- feat: 新增 ticket track dispatch-check CLI (PC-050 CLI 化)
+- docs: worklog 進度追加 + PC-077 累積 Meta 循環案例
+- docs: 建立 plugin 管理準則文件
+- chore: 版號基底修正 + complete
+
+---
+
 ## [1.18.0] - 2026-04-20
 
 ### Summary
