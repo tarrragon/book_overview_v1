@@ -537,4 +537,4 @@ ticket track complete 0.19.0-W3-032.1
 
 **Version**: 1.1.0 — 新增短 prompt snippets 與 dispatch-plan template（W17-044）
 
-**Version**: 1.0.0 — 從 W5-009 方案 2 落地（Ticket 0.18.0-W5-044）
+**Version**: 1.0.0 — 初版建立代理人派發職責邊界聲明骨架（W5-044 落地，源 W5-009 方案 2）
