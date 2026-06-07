@@ -728,7 +728,7 @@ def collect_remote_files(src: Path, prefix: Path = Path()) -> set[Path]:
 
 
 def _is_git_tracked(rel_under_root: str, project_root: Path) -> bool:
-    """判斷相對 project_root 的路徑是否受 git 追蹤（W1-004）。
+    """判斷相對 project_root 的路徑是否受 git 追蹤。
 
     用 git ls-files --error-unmatch <path>：受追蹤回 returncode 0。
     非 git 環境或路徑未追蹤回 False，呼叫端視為可刪除的 runtime/stale 檔。
@@ -752,14 +752,14 @@ def cleanup_stale_files(
     preserve: set[str] | None = None,
     project_root: Path | None = None,
 ) -> tuple[list[str], list[str]]:
-    """移除本地有但遠端 repo 中不存在的過時檔案（git 追蹤感知，W1-004）。
+    """移除本地有但遠端 repo 中不存在的過時檔案（git 追蹤感知）。
 
-    git 追蹤感知：受 git 追蹤的本地獨有檔（= 本專案演化內容，獨立 repo 無）
+    git 追蹤感知：受 git 追蹤的本地獨有檔（= 本地累積、上游 repo 無）
     不靜默刪除，改移至 .sync-conflicts/ 並計入 preserved_as_conflict；僅非追蹤檔
     （runtime / 真 stale）維持原 unlink。preserve 清單中的檔案不刪也不移。
 
-    背景：W1-003 根因分析發現 full overlay fallback 下本函式誤刪 PC-177 等本專案
-    特有防護（不在 sync-preserve.yaml）。git 追蹤狀態是「本專案演化內容」的可靠訊號，
+    背景：full overlay fallback 下本函式曾誤刪上游 repo 不存在但本地累積的防護檔
+    （未列於 sync-preserve.yaml）。git 追蹤狀態是「本地有意保留內容」的可靠訊號，
     比手動維護的 preserve 清單更不易遺漏。
 
     參數:
@@ -810,7 +810,7 @@ def cleanup_stale_files(
                     print_color(f"   保留本地特化檔案: {rel_str}", "green")
                     continue
                 if _is_git_tracked(f".claude/{rel_str}", project_root):
-                    # 本地演化內容：移至 .sync-conflicts，不靜默刪除（W1-004）
+                    # 本地累積內容：移至 .sync-conflicts，不靜默刪除
                     if conflicts_dir is None:
                         conflicts_dir = _ensure_conflicts_dir(claude_dir)
                     dest = conflicts_dir / rel_str.replace("/", "__")
@@ -835,7 +835,7 @@ def preview_overlay_changes(
     preserve: set[str] | None = None,
     project_root: Path | None = None,
 ) -> tuple[list[str], list[tuple[str, bool]]]:
-    """full overlay 前的 dry-run 預覽（W1-004）。
+    """full overlay 前的 dry-run 預覽。
 
     在實際 sync_directory + cleanup_stale_files 前，收集本次 overlay 的影響清單，
     讓使用者在覆蓋發生前看見將被覆蓋與將被刪除（含 git 追蹤標記）的檔案。
@@ -1407,7 +1407,7 @@ def _sync_with_backup(project_root: Path, temp_dir: Path) -> Path:
         print_color("更新 .claude 資料夾（全量 overlay）...")
         remote_files = collect_remote_files(temp_dir)
 
-        # W1-004：full overlay 前 dry-run 預覽（讓覆蓋/刪除在發生前可見）
+        # full overlay 前 dry-run 預覽（讓覆蓋/刪除在發生前可見）
         will_overwrite, will_delete = preview_overlay_changes(
             temp_dir, claude_dir, remote_files, preserve
         )
@@ -1443,7 +1443,7 @@ def _sync_with_backup(project_root: Path, temp_dir: Path) -> Path:
         if preserved_conflicts:
             print_color(
                 f"   {len(preserved_conflicts)} 個本地獨有 git 追蹤檔已轉存 "
-                f"{SYNC_CONFLICTS_DIR}/（非刪除，W1-004）:", "yellow"
+                f"{SYNC_CONFLICTS_DIR}/（非刪除）:", "yellow"
             )
             for p in preserved_conflicts:
                 print_color(f"     -> {p}")

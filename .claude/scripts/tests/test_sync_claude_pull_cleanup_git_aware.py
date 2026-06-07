@@ -1,10 +1,10 @@
-"""Tests for sync-claude-pull.py cleanup git-tracking awareness (1.0.0-W1-004).
+"""Tests for sync-claude-pull.py cleanup git-tracking awareness.
 
-涵蓋 W1-003 議題三根本解：full overlay fallback 下 cleanup_stale_files 不再
-靜默刪除本地獨有 git 追蹤檔（本專案演化內容），改移至 .sync-conflicts/；
-並提供 full overlay 前的 will-delete / will-overwrite dry-run 預覽。
+full overlay fallback 下 cleanup_stale_files 不再靜默刪除本地獨有 git 追蹤檔
+（本地累積、上游 repo 無），改移至 .sync-conflicts/；並提供 full overlay 前的
+will-delete / will-overwrite dry-run 預覽。
 
-根因背景見 ticket 1.0.0-W1-003（2026-06-07 sync-pull 誤刪 PC-177 等特有防護）。
+背景：full overlay 曾誤刪上游 repo 不存在但本地累積的防護檔（未列 sync-preserve.yaml）。
 """
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def _make_claude(root: Path) -> Path:
 
 
 def test_git_tracked_local_only_not_deleted(tmp_path: Path) -> None:
-    """本地 git 追蹤但遠端無的檔（本專案演化內容）不刪，移至 .sync-conflicts，計入 preserved。"""
+    """本地 git 追蹤但遠端無的檔（本地累積、上游無）不刪，移至 .sync-conflicts，計入 preserved。"""
     root = tmp_path
     _init_git_repo(root)
     claude = _make_claude(root)
