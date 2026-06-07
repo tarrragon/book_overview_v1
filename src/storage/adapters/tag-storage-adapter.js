@@ -1470,6 +1470,38 @@ function resolveCategoryConflictByLWW (localRecord, incomingRecord) {
 }
 
 /**
+ * 跨裝置書級衝突解析：純量欄位（progress / readingStatus 等）以 updatedAt LWW 收斂。
+ *
+ * 解決 UC-05 跨裝置閱讀進度同步：裝置 B 進度較新（updatedAt 較新）卻匯入裝置 A 舊檔時，
+ * B 的進度不被舊值覆蓋。LWW 時間判定規則與 resolveCategoryConflictByLWW 一致——
+ * 較新勝、僅一方有時間者勝、皆無時間退回 incoming（向後相容既有「匯入覆蓋」語意）。
+ *
+ * 與 category 解析的差異：tagIds 為 additive 聯集語意（永不遺失 tag），不受 LWW 勝負影響，
+ * 由 caller 在勝出書上覆寫聯集後的 tagIds。故本函式只決定「純量欄位取哪一方」，
+ * tagIds 的處理留給 caller。
+ *
+ * @param {Object} localBook - 本地同 id 書
+ * @param {Object} incomingBook - 匯入同 id 書（tagIds 已重映射）
+ * @returns {Object} 純量欄位勝出方的淺拷貝（tagIds 由 caller 後續覆寫）
+ */
+function resolveBookConflictByLWW (localBook, incomingBook) {
+  const localTime = localBook.updatedAt ? Date.parse(localBook.updatedAt) : NaN
+  const incomingTime = incomingBook.updatedAt ? Date.parse(incomingBook.updatedAt) : NaN
+  const localValid = !Number.isNaN(localTime)
+  const incomingValid = !Number.isNaN(incomingTime)
+
+  // 兩方皆有有效時間 → 取較新；平手取 incoming（最後寫入優先）
+  if (localValid && incomingValid) {
+    return incomingTime >= localTime ? { ...incomingBook } : { ...localBook }
+  }
+  // 僅一方有時間 → 有時間者較新
+  if (incomingValid) return { ...incomingBook }
+  if (localValid) return { ...localBook }
+  // 皆無時間 → 退回 incoming（向後相容既有「匯入覆蓋」語意）
+  return { ...incomingBook }
+}
+
+/**
  * scoped category 合併（樹狀 model A3-2 + 跨裝置同步場景組 E2-b）。
  *
  * 三條合併軸：
@@ -1694,14 +1726,18 @@ function computeMergeResult (local, incoming, idGenerators) {
       remappedTagIds.push(mapped)
     }
     if (localBookById.has(impBook.id)) {
-      // 同 id：其餘欄位以匯入覆蓋，tagIds 取聯集（本地在前、新增在後、去重）
+      // 同 id：純量欄位（progress/readingStatus 等）走書級 updatedAt LWW，
+      // tagIds 取聯集（additive，本地在前、新增在後、去重）。兩軌獨立。
       const localBook = localBookById.get(impBook.id)
       let unionTagIds = [...new Set([...(localBook.tagIds || []), ...remappedTagIds])]
       if (unionTagIds.length > TagSchema.MAX_TAGS_PER_BOOK) {
         logger.warn('MERGE_TAGIDS_TRUNCATED', { bookId: impBook.id, limit: TagSchema.MAX_TAGS_PER_BOOK })
         unionTagIds = unionTagIds.slice(0, TagSchema.MAX_TAGS_PER_BOOK)
       }
-      localBookById.set(impBook.id, { ...localBook, ...impBook, tagIds: unionTagIds })
+      // remappedTagIds 已重映射，傳入 LWW 的 incoming 視圖須帶重映射後 tagIds
+      const lwwWinner = resolveBookConflictByLWW(localBook, { ...impBook, tagIds: remappedTagIds })
+      // tagIds 不受 LWW 勝負影響，一律覆寫為聯集結果
+      localBookById.set(impBook.id, { ...lwwWinner, tagIds: unionTagIds })
     } else {
       // 新 id 直接加入
       localBookById.set(impBook.id, { ...impBook, tagIds: remappedTagIds })

@@ -635,6 +635,183 @@ describe('computeMergeResult — 合併計算純函式（UC-04 匯入）', () =>
   })
 
   // -------------------------------------------------------------------------
+  // 測試群組 H：書級進度衝突 LWW by updatedAt（1.0.0-W4-006）
+  //
+  // 場景：UC-05 跨裝置閱讀進度同步。同 id 書衝突時，progress 等純量欄位
+  // 採書級 updatedAt LWW（較新勝），tagIds 維持聯集（additive 不變）。
+  // LWW 規則比照 resolveCategoryConflictByLWW：
+  //   - 兩方有時間 → 較新勝；平手取 incoming
+  //   - 僅一方有時間 → 有時間者勝
+  //   - 皆無時間 → 退回 incoming（向後相容既有「匯入覆蓋」語意）
+  // -------------------------------------------------------------------------
+  describe('測試群組 H：書級進度衝突 LWW by updatedAt', () => {
+    test('TC-H1 裝置 B 較新進度匯入舊檔時不被覆蓋（核心場景）', () => {
+      // 本地（裝置 B）進度 80，updatedAt 較新
+      const local = {
+        books: [makeBook('book-001', {
+          progress: 80,
+          readingStatus: 'reading',
+          updatedAt: '2026-06-07T12:00:00Z'
+        })],
+        tags: [],
+        tagCategories: []
+      }
+      // 匯入（裝置 A 舊檔）進度 30，updatedAt 較舊
+      const incoming = {
+        books: [makeBook('book-001', {
+          progress: 30,
+          readingStatus: 'reading',
+          updatedAt: '2026-06-01T08:00:00Z'
+        })],
+        tags: [],
+        tagCategories: []
+      }
+
+      const result = computeMergeResult(local, incoming, makeSequentialIdGenerators())
+
+      const book = result.books.find(b => b.id === 'book-001')
+      // 本地較新進度勝出，不被舊檔覆蓋
+      expect(book.progress).toBe(80)
+      expect(book.updatedAt).toBe('2026-06-07T12:00:00Z')
+    })
+
+    test('TC-H2 匯入進度較新時覆蓋本地舊進度（正常 LWW 方向）', () => {
+      const local = {
+        books: [makeBook('book-001', {
+          progress: 30,
+          updatedAt: '2026-06-01T08:00:00Z'
+        })],
+        tags: [],
+        tagCategories: []
+      }
+      const incoming = {
+        books: [makeBook('book-001', {
+          progress: 80,
+          updatedAt: '2026-06-07T12:00:00Z'
+        })],
+        tags: [],
+        tagCategories: []
+      }
+
+      const result = computeMergeResult(local, incoming, makeSequentialIdGenerators())
+
+      const book = result.books.find(b => b.id === 'book-001')
+      // 匯入較新進度勝出
+      expect(book.progress).toBe(80)
+      expect(book.updatedAt).toBe('2026-06-07T12:00:00Z')
+    })
+
+    test('TC-H3 進度 LWW 不影響 tagIds 聯集（兩軌獨立）', () => {
+      // 本地進度較新但 tagIds 較少；匯入進度較舊但帶新 tag
+      const local = {
+        books: [makeBook('book-001', {
+          progress: 80,
+          tagIds: ['t_local_a'],
+          updatedAt: '2026-06-07T12:00:00Z'
+        })],
+        tags: [makeTag('t_local_a', '科幻', 'cat_local_1')],
+        tagCategories: [makeCategory('cat_local_1', '書籍類型')]
+      }
+      const incoming = {
+        books: [makeBook('book-001', {
+          progress: 30,
+          tagIds: ['t_imp_b'],
+          updatedAt: '2026-06-01T08:00:00Z'
+        })],
+        tags: [makeTag('t_imp_b', '歷史', 'c_imp')],
+        tagCategories: [makeCategory('c_imp', '書籍類型')]
+      }
+
+      const result = computeMergeResult(local, incoming, makeSequentialIdGenerators())
+
+      const book = result.books.find(b => b.id === 'book-001')
+      // 進度走 LWW：本地較新勝
+      expect(book.progress).toBe(80)
+      // tagIds 走聯集：本地 + 匯入（重映射）皆保留，與 LWW 勝負無關
+      expect(book.tagIds).toEqual(['t_local_a', 'tag_test_1'])
+    })
+
+    test('TC-H4 平手（updatedAt 相同）取 incoming（最後寫入優先）', () => {
+      const sameTime = '2026-06-07T12:00:00Z'
+      const local = {
+        books: [makeBook('book-001', { progress: 80, updatedAt: sameTime })],
+        tags: [],
+        tagCategories: []
+      }
+      const incoming = {
+        books: [makeBook('book-001', { progress: 30, updatedAt: sameTime })],
+        tags: [],
+        tagCategories: []
+      }
+
+      const result = computeMergeResult(local, incoming, makeSequentialIdGenerators())
+
+      const book = result.books.find(b => b.id === 'book-001')
+      // 平手取 incoming
+      expect(book.progress).toBe(30)
+    })
+
+    test('TC-H5 僅本地有 updatedAt → 本地勝（明確時間優於無時間）', () => {
+      const local = {
+        books: [makeBook('book-001', { progress: 80, updatedAt: '2026-06-07T12:00:00Z' })],
+        tags: [],
+        tagCategories: []
+      }
+      const incoming = {
+        books: [makeBook('book-001', { progress: 30 })], // 無 updatedAt
+        tags: [],
+        tagCategories: []
+      }
+
+      const result = computeMergeResult(local, incoming, makeSequentialIdGenerators())
+
+      const book = result.books.find(b => b.id === 'book-001')
+      // 本地有時間者勝
+      expect(book.progress).toBe(80)
+    })
+
+    test('TC-H6 僅匯入有 updatedAt → 匯入勝（明確時間優於無時間）', () => {
+      const local = {
+        books: [makeBook('book-001', { progress: 80 })], // 無 updatedAt
+        tags: [],
+        tagCategories: []
+      }
+      const incoming = {
+        books: [makeBook('book-001', { progress: 30, updatedAt: '2026-06-01T08:00:00Z' })],
+        tags: [],
+        tagCategories: []
+      }
+
+      const result = computeMergeResult(local, incoming, makeSequentialIdGenerators())
+
+      const book = result.books.find(b => b.id === 'book-001')
+      // 匯入有時間者勝
+      expect(book.progress).toBe(30)
+    })
+
+    test('TC-H7 兩方皆無 updatedAt → 退回 incoming（向後相容既有覆蓋語意）', () => {
+      // 等同既有 TC-C2 語意：無時間時匯入覆蓋本地
+      const local = {
+        books: [makeBook('book-001', { title: '舊', progress: 0 })],
+        tags: [],
+        tagCategories: []
+      }
+      const incoming = {
+        books: [makeBook('book-001', { title: '新', progress: 50 })],
+        tags: [],
+        tagCategories: []
+      }
+
+      const result = computeMergeResult(local, incoming, makeSequentialIdGenerators())
+
+      const book = result.books.find(b => b.id === 'book-001')
+      // 皆無時間 → incoming 勝，與既有覆蓋行為一致
+      expect(book.title).toBe('新')
+      expect(book.progress).toBe(50)
+    })
+  })
+
+  // -------------------------------------------------------------------------
   // 測試群組 G：空輸入（AC-13）
   // -------------------------------------------------------------------------
   describe('測試群組 G：空輸入', () => {
