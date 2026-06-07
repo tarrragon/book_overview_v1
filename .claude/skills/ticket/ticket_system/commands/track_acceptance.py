@@ -745,6 +745,28 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
     ticket_path = resolve_ticket_path(ticket, version, args.ticket_id)
     save_ticket(ticket, ticket_path)
 
+    # W7-001: append-log 寫入後 auto-commit ticket md（根因解）。
+    # body 即時進 commit 歷史，使三種 git 還原（checkout -- / reset --hard / stash）
+    # 全失效，避免未 commit working tree 被覆蓋回 placeholder（W1-017 ANA）。
+    # graceful degrade：非 git repo / index.lock 競爭 / commit 失敗 → append-log
+    # 仍 exit 0 + stderr 警告，body 保留 working tree（下次操作或手動 commit 持久化）。
+    from ticket_system.lib import git_utils
+    try:
+        commit_status = git_utils._auto_commit_ticket_md(
+            str(ticket_path), args.ticket_id, section
+        )
+        if commit_status in ("not_git_repo", "git_failed"):
+            # 非 git repo / git 命令失敗 → 警告（可觀測，quality-baseline 規則 4）
+            _sys.stderr.write(
+                f"[append-log] auto-commit skipped（{commit_status}，非致命）；"
+                f"body 已保留 working tree，可手動 git commit 持久化。\n"
+            )
+    except Exception as exc:
+        # 例外（git 未安裝 OSError / patch 模擬 index.lock 等）不中斷 append-log
+        _sys.stderr.write(
+            f"[append-log] auto-commit 失敗（非致命，body 已保留 working tree）：{exc}\n"
+        )
+
     # 輸出結果
     print(format_info(InfoMessages.LOG_APPENDED, ticket_id=args.ticket_id, section=section))
     print(f"{TrackAcceptanceMessages.TIMESTAMP_PREFIX} {timestamp}")
