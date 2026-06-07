@@ -34,6 +34,11 @@ W1_018_2_ROOT_DIRS = {
     "state",
 }
 
+# W1-018.3 補入的 root-anchored 目錄（agent worktree 產物，曾誤推遠端為 gitlink 垃圾）
+W1_018_3_ROOT_DIRS = {
+    "worktrees",
+}
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 GITIGNORE_PATH = REPO_ROOT / ".gitignore"
 
@@ -74,6 +79,30 @@ def test_root_dirs_do_not_false_positive_on_nested():
     assert not should_exclude(Path("skills/some-skill/logs/notes.md"))
 
 
+def test_worktrees_root_dir_in_root_dirs_set():
+    """W1-018.3：worktrees 進入 LOCAL_ONLY_ROOT_DIRS。"""
+    missing = W1_018_3_ROOT_DIRS - LOCAL_ONLY_ROOT_DIRS
+    assert not missing, f"LOCAL_ONLY_ROOT_DIRS 缺少 W1-018.3 root dir：{missing}"
+
+
+def test_should_exclude_matches_worktrees():
+    """W1-018.3：根層 worktrees/ 下的 agent worktree 內容都應排除。"""
+    assert should_exclude(Path("worktrees/agent-a81aee7d/src/export/foo.js"))
+    assert should_exclude(Path("worktrees/agent-a0455599/tests/unit/bar.test.js"))
+    assert should_exclude(Path("worktrees"))
+
+
+def test_worktrees_root_anchored_does_not_false_positive_on_nested():
+    """W1-018.3 regression：未來若 skill 內部出現巢狀 worktrees/ 目錄，root-anchored
+    判定僅命中第一段，不誤殺 skill 內 live 內容（與 logs / state 同防護）。"""
+    assert not should_exclude(
+        Path("skills/some-skill/worktrees/template-notes.md")
+    )
+    assert not should_exclude(
+        Path("rules/core/worktrees/example.md")
+    )
+
+
 def test_should_not_exclude_unrelated_paths():
     # 防 false positive：與新 pattern 無關的路徑不應被誤排除
     assert not should_exclude(Path("hooks/lib/sync_exclude_manifest.py"))
@@ -100,9 +129,9 @@ def _parse_gitignore_names(content: str) -> set[str]:
 def test_gitignore_covers_new_patterns():
     content = GITIGNORE_PATH.read_text(encoding="utf-8")
     names = _parse_gitignore_names(content)
-    all_new = W1_018_2_NAME_PATTERNS | W1_018_2_ROOT_DIRS
+    all_new = W1_018_2_NAME_PATTERNS | W1_018_2_ROOT_DIRS | W1_018_3_ROOT_DIRS
     missing = all_new - names
-    assert not missing, f".gitignore 未涵蓋 W1-018.2 pattern：{missing}"
+    assert not missing, f".gitignore 未涵蓋 W1-018.2/W1-018.3 pattern：{missing}"
 
 
 def test_gitignore_covers_all_expected():

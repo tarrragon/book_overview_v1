@@ -90,6 +90,13 @@ LOCAL_ONLY_PATTERNS = frozenset({
 LOCAL_ONLY_ROOT_DIRS = frozenset({
     "logs",     # 類型 C - session log 根目錄（曾外洩遠端，補入防再洩）
     "state",    # 類型 A - session state markers 根目錄（runtime，曾外洩遠端）
+    # 類型 A - agent worktree 根目錄（runtime，本地 agent worktree 產物；曾誤推遠端為
+    # 6 個 gitlink 160000 垃圾）。採 root-anchored 而非 part-level：worktrees 雖為
+    # 具名（無已知 skill 內部同名巢狀目錄，目前 part-level 不會誤殺），但語意上
+    # .claude/worktrees/ 必為根層 runtime 產物，root-anchored 對未來新增的巢狀
+    # worktrees/ 目錄天然免疫（與 logs / state 同策略）。對應 .gitignore 既有
+    # root-anchored 宣告 .claude/worktrees/。來源：W1-018.3。
+    "worktrees",
 })
 
 # 類型 D - 敏感憑證（嚴禁推送至公開 repo；含密鑰/token/環境變數，外流即安全事故）
