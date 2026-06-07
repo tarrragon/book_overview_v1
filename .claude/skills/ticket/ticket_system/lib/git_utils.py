@@ -12,12 +12,17 @@
 from __future__ import annotations
 
 import subprocess
+import time
 from pathlib import Path
 
 # 快命令（rev-parse / add / diff）預設逾時：git hang（等認證 / index.lock）時
 # 不無限等待。commit 含 pre-commit husky，呼叫端另傳較長值。
 _FAST_GIT_TIMEOUT = 5
 _COMMIT_GIT_TIMEOUT = 30
+
+# index.lock 並行競爭重試（W8-006）：commit 失敗且 stderr 含 index.lock 時，
+# sleep 此秒數後重試一次。W8-001 ANA：一次 retry 將並行 degrade 率由約 10% 降至 <1%。
+_INDEX_LOCK_RETRY_SLEEP = 1
 
 
 def _run_git(
@@ -96,6 +101,18 @@ def _auto_commit_ticket_md(path: str, ticket_id: str, section: str) -> str:
         timeout=_COMMIT_GIT_TIMEOUT,
     )
     if commit_result.returncode != 0:
+        # index.lock 並行競爭（W8-006）：唯一中頻 degrade 觸發源。sleep 1s 後
+        # 重試一次（並行 commit 多在 1s 內釋放 .git/index.lock）；非 index.lock
+        # 失敗不重試（沿用現有 degrade）。重試仍失敗回 git_failed。
+        if "index.lock" in (commit_result.stderr or ""):
+            time.sleep(_INDEX_LOCK_RETRY_SLEEP)
+            commit_result = _run_git(
+                cwd, "commit", "-m", message, "--", str(md_path),
+                timeout=_COMMIT_GIT_TIMEOUT,
+            )
+            if commit_result.returncode != 0:
+                return "git_failed"
+            return "committed"
         return "git_failed"
 
     return "committed"
