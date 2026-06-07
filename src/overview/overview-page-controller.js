@@ -87,6 +87,15 @@ const CONSTANTS = {
     JSON_MIME: 'application/json;charset=utf-8;',
     CSV_MIME: 'text/csv;charset=utf-8;',
     FILENAME_PREFIX: '書籍資料_'
+  },
+
+  // v3 canonical 匯出配置（book-interchange-v1 everything-as-tags）
+  // exporter 以 options.formatVersion === '3.0.0' 觸發 _exportToJSONCanonical 路徑。
+  // v3 不需 storage tags/tagCategories：tagTree 由 book 物件自身欄位（tagIds/authors/source）
+  // 經 mapV1BookToCanonical 衍生（everything-as-tags），故 handleExportJSONv3 無 storage 載入步驟。
+  EXPORT_V3: {
+    FORMAT_VERSION: '3.0.0',
+    JSON_MIME: 'application/json;charset=utf-8;'
   }
 }
 
@@ -202,7 +211,7 @@ class OverviewPageController extends EventHandlerClass {
       // 表格相關元素
       table: ['tableBody', 'booksTable'],
       // 操作按鈕元素
-      buttons: ['exportCSVBtn', 'exportJSONBtn', 'importJSONBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn', 'selectAllHeaderCheckbox'],
+      buttons: ['exportCSVBtn', 'exportJSONBtn', 'exportJSONv2Btn', 'importJSONBtn', 'copyTextBtn', 'selectAllBtn', 'reloadBtn', 'selectAllHeaderCheckbox'],
       // 檔案載入相關元素
       fileLoad: ['fileUploader', 'jsonFileInput', 'loadFileBtn', 'loadSampleBtn', 'sortSelect', 'sortDirection'],
       // 狀態顯示元素
@@ -283,8 +292,17 @@ class OverviewPageController extends EventHandlerClass {
       })
     }
 
+    // 主「匯出 JSON」鈕（W4-001）：改走 v3 canonical（book-interchange-v1），
+    // 觸發 exporter _exportToJSONCanonical 路徑（everything-as-tags + tagTree）。
     if (this.elements.exportJSONBtn) {
       this.elements.exportJSONBtn.addEventListener('click', () => {
+        this.handleExportJSONv3()
+      })
+    }
+
+    // 次選「匯出 JSON (v2 相容)」鈕（W4-001）：保留既有 v2 路徑，向後相容。
+    if (this.elements.exportJSONv2Btn) {
+      this.elements.exportJSONv2Btn.addEventListener('click', () => {
         this.handleExportJSONv2()
       })
     }
@@ -901,6 +919,44 @@ class OverviewPageController extends EventHandlerClass {
    */
   hideError () {
     this._toggleElement('errorContainer', false)
+  }
+
+  // ========== v3 canonical 匯出方法（委派至 BookDataExporter，book-interchange-v1） ==========
+
+  /**
+   * 處理 JSON 匯出（v3 canonical 路徑，W4-001）
+   *
+   * 接 BookDataExporter 的 canonical 路徑（傳 options.formatVersion=3.0.0），產出
+   * book-interchange-v1 everything-as-tags 結構：
+   * - root 含 format='book-interchange-v1' / formatVersion='3.0.0' / metadata / books / tagTree
+   * - 逐書經 mapV1BookToCanonical 轉 canonical（author/platform/custom 等入 book.tags）
+   * - tagTree 由 canonical books 的 tagIds/ccl 階層聚合（buildTagTree）
+   *
+   * 與 v2 路徑差異：v3 為 everything-as-tags，tagTree 由 book 物件自身欄位衍生，
+   * 不需另傳 storage 的 tags/tagCategories 頂層區段，故無 _loadTagData 步驟。
+   * selection-aware：透過 _getBooksForExport() 尊重 selectedBookIds。
+   *
+   * @returns {Promise<void>}
+   */
+  async handleExportJSONv3 () {
+    const books = this._getBooksForExport()
+    if (!books || books.length === 0) {
+      alert(CONSTANTS.MESSAGES.NO_DATA_EXPORT)
+      return
+    }
+
+    try {
+      const exporter = new BookDataExporter(books)
+      const json = exporter.exportToJSON({
+        formatVersion: CONSTANTS.EXPORT_V3.FORMAT_VERSION
+      })
+      this._triggerExportDownload(json, 'json', CONSTANTS.EXPORT_V3.JSON_MIME)
+    } catch (error) {
+      // 匯出失敗（序列化或 canonical 映射錯誤，如書缺 id/title）須讓使用者可見
+      // eslint-disable-next-line no-console
+      console.error('[ERROR] v3 canonical JSON 匯出失敗:', error)
+      this.showError('JSON 匯出失敗: ' + (error && error.message ? error.message : error))
+    }
   }
 
   // ========== v2 匯出方法（委派至 BookDataExporter，Interchange Format v2） ==========

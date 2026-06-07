@@ -238,11 +238,13 @@ describe('UC-03 資料匯出 E2E (W4-001.1)', () => {
 
     beforeAll(async () => {
       if (setupError) return
-      const captured = await clickExportAndCaptureBlob(overviewPage, 'exportJSONBtn')
+      // 1.0.0-W4-001：主「匯出 JSON」鈕（exportJSONBtn）改走 v3 canonical；
+      // v2 相容路徑移至 exportJSONv2Btn，故本 v2 契約測試改點 v2 相容鈕。
+      const captured = await clickExportAndCaptureBlob(overviewPage, 'exportJSONv2Btn')
       jsonExport = { mime: captured.type, parsed: JSON.parse(captured.text) }
     }, JEST_TEST_TIMEOUT)
 
-    test('[SETUP] G2-1 click #exportJSONBtn 攔截到 JSON blob 且可解析', () => {
+    test('[SETUP] G2-1 click #exportJSONv2Btn 攔截到 JSON blob 且可解析', () => {
       assertSetupSucceeded()
       // 匯出按鈕點到時 overview 須有資料；NO_DATA_EXPORT dialog 觸發代表無資料，
       // 後續格式斷言失去意義

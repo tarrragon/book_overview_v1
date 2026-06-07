@@ -91,6 +91,7 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
         <input type="text" id="searchBox">
         <button id="exportCSVBtn">匯出 CSV</button>
         <button id="exportJSONBtn">匯出 JSON</button>
+        <button id="exportJSONv2Btn">匯出 JSON (v2 相容)</button>
         <table id="booksTable"><tbody id="tableBody"></tbody></table>
         <div id="loadingIndicator" style="display:none;">
           <div class="loading-text">載入中...</div>
@@ -301,13 +302,15 @@ describe('Overview 匯出按鈕 v2 路徑（W1-042.1）', () => {
   })
 
   describe('匯出按鈕點擊觸發 v2 路徑', () => {
-    test('點擊 exportJSONBtn 觸發 handleExportJSONv2', async () => {
+    // 1.0.0-W4-001：主「匯出 JSON」鈕（exportJSONBtn）改走 v3 canonical；
+    // v2 相容路徑改由新增的「匯出 JSON (v2 相容)」鈕（exportJSONv2Btn）觸發。
+    test('點擊 exportJSONv2Btn 觸發 handleExportJSONv2', async () => {
       controller.filteredBooks = [makeV2Book()]
       const v2Spy = jest.spyOn(controller, 'handleExportJSONv2').mockResolvedValue()
       // 重新註冊監聽器以綁定 spy 後的方法
       controller.setupEventListeners()
 
-      document.getElementById('exportJSONBtn').click()
+      document.getElementById('exportJSONv2Btn').click()
 
       expect(v2Spy).toHaveBeenCalled()
     })

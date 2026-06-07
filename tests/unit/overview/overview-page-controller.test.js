@@ -1452,4 +1452,223 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(passedArg.tagCategories).toEqual(importResult.tagCategories)
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // Group H：Overview 匯出 UI 接 v3 canonical 入口（1.0.0-W4-001）
+  //
+  // 根因：Overview 匯出 UI 從不傳 options.formatVersion=3.0.0，故 exporter 已實作的
+  // v3 canonical（book-interchange-v1 everything-as-tags）路徑永遠走不到。
+  // 設計（方案 B）：主「匯出 JSON」改走 v3 canonical（handleExportJSONv3）；
+  // 新增「匯出 JSON (v2 相容)」次選鈕（exportJSONv2Btn）走既有 v2（handleExportJSONv2）。
+  //
+  // RED 斷言聚焦「實際匯出 JSON 字面」而非僅 spy 呼叫（避免 PC-165 false-positive fix）：
+  // v3 匯出檔 format='book-interchange-v1' / formatVersion='3.0.0' / tagTree 非空；
+  // v2 相容鈕匯出檔仍 formatVersion='2.0.0'。
+  //
+  // 關鍵考量（PM 已驗證）：v3 canonical 由 book 物件自身欄位（tagIds → tags.custom →
+  // tagTree.custom）衍生 tagTree（everything-as-tags），不需另傳 storage tags/tagCategories。
+  // _getBooksForExport() 回傳 filteredBooks，其 book 已攜帶 tagIds，故 tagTree 可非空。
+  // ---------------------------------------------------------------------------
+  describe('Group H：Overview 匯出 UI 接 v3 canonical 入口（1.0.0-W4-001）', () => {
+    let v3Dom
+    let v3Document
+    let v3Window
+    let v3Controller
+
+    /**
+     * 建立 v3 測試書籍（含 tagIds，使 v3 canonical tagTree 可非空）
+     * @param {Object} overrides - 覆寫欄位
+     * @returns {Object}
+     */
+    function makeBookWithTags (overrides = {}) {
+      return {
+        id: 'book-001',
+        title: '三體',
+        authors: ['劉慈欣'],
+        source: 'readmoo',
+        progress: 100,
+        readingStatus: 'finished',
+        cover: 'https://readmoo.com/cover/book-001.jpg',
+        tagIds: ['科幻', '長篇'],
+        ...overrides
+      }
+    }
+
+    beforeEach(() => {
+      // 本 group 需 exportJSONBtn（v3）與 exportJSONv2Btn（v2 相容）兩鈕，
+      // 故建立含兩鈕的獨立 DOM（共享 beforeEach DOM 不含 v2 相容鈕）。
+      v3Dom = new JSDOM(`
+        <!DOCTYPE html>
+        <html lang="zh-TW">
+        <body>
+          <div id="totalBooks">0</div>
+          <div id="displayedBooks">0</div>
+          <input type="text" id="searchBox">
+          <button id="exportCSVBtn">匯出 CSV</button>
+          <button id="exportJSONBtn">匯出 JSON</button>
+          <button id="exportJSONv2Btn">匯出 JSON (v2 相容)</button>
+          <table id="booksTable"><tbody id="tableBody"></tbody></table>
+          <div id="loadingIndicator" style="display:none;">
+            <div class="loading-text">載入中...</div>
+          </div>
+          <div id="errorContainer" style="display:none;">
+            <div class="error-message" id="errorMessage"></div>
+          </div>
+        </body>
+        </html>
+      `, { runScripts: 'outside-only', pretendToBeVisual: true })
+
+      v3Document = v3Dom.window.document
+      v3Window = v3Dom.window
+      global.document = v3Document
+      global.window = v3Window
+
+      // 匯出觸發下載需要 Blob / URL
+      global.Blob = v3Window.Blob || jest.fn()
+      global.URL = {
+        createObjectURL: jest.fn(() => 'blob:mock-url'),
+        revokeObjectURL: jest.fn()
+      }
+      v3Window.URL = global.URL
+
+      // 無 chrome.storage：v3 canonical 不需 storage tag（everything-as-tags 來自 book 欄位）
+      delete global.chrome
+
+      jest.resetModules()
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      v3Controller = new OverviewPageController(null, v3Document)
+    })
+
+    afterEach(() => {
+      if (v3Dom) v3Dom.window.close()
+      jest.clearAllMocks()
+    })
+
+    test('handleExportJSONv3 匯出檔 format=book-interchange-v1 且 formatVersion=3.0.0', async () => {
+      v3Controller.filteredBooks = [makeBookWithTags()]
+
+      let captured = null
+      jest.spyOn(v3Controller, '_triggerExportDownload').mockImplementation((content) => {
+        captured = content
+      })
+
+      await v3Controller.handleExportJSONv3()
+
+      expect(captured).not.toBeNull()
+      const parsed = JSON.parse(captured)
+      // 斷言實際 JSON 字面（非僅 spy 呼叫），對齊 PC-165 防護
+      expect(parsed.format).toBe('book-interchange-v1')
+      expect(parsed.formatVersion).toBe('3.0.0')
+    })
+
+    test('handleExportJSONv3 匯出檔含非空 tagTree（everything-as-tags，由 book tagIds 衍生）', async () => {
+      v3Controller.filteredBooks = [makeBookWithTags()]
+
+      let captured = null
+      jest.spyOn(v3Controller, '_triggerExportDownload').mockImplementation((content) => {
+        captured = content
+      })
+
+      await v3Controller.handleExportJSONv3()
+
+      const parsed = JSON.parse(captured)
+      expect(parsed.tagTree).toBeDefined()
+      expect(Array.isArray(parsed.tagTree.custom)).toBe(true)
+      // book 的 tagIds（科幻 / 長篇）應聚合進 tagTree.custom（關鍵考量驗證）
+      expect(parsed.tagTree.custom.length).toBeGreaterThan(0)
+      const customIds = parsed.tagTree.custom.map(n => n.id)
+      expect(customIds).toContain('科幻')
+      expect(customIds).toContain('長篇')
+    })
+
+    test('handleExportJSONv3 books 為 canonical everything-as-tags（tags 物件 + author 入 tags）', async () => {
+      v3Controller.filteredBooks = [makeBookWithTags()]
+
+      let captured = null
+      jest.spyOn(v3Controller, '_triggerExportDownload').mockImplementation((content) => {
+        captured = content
+      })
+
+      await v3Controller.handleExportJSONv3()
+
+      const book = JSON.parse(captured).books[0]
+      expect(book.id).toBe('book-001')
+      // canonical：everything-as-tags（author/platform/custom 入 book.tags 物件）
+      expect(book.tags).toBeDefined()
+      expect(Array.isArray(book.tags.author)).toBe(true)
+      expect(book.tags.author.map(t => t.name)).toContain('劉慈欣')
+      // v1 平面欄位 authors 不應出現在 canonical book
+      expect(book.authors).toBeUndefined()
+    })
+
+    test('handleExportJSONv3 無資料時不下載並提示使用者', async () => {
+      v3Controller.filteredBooks = []
+      const alertSpy = jest.spyOn(v3Window, 'alert').mockImplementation(() => {})
+      global.alert = v3Window.alert
+      const downloadSpy = jest.spyOn(v3Controller, '_triggerExportDownload')
+
+      await v3Controller.handleExportJSONv3()
+
+      expect(downloadSpy).not.toHaveBeenCalled()
+      expect(alertSpy).toHaveBeenCalled()
+    })
+
+    test('selection-aware：有選取書本時 v3 僅匯出選取項', async () => {
+      v3Controller.filteredBooks = [
+        makeBookWithTags({ id: 'book-001', title: '三體' }),
+        makeBookWithTags({ id: 'book-002', title: '原子習慣' })
+      ]
+      v3Controller.selectedBookIds = new Set(['book-002'])
+
+      let captured = null
+      jest.spyOn(v3Controller, '_triggerExportDownload').mockImplementation((content) => {
+        captured = content
+      })
+
+      await v3Controller.handleExportJSONv3()
+
+      const parsed = JSON.parse(captured)
+      expect(parsed.books).toHaveLength(1)
+      expect(parsed.books[0].id).toBe('book-002')
+    })
+
+    test('點擊 exportJSONBtn 觸發 v3 canonical 匯出（format=book-interchange-v1）', async () => {
+      v3Controller.filteredBooks = [makeBookWithTags()]
+      let captured = null
+      jest.spyOn(v3Controller, '_triggerExportDownload').mockImplementation((content) => {
+        captured = content
+      })
+      // 重新註冊監聽器以套用 v3 綁定
+      v3Controller.setupEventListeners()
+
+      v3Document.getElementById('exportJSONBtn').click()
+      // handleExportJSONv3 為 async，等待 microtask 完成
+      await Promise.resolve()
+      await Promise.resolve()
+
+      expect(captured).not.toBeNull()
+      const parsed = JSON.parse(captured)
+      expect(parsed.format).toBe('book-interchange-v1')
+      expect(parsed.formatVersion).toBe('3.0.0')
+    })
+
+    test('acceptance 3：點擊 exportJSONv2Btn 仍走 v2（formatVersion=2.0.0，不破壞既有 v2）', async () => {
+      v3Controller.filteredBooks = [makeBookWithTags()]
+      let captured = null
+      jest.spyOn(v3Controller, '_triggerExportDownload').mockImplementation((content) => {
+        captured = content
+      })
+      v3Controller.setupEventListeners()
+
+      v3Document.getElementById('exportJSONv2Btn').click()
+      await Promise.resolve()
+      await Promise.resolve()
+
+      expect(captured).not.toBeNull()
+      const parsed = JSON.parse(captured)
+      // v2 相容鈕：metadata.formatVersion 為 2.0.0（v2 結構，非 canonical root）
+      expect(parsed.metadata.formatVersion).toBe('2.0.0')
+      expect(parsed.format).toBeUndefined()
+    })
+  })
 })
