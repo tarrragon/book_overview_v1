@@ -1,3 +1,68 @@
+## [1.44.2] - 2026-06-09
+
+### Summary
+fix: 修復 ticket skill 4 個既有測試失敗; fix: conftest autouse fixture 隔離 HOOK_LOGS_DIR 杜絕巢狀 hook-logs 污染; fix: sync exec-bit 還原涵蓋 settings.json 註冊的 skill 根目錄執行檔 (+2 more)
+
+Changes: 4 fix, 1 chore
+
+- fix: 修復 ticket skill 4 個既有測試失敗
+- fix: conftest autouse fixture 隔離 HOOK_LOGS_DIR 杜絕巢狀 hook-logs 污染
+- fix: sync exec-bit 還原涵蓋 settings.json 註冊的 skill 根目錄執行檔
+- fix: 修復 evaluate-session.py exec bit + 建 ticket 追蹤 sync 邊界遺漏
+- chore: pull .claude 框架改進（PC-180 + sync-push SOP + PC-162 延伸）
+
+---
+
+## [1.44.1] - 2026-06-08
+
+### Summary
+chore: round-trip 驗證收尾 + SOP/PC-162 DOC + spawn; other: 新增 PC-180：雙專案 sync 混淆共享納入與本地保留範圍; other: 採納跨專案 ticket 系統共用 predicate 與 worklog 冪等測試
+
+Changes: 1 chore, 2 other
+
+- chore: round-trip 驗證收尾 + SOP/PC-162 DOC + spawn
+- other: 新增 PC-180：雙專案 sync 混淆共享納入與本地保留範圍
+- other: 採納跨專案 ticket 系統共用 predicate 與 worklog 冪等測試
+
+---
+
+## [1.44.0] - 2026-06-08
+
+### Summary
+feat: 新增未 commit ticket md 偵測 hook（ 方案 4）; feat: auto-commit index.lock retry（sleep 1s 重試一次）; fix: execution_log_checker 偵測 ANA 重現實驗結果空殼 (+1 more)
+
+Changes: 2 feat, 1 fix, 1 test
+
+- feat: 新增未 commit ticket md 偵測 hook（ 方案 4）
+- feat: auto-commit index.lock retry（sleep 1s 重試一次）
+- fix: execution_log_checker 偵測 ANA 重現實驗結果空殼
+- test: 添加 uncommitted-ticket-md-reminder-hook 測試套件
+
+---
+
+## [1.43.0] - 2026-06-08
+
+### Summary
+feat: dispatch hook 新增 stale-origin 警示（非阻擋）; fix: 修復 test_scenario_1_invalid_section fixture 設計缺陷; fix: 修復 ticket-skill 測試基礎設施 G1+G2+G3 (+10 more)
+
+Changes: 1 feat, 5 fix, 5 docs, 2 chore
+
+- feat: dispatch hook 新增 stale-origin 警示（非阻擋）
+- fix: 修復 test_scenario_1_invalid_section fixture 設計缺陷
+- fix: 修復 ticket-skill 測試基礎設施 G1+G2+G3
+- fix: cascade 解鎖擴展至 blocker→dependents
+- fix: runqueue 動態解析 blocker 完成狀態（修正 B）
+- fix: 解耦 dispatch-validation hook 測試對已移除 ticket md 的依賴
+- docs: 新增 PC-179 worktree agent 完成後 cwd 污染致 merge 誤判
+- docs: 補強 bash 規則二有界列舉禁截斷 carve-out + 新建 PC-177
+- docs: 派發 SOP 加入 push-before-dispatch + agent-writes-to-ticket
+- docs: PC-148 擴充變體 B（hook 搬移後 settings.local.json 殘留舊路徑）
+- docs: 新增 PC-178 UI 功能測試綠但 runtime 不可達
+- chore: 移除 632 MagicMock 測試污染 + scoped gitignore（G3 repo-hygiene）
+- chore: 授予 suggest-compact.py 執行權限（用戶請求）
+
+---
+
 ## [1.42.0] - 2026-06-05
 
 ### Summary
