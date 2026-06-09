@@ -913,7 +913,8 @@ def _validate_create_checklist(
     if not config.get("what"):
         missing.append("what")
 
-    # why 非「待定義」（DOC 類型豁免；CLI 端已對 IMP/ANA/ADJ 做必填驗證，此處為清單一致性）
+    # why 非「待定義」（DOC 類型豁免；此處為 why 必填的唯一驗證點——
+    # CLI 端 WHY_REQUIRED 提前退出已移除，與其他必填欄位一次列全，1.0.0-W1-024.1 A2）
     if ticket_type != "DOC" and config.get("why") == DEFAULT_UNDEFINED_VALUE:
         missing.append("why")
 

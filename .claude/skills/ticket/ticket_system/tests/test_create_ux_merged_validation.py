@@ -130,30 +130,29 @@ def test_why_only_missing_still_reported_via_checklist():
 
 
 def test_doc_type_still_exempts_why():
-    """DOC 類型豁免 why（行為不變的回歸防護）。
+    """DOC 類型豁免 why、IMP 不豁免（行為不變的回歸防護）。
 
-    缺 why 但其餘必填補齊的 DOC，不應因 why 被擋。
-    使用 wave=99 且 blocked_by 不存在的 ID 讓流程在 persist 前失敗，
-    避免測試產生真實 ticket 檔案；斷言失敗原因與 why 無關。
+    直接呼叫 _validate_create_checklist（單元層級，無持久化副作用），
+    避免整合層測試在 persist 前被 blocked_by 驗證攔截造成永真斷言。
     """
-    args = _make_args(
-        wave=99,
-        type="DOC",
-        why=None,
-        when="測試時機",
-        who="rosemary-project-manager",
-        how_strategy="測試策略",
-        where_files="a.md",
-        acceptance=["條件A"],
-        blocked_by="0.99.0-W99-001",  # 不存在 → persist 前失敗，不產生檔案
-    )
-    stdout, stderr, exit_code = _capture(args)
-    combined = stdout + stderr
+    from ticket_system.commands.create import _validate_create_checklist
+    from ticket_system.lib.constants import DEFAULT_UNDEFINED_VALUE
 
-    assert exit_code == 1
-    assert "WHY_REQUIRED" not in combined
-    # 失敗原因是 blocked_by 驗證，不是 why 缺漏
-    assert "why" not in combined or "CHECKLIST_VALIDATION_FAILED" not in combined
+    config = {
+        "where_files": ["a.md"],
+        "acceptance": ["條件A"],
+        "parent_id": None,
+        "decision_tree_path": {
+            "entry_point": "x", "final_decision": "y", "rationale": "z",
+        },
+        "when": "測試時機",
+        "who": "rosemary-project-manager",
+        "what": "測試",
+        "why": DEFAULT_UNDEFINED_VALUE,
+        "how_strategy": "測試策略",
+    }
+    assert "why" not in _validate_create_checklist(config, "DOC")
+    assert "why" in _validate_create_checklist(config, "IMP")
 
 
 # ---------------------------------------------------------------------------
