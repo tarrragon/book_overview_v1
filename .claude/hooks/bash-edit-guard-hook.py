@@ -69,6 +69,55 @@ def _detect_bash_edit_patterns(command: str) -> bool:
     return False
 
 
+def _detect_bare_cd(command: str) -> bool:
+    """
+    偵測裸 cd（改變持久工作目錄的反模式）。
+
+    本環境 zsh 有 chpwd hook，裸 cd 會觸發 ls 淹沒工具結果（IMP-056），
+    是 confabulation 觸發鏈第 1 環。規則建議改用 git -C 或子 shell。
+
+    命中模式:
+    - 行首 cd（^cd）
+    - 串接後 cd（&& cd、; cd）
+
+    排除（不視為裸 cd）:
+    - 子 shell 形式 (cd ...)：cd 緊接於未閉合的左括號後
+    - git -C <path>：git 操作不換 cwd
+    - uv -d <path>：uv 指定目錄
+    - 絕對路徑還原 cd /<...>：污染後補救的合法用途
+
+    False-positive 務實邊界（限制）:
+    PreToolUse 只見 raw command 字串，無完整 shell parse。
+    heredoc／quoted 字串內的字面 cd 可能誤判。warn 不 deny，誤判成本低。
+
+    Args:
+        command: Bash 命令
+
+    Returns:
+        bool - 是否偵測到裸 cd（排除合法形式後）
+    """
+    # 找出所有 cd 出現點（行首、&& cd、; cd、( cd）
+    # \bcd\b 後須接空白 + 引數，避免命中 cdrom 等字面
+    for match in re.finditer(r'(^|&&|;|\|\||\()\s*\bcd\s+(\S+)', command):
+        connector = match.group(1)
+        target = match.group(2)
+
+        # 排除 1: 子 shell 形式 (cd ...) — connector 為左括號
+        if connector == '(':
+            continue
+
+        # 排除 2: 絕對路徑還原 cd /<...> — target 為絕對路徑
+        if target.startswith('/'):
+            continue
+
+        # 命中：裸 cd（行首或串接後，且非絕對路徑、非子 shell）
+        return True
+
+    # 排除 3 & 4: git -C / uv -d 不含 cd 指令，天然不命中上方 finditer
+    # （此處不需特別處理，因 git -C/uv -d 的 -C/-d 不是 cd 指令）
+    return False
+
+
 def _print_warning_message(command: str) -> None:
     """
     輸出警告訊息到 stderr
@@ -84,6 +133,23 @@ def _print_warning_message(command: str) -> None:
         command=display_command
     )
     return warning
+
+
+def _bare_cd_warning_message(command: str) -> str:
+    """
+    產生裸 cd 警告訊息（走 ValidationMessages 常數）。
+
+    Args:
+        command: 偵測到裸 cd 的 Bash 命令
+
+    Returns:
+        str - 格式化後的提示訊息
+    """
+    display_command = command[:100] + ('...' if len(command) > 100 else '')
+    return format_message(
+        ValidationMessages.BARE_CD_WARNING,
+        command=display_command
+    )
 
 
 def main() -> int:
@@ -107,22 +173,28 @@ def main() -> int:
         # 取得命令內容
         command = tool_input.get("command", "")
 
-        # 檢測編輯模式
-        if not _detect_bash_edit_patterns(command):
-            # 不符合編輯模式：直接允許
+        # 兩偵測獨立：原地編輯偵測 + 裸 cd 偵測，各自蒐集警告
+        warnings = []
+
+        if _detect_bash_edit_patterns(command):
+            logger.info("警告: 偵測到編輯操作 - %s", command[:100])
+            warnings.append(_print_warning_message(command))
+
+        if _detect_bare_cd(command):
+            logger.info("提示: 偵測到裸 cd - %s", command[:100])
+            warnings.append(_bare_cd_warning_message(command))
+
+        if not warnings:
+            # 不符合任何偵測模式：直接允許
             logger.info("允許: 正常 Bash 命令")
             return 0
 
-        # 偵測到編輯模式：輸出警告並記錄
-        logger.info("警告: 偵測到編輯操作 - %s", command[:100])
-        warning_msg = _print_warning_message(command)
-
-        # 單一 JSON 輸出：合併警告和 permissionDecision
+        # 合併警告為單一 JSON 輸出，permission_decision=allow（warn 不 deny）
         emit_hook_output(
             "PreToolUse",
-            additional_context=warning_msg,
+            additional_context="\n\n".join(warnings),
             permission_decision="allow",
-            permission_decision_reason="Bash 編輯操作警告已發送，允許執行",
+            permission_decision_reason="Bash 提示已發送，允許執行",
         )
 
         return 0
