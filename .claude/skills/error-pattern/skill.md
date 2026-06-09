@@ -98,15 +98,35 @@ Widget Finder (2)
 
 ## 錯誤編號規則
 
-| 類別 | 前綴 | 範例 |
-|------|------|------|
-| DI 註冊 | DI | DI-001 |
-| Widget Finder | WF | WF-001 |
-| 異步資源 | AR | AR-001 |
-| 類型不匹配 | TM | TM-001 |
-| Hook Schema | HS | HS-001 |
-| 程式碼品質 | CQ | CQ-001 |
-| 流程合規 | PC | PC-001 |
+### Category 前綴（依目錄）
+
+| 類別目錄 | 前綴 | 凍結 base 範例 |
+|---------|------|---------------|
+| architecture | ARCH | ARCH-001 |
+| code-quality | CQ | CQ-001 |
+| documentation | DOC | DOC-001 |
+| implementation | IMP | IMP-001 |
+| process | PROC | PROC-001 |
+| process-compliance | PC | PC-001 |
+| test | TEST | TEST-001 |
+
+### 來源前綴（跨專案共享框架必用）
+
+本框架透過共享 repo 同步至多個專案。為防多專案併發分配同號碰撞，**新增任何
+category 的 error-pattern 一律使用來源前綴格式**：
+
+```
+<CATEGORY>-<PROJ>-NNN     例：PC-V1-001、IMP-APP-003、ARCH-SCLK-002
+```
+
+- 既有 flat `<CATEGORY>-NNN` 為**凍結 canonical base**，原樣保留、不再新增 flat 號。
+- `<PROJ>` 取自 `.claude/error-patterns/_project-registry.yaml`（tooling 以 git
+  toplevel basename 對應 `dir` 欄自動取得）。
+- 完整規則（凍結語意、協議字串豁免、canonical 升格、dedup、rejected options）見
+  `.claude/methodologies/error-pattern-numbering-methodology.md`。
+
+> **單一專案使用本框架時**：無碰撞風險，可沿用 flat `<CATEGORY>-NNN`。來源前綴僅在
+> 多專案共享同步情境強制。
 
 ---
 
