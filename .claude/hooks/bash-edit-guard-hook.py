@@ -21,6 +21,7 @@ Bash Edit Guard Hook - PreToolUse Hook
 """
 
 import json
+import os
 import sys
 import re
 from pathlib import Path
@@ -84,7 +85,14 @@ def _detect_bare_cd(command: str) -> bool:
     - 子 shell 形式 (cd ...)：cd 緊接於未閉合的左括號後
     - git -C <path>：git 操作不換 cwd
     - uv -d <path>：uv 指定目錄
-    - 絕對路徑還原 cd /<...>：污染後補救的合法用途
+    - 還原至專案根 cd /<repo-root>：污染後補救的合法用途
+
+    收窄修正（W1-026）:
+    舊版排除所有絕對路徑 cd（target.startswith('/')），導致最常見違規
+    cd /<repo-root>/subdir（絕對子目錄）被靜默放行，chpwd 淹沒照樣發生。
+    現收窄為「target 正規化後恰等於專案根（CLAUDE_PROJECT_DIR）」才排除，
+    絕對子目錄與其他絕對路徑 cd 恢復 warn。CLAUDE_PROJECT_DIR 未設時保守
+    不排除（絕對子目錄仍 warn；repo-root 還原多一行提示可接受，warn 不 deny）。
 
     False-positive 務實邊界（限制）:
     PreToolUse 只見 raw command 字串，無完整 shell parse。
@@ -96,6 +104,12 @@ def _detect_bare_cd(command: str) -> bool:
     Returns:
         bool - 是否偵測到裸 cd（排除合法形式後）
     """
+    # 專案根（用於排除「污染後還原至專案根」的合法 cd）
+    # CLAUDE_PROJECT_DIR 未設時為 None，保守不排除任何絕對路徑
+    project_root = os.environ.get('CLAUDE_PROJECT_DIR')
+    if project_root:
+        project_root = project_root.rstrip('/')
+
     # 找出所有 cd 出現點（行首、&& cd、; cd、( cd）
     # \bcd\b 後須接空白 + 引數，避免命中 cdrom 等字面
     for match in re.finditer(r'(^|&&|;|\|\||\()\s*\bcd\s+(\S+)', command):
@@ -106,11 +120,12 @@ def _detect_bare_cd(command: str) -> bool:
         if connector == '(':
             continue
 
-        # 排除 2: 絕對路徑還原 cd /<...> — target 為絕對路徑
-        if target.startswith('/'):
+        # 排除 2: 還原至專案根 cd /<repo-root> — 污染後補救的合法用途
+        # 收窄：僅 target 正規化後恰等於專案根才排除；絕對子目錄恢復 warn
+        if project_root and target.rstrip('/') == project_root:
             continue
 
-        # 命中：裸 cd（行首或串接後，且非絕對路徑、非子 shell）
+        # 命中：裸 cd（行首或串接後，且非專案根還原、非子 shell）
         return True
 
     # 排除 3 & 4: git -C / uv -d 不含 cd 指令，天然不命中上方 finditer

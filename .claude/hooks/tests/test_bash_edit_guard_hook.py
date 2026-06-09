@@ -89,16 +89,18 @@ class TestBareCdDetectionExclusions:
         """uv -d <path> 不含 cd 指令，排除。"""
         assert _detect_bare_cd("uv -d .claude/skills/ticket run pytest") is False
 
-    def test_absolute_path_restore(self):
-        """絕對路徑還原 cd /<root> 排除（污染補救合法用途）。"""
+    def test_repo_root_restore(self, monkeypatch):
+        """還原至專案根 cd /<repo-root> 排除（污染補救合法用途）。"""
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", "/Users/tarragon/Projects/book_overview_v1")
         assert (
             _detect_bare_cd("cd /Users/tarragon/Projects/book_overview_v1 && git status")
             is False
         )
 
-    def test_absolute_path_restore_chained(self):
-        """&& cd /<abs> 絕對路徑還原排除。"""
-        assert _detect_bare_cd("echo x && cd /abs/path && ls") is False
+    def test_repo_root_restore_trailing_slash(self, monkeypatch):
+        """專案根 trailing slash 正規化後仍排除。"""
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", "/Users/tarragon/Projects/book_overview_v1")
+        assert _detect_bare_cd("cd /Users/tarragon/Projects/book_overview_v1/") is False
 
     def test_no_cd_command(self):
         """完全不含 cd 的命令排除。"""
@@ -107,6 +109,47 @@ class TestBareCdDetectionExclusions:
     def test_cdrom_word_not_matched(self):
         """含 cd 字面但非指令（cdrom）不命中。"""
         assert _detect_bare_cd("ls /mnt/cdrom") is False
+
+
+# ============================================================================
+# 裸 cd 偵測：絕對路徑收窄（W1-026）
+# 排除條件收窄為「僅 target == 專案根（CLAUDE_PROJECT_DIR）」才排除，
+# 絕對子目錄與其他絕對路徑 cd 恢復 warn。
+# ============================================================================
+
+_REPO_ROOT = "/Users/tarragon/Projects/book_overview_v1"
+
+
+class TestBareCdAbsolutePathNarrowing:
+    """絕對路徑 cd 收窄：僅 repo-root 還原排除，其餘恢復命中。"""
+
+    def test_repo_root_subdir_hits(self, monkeypatch):
+        """cd /<repo-root>/subdir 絕對子目錄恢復 warn（命中）。"""
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", _REPO_ROOT)
+        assert (
+            _detect_bare_cd(f"cd {_REPO_ROOT}/.claude/skills/ticket && uv run pytest")
+            is True
+        )
+
+    def test_other_absolute_path_hits(self, monkeypatch):
+        """cd /abs/other 非專案根的絕對路徑恢復 warn（命中）。"""
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", _REPO_ROOT)
+        assert _detect_bare_cd("cd /tmp/other && ls") is True
+
+    def test_chained_subdir_hits(self, monkeypatch):
+        """&& cd /<repo-root>/subdir 串接絕對子目錄命中。"""
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", _REPO_ROOT)
+        assert _detect_bare_cd(f"echo x && cd {_REPO_ROOT}/docs && ls") is True
+
+    def test_env_unset_absolute_subdir_hits(self, monkeypatch):
+        """CLAUDE_PROJECT_DIR 未設時保守不排除，絕對子目錄仍命中。"""
+        monkeypatch.delenv("CLAUDE_PROJECT_DIR", raising=False)
+        assert _detect_bare_cd(f"cd {_REPO_ROOT}/.claude && ls") is True
+
+    def test_env_unset_repo_root_also_hits(self, monkeypatch):
+        """CLAUDE_PROJECT_DIR 未設時，連 repo-root 還原也命中（保守 fallback，warn 不 deny）。"""
+        monkeypatch.delenv("CLAUDE_PROJECT_DIR", raising=False)
+        assert _detect_bare_cd(f"cd {_REPO_ROOT} && git status") is True
 
 
 # ============================================================================
