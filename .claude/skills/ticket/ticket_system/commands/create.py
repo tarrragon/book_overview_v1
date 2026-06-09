@@ -792,16 +792,10 @@ def _parse_cli_args_to_config(
     # 若有 TDD Phase 順序，取第一個 Phase 作為初始階段
     tdd_phase = tdd_result.phases[0] if tdd_result.phases else None
 
-    # PC-018: why 必填驗證（DOC 類型豁免）
+    # PC-018: why 必填（DOC 類型豁免）。不在此提前退出——統一交給
+    # _validate_create_checklist 與 when/who/how_strategy 等缺漏一次列全，
+    # 避免分批報錯造成多輪試錯（1.0.0-W1-024.1 A2）
     why_value = args.why or (parent_ticket.get("why") if parent_ticket else DEFAULT_UNDEFINED_VALUE)
-    if why_value == DEFAULT_UNDEFINED_VALUE and ticket_type != "DOC":
-        sys.stderr.write(format_error(ErrorEnvelope(
-            component="create",
-            action="parse_cli_args",
-            errno="WHY_REQUIRED",
-            hint=f"--why 為必填欄位（type={ticket_type}）。範例: --why '匯出功能需支援 v2 格式'",
-        )) + "\n")
-        sys.exit(1)
 
     return {
         "ticket_id": ticket_id,
@@ -1581,6 +1575,22 @@ def _print_strategy_completeness_check(
         )
 
 
+class _AmbiguousHowAction(argparse.Action):
+    """攔截 `--how` 並給出含用途說明的友善提示（1.0.0-W1-024.1 A3）。
+
+    `--how` 因 argparse prefix matching 同時撞 --how-type / --how-strategy，
+    原生 ambiguous 英文訊息不說明兩旗標各自用途。顯式註冊 --how 讓 exact
+    match 優先於縮寫展開，以中文提示指引完整旗標名。
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.error(
+            "--how 不是有效旗標，請使用完整旗標名："
+            "--how-type（任務類型，如 Implementation / Analysis）"
+            "或 --how-strategy（實作策略）"
+        )
+
+
 def register(subparsers: argparse._SubParsersAction) -> None:
     """註冊 create 子命令"""
     parser = subparsers.add_parser(
@@ -1618,6 +1628,10 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     )
     parser.add_argument("--where", "--where-files", dest="where_files", help="影響檔案（逗號分隔，如 'file1.py,file2.py'）")
     parser.add_argument("--why", help="需求依據（IMP/ANA/ADJ 類型必填）")
+    # --how 攔截：exact match 優先於縮寫展開，給友善提示（1.0.0-W1-024.1 A3）
+    parser.add_argument(
+        "--how", nargs="?", action=_AmbiguousHowAction, help=argparse.SUPPRESS
+    )
     parser.add_argument("--how-type", help="Task Type: Implementation, Analysis, etc.")
     parser.add_argument("--how-strategy", help="實作策略")
     parser.add_argument("--parent", help="父 Ticket ID（子任務序號自動產生，勿指定 --seq）")

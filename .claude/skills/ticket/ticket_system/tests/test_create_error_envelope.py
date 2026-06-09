@@ -125,10 +125,11 @@ def test_source_parent_mutually_exclusive_emits_envelope():
 # ---------------------------------------------------------------------------
 
 
-def test_why_required_for_imp_emits_envelope_to_stderr():
-    """IMP 類型未提供 --why → envelope WHY_REQUIRED 寫至 stderr 並 sys.exit(1)。
+def test_why_missing_for_imp_merges_into_checklist_error():
+    """IMP 類型未提供 --why → 併入 CHECKLIST_VALIDATION_FAILED 一次列全。
 
-    需提供 decision-tree 三參數讓 _parse_cli_args_to_config 能進入 why 檢查。
+    1.0.0-W1-024.1 A2：WHY_REQUIRED 提前退出已移除，why 與其他必填欄位
+    （when/who/how_strategy）統一由 checklist 合併單一錯誤回報。
     """
     args = _make_args(
         wave=99,
@@ -140,9 +141,11 @@ def test_why_required_for_imp_emits_envelope_to_stderr():
     )
     stdout, stderr, exit_code = _capture(args)
     assert exit_code == 1
-    # WHY_REQUIRED 走 stderr 路徑
-    assert ERROR_ENVELOPE_VERSION_MARKER in stderr
-    assert "errno: WHY_REQUIRED" in stderr
+    combined = stdout + stderr
+    assert "WHY_REQUIRED" not in combined
+    assert ERROR_ENVELOPE_VERSION_MARKER in stdout
+    assert "errno: CHECKLIST_VALIDATION_FAILED" in stdout
+    assert "why" in stdout
 
 
 # ---------------------------------------------------------------------------
