@@ -48,6 +48,12 @@ Shell 環境警告：此 shell 的 chpwd hook 會在 cd 時自動輸出 ls。
 - 子 shell: (cd /path && command)
 ```
 
+### 主線程 PM 自身同樣適用（受眾擴展）
+
+本 PC 防護易被讀成「PM 提醒 subagent 不要 cd」，但**主線程 PM 自己裸 cd 同樣觸發 chpwd 淹沒**——PM 不在「安全位置提醒別人」，而是同等暴露。
+
+**chpwd 淹沒發生後的正確反應**：停手重發乾淨命令（`git -C`／子 shell），**不是**把淹沒的輸出當「正常但吵」接受、更不是用預期填補續寫。後者是 confabulation 觸發鏈（輸出淹沒 → result 邊界模糊 → 同訊息腦補），見 PC-166 + `tool-output-trust-rules` 規則 1/4。
+
 ## 正確做法
 
 ```bash
