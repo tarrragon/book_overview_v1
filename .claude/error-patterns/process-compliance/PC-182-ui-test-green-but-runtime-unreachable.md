@@ -1,6 +1,6 @@
 > **編號溯源**：本 pattern 在上游框架 repo（tarrragon/claude.git）編號為 PC-178。因本專案 PC-178 已被既有 pattern 佔用，於本專案重新編號為 PC-182。下次 sync-pull 仍會帶回上游 PC-178，屆時應辨識為同一 pattern 並去重。
 
-# PC-178: UI 功能測試綠但 runtime 不可達（按鈕落在孤兒 widget / callback 未被 production 接線）
+# PC-182: UI 功能測試綠但 runtime 不可達（按鈕落在孤兒 widget / callback 未被 production 接線）
 
 ## 摘要
 

@@ -35,6 +35,27 @@
 
 **Action**：remediation（去重 / 整理）若涉及重編號，須先確認目標 ID 非協議字串；協議字串一律跳過。
 
+### 已知 legacy intra-dir 重號（凍結保留，不重編）
+
+凍結 base 內存在數組「同號異義」的 legacy 碰撞——同一 flat 號對應兩個不同教訓的檔案。這些碰撞繼承自多專案分叉前的共同 base，**在所有同步專案中完全一致**（非 sync 新引入），故視為 legacy 凍結保留，**刻意不重編**。
+
+**Why**：這些碰撞跨專案一致、無 sync 惡化風險；重編會 churn 大量既有引用（規則 / 方法論 / 各 pattern `related:` 欄 / 工作日誌），成本遠高於碰撞本身的低危害。標註使碰撞「已知且文件化」優於靜默重編。
+
+**Consequence**：若對 legacy 碰撞執行重編，會觸發跨檔引用 churn 且各專案需同步重編才能保持一致，違反「凍結不改寫既有 flat 號」的向後相容前提。
+
+**Action**：以下 6 組（`process-compliance` category）已知重號，引用時須以 slug 區辨語意，**禁止重編**：
+
+| Flat 號 | 教訓 A（slug） | 教訓 B（slug） |
+|---------|---------------|---------------|
+| PC-010 | pm-skipped-checkpoint-after-ticket-complete | task-tracking-in-memory |
+| PC-018 | parallel-agents-overlapping-followup-tickets | pm-resume-incomplete-5w1h-dispatch |
+| PC-019 | design-decision-memory-only | worktree-merge-state-loss |
+| PC-020 | fix-at-consumer-instead-of-producer | plan-execution-dispatch-mismatch |
+| PC-030 | agent-slash-command-unreachable | phase4-unused-code-incomplete-grep |
+| PC-105 | feature-implemented-without-doc-integration | pm-cli-syntax-autopilot |
+
+> **PC-165 例外（已由去重解決，非凍結）**：PC-165 原亦為重號（auq-dispatch + false-positive-fix-chain），但 auq-dispatch 已本地重編為 `PC-171`（含編號溯源註記），上游遺留的 `PC-165-auq-dispatch-*` 孤兒檔已刪除。現 `PC-165` 唯一指涉 false-positive-fix-chain。
+
 ---
 
 ## canonical 升格機制（凍結 base = canonical 層 / 前綴 = staging 層）
