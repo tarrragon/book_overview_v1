@@ -108,6 +108,27 @@
 
 ---
 
+## 跨專案 remediation checklist 與部署序列
+
+flat base 碰撞已存在於所有同步專案（發散狀態，63~309 檔）。sync 是檔案 overlay，不會替各專案刪除其本地舊號檔，故各專案需**自行 pass** remediation。本節為 synced 跨專案 handoff——各專案 pull 後於自身 session 依此執行。
+
+**Why**：中央一次性重編在 N 發散專案下不可行（各專案碰撞集合不同、同步頻率不一）。各專案本地跑 detect + 套用既定 canonical 重編，是唯一零協調且可驗證的路徑。
+
+**Action（各專案 pull 框架更新後依序執行）**：
+
+1. 跑 `.claude/scripts/detect_pc_collision.py` 取得本專案碰撞清單
+2. **共同 base 碰撞（8 組 + ARCH-021）**：凍結保留，不重編（見上「已知 legacy intra-dir 重號」），引用以 slug 區辨
+3. **本專案獨有未處理碰撞**：套用既定 canonical 重編（重編 ID 對齊上游 canonical：auq-dispatch→PC-171、defensive-rule→PC-181、ui-test-green→PC-182；刪上游遺留孤兒檔），grep 更新引用
+4. 重編後再跑 detect 確認獨有碰撞歸零（共同 base 仍在屬正常）
+
+**部署序列 gate**：
+
+| 順序 | 動作 | gate |
+|------|------|------|
+| 1 | 各專案 pull 到含前綴支援的 hook（PC-ID regex 拓寬 + allocator） | — |
+| 2 | 跑 detect + remediation | 須先完成順序 1 |
+| 3 | 新增 error-pattern 改用 `<CAT>-<PROJ>-NNN` 前綴 | **禁止**在順序 1 完成前 add 前綴 PC（hook 不認新格式會拒絕） |
+
 ## 與既有規則的邊界
 
 | 規則 | 聚焦 | 與本方法論關係 |
