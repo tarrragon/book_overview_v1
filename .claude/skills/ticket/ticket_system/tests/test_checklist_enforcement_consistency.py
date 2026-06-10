@@ -213,3 +213,100 @@ def test_generate_does_not_block_on_missing(monkeypatch):
 
     assert gen_result.success
     assert gen_result.total == 1
+
+
+# ---------------------------------------------------------------------------
+# 1.0.0-W1-043：空字串 why / how_strategy 漏判修補
+# ---------------------------------------------------------------------------
+
+
+def test_empty_string_why_and_how_strategy_flagged():
+    """空字串 why / how_strategy 應視為缺失（W1-043，補既有 == 待定義 漏判）。
+
+    既有判定僅檢查是否等於 DEFAULT_UNDEFINED_VALUE，空字串漏網；
+    bulk_create 預設 why="" / how_strategy="" 因此不觸發。本修補後
+    falsy（含 ""）亦列為缺失。
+    """
+    config = {
+        "ticket_type": "IMP",
+        "who": "thyme-python-developer",
+        "what": "實作功能",
+        "why": "",            # 空字串（非「待定義」）
+        "when": "觸發時機",
+        "how_strategy": "",   # 空字串
+        "where_files": ["src/x.py"],
+        "acceptance": ["條件 A"],
+        "decision_tree_path": {
+            "entry_point": "第五層",
+            "final_decision": "採方案 A",
+            "rationale": "規則 5",
+        },
+    }
+
+    missing = validate_create_checklist(config, "IMP")
+
+    assert "why" in missing
+    assert "how_strategy" in missing
+
+
+def test_doc_type_still_exempt_from_empty_why():
+    """DOC 類型對空字串 why 仍豁免（一致性：DOC 不檢查 why）。"""
+    config = {
+        "ticket_type": "DOC",
+        "who": "thyme-documentation-integrator",
+        "what": "撰寫文件",
+        "why": "",
+        "when": "觸發時機",
+        "how_strategy": "策略",
+        "where_files": ["docs/x.md"],
+        "acceptance": ["條件 A"],
+    }
+
+    assert "why" not in validate_create_checklist(config, "DOC")
+
+
+def test_create_block_path_consistent_for_empty_string():
+    """create 阻擋路徑（共用同函式）對空字串判定一致。
+
+    create 透過 _validate_create_checklist 別名呼叫同一函式，故空字串
+    why/how_strategy 在 create 端同樣被列入缺失（阻擋來源一致）。
+    """
+    from ticket_system.commands.create import _validate_create_checklist
+
+    config = {
+        "ticket_type": "IMP",
+        "who": "agent",
+        "what": "x",
+        "why": "",
+        "when": "t",
+        "how_strategy": "",
+        "where_files": ["src/x.py"],
+        "acceptance": ["a"],
+        "decision_tree_path": {
+            "entry_point": "e",
+            "final_decision": "d",
+            "rationale": "r",
+        },
+    }
+
+    missing = _validate_create_checklist(config, "IMP")
+    assert "why" in missing
+    assert "how_strategy" in missing
+
+
+def test_bulk_create_warning_now_covers_why_and_how_strategy(monkeypatch):
+    """batch-create 預設模板（why=''/how_strategy=''）warning 現涵蓋此兩欄。"""
+    monkeypatch.setattr(bulk_create_cmd, "get_next_seq", lambda v, w: 1)
+
+    result = bulk_create_cmd._create_batch_tickets(
+        template_defaults={"type": "IMP"},  # 預設 why=''/how_strategy=''
+        targets=["目標 A"],
+        version="9.9.9",
+        wave=1,
+        dry_run=True,
+    )
+
+    assert len(result.warned) == 1
+    _, warning_msg = result.warned[0]
+    assert "why" in warning_msg
+    assert "how_strategy" in warning_msg

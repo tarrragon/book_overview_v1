@@ -276,12 +276,15 @@ def validate_create_checklist(
     if not config.get("what"):
         missing.append("what")
 
-    # why 非「待定義」（DOC 類型豁免）
-    if ticket_type != "DOC" and config.get("why") == DEFAULT_UNDEFINED_VALUE:
-        missing.append("why")
+    # why 非空且非「待定義」（DOC 類型豁免；1.0.0-W1-043 補空字串漏判）
+    if ticket_type != "DOC":
+        why_value = config.get("why")
+        if not why_value or why_value == DEFAULT_UNDEFINED_VALUE:
+            missing.append("why")
 
-    # how_strategy 非「待定義」
-    if config.get("how_strategy") == DEFAULT_UNDEFINED_VALUE:
+    # how_strategy 非空且非「待定義」（1.0.0-W1-043 補空字串漏判）
+    how_strategy_value = config.get("how_strategy")
+    if not how_strategy_value or how_strategy_value == DEFAULT_UNDEFINED_VALUE:
         missing.append("how_strategy")
 
     return missing
