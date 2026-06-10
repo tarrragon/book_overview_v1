@@ -82,15 +82,37 @@
 
 ---
 
+## 規則 5：記錄平面（含自己的對話記憶）不是 ground truth，重大狀態以世界平面為準
+
+**transcript / context /「我記得做過」屬記錄平面，與 filesystem / git / ticket 的世界平面語意不對稱。重大狀態轉換（claim / complete / commit / spawn）的判斷必須以世界平面為準，不以對話記憶為準。**
+
+**Why**：兩平面寫入語意不同——世界副作用是 **at-least-once**（重試／分叉／並行執行體可重複執行，無 transaction 包裝），記錄寫入是 **at-most-once**（同 prompt 若有多個執行體，只有一個的 transcript 留存，輸家的記錄不存在）。兩者無一致性保證，必然雙向漂移：記錄有而世界無（規則 1-3 的 confabulation），世界有而記錄無（ghost branch——真實副作用但本執行體零記憶）。規則 1-3 防「工具輸出不可信」，本規則延伸到「自己的對話記憶同樣不可信」。
+
+**Consequence**：把記錄平面當 ground truth 會雙向出錯——把虛構的記憶當真（基於假前提推進），或把世界平面的真實副作用（ghost branch 的 commit／ticket 變更）誤判為「我沒做過＝不存在」而當污染 revert，造成真實工作遺失。
+
+**Action**：
+
+| 情形 | 世界平面查證（ground truth） | 禁止 |
+|------|---------------------------|------|
+| 「我記得 commit 了」 | `git log --oneline -1` / `git cat-file -t <hash>` | 憑記憶斷言 commit 成功 |
+| 「我記得 complete 了 ticket」 | `ticket track query <id>` 讀真實 status | 憑記憶斷言已 complete |
+| 「git status 有我沒印象的變更」 | 先查 ghost 痕跡（subagents 目錄／無主 commit／birth time）再決定對帳或 revert | 直接當污染 revert（可能丟失 ghost 真實副作用） |
+
+**與規則 3 銜接**：固定值是查證世界平面的手段；本規則是「為何必須查世界平面」的原則——記錄平面 at-most-once，不可作為唯一事實來源。雙向鑑識判據（有痕跡 vs 不可判）見 PC-166 防護 D 延伸（同 prompt 異執行體）。
+
+---
+
 ## 與其他規則的邊界
 
 | 規則 / PC | 聚焦 | 與本規則 |
 |-----------|------|---------|
-| PC-166 | 幻覺工具結果的症狀／根因／防護 A-E | 本規則是其「生成自律」的規則層固化（防護 E 無法 hook 的部分） |
+| PC-166 | 幻覺工具結果的症狀／根因／防護 A-E（含防護 D 延伸 ghost branch） | 本規則 1-4 是其「生成自律」的規則層固化（防護 E 無法 hook 的部分）；規則 5 二相性對應 PC-166 防護 D 延伸（世界有而記錄無的反向漂移） |
 | `bash-tool-usage-rules` 規則一 | 禁裸 cd 的命令層 | 本規則 4 交叉引用（觸發鏈源頭） |
 | IMP-056 | chpwd 淹沒機制 | 觸發鏈第 2 環 |
 | `ai-communication-rules` | 並行多工具的 token 效率 | 本規則 1 邊界澄清「並行合法、續寫結果非法」 |
 
 ---
 
-**Last Updated**: 2026-06-09 | **Version**: 1.0.0 — 源於 confabulation 根因 ANA（四視角整合：認知機制點火動作 + 並行邊界 + hook 可行性 + 架構品味）。固化反 confabulation 協議：規則 1 禁同訊息續寫結果 + 並行邊界 / 規則 2 raw stdout 判據 / 規則 3 固定值驗證 / 規則 4 git -C。
+**Last Updated**: 2026-06-10 | **Version**: 1.1.0 — 新增規則 5「記錄平面非 ground truth，重大狀態以世界平面為準」（記錄 at-most-once / 世界 at-least-once 二相性，涵蓋 ghost branch 真實副作用被誤判為幻覺的反向漂移風險），銜接規則 3 + PC-166 防護 D 延伸。歷史 1.0 版見 git log。
+
+**Version**: 1.0.0 — 源於 confabulation 根因 ANA（四視角整合：認知機制點火動作 + 並行邊界 + hook 可行性 + 架構品味）。固化反 confabulation 協議：規則 1 禁同訊息續寫結果 + 並行邊界 / 規則 2 raw stdout 判據 / 規則 3 固定值驗證 / 規則 4 git -C。
