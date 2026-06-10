@@ -45,6 +45,7 @@ from ticket_system.lib.command_lifecycle_messages import (
     format_msg,
 )
 from ticket_system.lib.command_tracking_messages import TrackMessages
+from ticket_system.lib.ambiguous_prefix import register_ambiguous_prefix
 from datetime import datetime, timedelta
 from ticket_system.lib.constants import (
     COGNITIVE_LOAD_FILE_THRESHOLD,
@@ -1513,20 +1514,13 @@ def _print_strategy_completeness_check(
         )
 
 
-class _AmbiguousHowAction(argparse.Action):
-    """攔截 `--how` 並給出含用途說明的友善提示（1.0.0-W1-024.1 A3）。
-
-    `--how` 因 argparse prefix matching 同時撞 --how-type / --how-strategy，
-    原生 ambiguous 英文訊息不說明兩旗標各自用途。顯式註冊 --how 讓 exact
-    match 優先於縮寫展開，以中文提示指引完整旗標名。
-    """
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        parser.error(
-            "--how 不是有效旗標，請使用完整旗標名："
-            "--how-type（任務類型，如 Implementation / Analysis）"
-            "或 --how-strategy（實作策略）"
-        )
+# 1.0.0-W1-028: 縮寫歧義攔截已抽為共用 helper，泛化原 _AmbiguousHowAction。
+# 共用 hint 文字常數，供 --how / --ho 等更短前綴共用同一提示（DRY）。
+_HOW_AMBIGUOUS_HINT = (
+    "--how 不是有效旗標，請使用完整旗標名："
+    "--how-type（任務類型，如 Implementation / Analysis）"
+    "或 --how-strategy（實作策略）"
+)
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:
@@ -1566,10 +1560,11 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     )
     parser.add_argument("--where", "--where-files", dest="where_files", help="影響檔案（逗號分隔，如 'file1.py,file2.py'）")
     parser.add_argument("--why", help="需求依據（IMP/ANA/ADJ 類型必填）")
-    # --how 攔截：exact match 優先於縮寫展開，給友善提示（1.0.0-W1-024.1 A3）
-    parser.add_argument(
-        "--how", nargs="?", action=_AmbiguousHowAction, help=argparse.SUPPRESS
-    )
+    # --how / --ho 攔截：exact match 優先於縮寫展開，給友善提示
+    # （1.0.0-W1-024.1 A3 + 1.0.0-W1-028 模式化）。--ho 為更短前綴同類誤打，
+    # 共用同一中文提示（約束 2 落地：攔截而非懸而未決）。
+    register_ambiguous_prefix(parser, "--how", _HOW_AMBIGUOUS_HINT)
+    register_ambiguous_prefix(parser, "--ho", _HOW_AMBIGUOUS_HINT)
     parser.add_argument("--how-type", help="Task Type: Implementation, Analysis, etc.")
     parser.add_argument("--how-strategy", help="實作策略")
     parser.add_argument("--parent", help="父 Ticket ID（子任務序號自動產生，勿指定 --seq）")
@@ -1584,6 +1579,15 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument("--blocked-by", help="依賴的 Ticket IDs（逗號分隔，如 'ID1,ID2'）")
     parser.add_argument("--related-to", help="相關的 Ticket IDs（逗號分隔，如 'ID1,ID2'）")
     parser.add_argument("--acceptance", action="append", help="驗收條件（多次 --acceptance 或 | 分隔，如 '條件A|條件B'）")
+    # --decision-tree 攔截：撞 --decision-tree-entry/-decision/-rationale（1.0.0-W1-028）
+    register_ambiguous_prefix(
+        parser,
+        "--decision-tree",
+        "--decision-tree 不是有效旗標，請使用完整旗標名："
+        "--decision-tree-entry（進入決策樹的層級）、"
+        "--decision-tree-decision（做出的決策）"
+        "或 --decision-tree-rationale（決策理由）",
+    )
     parser.add_argument("--decision-tree-entry", help="進入決策樹的層級")
     parser.add_argument("--decision-tree-decision", help="做出的決策")
     parser.add_argument("--decision-tree-rationale", help="決策理由")

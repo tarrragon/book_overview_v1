@@ -42,6 +42,7 @@ from ticket_system.lib.ticket_loader import (
     require_version,
 )
 from ticket_system.lib.ticket_validator import extract_version_from_ticket_id
+from ticket_system.lib.ambiguous_prefix import register_ambiguous_prefix
 from ticket_system.lib.messages import (
     ArgparseFormatErrorParser,
     ErrorMessages,
@@ -798,6 +799,16 @@ def _register_acceptance_commands(
     p_set_acceptance.add_argument(
         "--uncheck", nargs="+", metavar="INDEX",
         help="取消勾選指定 1-based index（可多個）"
+    )
+    # --all 攔截：撞 --all-check/--all-uncheck（1.0.0-W1-028）。作用域 scoped 至
+    # set-acceptance subparser，不影響 list/stale-list/td-status/stuck-anas 的合法
+    # --all（約束 1）。
+    register_ambiguous_prefix(
+        p_set_acceptance,
+        "--all",
+        "--all 不是有效旗標，請使用完整旗標名："
+        "--all-check（勾選全部驗收條件）"
+        "或 --all-uncheck（取消勾選全部驗收條件）",
     )
     p_set_acceptance.add_argument(
         "--all-check", dest="all_check", action="store_true",
