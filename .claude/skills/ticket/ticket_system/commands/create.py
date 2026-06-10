@@ -176,9 +176,10 @@ def _build_decision_tree_path(
     2. 豁免時無參數 → 返回 None
     3. 豁免時有完整參數 → 返回字典（驗證後）
     4. 豁免時部分參數 → raise ValueError（拒絕）
-    5. 非豁免時無參數 → raise ValueError（拒絕）
+    5. 非豁免時無參數 → 返回 None（不提前退出，交 _validate_create_checklist
+       與其他必填欄位一次列全，W1-029 A2 同手法）
     6. 非豁免時有完整參數 → 返回字典（驗證後）
-    7. 非豁免時部分參數 → raise ValueError（拒絕）
+    7. 非豁免時部分參數 → raise ValueError（拒絕，保留參數級精確 hint）
 
     Args:
         entry: --decision-tree-entry 參數值
@@ -203,17 +204,12 @@ def _build_decision_tree_path(
 
     # 使用 early return 簡化邏輯
     if provided_count == 0:
-        # 無參數
-        if is_exempted:
-            return None
-        else:
-            print(format_error(ErrorEnvelope(
-                component="create",
-                action="build_decision_tree",
-                errno="DECISION_TREE_MISSING_ALL",
-                hint="非子任務且非 DOC 類型必須提供 --decision-tree-entry/--decision-tree-decision/--decision-tree-rationale 三參數",
-            )))
-            raise ValueError("決策樹參數缺失")
+        # 無參數：豁免或非豁免皆 return None，不在此提前退出。
+        # 非豁免全缺交給 _validate_create_checklist 的 decision_tree_path
+        # 完整性檢查，與 when/who/how_strategy 等必填一次列全，避免跨階段
+        # 分批報錯造成多輪試錯（W1-029，A2 同手法，對齊本檔 why 修復 796-799）。
+        # PARTIAL（provided_count 1-2）與 EMPTY_VALUE 仍即時精確報錯，不退化。
+        return None
 
     if provided_count == 3:
         # 完整三參數 - 驗證後返回字典
