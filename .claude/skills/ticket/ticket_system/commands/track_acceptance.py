@@ -286,6 +286,12 @@ def execute_check_acceptance(args: argparse.Namespace, version: str) -> int:
     - 0-based 整數："0", "1", "2"（自動換算為 1-based）
     - 文字搜尋："任務實作完成"（模糊比對驗收條件文字）
     """
+    # W1-048: --as 身份申報對照（純前置檢查，deny 不寫入任何狀態）
+    from ticket_system.lib.identity_guard import check_identity
+    deny = check_identity(version, args.ticket_id, getattr(args, "as_agent", None))
+    if deny is not None:
+        return deny
+
     # 驗證參數互斥性
     use_all = getattr(args, "all", False)
     index_arg = getattr(args, "index", None)

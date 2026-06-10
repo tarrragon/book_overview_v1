@@ -186,6 +186,13 @@ Wave 完成判定規則（Checkpoint 2 情境 C 前置條件）：
 /ticket track set-acceptance <id> --all-check          # 勾選全部
 /ticket track set-acceptance <id> --all-uncheck        # 取消勾選全部
 
+# 身份申報（--as，W1-048）— complete / check-acceptance / set-acceptance 三命令通用
+/ticket track complete <id> --as thyme-python-developer        # 申報身份，與 who.current 對照不符即 deny（exit 1）
+/ticket track check-acceptance <id> --all --as thyme-python-developer
+/ticket track set-acceptance <id> --all-check --as thyme-python-developer
+/ticket track complete <id> --as rosemary-project-manager      # PM 身份一律放行（bookkeeping 豁免）
+/ticket track complete <id>                                    # 未提供 --as：僅 stderr 警告不阻擋（過渡期向後相容）
+
 # 設定阻擋關係（blockedBy 欄位）
 /ticket track set-blocked-by <id> <blocked-by-id>      # 覆寫（設定單一 blockedBy）
 /ticket track set-blocked-by <id> <id2> --add          # 追加（去重）

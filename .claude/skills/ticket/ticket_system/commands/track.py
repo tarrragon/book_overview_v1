@@ -200,6 +200,11 @@ def _execute_claim(args: argparse.Namespace, version: str) -> int:  # type: igno
 
 def _execute_complete(args: argparse.Namespace, version: str) -> int:
     """標記完成 - 包裝生命週期模組"""
+    # W1-048: --as 身份申報對照（純前置檢查，deny 不寫入任何狀態）
+    from ticket_system.lib.identity_guard import check_identity
+    deny = check_identity(version, args.ticket_id, getattr(args, "as_agent", None))
+    if deny is not None:
+        return deny
     return execute_complete(args, version)
 
 
@@ -448,6 +453,13 @@ def _register_lifecycle_commands(
         dest="no_stage",
         action="store_true",
         help="跳過 complete 後自動 git add metadata 檔案（W11-035 方案 D opt-out）",
+    )
+    p_complete.add_argument(
+        "--as",
+        dest="as_agent",
+        default=None,
+        metavar="AGENT_NAME",
+        help="申報執行身份，與 who.current 對照不符即 deny（W1-048；未提供僅警告）",
     )
 
     # close 操作（W15-027 / PC-090：--reason 枚舉必填）
@@ -785,6 +797,13 @@ def _register_acceptance_commands(
         help=TrackMessages.ARG_CHECK_ACCEPTANCE_ALL
     )
     p_check_acceptance.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    p_check_acceptance.add_argument(
+        "--as",
+        dest="as_agent",
+        default=None,
+        metavar="AGENT_NAME",
+        help="申報執行身份，與 who.current 對照不符即 deny（W1-048；未提供僅警告）",
+    )
 
     # set-acceptance 操作
     p_set_acceptance = subparsers.add_parser(
@@ -824,6 +843,13 @@ def _register_acceptance_commands(
         action="store_true",
         default=False,
         help="W3-044 逃生閥：旁路 status precondition 檢查（記入 hook-logs）",
+    )
+    p_set_acceptance.add_argument(
+        "--as",
+        dest="as_agent",
+        default=None,
+        metavar="AGENT_NAME",
+        help="申報執行身份，與 who.current 對照不符即 deny（W1-048；未提供僅警告）",
     )
 
     # validate 操作
