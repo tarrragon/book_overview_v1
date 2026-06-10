@@ -741,8 +741,30 @@ def _resolve_ticket_id_and_wave(args: argparse.Namespace, version: str) -> Optio
             )))
             return None
 
-        seq = get_next_seq(version, wave) if args.seq is None else args.seq
-        ticket_id = format_ticket_id(version, wave, seq)
+        if args.seq is None:
+            # auto-seq 模式：算出 seq 後加 collision guard，遞增至可用值。
+            # 防護 W1-042：兩來源（本地 glob + main ref）同時掃空時 get_next_seq
+            # 降級回傳 1，可能誤配已存在 ID（靜默覆寫風險，PC-152 collision 家族）。
+            seq = get_next_seq(version, wave)
+            ticket_id = format_ticket_id(version, wave, seq)
+            while get_ticket_path(version, ticket_id).exists():
+                seq += 1
+                ticket_id = format_ticket_id(version, wave, seq)
+        else:
+            # 顯式 --seq 模式：尊重用戶意圖，撞號報錯退出（不覆寫、不自動跳號）。
+            seq = args.seq
+            ticket_id = format_ticket_id(version, wave, seq)
+            if get_ticket_path(version, ticket_id).exists():
+                print(format_error(ErrorEnvelope(
+                    component="create",
+                    action="resolve_ticket_id",
+                    errno="TICKET_ID_ALREADY_EXISTS",
+                    hint=(
+                        f"顯式 --seq {seq} 對應的 Ticket ID 已存在: {ticket_id}。"
+                        f"請改用其他 --seq，或省略 --seq 由系統自動配下一個可用序號"
+                    ),
+                )))
+                return None
 
     # 驗證 Ticket ID
     if not validate_ticket_id(ticket_id):
@@ -1097,6 +1119,18 @@ def _build_and_save_ticket(
     tickets_dir.mkdir(parents=True, exist_ok=True)
     ticket_path = get_ticket_path(version, ticket_id)
     save_ticket(ticket, ticket_path)
+
+    # 落盤後驗證（W1-042）：確認檔案確實寫入預期路徑。
+    # W1-039 事件中出現「記錄平面幻影但世界平面無檔案落盤」，此驗證使
+    # 落盤失敗成為顯性錯誤而非靜默成功（規則 4：異常可觀測）。
+    if not ticket_path.exists():
+        sys.stderr.write(
+            f"[ERROR] _build_and_save_ticket: ticket {ticket_id} save_ticket 後 "
+            f"檔案不存在於預期路徑 {ticket_path}（落盤驗證失敗）\n"
+        )
+        raise FileNotFoundError(
+            f"Ticket {ticket_id} 落盤驗證失敗：{ticket_path} 不存在"
+        )
 
     return ticket
 

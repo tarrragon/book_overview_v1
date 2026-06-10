@@ -397,6 +397,17 @@ def get_next_seq(version: str, wave: int) -> int:
         if seq is not None:
             max_seq = max(max_seq, seq)
 
+    # 降級可觀測（W1-042 / quality-baseline 規則 4 雙通道）：
+    # 本地 glob 為空且 main ref 掃描降級（回 None，非有效空清單）時，
+    # 兩來源同時掃空會回傳 seq=1，可能誤配已存在 ID（W1-039 撞號事件）。
+    # 此處輸出 stderr warning 使降級對用戶可見；collision guard 在 create 層兜底。
+    if not local_stems and main_files is None:
+        sys.stderr.write(
+            f"[WARNING] get_next_seq: 本地工作樹與 main ref 同時掃描不到 "
+            f"{version} W{wave} 的 ticket（main ref 降級），配號回退為 1。"
+            f"若該 wave 實際已有 ticket，create 層 collision guard 將自動遞增至可用序號\n"
+        )
+
     return max_seq + 1
 
 
