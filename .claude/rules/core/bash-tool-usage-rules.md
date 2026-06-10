@@ -192,4 +192,6 @@ Claude Code Bash 工具的使用規範，涵蓋工作目錄、輸出處理、git
 
 ---
 
-**Last Updated**: 2026-05-29 | **Version**: 2.2.0 — 新增規則六「長背景任務可觀測性」（PYTHONUNBUFFERED=1 + tee streamable）及與規則二大輸出防護的調和說明（0.19.0-W3-086 spike 實證落地 / 0.19.0-W3-088）。歷史 2.0–2.1 版見 git log。**Source**: IMP-008、IMP-009、index.lock 競爭、PC-087、W3-086
+**Last Updated**: 2026-06-10 | **Version**: 2.3.0 — 規則一新增「輸出可疑/被淹沒當下的即時協議」子節（confabulation 防護，chpwd 淹沒已發生時的停手重發四步）補 footer（前次新增整節未 bump）。歷史 2.0–2.2 版見 git log。**Source**: IMP-008、IMP-009、index.lock 競爭、PC-087、W3-086、PC-166
+
+**Version**: 2.2.0 — 新增規則六「長背景任務可觀測性」（PYTHONUNBUFFERED=1 + tee streamable）及與規則二大輸出防護的調和說明（0.19.0-W3-086 spike 實證落地 / 0.19.0-W3-088）。

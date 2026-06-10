@@ -78,6 +78,8 @@
 
 **Why**：裸 cd 觸發 zsh chpwd hook 的 ls 淹沒（IMP-056），是 confabulation 觸發鏈第 1 環——輸出淹沒 → result 邊界模糊 → 填補抑制失效。`git -C` 完全不切換 cwd，從根本消除 chpwd 觸發。
 
+**Consequence**：chpwd 的 ls 輸出淹沒工具 result 後，真實 stdout 邊界模糊；PM 在無法定位真實 result 時退化為「用預期填補」（confabulation 點火動作，規則 1），把虛構輸出當事實推進，需外部介入才揭穿。
+
 **Action**：見 `bash-tool-usage-rules` 規則一（git -C 首選方案）。本規則與其交叉引用。
 
 ---
@@ -109,10 +111,12 @@
 | PC-166 | 幻覺工具結果的症狀／根因／防護 A-E（含防護 D 延伸 ghost branch） | 本規則 1-4 是其「生成自律」的規則層固化（防護 E 無法 hook 的部分）；規則 5 二相性對應 PC-166 防護 D 延伸（世界有而記錄無的反向漂移） |
 | `bash-tool-usage-rules` 規則一 | 禁裸 cd 的命令層 | 本規則 4 交叉引用（觸發鏈源頭） |
 | IMP-056 | chpwd 淹沒機制 | 觸發鏈第 2 環 |
-| `ai-communication-rules` | 並行多工具的 token 效率 | 本規則 1 邊界澄清「並行合法、續寫結果非法」 |
+| `ai-communication-rules` | 對話 / prompt 品質（規則 4 token 節省，含並行多工具效率） | 本規則 1 邊界澄清「並行合法、續寫結果非法」 |
 
 ---
 
-**Last Updated**: 2026-06-10 | **Version**: 1.1.0 — 新增規則 5「記錄平面非 ground truth，重大狀態以世界平面為準」（記錄 at-most-once / 世界 at-least-once 二相性，涵蓋 ghost branch 真實副作用被誤判為幻覺的反向漂移風險），銜接規則 3 + PC-166 防護 D 延伸。歷史 1.0 版見 git log。
+**Last Updated**: 2026-06-10 | **Version**: 1.2.0 — 規則 4 補 Consequence（三明示完整化）；邊界表更正 `ai-communication-rules` 聚焦描述（原「並行多工具的 token 效率」失準，實為對話 / prompt 品質含 token 節省）。歷史 1.0–1.1 版見 git log。
+
+**Version**: 1.1.0 — 新增規則 5「記錄平面非 ground truth，重大狀態以世界平面為準」（記錄 at-most-once / 世界 at-least-once 二相性，涵蓋 ghost branch 真實副作用被誤判為幻覺的反向漂移風險），銜接規則 3 + PC-166 防護 D 延伸。
 
 **Version**: 1.0.0 — 源於 confabulation 根因 ANA（四視角整合：認知機制點火動作 + 並行邊界 + hook 可行性 + 架構品味）。固化反 confabulation 協議：規則 1 禁同訊息續寫結果 + 並行邊界 / 規則 2 raw stdout 判據 / 規則 3 固定值驗證 / 規則 4 git -C。
