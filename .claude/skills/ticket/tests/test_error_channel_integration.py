@@ -83,7 +83,7 @@ def _combined_output(result: subprocess.CompletedProcess) -> str:
 class TestErrorChannelIntegration:
     """W17-008.5.6.1：5 個錯誤通道整合場景端到端驗證。"""
 
-    def test_scenario_1_invalid_section(self):
+    def test_scenario_1_invalid_section(self, tmp_path, monkeypatch):
         """場景 1：invalid-section（legacy str 路徑）。
 
         Given: ticket track append-log <existing-id> --section "NotAValidSection" "..."
@@ -91,10 +91,36 @@ class TestErrorChannelIntegration:
         Then: exit code != 0、輸出含「無效的 section」與「有效值」清單；
               此路徑為 legacy str（W17-008.5.2 雙路徑保留向後相容），
               不含 ErrorEnvelope 標記。
+
+        W1-050：改用隔離 tmp 建立目標 ticket（原用真實 ticket
+        0.18.0-W17-008.5.6.1）。append-log 的 file_lock 包圍 section 驗證
+        （lock 先於驗證建立，W14-042 不刪 lock），對真實 ticket 操作會在真實
+        work-logs 留 lock 殘留；改用 tmp ticket + CLAUDE_PROJECT_DIR 導向使 lock
+        落在 tmp，測試結束自動清理。
         """
-        # 使用本 ticket 自身（必定存在）作為 target
+        version = "0.99.0"
+        ticket_id = f"{version}-W1-001"
+        tickets_dir = (
+            tmp_path / "docs" / "work-logs"
+            / f"v{version.split('.')[0]}"
+            / f"v{'.'.join(version.split('.')[:2])}"
+            / f"v{version}" / "tickets"
+        )
+        tickets_dir.mkdir(parents=True)
+        (tickets_dir / f"{ticket_id}.md").write_text(
+            "---\n"
+            f"id: {ticket_id}\n"
+            "title: Test\n"
+            "type: IMP\n"
+            "status: in_progress\n"
+            f"version: {version}\n"
+            "---\n\n# Execution Log\n\n## Solution\n\ncontent\n",
+            encoding="utf-8",
+        )
+        monkeypatch.setenv("CLAUDE_PROJECT_DIR", str(tmp_path))
+
         result = _run_ticket(
-            "track", "append-log", "0.18.0-W17-008.5.6.1",
+            "track", "append-log", ticket_id,
             "--section", "NotAValidSection", "dummy-content",
         )
 
@@ -184,7 +210,7 @@ class TestErrorChannelIntegration:
         # W17-008.9 引導：列出現有 H2 標題
         assert "Problem Analysis" in output or "Other Section" in output
 
-    def test_scenario_4_missing_required_field(self):
+    def test_scenario_4_missing_required_field(self, real_repo_root):
         """場景 4：missing-required-field（ErrorEnvelope 路徑；W17-008.5.3）。
 
         Given: ticket create 缺多項必填欄位（when / how_strategy 等）

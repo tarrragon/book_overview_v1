@@ -21,6 +21,16 @@ import pytest
 from ticket_system.commands import create as create_cmd
 
 
+@pytest.fixture(autouse=True)
+def _use_real_repo_root(real_repo_root):
+    """本檔測試 version=None 自動偵測路徑，需真實 repo todolist/work-logs。
+
+    W1-050：覆蓋 autouse `_isolate_project_root` 的空 tmp 隔離；測試走
+    early-exit 錯誤路徑（exit 1），不抵達 file_lock，無 lock 污染風險。
+    """
+    yield
+
+
 def _make_args(**overrides):
     """建立 argparse.Namespace 包含 create.execute 預期欄位的預設值。"""
     defaults = dict(
