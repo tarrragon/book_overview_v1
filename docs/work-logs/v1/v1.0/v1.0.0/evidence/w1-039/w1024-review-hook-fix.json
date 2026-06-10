@@ -1,0 +1,85 @@
+{
+  "summary": "審查 bash-edit-guard-hook.py 裸 cd warn 偵測（f52feaee, W1-023.4.1）與 W1-026 收窄（c6809c1f）。核心邏輯正確：28 pytest 全綠（本地重跑驗證）、直接 stdin 注入驗證 env SET 時 repo-root 還原排除 / env UNSET 時保守 warn 均符合設計；W1-026 收窄與 bash-tool-usage-rules.md 規則一「絕對路徑還原 = cd /project/root」語意一致。發現 1 個 medium 漏報（newline 分隔的多行命令完全不偵測，regex connector 集缺 \\n 且無 re.MULTILINE）、數個 low 級設計缺口（pushd 未涵蓋、子 shell 內串接 cd 誤報且與 ; 形式行為不一致、「正規化」僅 rstrip('/') 與文件用語不符、test_non_bash_tool_skipped 斷言恆真）。另確認 hook log 2026-06-10 02:30:51 的 repo-root cd warn 為 heredoc 字面 FP（W1-026 ticket Test Results 內含字面 `&& cd /<repo-root>/subdir`），非 CLAUDE_PROJECT_DIR 注入失效——已用直接注入實驗排除 env 失效假說。兩 ticket acceptance 與現行程式碼一致；唯 W1-023.4.1 acceptance 字面寫「排除…絕對路徑還原 cd /project/root」但 f52feaee 實作為更寬的 startswith('/')，acceptance 勾選時實作已偏離字面（即 W1-026 修復的 bug），屬已矯正的歷史性 gate 滑過。",
+  "findings": [
+    {
+      "title": "Newline 分隔的多行命令裸 cd 完全不偵測（漏報）",
+      "severity": "medium",
+      "file": ".claude/hooks/bash-edit-guard-hook.py:115",
+      "description": "_detect_bare_cd 的 regex connector 集為 (^|&&|;|\\|\\||\\() 且未用 re.MULTILINE，^ 只錨定字串開頭。Bash 工具常見的 newline 分隔多步驟命令（如 'git status\\ncd subdir && ls'）中第二行起的裸 cd 不會命中，chpwd 淹沒照樣發生。這是 warn 防線對一整類常見命令形態的系統性漏報。",
+      "evidence": "實證 probe：_detect_bare_cd('git status\\ncd subdir && ls') == False；_detect_bare_cd('echo a\\ncd /tmp/x') == False。regex 位於 bash-edit-guard-hook.py:115（commit f52feaee 引入，c6809c1f 未改動 connector 集）。",
+      "recommendation": "connector alternation 加入 \\n（如 (^|\\n|&&|;|\\|\\||\\()），或對 ^ 使用 re.MULTILINE。補 pytest 案例：多行命令第二行裸 cd 應命中。"
+    },
+    {
+      "title": "pushd 未涵蓋（同樣改變持久 cwd 並觸發 chpwd）",
+      "severity": "low",
+      "file": ".claude/hooks/bash-edit-guard-hook.py:73",
+      "description": "pushd 與 cd 同樣改變持久工作目錄並觸發 zsh chpwd hook（ls 淹沒），但 _detect_bare_cd 只比對 \\bcd\\b，pushd 完全不偵測。bash-tool-usage-rules.md 規則一也未提及 pushd，hook 與規則層一致地留有此缺口（規則與 hook 一致故非漂移，屬共同設計缺口）。",
+      "evidence": "實證 probe：_detect_bare_cd('pushd subdir && ls') == False。grep bash-tool-usage-rules.md 無 pushd 字面。",
+      "recommendation": "若要補：regex \\bcd\\b 改為 \\b(cd|pushd)\\b 並同步在 bash-tool-usage-rules.md 規則一加註；若判定 PM/agent 實務不用 pushd 可顯性記錄為接受的邊界。"
+    },
+    {
+      "title": "子 shell 內串接 cd 誤報，且 && 與 ; 形式行為不一致",
+      "severity": "low",
+      "file": ".claude/hooks/bash-edit-guard-hook.py:119-121",
+      "description": "排除 1 只檢查命中點的『緊鄰 connector 是否為左括號』，不追蹤是否仍在未閉合的子 shell 內。(cd a && cd b && ls) 的第二個 cd 以 && 為 connector 而誤報 warn（子 shell 內 cd 不持久，應排除）。同時 (cd a; cd b) 因第一個 match 的 target \\S+ 貪婪吞掉 'a;'，第二個 cd 失去 connector 而不命中——兩種等價寫法行為相反（後者碰巧正確）。warn 不 deny 故成本低，且 docstring 已聲明無完整 shell parse，但行為不一致值得記錄。",
+      "evidence": "實證 probe：_detect_bare_cd('(cd a && cd b && ls)') == True（誤報）；_detect_bare_cd('(cd a; cd b)') == False（\\S+ 吞 ';' 的副作用）。另 brace group '{ cd subdir; ls; }'（cwd 持久）漏報 False；單一 pipe 'echo x | cd subdir'（zsh pipeline 末段在當前 shell 執行，cwd 持久）漏報 False。",
+      "recommendation": "可接受為已文件化的務實邊界；若要降低不一致，target 捕獲改 ([^\\s;]+) 避免吞分隔符，並在 docstring False-positive 邊界段補記『子 shell 內串接 cd 會誤報』與 brace group / pipeline 末段漏報。"
+    },
+    {
+      "title": "「正規化」用語高於實作（僅 rstrip('/')），引號/tilde/./ 形式的 repo-root 還原仍 warn",
+      "severity": "low",
+      "file": ".claude/hooks/bash-edit-guard-hook.py:123-126",
+      "description": "W1-026 docstring、commit message 與 ticket Solution 均稱『target 正規化後恰等於專案根』，但實作只有 rstrip('/')，無 os.path.normpath / realpath / 引號剝除 / tilde 展開。cd \"/repo/root\"（引號）、cd /repo/root/.、cd ~/Projects/book_overview_v1 等合法 repo-root 還原形式仍 warn。方向保守（warn 不 deny，多一行提示），不是正確性錯誤，但文件用語會讓後人以為已做路徑正規化。",
+      "evidence": "實證 probe（CLAUDE_PROJECT_DIR 已設）：cd \"<root>\"（雙引號）→ True；cd <root>/. → True；cd ~/Projects/book_overview_v1 → True。實作 bash-edit-guard-hook.py:111 與 125 僅 rstrip('/')。",
+      "recommendation": "二擇一：（a）docstring/ticket 用語改為『去除 trailing slash 後比對』；（b）補 normpath + 引號剝除。建議 (a)，成本最低且保守方向無害。"
+    },
+    {
+      "title": "test_non_bash_tool_skipped 斷言恆真（無法失敗）",
+      "severity": "low",
+      "file": ".claude/hooks/tests/test_bash_edit_guard_hook.py:208",
+      "description": "斷言 `out.strip() == \"\" or \"BARE_CD\" not in out` 的第二個 disjunct 恆為 True——字面 'BARE_CD' 是 Python 常數名，從不出現在 hook 的任何輸出文字（訊息文字為中文「偵測到裸 cd」），故此測試對任何輸出都通過，無迴歸偵測力。",
+      "evidence": "test_bash_edit_guard_hook.py:208；lib/hook_messages.py:680-688 BARE_CD_WARNING 訊息內容不含 'BARE_CD' 字面。",
+      "recommendation": "改為 assert out.strip() == \"\"（非 Bash 工具應零輸出），或檢查「偵測到裸 cd」中文字面不在 out。"
+    },
+    {
+      "title": "docstring 命中模式清單漏列 || cd（與實作/commit message 不同步）",
+      "severity": "info",
+      "file": ".claude/hooks/bash-edit-guard-hook.py:80-82",
+      "description": "regex 含 \\|\\|，測試 test_or_chained_cd 也覆蓋，commit f52feaee message 亦列「^cd／&& cd／; cd／|| cd」，但函式 docstring 命中模式段只列「行首 cd（^cd）／串接後 cd（&& cd、; cd）」，漏 || cd。微小文件漂移。",
+      "evidence": "bash-edit-guard-hook.py:80-82 vs :115 regex 與 tests:59-61。",
+      "recommendation": "docstring 命中模式補「|| cd」。"
+    },
+    {
+      "title": "_print_warning_message 型別註解與 docstring 與行為不符（既有缺陷，f52feaee 改呼叫端時未順手修正）",
+      "severity": "info",
+      "file": ".claude/hooks/bash-edit-guard-hook.py:136-150",
+      "description": "函式註解為 -> None 且 docstring 稱「輸出警告訊息到 stderr」，實際回傳 str 且不寫 stderr。f52feaee 新增的對等函式 _bare_cd_warning_message 正確註解 -> str，兩者並排放大了舊函式的不一致。屬 pre-existing，非本次引入。",
+      "evidence": "bash-edit-guard-hook.py:136（def _print_warning_message(command: str) -> None）vs :150（return warning）；對照 :153 _bare_cd_warning_message -> str。",
+      "recommendation": "改註解為 -> str、docstring 改「產生警告訊息」；可併入下次觸碰該檔的 ticket。"
+    },
+    {
+      "title": "Heredoc 字面 cd 誤報已活體實證（含 hook 對自身 ticket 文件誤報）；log 100 字截斷妨礙 FP 診斷",
+      "severity": "info",
+      "file": ".claude/hook-logs/bash-edit-guard/ (2026-06-10 02:30:51 entry)",
+      "description": "hook log 2026-06-10 02:30:51 顯示「cd /<repo-root> && uv run --project .claude/skills/ticket ticket track…」（精確 repo-root 還原）被 warn，表面上像 W1-026 排除失效或 CLAUDE_PROJECT_DIR 未注入。經直接 stdin 注入實驗排除 env 失效假說（env SET → warn=False；env UNSET → warn=True，均符合設計）；真因是該命令為 append-log heredoc，內含 W1-026 ticket Test Results 的字面「&& cd /<repo-root>/subdir 串接絕對子目錄命中」，命中 documented heredoc FP。log 訊息截斷於 100 字元，無法從 log 判斷觸發 segment，診斷需重建全命令。",
+      "evidence": "log entry [2026-06-10 02:30:51] INFO - 提示: 偵測到裸 cd - cd /Users/tarragon/Projects/book_overview_v1 && uv run --project .claude/skills/ticket ticket track（截斷）；對照 1.0.0-W1-026.md:163 含字面 `&& cd /<repo-root>/subdir`；直接注入實驗：subprocess env SET/UNSET 對 'cd <root> && git status' 分別 warn=False/True。",
+      "recommendation": "logger.info 增記命中的 connector 與 target（如「提示: 偵測到裸 cd [target=%s]」），讓 FP 事後可從 log 直接定位觸發 segment，不需重建全命令。"
+    },
+    {
+      "title": "W1-023.4.1 acceptance 字面與 f52feaee 實作偏離即已勾選（歷史性 gate 滑過，W1-026 已矯正）",
+      "severity": "low",
+      "file": "docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-023.4.1.md:36-37",
+      "description": "acceptance #1 寫「排除…絕對路徑還原 cd /project/root」（語意 = 僅專案根），但 f52feaee 實作為 target.startswith('/')（排除所有絕對路徑），勾選 [x] 時實作已寬於 acceptance 字面——這個偏離正是 W1-026 修復的漏擋 bug。現行程式碼與兩張 ticket 的 acceptance 均一致（W1-026 兩條 acceptance 與 code/tests 逐項對得上，28 passed 本地重跑驗證），故僅為已矯正的歷史記錄；教訓是 acceptance 勾選時「字面語意 vs 實作語意」未逐字核對。",
+      "evidence": "1.0.0-W1-023.4.1.md acceptance #1 字面 vs f52feaee diff（+ if target.startswith('/'): continue）；1.0.0-W1-026.md why 欄位明確記載此偏離；c6809c1f 收窄後與 acceptance 語意對齊。",
+      "recommendation": "無需程式碼動作。可作為 acceptance 驗收時逐字核對排除條件語意的案例素材（與既有 PC-055/AC 漂移系列互補，方向相反：實作寬於 AC 而非 AC 被外溢達成）。"
+    },
+    {
+      "title": "W1-026 收窄與 bash-tool-usage-rules.md 規則一語意一致（驗證通過）",
+      "severity": "info",
+      "file": ".claude/rules/core/bash-tool-usage-rules.md",
+      "description": "規則一「四種安全做法」表的「絕對路徑還原」列範例為 cd /project/root && ...（僅專案根，污染後補救）。W1-026 將 hook 排除收窄為恰等於 CLAUDE_PROJECT_DIR，與規則字面一致；舊版排除所有絕對路徑反而寬於規則。env 未設時保守 warn 的 fallback 方向正確（warn 不 deny，誤報成本一行提示）。子 shell、git -C、uv -d 排除行為與規則一速查表逐列對齊。",
+      "evidence": "bash-tool-usage-rules.md 規則一表「絕對路徑還原 | cd /project/root && ... | 污染後補救」；hook :123-126 僅 repo-root 排除；直接注入實驗 env SET/UNSET 行為符合 ticket Solution 行為對照表全部 5 列。",
+      "recommendation": "無需動作；記錄為一致性驗證通過。"
+    }
+  ]
+}

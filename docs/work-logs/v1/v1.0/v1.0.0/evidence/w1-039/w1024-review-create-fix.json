@@ -1,0 +1,85 @@
+{
+  "summary": "W1-024.1（commit 5df3d5f4）create UX 修復整體正確：A2 移除 WHY_REQUIRED 提前退出後 why 與 when/who/how_strategy 合併單一 CHECKLIST_VALIDATION_FAILED（13 個相關測試實跑通過）；A3 的 --how 攔截經實機驗證涵蓋空格形式、無值形式與 --how=value 等號形式，--how-type/--how-strategy 完整旗標與 --how-s 縮寫均不受影響，無 userspace 破壞。--force 語意放寬（why 從硬閘門變為可豁免）已在 ticket Solution 顯性記錄為刻意決策，且 PC-018 resume/claim 端有 5W1H 程序性防線。主要問題：(1) create.py:916 註解仍宣稱「CLI 端已對 IMP/ANA/ADJ 做必填驗證」——該驗證正是本 commit 移除的，誤導後人以為 checklist 的 why 檢查是冗餘備援（high）；(2) test_doc_type_still_exempts_why 實證為 vacuous——執行在 BLOCKED_BY_NOT_FOUND 即終止（blocked_by 驗證先於 checklist），DOC 豁免分支從未被執行，移除 checklist 的 DOC 豁免該測試仍綠（medium）。其餘為 pre-existing 漂移與設計觀察（checklist docstring 仍稱 WARNING 層級、--why help 範圍與實際 enforcement 不一致、bulk_create/generate 完全繞過 checklist、blocked_by 錯誤與 checklist 錯誤仍分兩輪）。",
+  "findings": [
+    {
+      "title": "create.py:916 註解殘留「CLI 端已對 IMP/ANA/ADJ 做必填驗證」——該驗證已被本 commit 移除",
+      "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+      "severity": "high",
+      "description": "commit 5df3d5f4 移除 _parse_cli_args_to_config 的 WHY_REQUIRED 提前退出後，_validate_create_checklist 成為 why 必填的唯一強制點。但 line 916 註解仍寫「CLI 端已對 IMP/ANA/ADJ 做必填驗證，此處為清單一致性」，宣稱存在一個本 commit 剛移除的上游驗證。後人讀此註解會誤判 checklist 的 why 檢查只是冗餘備援，重構時可能刪除，導致 why 必填防線完全消失。",
+      "evidence": "create.py:916「# why 非「待定義」（DOC 類型豁免；CLI 端已對 IMP/ANA/ADJ 做必填驗證，此處為清單一致性）」vs 同 commit diff 移除 lines 795-804 的 WHY_REQUIRED sys.exit(1)（commit 5df3d5f4）",
+      "recommendation": "更新註解為「why 必填唯一強制點（1.0.0-W1-024.1 起 CLI 端提前退出已移除，DOC 豁免）」，明示此檢查不可刪。"
+    },
+    {
+      "title": "test_doc_type_still_exempts_why 為 vacuous 測試：執行在 blocked_by 驗證即終止，DOC 豁免分支從未被執行",
+      "file": ".claude/skills/ticket/ticket_system/tests/test_create_ux_merged_validation.py",
+      "severity": "medium",
+      "description": "該測試以不存在的 blocked_by ID 讓流程在 persist 前失敗以避免產生真實 ticket 檔。但 _persist_and_report 中 _validate_before_persist（含 blocked_by 驗證）在步驟 1，checklist 在步驟 1.5——實機重現確認輸出為 errno: BLOCKED_BY_NOT_FOUND，_validate_create_checklist 從未執行。即使有人把 checklist line 917 的 DOC 豁免移除，此測試仍會通過。斷言「why not in combined or CHECKLIST_VALIDATION_FAILED not in combined」為析取式，在 checklist 未執行時恆真。測試唯一實質驗證的是 parse 階段不再有 WHY_REQUIRED 提前退出。",
+      "evidence": "create.py:1111（_validate_before_persist 先行）vs create.py:1115-1117（checklist 後行）；實機重現：DOC + why=None + blocked_by=0.99.0-W99-001 → stdout 僅含「errno: BLOCKED_BY_NOT_FOUND」，無任何 checklist 輸出；test_create_ux_merged_validation.py:131-155",
+      "recommendation": "改為單元層直接呼叫 _validate_create_checklist(config, 'DOC') 斷言 'why' not in missing；或用 tmp_path 隔離 persist 後驗證 exit 0。現行寫法保留亦可，但 docstring 應改述「驗證 parse 階段無 WHY_REQUIRED 提前退出」以免高估覆蓋。"
+    },
+    {
+      "title": "--force 語意放寬（why 從不可豁免變為可豁免）已評估並記錄為刻意決策",
+      "file": "docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-024.1.md",
+      "severity": "info",
+      "description": "舊行為中 WHY_REQUIRED 在 parse 階段 sys.exit(1)，--force 無法繞過；新行為 why 併入 checklist 後 --force 可豁免（印 WARNING 列出）。此放寬非未評估風險：ticket Solution 第 78 行與設計決策第 98 行均顯性記錄「逃生閥語意統一，屬刻意設計決策」。且 --force help 文字本就宣稱跳過 5W1H 驗證（why 屬 5W1H），新行為反而與文件語意一致；下游 resume/claim 端有「5W1H 非待定義」程序性檢查（PC-018）作後防。殘餘風險：--force 建立的 IMP 帶 why=待定義 在舊版不可能存在，依賴「why 必有值」假設的後續自動化（若有）需注意。",
+      "evidence": "1.0.0-W1-024.1.md:78「已知語意變更：why 從『不可被 --force 豁免』變為…屬刻意設計決策」、:98「--force 語意統一」；create.py:1670-1678 --force help 文字",
+      "recommendation": "無需行動。若未來新增以 why 欄位驅動的自動化，先 grep --force 建立的 ticket 是否存在 why=待定義。"
+    },
+    {
+      "title": "_validate_create_checklist docstring 仍稱「WARNING 層級，不阻擋建立」（pre-existing 漂移，本 commit 後誤導性升高）",
+      "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+      "severity": "low",
+      "description": "line 868-869 docstring「此驗證為 WARNING 層級，不阻擋建立」自 W11-003.5 升級為阻擋（_enforce_create_checklist sys.exit(1)）後即過期，屬 pre-existing。但本 commit 使該函式成為 why 必填的唯一閘門，docstring 與實際行為（阻擋）的落差誤導性升高。",
+      "evidence": "create.py:868-869 docstring vs create.py:927-967 _enforce_create_checklist（缺失 + 未 --force → sys.exit(1)）",
+      "recommendation": "docstring 改為「W11-003.5 起經 _enforce_create_checklist 升級為阻擋（--force 可豁免）」。"
+    },
+    {
+      "title": "--why help 文字「IMP/ANA/ADJ 類型必填」與實際 enforcement（所有非 DOC 類型）不一致（pre-existing）",
+      "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+      "severity": "low",
+      "description": "checklist 的 why 檢查條件為 ticket_type != 'DOC'，故 TST/RES/ANA/INV/ADJ/IMP 全部必填；但 --why help 與被移除的舊 WHY_REQUIRED hint 均只列 IMP/ANA/ADJ。舊提前退出條件同為 != DOC，故屬 pre-existing 文案不一致，非本 commit 回歸。",
+      "evidence": "create.py:1630「--why help='需求依據（IMP/ANA/ADJ 類型必填）'」vs create.py:917「if ticket_type != \"DOC\" and ...」；--type help 列 IMP, TST, ADJ, RES, ANA, INV, DOC（create.py:1620）",
+      "recommendation": "help 改為「需求依據（DOC 以外類型必填）」。"
+    },
+    {
+      "title": "bulk_create.py / generate.py 完全繞過 create checklist，why 無任何驗證（pre-existing，無分批報錯殘留）",
+      "file": ".claude/skills/ticket/ticket_system/commands/bulk_create.py",
+      "severity": "low",
+      "description": "審查問題「generate.py 與 bulk_create.py 是否有獨立 why 驗證殘留分批報錯」的答案：無殘留——兩者均不經 create.execute / _validate_create_checklist，直接走 ticket_builder / ticket_generator + save_ticket。bulk_create 的 why 取 template_defaults.get('why', '')，空字串不會被任何層攔截；generate.py 無 why 處理。批量路徑可產生 why 為空的 ticket，與 create 單建路徑的必填強制不對稱。",
+      "evidence": "bulk_create.py:127「\"why\": template_defaults.get(\"why\", \"\")」+ imports 僅 ticket_builder/ticket_loader（無 create 引用）；generate.py grep why 零命中，走 ticket_generator.generate + save_ticket（generate.py:16-18）",
+      "recommendation": "依 quality-baseline 規則 5 建低優先 ticket：bulk_create/generate 落 ticket 前過一次 _validate_create_checklist（或共用同一驗證 lib）。"
+    },
+    {
+      "title": "A3 --how 攔截實機驗證正確：等號形式、無值形式、完整旗標、--how-s 縮寫均符合預期",
+      "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+      "severity": "info",
+      "description": "實機驗證五種形式：(1) --how 值（測試覆蓋）與 (2) --how 無值（測試覆蓋）→ 友善提示；(3) --how=value 等號形式（測試未覆蓋）→ 同樣命中 exact match 給友善提示；(4) --how-type/--how-strategy 完整旗標不受影響（測試覆蓋）；(5) --how-s 縮寫仍正常展開為 --how-strategy（allow_abbrev 保留，未採 ANA 另一選項 allow_abbrev=False，避免破壞既有縮寫 userspace）。修改前 --how 必觸發 ambiguous 錯誤、不可能有合法使用者，無回歸面。次要觀察：--ho 的原生 ambiguous 訊息現會把 --how 列為候選（「could match --how, --how-type, --how-strategy」），用戶若選 --how 會再得一次友善提示，兩步收斂可接受。",
+      "evidence": "實機 probe：--how=策略 → 「--how 不是有效旗標…--how-type（任務類型…）或 --how-strategy（實作策略）」；--ho x → 「ambiguous option: --ho could match --how, --how-type, --how-strategy」；--how-s x → parsed ok, how_strategy=x。create.py:1578-1590, 1631-1634",
+      "recommendation": "可在 test_create_ux_merged_validation.py 補一個 --how=value 等號形式 case（一行 parametrize），非必要。"
+    },
+    {
+      "title": "blocked_by / 重複偵測錯誤仍先於 checklist 報出，多類錯誤並存時仍需兩輪試錯",
+      "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+      "severity": "info",
+      "description": "A2 的「一次列全」只合併 checklist 欄位（why/when/who/how_strategy/where.files/acceptance/decision_tree_path）。_validate_before_persist（blocked_by 存在性 + 重複偵測）在 checklist 之前且失敗即 return 1：同時帶錯誤 blocked_by 與缺必填欄位的用戶，先修 blocked_by 再看到 checklist 缺漏。相比舊行為（WHY_REQUIRED → blocked_by → checklist 三輪）已收斂為兩輪，屬改善後的殘餘設計邊界而非回歸。",
+      "evidence": "create.py:1110-1117（步驟 1 _validate_before_persist 先行 early return；步驟 1.5 checklist 後行）；實機重現 DOC case 僅輸出 BLOCKED_BY_NOT_FOUND",
+      "recommendation": "若未來再收 UX ticket，可評估 checklist 先行或兩者合併輸出；現狀可接受。"
+    },
+    {
+      "title": "必填欄位錯誤通道由 stderr 改為 stdout；整合測試保留 WHY_REQUIRED 死分支容忍",
+      "file": ".claude/skills/ticket/tests/test_error_channel_integration.py",
+      "severity": "info",
+      "description": "舊 WHY_REQUIRED envelope 寫 stderr，新 CHECKLIST_VALIDATION_FAILED 經 print 走 stdout。與 codebase 其他 envelope（如 BLOCKED_BY_NOT_FOUND 同走 stdout）一致，且 repo 內無任何 hook/script grep WHY_REQUIRED（已全量 grep 確認，僅測試檔引用），無消費者破壞。test_error_channel_integration.py:218-222 仍將 WHY_REQUIRED 列入容許 errno 集合，現為永不命中的死分支，容忍性斷言無害但可收緊。",
+      "evidence": "grep -rn WHY_REQUIRED .claude --include='*.py' --include='*.md'（排除 tests）零命中；test_error_channel_integration.py:221-222 容許集合含 WHY_REQUIRED；1.0.0-W1-024.1.md:112 sync-check 紀錄一致",
+      "recommendation": "下次碰該整合測試時移除 WHY_REQUIRED 容忍項並鎖定 CHECKLIST_VALIDATION_FAILED。"
+    },
+    {
+      "title": "其餘 4 個 UX 測試驗證強度足夠；測試依賴真實 repo 狀態屬既有套件慣例",
+      "file": ".claude/skills/ticket/ticket_system/tests/test_create_ux_merged_validation.py",
+      "severity": "info",
+      "description": "test_missing_required_fields_listed_in_single_error 確實到達 checklist（blocked_by=None 通過步驟 1）並斷言四欄位一次列全 + WHY_REQUIRED 不存在；test_why_only_missing_still_reported_via_checklist 同理；兩個 --how 測試經獨立 parser 直驗 argparse 行為。全部 6 + 改寫後 7 個測試實跑通過（13 passed in 2.58s）。測試經 resolve_version 讀真實 todolist.yaml、duplicate 偵測掃真實 ticket 目錄，與既有 test_create_error_envelope.py 同模式（wave=99 防碰撞），環境耦合屬套件既有慣例非本 commit 引入。",
+      "evidence": "uv run pytest ticket_system/tests/test_create_ux_merged_validation.py ticket_system/tests/test_create_error_envelope.py -q → 13 passed；test_create_ux_merged_validation.py:88-129（兩個 A2 測試實際到達 checklist）",
+      "recommendation": "無需行動。"
+    }
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "summary": "六維度審查未推送修復工作（W1-023鏈/W1-024/W1-025/W1-026）+ 對抗性驗證",
+  "agentCount": 18,
+  "logs": [
+    "六維度並行審查啟動（範圍：origin/main..HEAD 50 commits + 5 組 ticket）",
+    "[ticket-consistency] 6 項 low/info 不進驗證（保留於報告）",
+    "[rules-docs] 8 項 low/info 不進驗證（保留於報告）",
+    "[hook-fix] 9 項 low/info 不進驗證（保留於報告）",
+    "[flat-gate] 6 項 low/info 不進驗證（保留於報告）",
+    "[create-fix] 8 項 low/info 不進驗證（保留於報告）",
+    "[adversarial] 3 項 low/info 不進驗證（保留於報告）",
+    "審查完成：confirmed=11 refuted=1 unverified=0"
+  ],
+  "result": {
+    "dimensionSummaries": [
+      {
+        "dimension": "create-fix",
+        "summary": "W1-024.1（commit 5df3d5f4）create UX 修復整體正確：A2 移除 WHY_REQUIRED 提前退出後，why 與 when/who/how_strategy 由 _validate_create_checklist 合併單一 CHECKLIST_VALIDATION_FAILED 一次列全，且 checklist 仍在 persist 前執行（無「缺 why 仍建檔」回歸）；A3 的 --how 攔截經實機驗證涵蓋空格、無值與 --how=value 等號形式，--how-type/--how-strategy 完整旗標與 --how-s 縮寫均不受影響（保留 allow_abbrev，無 userspace 破壞）；修改前 --how 必觸發 ambiguous 錯誤、不存在合法使用者。--force 語意放寬（why 從硬閘門變為可豁免）已在 ticket Solution 顯性記錄為刻意決策，並與 --force help 既有 5W1H 豁免語意一致，PC-018 resume/claim 端有程序性後防。--parent 繼承路徑行為不變（含 parent why 為 None 時逃逸 checklist 的 pre-existing 縫隙，非回歸）。主要發現兩項：(1) high — create.py:916 註解仍宣稱「CLI 端已對 IMP/ANA/ADJ 做必填驗證」，該驗證正是本 commit 移除的，會誤導後人視 checklist why 檢查為冗餘備援而刪除唯一防線；(2) medium — test_doc_type_still_exempts_why 實證為 vacuous：blocked_by 驗證（步驟 1）先於 checklist（步驟 1.5），執行在 BLOCKED_BY_NOT_FOUND 即終止，DOC 豁免分支從未被執行，析取式斷言在此路徑恆真，建議改為直接單元呼叫 _validate_create_checklist。其餘為 pre-existing 漂移與觀察：checklist docstring 仍稱 WARNING 層級、--why help 範圍（IMP/ANA/ADJ）窄於實際 enforcement（所有非 DOC）、bulk_create/generate 完全繞過 checklist（無分批報錯殘留但也無 why 驗證）、blocked_by 錯誤與 checklist 錯誤仍分兩輪、錯誤通道 stderr→stdout 無消費者破壞（repo 無非測試 WHY_REQUIRED 引用）。13 個相關測試實跑全綠。完整 findings 已備援於 /tmp/w1024-review-create-fix.json。",
+        "totalFindings": 10
+      },
+      {
+        "dimension": "hook-fix",
+        "summary": "審查 bash-edit-guard-hook.py 裸 cd warn 偵測（f52feaee / W1-023.4.1）與 W1-026 收窄（c6809c1f）。核心邏輯正確：28 pytest 本地重跑全綠；直接 stdin 注入實驗驗證 env SET 時 repo-root 還原排除、env UNSET 時保守 warn，均符合設計；W1-026 收窄與 bash-tool-usage-rules.md 規則一「絕對路徑還原 = cd /project/root」語意一致，兩張 ticket 的 acceptance 與現行程式碼逐項對得上。主要發現：1 個 medium 漏報（newline 分隔多行命令的裸 cd 完全不偵測，connector 集缺 \\n 且無 re.MULTILINE）；low 級包括 pushd 未涵蓋、子 shell 內串接 cd 誤報且 && 與 ; 形式行為不一致、「正規化」用語高於 rstrip('/') 實作、test_non_bash_tool_skipped 斷言恆真、W1-023.4.1 acceptance 字面（僅 /project/root）與 f52feaee 實作（所有絕對路徑）偏離即勾選的歷史性 gate 滑過（W1-026 已矯正）。另以實驗排除「CLAUDE_PROJECT_DIR 注入失效」假說：hook log 02:30:51 的 repo-root cd warn 真因是 append-log heredoc 內含 W1-026 ticket 自身 Test Results 字面「&& cd /<repo-root>/subdir」，屬 documented heredoc FP；建議 log 增記命中 target 以利 FP 診斷。完整 findings JSON 已寫入 /tmp/w1024-review-hook-fix.json。",
+        "totalFindings": 10
+      },
+      {
+        "dimension": "flat-gate",
+        "summary": "審查 error-pattern-flat-gate-hook.py（.claude/skills/error-pattern/hooks/，144 行，1.0.0-W1-021 產出）與其 settings.json 註冊、pytest 測試。結論整體健康：(1) 註冊正確——PreToolUse 的 Edit（settings.json:157）與 Write（:198）兩 matcher，路徑與磁碟一致，無 settings.local.json 雙重註冊；(2) 執行權限齊備（rwxr-xr-x）；(3) PEP 723 header 正確且 dependencies=[] 經驗證屬實——hook_utils package 與 lib/pattern_id.py 純 stdlib，無 PC-135 transitive dep 缺口；(4) 失敗可見性符合 quality-baseline 規則 4——deny 走 stderr + stdout JSON + log 三通道，未捕例外經 run_hook_safely → _log_exception 寫 stderr；(5) 測試 20/20 綠燈，並經真實 shebang 入口（uv run --script）smoke test 驗證 deny exit=2 / allow exit=0 / 空輸入 allow 三路徑與完整 hookSpecificOutput JSON shape。發現 1 個 medium 設計缺口：flat 號 + 純數字開頭描述段檔名（如 PC-099-3-layer-defense.md → extract_pattern_id 解析為 PC-099-3，3 段被誤判前綴號）可繞過凍結 gate，建議 hook 層驗證中段字母開頭或比對 _project-registry.yaml 代號；1 個 low：測試僅覆蓋 decide() 純函式，缺 subprocess 層 main()/stdin/emit 接線測試。另查證 SubagentStop 回報的三個 hook 錯誤（command-entrance-gate / uv-tool-staleness-check-hook / ticket-quality-gate）均為輸入格式防禦報錯或環境性錯誤，與受審 hook 無關，不影響 findings 效力（已列為 info finding，含 uv-tool-staleness 雙 log 目錄疑似雙重註冊訊號供 PM 追蹤）。完整 findings 已寫入 /tmp/w1024-review-flat-gate.json。",
+        "totalFindings": 7
+      },
+      {
+        "dimension": "rules-docs",
+        "summary": "審查 origin/main..HEAD 中 confabulation 防護鏈四檔變更（tool-output-trust-rules.md 新檔、bash-tool-usage-rules.md 修訂、PC-166 防護 E 升級、IMP-056 受眾擴展）與配套 hook（bash-edit-guard-hook.py 裸 cd warn，W1-023.4.1 + W1-026 收窄）。核心一致性良好：(1) tool-output-trust-rules 與 bash-tool-usage-rules 交叉引用雙向成立且規則編號指向正確；(2) PC-166 防護 E 內容（raw stdout 判據／固定值交叉驗證／重發比對）與規則 2/3 逐項一致；(3) IMP-056 受眾擴展與規則描述一致，hook BARE_CD_WARNING 訊息與規則一 git -C 首選、confabulation 觸發鏈描述一致；(4) W1-026 repo-root-only 排除與規則一「絕對路徑還原」合法用途精確對齊，新增 246 行測試覆蓋，且 hook 經實機驗證有效（審查過程中對審查者自身行首裸 cd 命令正確觸發 warn-not-deny）；(5) 所有文件引用路徑（bash-tool-usage-details、PC-147、IMP-071、ai-communication-rules 等）經 ls 驗證皆存在；(6) 變更內容無 emoji、無簡體字、無新增禁用詞。發現 2 medium：PC-166 對 tool-output-trust-rules 零回向引用（單向引用，PC 讀者無從發現規則層固化已存在）、bash-tool-usage-rules footer 版本未 bump（仍 2.2.0/2026-05-29，版本錨點斷裂）。6 low：同檔檢查清單與相關文件章節未同步 git -C 修訂、規則 4 缺 Consequence（basil L2 補規則 3 漏規則 4）、_detect_bare_cd 多行命令 FN 未列入限制說明、hook 模組 docstring 滯後、IMP-056 自稱「本 PC」+ footer 未更新、PC-166 升級註記放錯章節。2 info（均 pre-existing）：IMP-056 既有禁用詞「數據」、rules/README「7 檔」計數漂移。完整 findings JSON 已寫入 /tmp/w1024-review-rules-docs.json。",
+        "totalFindings": 10
+      },
+      {
+        "dimension": "ticket-consistency",
+        "summary": "跨 ticket 一致性審計（W1-023 鏈 / W1-024 / W1-024.1 / W1-025 / W1-026）整體帳實相符。已驗證：(1) W1-023 鏈 4 個 children（023.1-.4）+ 孫票 023.4.1 全部 completed；(2) W1-024 acceptance 4 項實質達成（A1-A6 / B1-B4 收集、逐項裁決、spawn 實體 ticket 全存在），multi_view_status: skipped + reason 為 flat 格式合規，具備 complete 條件（checkbox 待 check-acceptance --all 勾選）；(3) A4 broaden 字據確實寫入 W1-025 acceptance 第 2 項（「W1-024 A4 併入」明文）；(4) W1-026 與 commit c6809c1f 一致——hook 收窄為僅 repo-root 排除、commit 僅含 2 檔未夾帶遺留檔、28 passed 本次復驗為真；(5) W1-024.1 與 commit 5df3d5f4 一致——WHY_REQUIRED 零命中、_AmbiguousHowAction 存在、13 tests 復驗通過。發現 2 個 medium 缺口：W1-024 frontmatter 未回填 W1-025/W1-026 連結（spawned_tickets/relatedTo 皆空，規則 5 追溯鏈僅存 prose）；W1-024 的 Spawn 落地確認表格式（type cell 帶註記、無 P0-3 欄）不命中 ana_spawn_consistency_checker 雙偵測策略致 N=0，hook 強制層對此票實質失效（含「無需 spawn」語彙不在豁免 marker 清單的漂移）。另有 1 個 low（自檢表 spawn 落地列 stale）。完整 findings JSON 已寫入 /tmp/w1024-review-ticket-consistency.json。",
+        "totalFindings": 8
+      },
+      {
+        "dimension": "adversarial",
+        "summary": "對抗性審查結論：「W1-024 識別的問題已被完整解決」宣稱被反駁（refuted），三個關鍵點成立、一個線索的強形式不成立。(1) 線索 1 成立（high）：實機模擬證實 IMP create 同缺 decision-tree + why/when 時第一輪只報 DECISION_TREE_MISSING_ALL，「必填一次列全」對 decision-tree 情境不成立；W1-024.1 有誠實記錄邊界並綁 parent 複審，但 parent Solution 至今無裁決條目且 A2 行措辭過度宣稱。(4) 線索 4 成立（medium）：wave 比 decision-tree 更早提前退出（最壞三輪試錯：wave → decision-tree → checklist），且是完全未被識別的第四來源，違反 quality-baseline 規則 5。(3) 線索 3 成立（high）：B2 裁決「已有 memory + agent-dispatch-template」中後者為不存在的防護——agent-dispatch-template.md 與全部 rules/pm-rules/references 對劫持/hijack 零命中，實際僅 user-level memory 單通道（不跨機器、subagent 不可見），且 B2 已 2+ 次再現符合框架升級標準。(2) 線索 2 強形式不成立：全 repo 唯一「why=待定義」消費點是 five_w1h_checker → acceptance-gate warning-only，無硬依賴、無正確性破壞，語意變更也已在 W1-024.1 文件化為刻意決策；弱形式成立——該變更零測試覆蓋（新測試全部 force=False）。(5) 線索 5 部分成立（low/info）：append-log 為三層 fail-fast 同構鏈，W1-025 broaden 後 acceptance 仍未涵蓋合併報錯；claim 等命令的 sequential 屬狀態機正當設計，但 W1-024 未沉澱任何 collect-then-report 設計慣例，修復屬點狀非系統性。另發現整合測試保留已移除的 WHY_REQUIRED 寬容斷言（info）。完整 findings JSON 已寫入 /tmp/w1024-review-adversarial.json。",
+        "totalFindings": 7
+      }
+    ],
+    "confirmed": [
+      {
+        "dimension": "create-fix",
+        "title": "create.py:916 註解殘留「CLI 端已對 IMP/ANA/ADJ 做必填驗證」——該驗證已被本 commit 移除",
+        "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+        "severity": "high",
+        "description": "commit 5df3d5f4 移除 _parse_cli_args_to_config 的 WHY_REQUIRED 提前退出後，_validate_create_checklist 成為 why 必填的唯一強制點。但 line 916 註解仍宣稱存在一個本 commit 剛移除的上游 CLI 驗證，並把 checklist 的 why 檢查定位為「清單一致性」。後人讀此註解會誤判該檢查只是冗餘備援，重構時可能刪除，導致 why 必填防線完全消失。",
+        "evidence": "create.py:916「# why 非「待定義」（DOC 類型豁免；CLI 端已對 IMP/ANA/ADJ 做必填驗證，此處為清單一致性）」vs 同 commit diff 移除 create.py 舊 lines 795-804 的 WHY_REQUIRED sys.exit(1)（commit 5df3d5f4）",
+        "recommendation": "更新註解為「why 必填唯一強制點（1.0.0-W1-024.1 起 CLI 端提前退出已移除，DOC 豁免）」，明示此檢查不可刪。",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "逐項核實證據皆為真：(1) create.py:916 註解逐字存在「CLI 端已對 IMP/ANA/ADJ 做必填驗證，此處為清單一致性」；(2) git show 5df3d5f4 確認該 commit 移除 _parse_cli_args_to_config 的 WHY_REQUIRED sys.exit(1) 提前退出（舊 lines 795-804），且 diff 未更新 line 916 註解；(3) grep 全 ticket skill 確認 runtime 已無任何 WHY_REQUIRED 強制點（僅測試引用），argparse --why 無 required=True，故 line 917-918 的 checklist 檢查確為 why 必填唯一強制點——註解宣稱的上游驗證已不存在，且把唯一防線錯誤定位為「清單一致性」備援，會誤導後人。發現屬實。但 severity 應從 high 調降為 medium：原發現的最壞後果推論（重構刪除後「why 必填防線完全消失」）被同 commit 新增的回歸測試實質緩解——test_create_ux_merged_validation.py::test_why_only_missing_still_reported_via_checklist 斷言僅缺 why 時 exit 1 + CHECKLIST_VALIDATION_FAILED + 'why' 出現，test_create_error_envelope.py 測試 4 亦同步改寫；若後人刪除該檢查，測試立即紅燈，不會靜默失守。故本質是「會誤導後人的註解漂移」（一行文件不一致，runtime 行為正確、有測試安全網），符合 medium（設計缺口/文件漂移）而非 high（正確性錯誤）。修復成本為一行註解修正。完整 findings JSON 已寫入 /tmp/adversarial-verify-create-py-916-comment.json。",
+          "severityAdjusted": "medium"
+        }
+      },
+      {
+        "dimension": "create-fix",
+        "title": "test_doc_type_still_exempts_why 為 vacuous 測試：執行在 blocked_by 驗證即終止，DOC 豁免分支從未被執行",
+        "file": ".claude/skills/ticket/ticket_system/tests/test_create_ux_merged_validation.py",
+        "severity": "medium",
+        "description": "該測試用不存在的 blocked_by ID 讓流程在 persist 前失敗以避免產生真實 ticket 檔，但 _validate_before_persist（含 blocked_by 驗證）在 _persist_and_report 步驟 1，checklist 在步驟 1.5。實機重現確認輸出僅含 errno: BLOCKED_BY_NOT_FOUND，_validate_create_checklist 從未執行——即使移除 checklist line 917 的 DOC 豁免，此測試仍綠。析取式斷言「'why' not in combined or 'CHECKLIST_VALIDATION_FAILED' not in combined」在 checklist 未執行時恆真。測試唯一實質驗證的是 parse 階段不再有 WHY_REQUIRED 提前退出，與 docstring 宣稱的「DOC 豁免 why 回歸防護」不符。",
+        "evidence": "create.py:1111（_validate_before_persist 先行 early return）vs create.py:1115-1117（checklist 後行）；實機重現：DOC + why=None + blocked_by=0.99.0-W99-001 → stdout 僅「errno: BLOCKED_BY_NOT_FOUND」；test_create_ux_merged_validation.py:131-155",
+        "recommendation": "改為單元層直接呼叫 _validate_create_checklist(config, 'DOC') 斷言 'why' not in missing（最強且免 persist 副作用）；或至少修正 docstring 為「驗證 parse 階段無 WHY_REQUIRED 提前退出」以免高估覆蓋。",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "對抗性驗證後確認發現完全成立，所有證據真實且無過度推論。驗證鏈：(1) 結構證據——create.py（實際路徑為 ticket_system/commands/create.py，發現引用的行號正確）line 1111-1112 步驟 1 `_validate_before_persist`（內含 _validate_blocked_by_references，line 98-112 對不存在 ID 印 BLOCKED_BY_NOT_FOUND 後 return False）early return 1，先於 line 1115 步驟 1.5 `_validate_create_checklist`；DOC 豁免分支確在 line 917。(2) 運行證據——以與 test_doc_type_still_exempts_why 完全相同的 args（DOC + why=None + blocked_by=0.99.0-W99-001）從 repo root 實機重現：EXIT=1，combined 僅含 BLOCKED_BY_NOT_FOUND，CHECKLIST_VALIDATION_FAILED 與 'why' 均不在輸出中——checklist 從未執行，line 156 析取式斷言因第二析取項（CHECKLIST_VALIDATION_FAILED 缺席）恆真而 vacuously 通過；移除 line 917 DOC 豁免該測試仍綠（mutation 點不可達）。(3) 歷史證據——commit 5df3d5f4 顯示被移除的 WHY_REQUIRED 提前退出原本即帶 `ticket_type != \"DOC\"` 條件，故 DOC 場景下 'WHY_REQUIRED not in combined' 斷言在新舊行為均恆真，連「parse 階段移除驗證」對此測試的 DOC 路徑資訊量也偏低（該驗證由同檔另兩個 IMP 測試承擔）。docstring 宣稱「DOC 豁免 why（行為不變的回歸防護）」與實際零覆蓋不符。severity 評 medium：產品行為（DOC 豁免）本身完好無正確性錯誤，屬測試設計缺口 + docstring 誤導的文件漂移；修復方向為直接單元測試 _validate_create_checklist 的 missing 清單（DOC 不含 why / IMP 含 why），或 tmp_path 隔離走完 persist 路徑。完整 findings JSON 已寫入 /tmp/adversarial-verify-doc-exempt-vacuous-test.json。",
+          "severityAdjusted": "medium"
+        }
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "Newline 分隔的多行命令裸 cd 完全不偵測（漏報）",
+        "severity": "medium",
+        "file": ".claude/hooks/bash-edit-guard-hook.py",
+        "description": "_detect_bare_cd 的 regex connector 集為 (^|&&|;|\\|\\||\\() 且未用 re.MULTILINE，^ 只錨定字串開頭。Bash 工具常見的 newline 分隔多步驟命令中第二行起的裸 cd 不會命中，chpwd 淹沒照樣發生——warn 防線對一整類常見命令形態系統性漏報。",
+        "evidence": "bash-edit-guard-hook.py:115 regex（f52feaee 引入，c6809c1f 未改 connector 集）。實證 probe：_detect_bare_cd('git status\\ncd subdir && ls') == False；_detect_bare_cd('echo a\\ncd /tmp/x') == False。",
+        "recommendation": "connector alternation 加入 \\n（如 (^|\\n|&&|;|\\|\\||\\()）或對 ^ 使用 re.MULTILINE，補多行命令第二行裸 cd 應命中的 pytest 案例。",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "發現成立，所有證據經獨立重新驗證為真：(1) 證據真實性——現行 .claude/hooks/bash-edit-guard-hook.py:115 確為 r'(^|&&|;|\\|\\||\\()\\s*\\bcd\\s+(\\S+)' 且無 re.MULTILINE；git show 確認該行由 f52feaee 引入，c6809c1f 僅改 target.startswith('/') 排除邏輯、未動 connector 集。(2) Probe 逐字重現——_detect_bare_cd('git status\\ncd subdir && ls') == False、_detect_bare_cd('echo a\\ncd /tmp/x') == False，對照 baseline 'cd subdir && ls' == True；加 re.MULTILINE 後 case1 即命中，證明是 ^ 錨定字串首（非行首）造成的漏報。(3) 非過度推論——漏報精確限定於「newline 作為唯一分隔符」形態（'git status &&\\ncd subdir' 因 \\s* 吸收 newline 仍命中 True），但此形態是 Bash 工具常見寫法，屬整類系統性漏報而非邊角案例；驗證過程中本審查者自己的命令實際觸發 chpwd ls 淹沒，證實裸 cd 影響真實存在。另發現加重證據：docstring 第 84 行宣稱命中「行首 cd（^cd）」，與實作（字串首）不符，屬文件與行為漂移。severity 調整為 medium（原發現未明示但語氣偏 high）：hook 為 warn-only（permission_decision=allow），漏報後果是少一次提示而非錯誤阻擋，且 bash-tool-usage-rules.md 規則層防線仍在；但對 W1-023.4.1 新建防線的核心目的（攔截裸 cd）整類漏報 + docstring 漂移，符合 medium=設計缺口或文件漂移。建議修復：finditer 加 re.MULTILINE（已 probe 驗證有效）或 connector 集加 \\n，同步修正 docstring，並補 newline 測試案例。完整 findings JSON 已寫入 /tmp/adversarial-verify-bare-cd-newline-findings.json。",
+          "severityAdjusted": "medium"
+        }
+      },
+      {
+        "dimension": "flat-gate",
+        "title": "flat 號 + 數字開頭描述段可繞過凍結 gate（誤判為前綴號）",
+        "severity": "medium",
+        "file": ".claude/skills/error-pattern/hooks/error-pattern-flat-gate-hook.py",
+        "description": "is_flat_id() 以 extract_pattern_id 回傳值的 '-' 段數判定 flat（2 段）vs 前綴（3+ 段）。但 lib/pattern_id.py 的 PATTERN_ID_RE 中 optional 前綴段為 (?:[A-Z0-9]+-)?，純數字段也能匹配。檔名描述若以純數字段開頭（如 PC-099-3-layer-defense.md、PC-100-2024-retro.md），ID 會被解析為 PC-099-3 / PC-100-2024（3 段）而分類為前綴號，新建 flat 檔被放行，凍結 gate 失效。現有 309 個 pattern 檔中無數字開頭描述段，故為潛在而非已發生的繞過。註冊表 _project-registry.yaml 中所有專案代號（V1/APP/SCLK/CCS/C2C）均以字母開頭，可作收緊依據。",
+        "evidence": ".claude/hooks/lib/pattern_id.py:28-31（regex `\\b(?:CAT)-(?:[A-Z0-9]+-)?\\d+\\b`）+ error-pattern-flat-gate-hook.py:67-72（is_flat_id 段數判定）；重現輸出：extract_pattern_id('PC-099-3-layer-defense.md') -> 'PC-099-3'（3 段 → allow）、'PC-100-2024-retro.md' -> 'PC-100-2024'",
+        "recommendation": "在 hook 層收緊分類（不動 SSOT regex 以免影響 attribution 既有語意）：is_flat_id 改為「3 段時驗證中段是否以字母開頭」或直接比對 _project-registry.yaml 註冊代號（registry 已是 SSOT 且 hook 可讀檔）；中段非合法專案代號時視同 flat 號 deny。同步補 digit-leading description 測試案例。",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "對抗性驗證以「不成立」為預設立場，但所有證據均經親自重現後確認屬實，找不到反證：(1) 證據真實——Read 確認 .claude/hooks/lib/pattern_id.py:28-31 的 PATTERN_ID_RE 確為 `\\b(?:CAT)-(?:[A-Z0-9]+-)?\\d+\\b`（前綴段字元集刻意含數字以支援 V1/C2C），且 error-pattern-flat-gate-hook.py:67-72 的 is_flat_id 確以 split('-') 段數 == 2 判定 flat。(2) 重現成功——直接呼叫 extract_pattern_id：'PC-099-3-layer-defense.md' -> 'PC-099-3'（3 段 → is_flat=False → decide() 走 allow 路徑放行新建）、'PC-100-2024-retro.md' -> 'PC-100-2024'，與發現宣稱的重現輸出逐字一致；對照組 'PC-099-defense.md' -> 'PC-099'（2 段）正確進 deny 路徑，證明繞過僅由數字開頭描述段觸發。(3) 周邊事實核實——error-patterns/ 確有 309 個 .md pattern 檔且檔名 grep 確認無數字開頭描述段（潛在而非已發生，發現自述準確未誇大）；_project-registry.yaml 五個代號 V1/APP/SCLK/CCS/C2C 均字母開頭且註冊規則明定「短大寫英數」，收緊為首字母必為字母不會誤傷；hook 已在 settings.json:157,198 雙重註冊（Write/Edit matcher）為 live 防線；tests/test_error_pattern_flat_gate_hook.py 對此案例零覆蓋。(4) 非過度推論——繞過不需對抗意圖，'PC-181-3-strikes-rule.md' 這類合理命名即意外觸發，而本 hook 的存在目的正是攔截手動建檔失誤（W1-021/E1 linux F2：凍結需 hook 強制非文件自律），故「防護目標場景內的失效」成立。severity 評 medium：屬防護機制設計缺口（design gap），非已發生的正確性錯誤或誤導性不一致（無現存檔案命中、主路徑 /error-pattern add allocator 不經此漏洞），但因其削弱的是專門防撞號的強制 gate 且觸發條件為合理日常命名，高於 low。完整 findings JSON 已寫入 /tmp/adversarial-verify-flat-gate-digit-bypass.json。",
+          "severityAdjusted": "medium"
+        }
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "PC-166 缺對 tool-output-trust-rules.md 的回向引用（單向交叉引用）",
+        "severity": "medium",
+        "file": "/Users/tarragon/Projects/book_overview_v1/.claude/error-patterns/process-compliance/PC-166-confabulated-tool-result-and-git-working-tree-ground-truth.md",
+        "description": "tool-output-trust-rules.md 自稱是 PC-166「生成自律」的規則層固化（邊界表第一列），但 PC-166 全文 grep 'tool-output-trust' 零命中——「規則層銜接」章節只列 pm-role.md 與 quality-baseline.md，「相關」清單也未列新規則檔。從 PC-166 入口閱讀的讀者無法發現已有自動載入的規則層防護，違反專案雙向引用慣例（ai-communication-rules 規則 6 明示「雙向因果鏈可追蹤」）。對照組：bash-tool-usage-rules 與 IMP-056 均已正確回向引用新規則檔。",
+        "evidence": "grep -n 'tool-output-trust' PC-166-*.md 無命中；PC-166「規則層銜接」（約 163-165 行）僅引 pm-role.md / quality-baseline.md；tool-output-trust-rules.md 邊界表（commit 74e095b2）宣稱「本規則是其『生成自律』的規則層固化」",
+        "recommendation": "在 PC-166「規則層銜接」補一行：生成自律協議已固化為 .claude/rules/core/tool-output-trust-rules.md（規則 1-4，自動載入）；防護 E 對應其規則 2/3。",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "逐項重新驗證後，原發現完全成立，無過度推論。(1) grep -n 'tool-output-trust' 對 PC-166 全文零命中（exit 1）。(2) 親讀 PC-166 確認「規則層銜接」章節（行 162-165）僅列 pm-role.md 與 quality-baseline.md；「相關」清單（行 167-173）僅列 PC-111/PC-147/IMP-071/W3-091，行 173 雖提及產出防護 E 的「confabulation 根因 ANA（四視角整合）」，但未給出 tool-output-trust-rules.md 路徑，不構成可用回向引用。(3) tool-output-trust-rules.md 邊界表確實宣稱「本規則是其『生成自律』的規則層固化（防護 E 無法 hook 的部分）」，前向引用存在，形成單向引用。(4) 對照組屬實：IMP-056 行 55 與 bash-tool-usage-rules.md 行 27/35/37/38 均已回向引用新規則檔，PC-166 是同批工作中唯一遺漏者。(5) git log 顯示 PC-166 在 commit 74e095b2（建立規則檔 + PC-166 加防護 E）與 f39446b9 兩次被編輯，均有機會補引用但未補。對抗性反證均不成立：非刻意省略（PC-166 既有章節本就引用規則檔路徑，PC-098 僅禁 ticket ID 非穩定規則路徑）；行 173 的 ANA 提及無路徑不能替代。severity 評定：此為文件漂移（單向交叉引用），不誤導讀者得出錯誤結論，僅降低從 error-pattern 入口發現自動載入規則層防護的可發現性，符合 medium（設計缺口或文件漂移）定義，不到 high（正確性錯誤或誤導）。完整 findings JSON 已寫入 /tmp/adversarial-verify-pc166-backref.json。",
+          "severityAdjusted": "medium"
+        }
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "bash-tool-usage-rules.md 實質修訂但 footer 版本與 Last Updated 未更新",
+        "severity": "medium",
+        "file": "/Users/tarragon/Projects/book_overview_v1/.claude/rules/core/bash-tool-usage-rules.md",
+        "description": "commit 348d0886 對規則一做了實質修訂（三種安全做法改四種、git -C 升為 git 操作首選、新增整節「輸出可疑/被淹沒當下的即時協議」），但檔尾 footer 仍為「Last Updated: 2026-05-29 | Version: 2.2.0 — 新增規則六…」。專案規則檔均維護版本記錄慣例（同 wave 新建的 tool-output-trust-rules.md 即有正確 footer），未更新會誤導後人以為 2.2.0 即含 confabulation 協議，git log 考古時版本錨點斷裂。",
+        "evidence": "git diff 348d0886 對該檔無 footer hunk；現行檔尾 tail -5 顯示 **Version**: 2.2.0 — 新增規則六（2026-05-29），與新增的 confabulation 即時協議章節（27-44 行）不符",
+        "recommendation": "bump 至 2.3.0，註記「規則一 git -C 首選 + 輸出可疑即時協議（confabulation 防護，W1-023.2）」並更新 Last Updated。",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "親自驗證全部成立：(1) git show 348d0886 確認對 bash-tool-usage-rules.md 有實質修訂（三種→四種安全做法、git -C 升為 git 操作首選、新增整節「輸出可疑/被淹沒當下的即時協議」共 +24/-3 行），且 diff 中無任何 footer hunk；(2) tail -5 確認現行檔尾仍為「Last Updated: 2026-05-29 | Version: 2.2.0 — 新增規則六…」，版本描述未涵蓋 confabulation 協議；(3) git log 確認 348d0886 是該檔最新 commit，無後續 commit 補更新 footer；(4) 版本維護慣例在本檔自身已建立（前一 commit fe49ef5c 新增規則六時即同步 bump 2.1→2.2.0，footer 並寫明「歷史 2.0–2.1 版見 git log」），同 wave 新建的 tool-output-trust-rules.md 也有正確 2026-06-09 footer，故「應更新而未更新」非過度推論。severity 維持 medium：屬文件漂移／metadata 不一致（版本錨點誤導 git 考古），但規則內容本身正確自洽，git log 仍可還原真相，未達 high（正確性錯誤）門檻。建議：補一個 footer bump（如 2.3.0 — git -C 首選 + 輸出可疑即時協議，2026-06-09，Source 加 W1-023.2/PC-166），可併入後續任一 DOC commit。",
+          "severityAdjusted": "medium"
+        }
+      },
+      {
+        "dimension": "ticket-consistency",
+        "title": "W1-024 Spawn 落地確認表格格式不命中 ana_spawn_consistency_checker 雙偵測策略（N=0），hook 強制層失效",
+        "severity": "medium",
+        "file": ".claude/hooks/acceptance_checkers/ana_spawn_consistency_checker.py",
+        "description": "checker 的 row-per-spawn 正則要求「| IMP | ... | P[0-3] |」（裸 type cell + 同行 priority），heading-based 正則要求 H3 標題同含 Spawn 與 IMP/DOC/ANA。W1-024 表格 type cell 寫「IMP（child）」「併入 W1-025 範圍」（非裸 IMP）且整表無 P0-P3 欄；標題「### Spawn 落地確認」無 IMP/DOC/ANA 字樣。兩策略皆 N=0 → 即使 spawn 全部漏建，hook 也不會警告或阻擋。本案恰好帳實相符故無實害，但證明 W17-168 強制層存在格式偵測面缺口（第三種表格樣式漏判，與 W17-176 同模式）。另注意 W1-024 Solution 多處寫「無需 spawn」，亦不命中豁免 marker 清單（「無需建 ticket」「不 spawn」），語彙與 checker 約定漂移。",
+        "evidence": "ana_spawn_consistency_checker.py:45-57（_SPAWN_ROW_PATTERN 要求裸 type + P[0-3]；_SPAWN_HEADING_PATTERN 要求標題含 IMP/DOC/ANA）vs 1.0.0-W1-024.md:143-150（「| IMP（child） | 本 ticket spawn |」無 priority 欄）、:127/132/138-141（「無需 spawn：...」非豁免 marker 字面）",
+        "recommendation": "建 IMP ticket 擴充 checker 第三策略（偵測含「Spawn」關鍵字的 H3 下表格行數，不依賴裸 type cell + priority 欄）或在 ticket-body-schema 固定 Spawn 落地確認表格式；同時將「無需 spawn」納入豁免 marker 清單",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "親自重跑 checker 函式驗證：對 1.0.0-W1-024.md 實際內容執行 _extract_solution_section / _has_exemption_marker / _count_spawn_planning，結果 row count=0、heading count=0、N=0、豁免 marker 未觸發；反事實測試（children/spawned_tickets 全空）should_block=False 且無警告訊息，證實此表格格式下 hook 強制層完全失效。細節修正：149-150 行其實有裸 `| IMP |` cell，漏判主因是整表無 P0-P3 priority 欄（發現本身也有提及「整表無 P0-P3 欄」，結論不受影響）；標題「### Spawn 落地確認」確實無 IMP/DOC/ANA 不命中 heading 策略。「無需 spawn」語彙漂移亦經 grep 證實（「無需建 ticket」出現 0 次）。本案 children 含 W1-024.1 且 W1-025/W1-026 票檔存在，帳實相符無實害——發現未過度推論，明確標註為偵測面缺口（與 W17-176 同演化模式，checker docstring 自證該模式曾發生並補 heading 策略）。屬 hook 設計缺口 + 豁免語彙漂移，無當下正確性損害，severity=medium 恰當。",
+          "severityAdjusted": "medium"
+        }
+      },
+      {
+        "dimension": "adversarial",
+        "title": "A2「必填欄位一次列全」對 decision-tree 缺漏情境不成立（實機模擬證實）",
+        "file": "/Users/tarragon/Projects/book_overview_v1/.claude/skills/ticket/ticket_system/commands/create.py",
+        "severity": "high",
+        "description": "宣稱被反駁。W1-024 Solution A2 行裁決寫「spawn child IMP（create.py 必填驗證一次列全）」，但 W1-024.1（commit 5df3d5f4）只把 WHY_REQUIRED 合併進 checklist。decision-tree 驗證仍在 _parse_cli_args_to_config 內 raise ValueError 提前退出（先於 _persist_and_report 步驟 1.5 的 checklist）。實機模擬：IMP create 同時缺 decision-tree + why + when，第一輪輸出僅 DECISION_TREE_MISSING_ALL（exit 1），why/when 隻字未提；修復 decision-tree 後第二輪才見 CHECKLIST_VALIDATION_FAILED。多輪試錯（A2 核心痛點）對「全空白起手式」依然存在。W1-024.1 ticket md 有誠實記錄此邊界並綁定 parent 複審，但 parent W1-024（in_progress）的 Solution 至今無 decision-tree 裁決條目，且 A2 行「一次列全」措辭會誤導後人。新測試 test_create_ux_merged_validation.py 的合併情境刻意提供 decision-tree x/y/z（line 91-93），測試層從未覆蓋「decision-tree 與 checklist 欄位同缺」。",
+        "evidence": "create.py:204-215（DECISION_TREE_MISSING_ALL + raise ValueError）、create.py:777-785（except ValueError: return None 提前退出）、呼叫順序 create.py:1300（wave）→1315（decision-tree）→1115（checklist）；實機模擬 case1 輸出：DECISION_TREE_MISSING_ALL=True / CHECKLIST_VALIDATION_FAILED=False / mentions why=False；1.0.0-W1-024.md Solution A2 行；1.0.0-W1-024.1.md:80-82,102-104；test_error_channel_integration.py:196 既有註解「decision-tree 三引數提供以避免被 DECISION_TREE 錯誤先擋下」；commit 5df3d5f4",
+        "recommendation": "W1-024 complete 前必須對 decision-tree 提前退出下明確裁決（合併進 checklist 或顯性標註豁免理由），並修正 A2 行措辭為「why 合併，decision-tree/wave 除外」；若裁決合併，spawn 子票並補同缺合併報錯測試",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "對抗性驗證結論：發現成立，所有關鍵證據親自重新驗證均屬實，無過度推論。(1) 程式碼層：create.py:204-215 確有 DECISION_TREE_MISSING_ALL + raise ValueError；create.py:776-785 確有 except ValueError: return None 提前退出；呼叫順序確為 execute → 1315 _parse_cli_args_to_config（含 decision-tree 驗證）→ config is None 即 return 1 → 永不到達 1320 _persist_and_report 內 1115 的 checklist。(2) 實機層：我以隔離模擬（redirect stdout/stderr、exit 1 不落地檔案、git status 確認零污染）重現審查者宣稱的兩個 case，結果逐位元一致——case1 all-missing 僅輸出 DECISION_TREE_MISSING_ALL，why/when 隻字未提；case2 補 decision-tree 後才見 CHECKLIST_VALIDATION_FAILED 一次列全 6 欄位。多輪試錯對「全空白起手式」確實存在。(3) 文件層：W1-024.md:128 Solution A2 行確寫「create.py 必填驗證一次列全」且全檔無 decision-tree 裁決條目（grep 僅命中 frontmatter）；W1-024.1.md 確有「已識別未納入本票範圍」「不在本票範圍」兩節誠實記錄並綁 parent 複審。(4) 測試層：test_create_ux_merged_validation.py:84-93 確刻意提供 decision-tree x/y/z；test_error_channel_integration.py:196 確有「避免被 DECISION_TREE 錯誤先擋下」既有註解。額外發現強化論點：_validate_create_checklist 本身已含 decision_tree_path 檢查（create.py:888-900），提前退出使其在 all-missing 情境永不觸及——正是 W1-024.1 設計決策 1 自己批判的雙軌冗餘模式之第三來源。severity 調整為 medium 而非 high 的理由：commit 5df3d5f4 對其 scoped acceptance（why/when/who/how_strategy）正確無誤，非正確性錯誤；W1-024.1 已誠實記錄邊界並綁定 parent W1-024（status: in_progress）複審，trigger 存活，符合 decision-trigger-binding 規則的合法延後狀態。屬「設計缺口 + 潛在文件漂移」：若 parent complete 時未補 decision-tree 裁決條目且未修 A2 行措辭，將升級為誤導後人的不一致（high）。完整 findings JSON 已寫入 /tmp/w1-024-a2-adversarial-verification.json。",
+          "severityAdjusted": "medium"
+        }
+      },
+      {
+        "dimension": "adversarial",
+        "title": "B2（agent 最終訊息劫持）裁決引用不存在的防護：agent-dispatch-template 內無任何劫持/檔案交付指引",
+        "file": "/Users/tarragon/Projects/book_overview_v1/docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-024.md",
+        "severity": "high",
+        "description": "宣稱被反駁。W1-024 Solution B2 行裁決「無需 spawn：已有 memory（review agent final message hijack）+ agent-dispatch-template；屬已知 workaround」。grep 驗證：.claude/references/agent-dispatch-template.md 對「劫持／最終訊息／hijack／tmp／交付／deliverable／回傳」全部零命中；.claude/rules/、.claude/pm-rules/、.claude/references/ 對「劫持／hijack」亦零命中。實際防護僅單一通道：user-level memory 檔（不在 .claude/ sync 範圍、不跨機器、不被 subagent 載入、非框架規則層）。B2 在本 session 又再現（basil 回傳「無動作」實則完整完成，W1-024 重現實驗自證 2+ 次發生），依 pm-quality-baseline 規則 7 四問升級標準應升級框架層；裁決以不存在的第二通道為依據，屬會誤導後人的事實錯誤。",
+        "evidence": "1.0.0-W1-024.md Solution B2 行；grep '劫持|最終訊息|hijack' .claude/references/agent-dispatch-template.md → 0 命中；grep -r '劫持|hijack' .claude/rules/ .claude/pm-rules/ .claude/references/ → 0 命中；memory 檔僅存在於 ~/.claude/projects/-Users-tarragon-Projects-book-overview-v1/memory/feedback_review_agent_final_message_hijack.md；W1-024.md 重現實驗 B2 行（basil 案例）",
+        "recommendation": "修正 B2 裁決：spawn DOC 把「討論/審查型 agent deliverable 寫檔案 + PM git ground truth 驗證」寫入 agent-dispatch-template.md（框架層），或在 Solution 顯性改寫為「僅 memory 單通道、接受此風險」的誠實裁決",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "對抗性驗證後維持成立。逐項 ground truth：(1) W1-024.md:139 B2 裁決原文確為「無需 spawn：已有 memory（review agent final message hijack）+ agent-dispatch-template；屬已知 workaround」。(2) .claude/references/agent-dispatch-template.md（540 行）grep 劫持/最終訊息/hijack/tmp/交付/deliverable/回傳 全部 0 命中（exit=1）；charitable substance 掃描亦僅見 ANA 骨架通用句「分析報告寫入 Solution」，未記載劫持風險、未涵蓋審查型 agent 散文 findings 場景（memory 自述的受影響類別），不構成已文件化防護。(3) .claude/rules/、pm-rules/、references/ 對劫持/hijack 0 命中；補充掃描回傳值//tmp 交付/findings 僅命中無關內容。(4) 實際防護確僅 user-level memory 單一通道（~/.claude/projects/.../feedback_review_agent_final_message_hijack.md），不在 sync 範圍、不被 subagent 載入。(5) B2 本 session 再現屬實（W1-024.md:109/113/164，basil 回傳「無動作」實則完整完成），且該案例為 IMP 派發，超出 memory 自述「IMP 類不受影響」邊界，再現範圍比既有記載更廣。裁決以不存在的第二通道為「無需 spawn」依據，後人審計會誤信框架層已有防護而不補建追蹤，屬會誤導後人的事實錯誤，符合 high 標準；原發現無過度推論。完整 findings JSON 已寫入 /tmp/adversarial_verify_B2_finding.json。",
+          "severityAdjusted": "high"
+        }
+      },
+      {
+        "dimension": "adversarial",
+        "title": "wave（MISSING_WAVE_PARAMETER）是同模式第四來源，完全未被 W1-024/W1-024.1 識別",
+        "file": "/Users/tarragon/Projects/book_overview_v1/.claude/skills/ticket/ticket_system/commands/create.py",
+        "severity": "medium",
+        "description": "MISSING_WAVE_PARAMETER 在 _resolve_ticket_id_and_wave 提前退出，先於 decision-tree 驗證。實機模擬：同時缺 wave + decision-tree + why，第一輪只報 MISSING_WAVE_PARAMETER——最壞情境是三輪試錯（wave → decision-tree → checklist）。W1-024.1「已識別未納入本票範圍」只列 decision-tree，wave 這個第四來源無人識別、無 ticket 追蹤，違反 quality-baseline 規則 5。技術上 wave 是 ticket_id 生成的結構性前置（無 wave 無法算 seq），完全合併有實作成本，但至少應在邊界記錄列出並裁決。",
+        "evidence": "create.py:592-599（MISSING_WAVE_PARAMETER return None）；create.py:1300 先於 1315 的呼叫順序；實機模擬 case2：缺 wave+decision-tree+why → 僅 MISSING_WAVE_PARAMETER；1.0.0-W1-024.1.md:80-82（邊界記錄僅含 decision-tree）",
+        "recommendation": "W1-024 complete 前複審將 wave 與 decision-tree 一併裁決；若裁決不合併（結構性前置正當），在 Solution 顯性標註豁免理由",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "事實核心經親自驗證全部為真：(1) create.py:592-599 確有 MISSING_WAVE_PARAMETER 提前 return None；(2) execute() 中 line 1300（_resolve_ticket_id_and_wave）先於 line 1315（含 decision-tree 驗證的 _parse_cli_args_to_config）；(3) 實機模擬重現三輪試錯——同時缺 wave+decision-tree+why 時，第一輪僅報 MISSING_WAVE_PARAMETER，補 wave 後第二輪僅報 DECISION_TREE_MISSING_ALL，第三輪才到 checklist；(4) 1.0.0-W1-024.1.md:80-82 與 :104 邊界記錄確實僅列 decision-tree，parent W1-024 md grep \"wave\" 僅命中 frontmatter，wave 提前退出無人識別。但發現的兩個框架性主張屬過度推論，故降為 low：(a)「同模式第四來源」在機制層失準——W1-024.1 A2 的 pattern 是「checklist 已有重複檢查的冗餘雙軌，刪提前退出即合併」（why 與 decision-tree 在 checklist line 888-900 均有對應檢查），而 wave 無 checklist 對應項且是 ticket_id/seq 生成的結構性前置（create.py:601），無法套用同一修法；依純 UX 症狀推廣，version（create.py:1282/1294）與 source-ticket（1185-1215）提前退出也會成為第五、六來源，枚舉框架過度寬泛；(b)「違反 quality-baseline 規則 5」不穩——規則 5 約束已發現事項，wave 行為是本次對抗審查才首次發現，且 W1-024.1 已把同類裁決綁定 complete 前多視角審查（本審查正是該機制）。實質影響有限：即使裁決 decision-tree 合併，wave 維持單獨報錯也只在 PM 完全漏 --wave 時多一輪（--wave 是 create 最知名參數，罕見遺漏）。建議僅需在邊界記錄補一句明示裁決（wave/version 屬結構性前置不合併），不需獨立 ticket。備援 JSON 已寫入 /tmp/adversarial-verify-wave-finding.json。",
+          "severityAdjusted": "low"
+        }
+      },
+      {
+        "dimension": "adversarial",
+        "title": "--force 語意變更（why 可豁免）為刻意決策但零測試覆蓋；下游無硬依賴（線索 2 強形式不成立）",
+        "file": "/Users/tarragon/Projects/book_overview_v1/.claude/skills/ticket/ticket_system/tests/test_create_ux_merged_validation.py",
+        "severity": "medium",
+        "description": "兩面結論。(a) 不成立的部分：grep 全 repo，「why=待定義」唯一下游消費點是 .claude/hooks/acceptance_checkers/five_w1h_checker.py，其唯一 caller acceptance-gate-hook 僅輸出 [WARNING] 2. 5W1H 未補完、不阻擋 complete；claim/dispatch readiness/dispatch validate 路徑無 why 檢查——無程式硬依賴「why 永不為待定義」，且 W1-024.1 line 78/98 已顯性記錄為刻意設計決策。(b) 成立的部分：舊行為 --force 無法繞過 WHY_REQUIRED sys.exit(1)，新行為 --force 可建立 why=待定義 的 IMP/ANA，此語意變更在新測試 6 個案例中全部 force=False，無任何測試鎖定「force=True + why 缺漏 → WARNING 放行」路徑；刻意決策無回歸防護，未來重構可能無聲回退或放寬。",
+        "evidence": "git show 5df3d5f4（WHY_REQUIRED sys.exit(1) 移除）；five_w1h_checker.py:43-48；acceptance-gate-hook.py:319,391-395（warning-only，should_block=False）；track_dispatch_readiness.py / claim_verification.py grep why/待定義 → 0 命中；test_create_ux_merged_validation.py:54（force=False，全檔無 force=True 案例）；1.0.0-W1-024.1.md:78,98",
+        "recommendation": "補 force=True + why 缺漏測試：斷言建立成功 + WARNING 含 why（鎖定刻意語意）；同步 SKILL.md --force 語意說明",
+        "verdict": {
+          "isReal": true,
+          "reasoning": "證據鏈全部屬實：(1) git show 5df3d5f4 確認 WHY_REQUIRED sys.exit(1) 移除，且 5df3d5f4~1 舊碼證實該提前退出不受 --force 閘控（位於 _parse_cli_args_to_config，先於 _enforce_create_checklist），故「--force 從不可豁免 why 變為可豁免」的語意變更成立；(2) 1.0.0-W1-024.1.md:78,98 顯性記錄為刻意設計決策；(3) 下游無硬依賴確認：five_w1h_checker.py:43-48 為唯一 why=待定義 消費點，caller 在 .claude/skills/ticket/hooks/acceptance-gate-hook.py:319,391-395（原發現路徑省略 skills/ticket/ 前綴，行號精確吻合）warning-only（should_block=False），三個 dispatch/claim 檔案 grep -c why/待定義 均 0。但原發現「零測試覆蓋／刻意決策無回歸防護」過度推論：漏查 .claude/skills/ticket/tests/，test_create_validation_blocking.py:25-32（W11-003.5）已鎖定欄位無關的 force=True 放行+WARNING 機制，新測試亦鎖定 why 流入 checklist（任何重新引入的提前退出會使 CHECKLIST_VALIDATION_FAILED 斷言失敗），最可能回歸向量已被攔截。真實殘餘缺口僅為 why × force=True 精確交叉組合無測試（如未來在 _enforce_create_checklist 內對 why 特例收緊會靜默通過全部測試）。缺口窄、載體為低頻 PM-facing 逃生閥、下游僅 warning、語意已文件化，補測成本約 10 行。故 isReal=true 但 severity 由原隱含的 medium 降為 low。",
+          "severityAdjusted": "low"
+        }
+      }
+    ],
+    "refuted": [
+      {
+        "dimension": "ticket-consistency",
+        "title": "W1-024 frontmatter 未回填 W1-025 / W1-026 連結，規則 5 追溯鏈僅存於 prose",
+        "reason": "證據字面屬實但結論過度推論，三層反證使發現不成立：\n\n(1) 時點錯誤——規則 5 的義務時點是「complete 前」，而 W1-024 status=in_progress（1.0.0-W1-024.md:5）尚未 complete。ticket 自檢章節（:165）已明示「待 spawn create UX child IMP 後回填 children」且 children 確已回填 W1-024.1（:10-11），顯示回填流程在正常運作中。以 complete 時點的要求審查進行中 ticket，屬 premature 判定。\n\n(2) 語意錯誤——spawned_tickets 語意為「本 ticket spawn 出的 ticket」。W1-025 與 W1-026 均非 W1-024 所建：兩者 relatedTo 都指向 1.0.0-W1-023.4.1（W1-025.md:12-13、W1-026.md:12-13），W1-024 Solution 表自己也寫明「已存在 ticket，建議 broaden」「本 session 已 spawn W1-026（執行中發現，related-to W1-023.4.1）」（:148-149）。若回填進 W1-024 的 spawned_tickets 反而製造假 provenance（同一 spawn 兩個母票）。規則 5 對「不需由本票建立」的項目允許「在 Solution 顯性標註理由」，本表逐項標註了確切 ticket ID 與去向，正是該豁免路徑的合法執行；ticket ID 在 prose 中可被 grep，「無法機器追溯」的說法過強。\n\n(3) 反向追溯實際存在——W1-025 acceptance 第 2 項字面含「W1-024 A4 併入」（1.0.0-W1-025.md:39-40），證明 A4 broaden 已實際落地且從 W1-025 側可機器（grep）追溯回 W1-024。\n\n(4) 強制層驗證——實測 ana_spawn_consistency_checker 的雙正則（row-per-spawn 需同行 P0-P3、heading-based 需 H3 含 Spawn+IMP/DOC/ANA）對 W1-024 的「Spawn 落地確認」表計得 N=0（row matches=[], heading matches=[]），complete 不會被阻擋或警告，不存在「即將爆發的流程不一致」。\n\n殘餘價值僅為 info 級 hygiene 建議：W1-024 complete 時可在 relatedTo 補 W1-025/W1-026 提升 frontmatter 層追溯性（spawned_tickets 仍不適用）。但這不構成原發現所主張的「規則 5 追溯鏈缺口」。另觀察到 checker 正則對無 P0-P3 priority 欄的 spawn 表格偵測不到（N=0 放行），屬 hook 覆蓋率議題，非本發現範圍。"
+      }
+    ],
+    "unverified": [],
+    "lowInfoFindings": [
+      {
+        "dimension": "create-fix",
+        "title": "--force 語意放寬（why 從不可豁免變為可豁免）已評估並記錄為刻意決策",
+        "severity": "info",
+        "description": "舊行為 WHY_REQUIRED 在 parse 階段 sys.exit(1)，--force 無法繞過；新行為 why 併入 checklist 後 --force 可豁免（印 WARNING）。此放寬非未評估風險：ticket Solution 顯性記錄為刻意設計決策，且 --force help 本就宣稱跳過 5W1H 驗證（why 屬 5W1H），新行為與文件語意更一致；下游 resume/claim 端有「5W1H 非待定義」程序性檢查（PC-018）作後防。殘餘風險僅在：--force 建立的 IMP 可帶 why=待定義，此狀態在舊版不可能存在。"
+      },
+      {
+        "dimension": "create-fix",
+        "title": "_validate_create_checklist docstring 仍稱「WARNING 層級，不阻擋建立」（pre-existing 漂移，本 commit 後誤導性升高）",
+        "severity": "low",
+        "description": "line 868-869 docstring 自 W11-003.5 將 checklist 升級為阻擋（_enforce_create_checklist sys.exit(1)）後即過期，屬 pre-existing。但本 commit 使該函式成為 why 必填的唯一閘門，docstring 與實際行為（阻擋）的落差誤導性升高，與 finding 1 的 stale 註解形成同方向誤導疊加。"
+      },
+      {
+        "dimension": "create-fix",
+        "title": "--why help 文字「IMP/ANA/ADJ 類型必填」與實際 enforcement（所有非 DOC 類型）不一致（pre-existing）",
+        "severity": "low",
+        "description": "checklist 的 why 檢查條件為 ticket_type != 'DOC'，故 TST/RES/INV 也必填，但 --why help 只列 IMP/ANA/ADJ。舊 WHY_REQUIRED 提前退出條件同為 != DOC，故屬 pre-existing 文案不一致，非本 commit 回歸。"
+      },
+      {
+        "dimension": "create-fix",
+        "title": "bulk_create.py / generate.py 完全繞過 create checklist，why 無任何驗證（pre-existing，無分批報錯殘留）",
+        "severity": "low",
+        "description": "審查問題「generate.py 與 bulk_create.py 是否有獨立 why 驗證殘留分批報錯」的答案：無殘留——兩者均不經 create.execute / _validate_create_checklist，直接走 ticket_builder / ticket_generator + save_ticket。bulk_create 的 why 取 template_defaults.get('why', '')，空字串不被任何層攔截；generate.py 無 why 處理。批量路徑可產生 why 為空的 ticket，與單建路徑的必填強制不對稱。"
+      },
+      {
+        "dimension": "create-fix",
+        "title": "A3 --how 攔截實機驗證正確：等號形式、無值形式、完整旗標、--how-s 縮寫均符合預期，無 userspace 破壞",
+        "severity": "info",
+        "description": "實機驗證五種形式：(1) --how 值 與 (2) --how 無值（測試覆蓋）→ 友善提示；(3) --how=value 等號形式（測試未覆蓋）→ 同樣命中 exact match 給友善提示；(4) 完整旗標不受影響（測試覆蓋）；(5) --how-s 縮寫仍正常展開（保留 allow_abbrev，未採 ANA 另一選項 allow_abbrev=False，避免破壞既有縮寫使用）。修改前 --how 必觸發 ambiguous 錯誤、不可能有合法使用者，無回歸面。次要觀察：--ho 的原生 ambiguous 訊息現會把 --how 列為候選，用戶若改打 --how 會再得一次友善提示，兩步收斂可接受。"
+      },
+      {
+        "dimension": "create-fix",
+        "title": "blocked_by / 重複偵測錯誤仍先於 checklist 報出，多類錯誤並存時仍需兩輪試錯",
+        "severity": "info",
+        "description": "A2 的「一次列全」只合併 checklist 欄位（why/when/who/how_strategy/where.files/acceptance/decision_tree_path）。_validate_before_persist 在 checklist 之前且失敗即 return 1：同時帶錯誤 blocked_by 與缺必填欄位的用戶，先修 blocked_by 再看到 checklist 缺漏。相比舊行為（WHY_REQUIRED → blocked_by → checklist 最多三輪）已收斂為兩輪，屬改善後的殘餘設計邊界而非回歸。"
+      },
+      {
+        "dimension": "create-fix",
+        "title": "必填欄位錯誤通道由 stderr 改為 stdout；整合測試保留 WHY_REQUIRED 死分支容忍",
+        "severity": "info",
+        "description": "舊 WHY_REQUIRED envelope 寫 stderr，新 CHECKLIST_VALIDATION_FAILED 經 print 走 stdout。與 codebase 其他 envelope（如 BLOCKED_BY_NOT_FOUND 同走 stdout）一致，且 repo 內無任何 hook/script grep WHY_REQUIRED（全量 grep 確認，僅測試檔引用），無消費者破壞。test_error_channel_integration.py:218-222 仍將 WHY_REQUIRED 列入容許 errno 集合，現為永不命中的死分支，無害但可收緊。"
+      },
+      {
+        "dimension": "create-fix",
+        "title": "其餘 4 個 UX 測試驗證強度足夠；全部 13 個相關測試實跑通過",
+        "severity": "info",
+        "description": "test_missing_required_fields_listed_in_single_error 確實到達 checklist（blocked_by=None 通過步驟 1）並斷言四欄位一次列全 + WHY_REQUIRED 不存在；test_why_only_missing_still_reported_via_checklist 同理；兩個 --how 測試經獨立 parser 直驗 argparse 行為；test_full_flags_unaffected_by_how_trap 提供回歸防護。實跑 test_create_ux_merged_validation.py + test_create_error_envelope.py → 13 passed in 2.58s。測試經 resolve_version 讀真實 todolist.yaml、duplicate 偵測掃真實 ticket 目錄，與既有 test_create_error_envelope.py 同模式（wave=99 防碰撞），環境耦合屬套件既有慣例非本 commit 引入。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "pushd 未涵蓋（同樣改變持久 cwd 並觸發 chpwd）",
+        "severity": "low",
+        "description": "pushd 與 cd 同樣改變持久工作目錄並觸發 zsh chpwd（ls 淹沒），但 _detect_bare_cd 只比對 \\bcd\\b。bash-tool-usage-rules.md 規則一也未提及 pushd——hook 與規則層一致地留有此缺口（非漂移，屬共同設計缺口）。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "子 shell 內串接 cd 誤報，且 && 與 ; 形式行為不一致",
+        "severity": "low",
+        "description": "排除 1 只檢查命中點緊鄰 connector 是否為左括號，不追蹤是否仍在未閉合子 shell 內：(cd a && cd b && ls) 的第二個 cd 誤報 warn（子 shell 內不持久）。同時 (cd a; cd b) 因第一個 match 的 target \\S+ 貪婪吞掉 'a;'，第二個 cd 失去 connector 不命中——等價寫法行為相反（後者碰巧正確）。另 brace group { cd x; }（cwd 持久）與 zsh pipeline 末段 cd 均漏報。warn 不 deny 成本低，docstring 已聲明無完整 shell parse。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "「正規化」用語高於實作（僅 rstrip('/')），引號/tilde/./ 形式 repo-root 還原仍 warn",
+        "severity": "low",
+        "description": "W1-026 docstring、commit message、ticket Solution 均稱「target 正規化後恰等於專案根」，但實作只有 rstrip('/')，無 normpath / realpath / 引號剝除 / tilde 展開。cd \"/repo/root\"、cd /repo/root/.、cd ~/Projects/book_overview_v1 等合法還原形式仍 warn。方向保守無害（warn 不 deny），但用語會讓後人以為已做路徑正規化。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "test_non_bash_tool_skipped 斷言恆真（無迴歸偵測力）",
+        "severity": "low",
+        "description": "斷言 out.strip() == \"\" or \"BARE_CD\" not in out 的第二個 disjunct 恆為 True：字面 'BARE_CD' 是 Python 常數名，從不出現在 hook 輸出文字（訊息為中文「偵測到裸 cd」），故此測試對任何輸出都通過。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "docstring 命中模式清單漏列 || cd",
+        "severity": "info",
+        "description": "regex 含 \\|\\|、test_or_chained_cd 覆蓋、commit f52feaee message 列「^cd／&& cd／; cd／|| cd」，但函式 docstring 命中模式段（:80-82）只列 ^cd 與 && cd、; cd，漏 || cd。微小文件漂移。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "_print_warning_message 註解 -> None 與 docstring「輸出到 stderr」均與實際回傳 str 不符（既有缺陷）",
+        "severity": "info",
+        "description": "函式註解 -> None、docstring 稱「輸出警告訊息到 stderr」，實際回傳 str 且不寫 stderr。f52feaee 新增的對等函式 _bare_cd_warning_message 正確註解 -> str，並排放大舊函式不一致。屬 pre-existing，非本次引入。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "Heredoc 字面 cd 誤報活體實證（hook 對自身 ticket 文件誤報）；log 100 字截斷妨礙 FP 診斷",
+        "severity": "info",
+        "description": "hook log 2026-06-10 02:30:51 顯示精確 repo-root 還原命令被 warn，表面像 W1-026 排除失效或 CLAUDE_PROJECT_DIR 未注入。經直接 stdin 注入實驗排除 env 失效假說（env SET → warn=False；env UNSET → warn=True，符合設計）；真因是該命令為 append-log heredoc，內含 W1-026 ticket Test Results 字面「&& cd /<repo-root>/subdir 串接絕對子目錄命中」，命中 documented heredoc FP。log 截斷於 100 字元，無法從 log 定位觸發 segment。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "W1-023.4.1 acceptance 字面與 f52feaee 實作偏離即勾選（歷史性 gate 滑過，W1-026 已矯正）",
+        "severity": "low",
+        "description": "acceptance #1 字面為「排除…絕對路徑還原 cd /project/root」（語意 = 僅專案根），但 f52feaee 實作為 target.startswith('/')（排除所有絕對路徑），勾選 [x] 時實作已寬於 acceptance——此偏離正是 W1-026 修復的漏擋 bug。現行程式碼與兩張 ticket acceptance 均一致（W1-026 兩條 acceptance 與 code/tests 逐項對得上，28 passed 本地驗證），僅為已矯正的歷史記錄。"
+      },
+      {
+        "dimension": "hook-fix",
+        "title": "W1-026 收窄與 bash-tool-usage-rules.md 規則一語意一致（驗證通過）",
+        "severity": "info",
+        "description": "規則一「四種安全做法」表的「絕對路徑還原」範例為 cd /project/root && ...（僅專案根，污染後補救）。W1-026 收窄為恰等於 CLAUDE_PROJECT_DIR 與規則字面一致；舊版排除所有絕對路徑反而寬於規則。env 未設時保守 warn 的 fallback 方向正確；子 shell、git -C、uv -d 排除行為與規則一速查表逐列對齊。ticket Solution 行為對照表 5 列全數經直接注入實驗驗證符合。"
+      },
+      {
+        "dimension": "flat-gate",
+        "title": "測試僅覆蓋 decide() 純函式，缺 subprocess 層入口測試",
+        "severity": "low",
+        "description": "測試以 importlib 從真實 hook 檔載入（單一 import 模式，無 IMP-074 雙模式衝突；hook 頂層 sys.path bootstrap 在載入時真實執行），但 20 個測試全部停在 decide() 純函式層。main() 的 stdin 解析、emit_hook_output JSON shape（IMP-055）、exit code 傳遞、shebang uv run --script 環境（PC-148 直呼路徑）均無自動化覆蓋。本次審查以手動 smoke test 驗證三條路徑均正確（deny: exit=2 + stderr + 完整 hookSpecificOutput JSON；allow: exit=0；空輸入 {}: allow exit=0），但未來 main()/emit 接線回歸不會被測試套件攔截。"
+      },
+      {
+        "dimension": "flat-gate",
+        "title": "註冊、執行權限、PEP 723 依賴均正確（無 PC-148/PC-135 暴露）",
+        "severity": "info",
+        "description": "settings.json:157（PreToolUse matcher Edit）與 :198（matcher Write）兩處註冊，路徑與磁碟實際位置一致；matcher 集合與 hook 內 WRITE_TOOLS={Write, Edit} 完全對齊。檔案具執行權限（rwxr-xr-x）。PEP 723 header 正確且 dependencies=[] 屬實：hook_utils package 四模組與 lib/pattern_id.py 經 grep 驗證僅用 stdlib，無 yaml/requests 等第三方依賴（無 PC-135 transitive dep 缺口）。settings.local.json 無重複註冊（無 PC-148 雙重註冊 bypass）。skills hooks 目錄下的 __pycache__ 已被 gitignore 覆蓋，未入版控。"
+      },
+      {
+        "dimension": "flat-gate",
+        "title": "失敗可見性符合 quality-baseline 規則 4 雙通道要求",
+        "severity": "info",
+        "description": "deny 路徑同時寫 stderr（:131）+ logger.info（:130）+ stdout JSON permissionDecisionReason（emit_hook_output），且訊息含正向引導（改用 /error-pattern add 取得前綴號）。未捕例外由 run_hook_safely 包裹（:144），其 _log_exception 在寫日誌檔後額外輸出 '[Hook Error] ... failed unexpectedly' 到 stderr（hook_logging.py:237），無靜默失敗路徑。smoke test 實證 deny 訊息四行完整可見。"
+      },
+      {
+        "dimension": "flat-gate",
+        "title": "gate 覆蓋面限 Write/Edit，Bash 寫檔路徑不在防護內",
+        "severity": "info",
+        "description": "hook 僅攔 Write/Edit；經 Bash（cat > / heredoc）或 NotebookEdit 新建 flat 檔不會觸發。serena MCP 寫入工具對 .md 已由 mcp-write-tool-on-text-file-guard-hook 另行 deny，故 MCP 路徑已覆蓋。此邊界與 repo 內其他檔案層 guard hook 設計一致，gate 定位為防意外非防對抗，屬可接受的已知面。"
+      },
+      {
+        "dimension": "flat-gate",
+        "title": "測試檔位置暫借 hooks pytest env，已綁 W1-001 trigger；gitStatus 快照 stale",
+        "severity": "info",
+        "description": "hook 位於 skill 目錄但測試放 .claude/hooks/tests/，docstring 明示為暫借慣例（與 test_error_pattern_allocator.py 同），並綁定 W1-001（skill package 化上架）作 trigger，符合 decision-trigger-binding 規則 1 狀態 (b)。另：session 啟動時 git status 快照顯示該測試檔 modified，實測 working tree 與 index 均乾淨（unstaged 與 staged diff 皆空），為 stale 快照，無未提交變更殘留。"
+      },
+      {
+        "dimension": "flat-gate",
+        "title": "SubagentStop 回報的三個 hook 錯誤與本審查無關，不影響 findings 效力",
+        "severity": "info",
+        "description": "審查期間 SubagentStop hook 回報 command-entrance-gate / uv-tool-staleness-check-hook / ticket-quality-gate 三個 hook 有錯誤記錄。查證：command-entrance-gate 為「缺少必要欄位: prompt / 輸入格式錯誤」、ticket-quality-gate 為「tool_input 缺少必要欄位: content」（兩者屬該 hook 對本 session 事件輸入的防禦性格式報錯）；uv-tool-staleness-check-hook 為「hash computation failed ... disk error / project root not found」（環境性，疑似從非 repo cwd 觸發）。三者均非受審 flat-gate hook 產生，且本審查證據（pytest 20 passed、shebang 入口 smoke test raw stdout/exit code、git/grep 固定值）不經過這三個 hook，findings 維持有效。"
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "bash-tool-usage-rules.md 檔內其他章節未與規則一 git -C 修訂同步",
+        "severity": "low",
+        "description": "規則一已將 git -C 列為 git 操作首選，但同檔兩處未同步：(1) 統一檢查清單第 168 行仍寫「命令含 cd？→ 改用子 shell () 或 uv -d」，未提 git -C；(2)「相關文件」章節（184-191 行）未列 tool-output-trust-rules.md（檔內 4 處 inline 引用它，導航章節卻缺席）。檢查清單是執行前高頻速查入口，首選方案在 hotpath 不可見。"
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "tool-output-trust-rules.md 規則 4 缺 Consequence（三明示不完整）",
+        "severity": "low",
+        "description": "規則 1/2/3 均有完整 Why/Consequence/Action 三明示，規則 4（用 git -C 取代裸 cd）只有 Why 與 Action。basil Layer 2 審查（commit f39446b9「規則3補Consequence」）補了規則 3 卻漏了規則 4，與 document-writing-style.md 三明示要求不符。"
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "_detect_bare_cd 對多行命令後續行的裸 cd 為 false negative，未列入限制說明",
+        "severity": "low",
+        "description": "偵測 regex 的 ^ 未開 re.MULTILINE，換行也不在 connector 集合（^、&&、;、||、( ）中，因此多行 Bash 命令第二行起的行首裸 cd 完全不命中（實測 'echo hi\\ncd /tmp/foo' 零 match）。docstring「False-positive 務實邊界」只記載 heredoc/quoted 誤判（FP）風險，未記載此 FN。此 FN 對 heredoc body 內字面 cd 反而是 FP 保護，但對真實多行腳本的裸 cd 是漏網。warn-not-deny 防護層，誤漏成本低；hook 已實機驗證有效（審查過程中對行首裸 cd 正確觸發 warn 並 allow）。"
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "bash-edit-guard-hook.py 模組層 docstring 未更新（缺裸 cd 偵測描述，行為描述失準）",
+        "severity": "low",
+        "description": "模組 docstring（7-21 行）的「功能」「檢測模式」仍只描述 sed/awk/perl 編輯偵測，未提本次新增的裸 cd 偵測；「行為: 輸出警告訊息到 stderr」與實際行為（emit_hook_output 走 stdout JSON additionalContext）不符（stderr 描述為既有失準，本次重構 main() 雙偵測架構時未順手修正）。函式級 docstring 完整，僅模組層滯後。"
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "IMP-056 新增章節自稱「本 PC」且 footer 未反映本次修訂",
+        "severity": "low",
+        "description": "兩個小漂移：(1) 第 53 行新增段落寫「本 PC 防護易被讀成…」，但 IMP-056 的 category 是 implementation（IMP）非 process-compliance（PC），自稱錯誤會讓 PC 編號 grep 考古混淆；(2) footer Last Updated 仍為 2026-06-07 且只描述「變體：chpwd redirect」修訂，未反映 commit 348d0886 新增的「主線程 PM 自身同樣適用（受眾擴展）」章節。新增章節本身與 hook/規則內容一致（停手重發、git -C／子 shell、引用 PC-166 + tool-output-trust-rules 規則 1/4 均正確）。"
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "PC-166 防護 E 升級註記置於「相關」清單而非版本記錄",
+        "severity": "low",
+        "description": "檔尾第 173 行「- 防護 E（唯讀 stdout 虛構類）為後續 confabulation 根因 ANA（四視角整合）升級所補」是修訂歷史註記，卻以 list item 形式混在「相關」章節（其餘條目均為 PC/IMP/ticket 引用）。PC-166 缺 Last Updated footer，註記只好寄居錯誤章節，降低「相關」清單的引用純度。防護 E 內容本身與 tool-output-trust-rules 規則 2/3 逐項一致（raw stdout 無旁白／固定值交叉驗證／重發比對），無正確性問題。"
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "IMP-056 既有內容含禁用詞「數據」（pre-existing，非本次變更引入）",
+        "severity": "info",
+        "description": "第 70 行（變體章節標題）與第 95 行（footer）含 language-constraints.md 規則 2 禁用詞「數據」（應為「資料」）。git show origin/main 比對確認兩處均 pre-exists，非本次 diff 引入；本次四檔新增內容經掃描無禁用詞（數據/代碼/默認/文檔等）、無簡體字、無 emoji。依 quality-baseline 規則 5 應追蹤。"
+      },
+      {
+        "dimension": "rules-docs",
+        "title": "rules/README.md「7 檔」計數與 rules/core/ 實際 17 檔漂移（新規則檔擴大既有漂移）",
+        "severity": "info",
+        "description": "README 第 5 行宣稱「本目錄只放所有角色通用的品質規則（7 檔）」，rules/core/ 實際已有 17 檔（本次新增 tool-output-trust-rules.md 前為 16，計數漂移 pre-exists）。新增自動載入規則檔時未同步 README 索引，rules/core 內容描述也未含「工具輸出信任」類別。"
+      },
+      {
+        "dimension": "ticket-consistency",
+        "title": "W1-024 自檢表 spawn 落地列 stale（spawn 已完成但仍寫「待 spawn 後回填」）",
+        "severity": "low",
+        "description": "自檢結果（Layer 1）表「spawn 落地」列仍寫「待 spawn create UX child IMP 後回填 children」，但 children 已含 1.0.0-W1-024.1 且該票已 completed（commit 5df3d5f4）。stale 描述會誤導後人以為 spawn 未落地。"
+      },
+      {
+        "dimension": "ticket-consistency",
+        "title": "W1-024 complete 前置條件現狀：acceptance 4 項實質達成但 checkbox 未勾；multi_view_status flat 格式合規",
+        "severity": "info",
+        "description": "acceptance 4 項（A 類收集 / B 類收集 / 逐項評估 / spawn 落地）對照 body 實質皆已達成：Problem Analysis A1-A6 + B1-B4 收集完整（含重現實驗結果第一手實證 A2/A5/A6/B2）、Solution 逐項裁決含明確 spawn 或無需 spawn 理由、spawn 實體 ticket 全部存在。checkbox 皆為 [ ] 屬正常（ticket 仍 in_progress，complete 時走 check-acceptance --all）。multi_view_status: skipped + reason 為 flat 同層格式且位於 ## Solution 區段內，skipped 屬合法值且 reason 非空，multi_view_checker 驗證會通過（符合 PC-117 flat YAML 要求）。Completion Info 為 (pending) placeholder，待 complete 流程填寫。無自定義 H2（重現實驗結果屬 Schema 章節）。"
+      },
+      {
+        "dimension": "ticket-consistency",
+        "title": "A4 broaden 帳實相符：W1-025 acceptance 明文含「W1-024 A4 併入」字據",
+        "severity": "info",
+        "description": "W1-024 Solution 裁決 A4「併入 W1-025 範圍，建議 broaden」已實際落地：W1-025 acceptance 第 2 項明文「append-log section 白名單與 ticket-body-schema 必填章節對齊（含 Completion Info 等缺漏項，W1-024 A4 併入）」。broaden 字據存在於 acceptance（會被 complete gate 驗收），非僅 prose。附帶觀察：W1-025 仍 pending，Problem Analysis 全為「待填寫」placeholder，屬正常（IMP Problem Analysis 選填，待 claim 後填寫）。"
+      },
+      {
+        "dimension": "ticket-consistency",
+        "title": "W1-026 帳實一致：acceptance 與 commit c6809c1f / 現行 code / 測試復驗全部吻合",
+        "severity": "info",
+        "description": "W1-026 兩項 acceptance（[x] 排除收窄為僅 repo-root 還原 / [x] pytest 涵蓋兩案例）與實況一致：(1) commit c6809c1f 僅改 bash-edit-guard-hook.py（+23）與 tests/test_bash_edit_guard_hook.py（+53）兩檔，遵守 Context Bundle commit policy（未夾帶工作區遺留的 test_error_pattern_flat_gate_hook.py，該檔至今仍為 modified 未 commit）；(2) 現行 _detect_bare_cd 以 CLAUDE_PROJECT_DIR 正規化比對排除，env 未設時保守不排除，與 Solution 行為對照表逐項吻合；(3) 本次審計重跑 uv run --project .claude/hooks pytest test_bash_edit_guard_hook.py 得 28 passed，與 Test Results 宣稱一致。"
+      },
+      {
+        "dimension": "ticket-consistency",
+        "title": "W1-024.1 帳實一致：commit 5df3d5f4 與 ticket 宣稱吻合，A2/A3 修復可在現行 code 驗證",
+        "severity": "info",
+        "description": "W1-024.1（completed）宣稱與實況一致：(1) grep WHY_REQUIRED 於 create.py 零命中，確認 A2 提前退出已移除；(2) _AmbiguousHowAction 定義於 create.py:1578、--how 攔截註冊於 :1633（nargs='?' + help=SUPPRESS），與 Solution 描述吻合；(3) commit 5df3d5f4 改 3 檔（create.py +32 / test_create_error_envelope.py 改寫 / 新增 test_create_ux_merged_validation.py 209 行），與 Problem Analysis 影響範圍一致；(4) 本次復驗兩測試檔 13 passed（6 新測試 + 7 envelope 測試）。decision-tree 同模式第三來源已記錄並綁 parent W1-024 複審（合法 trigger，非無 trigger 延後）。"
+      },
+      {
+        "dimension": "ticket-consistency",
+        "title": "W1-023 鏈帳實一致：4 個 children + 孫票 .4.1 全部 completed，Solution 自檢與 frontmatter 吻合",
+        "severity": "info",
+        "description": "W1-023（completed）frontmatter children 列 023.1（DOC，PC-166 升級 + 反污染協議規則）/023.2（DOC，bash-rules 升級）/023.3（ANA，timeline 火星追查）/023.4（ANA，裸 cd guard dogfooding 評估）四票，逐一驗證 status 皆 completed；W1-023.4.1（IMP，warn 級裸 cd guard hook 實作）parent_id=1.0.0-W1-023.4 且 023.4 children 含之，亦 completed。Solution 自檢「4 children 全 completed + .4.1（hook 實作 23 tests pass）」與實況一致。multi_view_status: reviewed + reviewers + conclusion flat 格式完整。"
+      },
+      {
+        "dimension": "adversarial",
+        "title": "append-log 同款分批報錯鏈（status → section 白名單 → SECTION_NOT_FOUND），W1-025 broaden 後仍未涵蓋合併報錯",
+        "severity": "low",
+        "description": "execute_append_log 為三層 fail-fast：require_in_progress（return 2）→ section 白名單（return 1）→ find_section SECTION_NOT_FOUND（return 1）。W1-024 A5 重現實驗的「雙重失敗」（先 status 錯、--force 後才見章節錯）正是此鏈，與 A2 同構。W1-025 經 47b5edf7 broaden 後 acceptance 涵蓋 pending IMP 一步寫 Context Bundle + 白名單對齊 schema + pytest，但無一條要求 status 與 section 錯誤合併一次報——Context Bundle 之外的 section 用錯名 + pending status 時，多輪試錯仍會重演。屬同模式殘留，非 W1-025 範圍錯誤，但「完整解決」宣稱不成立。"
+      },
+      {
+        "dimension": "adversarial",
+        "title": "分批報錯是 CLI 全域結構模式，W1-024 僅點狀修復、未沉澱 collect-then-report 設計慣例",
+        "severity": "info",
+        "description": "claim（lifecycle.py:1989 execute_claim）與其他 track 子命令同樣是逐檢查 sequential return 1/2 的 fail-fast 鏈（lifecycle.py:459-1005 範圍 20+ 個提前 return）。claim 前置多為狀態機檢查（存在性 → status → AC 漂移），sequential 有正當性、不全是缺陷；但 W1-024 的關鍵洞察「ticket CLI 摩擦集中在驗證體驗」止於 create 單一命令的單一合併，未沉澱「唯讀前置驗證 collect-then-report、狀態轉移類可 fail-fast」的設計慣例到 rules/references 層，新增子命令時同類問題會再生。"
+      },
+      {
+        "dimension": "adversarial",
+        "title": "整合測試保留已移除 errno 的寬容斷言，削弱 A2 修復的回歸訊號",
+        "severity": "info",
+        "description": "test_scenario_4_missing_required_field 的 valid_errnos 仍含 WHY_REQUIRED、WHEN_REQUIRED、HOW_STRATEGY_REQUIRED，其中 WHY_REQUIRED 已在 5df3d5f4 移除、後兩者 production code 從不存在（grep 僅命中測試檔）。寬容斷言使該測試在「提前退出回歸」時依然綠燈（新舊行為皆 pass），與新測試的精確斷言（assert WHY_REQUIRED not in combined）方向相反，單看本檔會誤以為 WHY_REQUIRED 仍是合法輸出。"
+      }
+    ]
+  }
+}

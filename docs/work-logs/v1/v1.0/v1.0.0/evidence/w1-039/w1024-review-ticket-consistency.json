@@ -1,0 +1,69 @@
+{
+  "summary": "跨 ticket 一致性審計（W1-023 鏈 / W1-024 / W1-024.1 / W1-025 / W1-026）整體帳實相符：W1-023 鏈 4 個 children + 孫票 .4.1 全部 completed；W1-024.1 與 commit 5df3d5f4 一致（WHY_REQUIRED 已移除、_AmbiguousHowAction 已註冊、13 tests 復驗通過）；W1-026 與 commit c6809c1f 一致（28 passed 復驗為真，hook 收窄行為與 Solution 描述吻合，commit 未夾帶工作區遺留檔）；A4 broaden 字據在 W1-025 acceptance 第 2 項明文存在。發現 2 個 medium 缺口：(1) W1-024 frontmatter 未回填 W1-025/W1-026 連結（spawned_tickets/relatedTo 皆空），規則 5 追溯鏈僅存於 prose；(2) W1-024 的 Spawn 落地確認表格格式不命中 ana_spawn_consistency_checker 的雙偵測策略（N=0），hook 強制層對此 ticket 實質失效。另有 W1-024 自檢表 stale 描述（low）與 complete 前置條件現狀（info）。",
+  "findings": [
+    {
+      "title": "W1-024 frontmatter 未回填 W1-025 / W1-026 連結，規則 5 追溯鏈僅存於 prose",
+      "severity": "medium",
+      "file": "docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-024.md",
+      "description": "Solution「Spawn 落地確認」表列 4 項：child IMP（W1-024.1）、A4 併入 W1-025、W1-026（執行中發現）、A5 已 spawn W1-025。實體 ticket 全部存在（帳實實質相符），但 frontmatter 僅 children: [1.0.0-W1-024.1]，spawned_tickets: [] 且 relatedTo: []。quality-baseline 規則 5 要求 ANA complete 前「建立對應 ticket，回填 spawned_tickets 或 children」；W1-025/W1-026 既非本票建立也未以任何 frontmatter 欄位連結，後人從 W1-024 metadata 無法機器追溯 A4/A5/裸 cd guard 三項落地去向。",
+      "evidence": "1.0.0-W1-024.md:10-14（children 僅 W1-024.1，spawned_tickets/relatedTo 空）vs :143-150（Spawn 落地確認表 4 項含 W1-025/W1-026）；1.0.0-W1-025.md:12-13 relatedTo 僅 1.0.0-W1-023.4.1，無 W1-024 反向連結",
+      "recommendation": "complete 前將 1.0.0-W1-025、1.0.0-W1-026 回填 W1-024 的 spawned_tickets（或至少 relatedTo），並可在 W1-025 relatedTo 補 1.0.0-W1-024 反向連結"
+    },
+    {
+      "title": "W1-024 Spawn 落地確認表格格式不命中 ana_spawn_consistency_checker 雙偵測策略（N=0），hook 強制層失效",
+      "severity": "medium",
+      "file": ".claude/hooks/acceptance_checkers/ana_spawn_consistency_checker.py",
+      "description": "checker 的 row-per-spawn 正則要求「| IMP | ... | P[0-3] |」（裸 type cell + 同行 priority），heading-based 正則要求 H3 標題同含 Spawn 與 IMP/DOC/ANA。W1-024 表格 type cell 寫「IMP（child）」「併入 W1-025 範圍」（非裸 IMP）且整表無 P0-P3 欄；標題「### Spawn 落地確認」無 IMP/DOC/ANA 字樣。兩策略皆 N=0 → 即使 spawn 全部漏建，hook 也不會警告或阻擋。本案恰好帳實相符故無實害，但證明 W17-168 強制層存在格式偵測面缺口（第三種表格樣式漏判，與 W17-176 同模式）。另注意 W1-024 Solution 多處寫「無需 spawn」，亦不命中豁免 marker 清單（「無需建 ticket」「不 spawn」），語彙與 checker 約定漂移。",
+      "evidence": "ana_spawn_consistency_checker.py:45-57（_SPAWN_ROW_PATTERN 要求裸 type + P[0-3]；_SPAWN_HEADING_PATTERN 要求標題含 IMP/DOC/ANA）vs 1.0.0-W1-024.md:143-150（「| IMP（child） | 本 ticket spawn |」無 priority 欄）、:127/132/138-141（「無需 spawn：...」非豁免 marker 字面）",
+      "recommendation": "建 IMP ticket 擴充 checker 第三策略（偵測含「Spawn」關鍵字的 H3 下表格行數，不依賴裸 type cell + priority 欄）或在 ticket-body-schema 固定 Spawn 落地確認表格式；同時將「無需 spawn」納入豁免 marker 清單"
+    },
+    {
+      "title": "W1-024 自檢表 spawn 落地列 stale（spawn 已完成但仍寫「待 spawn 後回填」）",
+      "severity": "low",
+      "file": "docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-024.md",
+      "description": "自檢結果（Layer 1）表「spawn 落地」列仍寫「待 spawn create UX child IMP 後回填 children」，但 children 已含 1.0.0-W1-024.1 且該票已 completed（commit 5df3d5f4）。stale 描述會誤導後人以為 spawn 未落地。",
+      "evidence": "1.0.0-W1-024.md:165「| spawn 落地 | 待 spawn create UX child IMP 後回填 children |」vs frontmatter :10-11 children 已含 1.0.0-W1-024.1（status=completed, completed_at 2026-06-10T03:03:58）",
+      "recommendation": "complete 前更新該列為「[x] children 已回填 W1-024.1（completed）+ W1-025/W1-026 已存在」"
+    },
+    {
+      "title": "W1-024 complete 前置條件現狀：acceptance 4 項實質達成但 checkbox 未勾；multi_view_status flat 格式合規",
+      "severity": "info",
+      "file": "docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-024.md",
+      "description": "acceptance 4 項（A 類收集 / B 類收集 / 逐項評估 / spawn 落地）對照 body 實質皆已達成：Problem Analysis A1-A6 + B1-B4 收集完整、Solution 逐項裁決含明確 spawn 或無需 spawn 理由、spawn 實體 ticket 全部存在。checkbox 皆為 [ ] 屬正常（ticket 仍 in_progress，complete 時走 check-acceptance --all）。multi_view_status: skipped + reason 為 flat 同層格式且位於 ## Solution 區段內，skipped 屬合法值且 reason 非空，multi_view_checker 驗證會通過（符合 PC-117 flat YAML 要求）。Completion Info 為 (pending) placeholder，待 complete 流程填寫。",
+      "evidence": "1.0.0-W1-024.md:40-45（acceptance 4 項 [ ]）、:156-157（multi_view_status: skipped / reason: 同層 flat）；multi_view_checker.py:87-113（_parse_field/_has_subfield 行級比對通過）",
+      "recommendation": "執行 ticket track check-acceptance --all 1.0.0-W1-024 後 complete；建議先處理 finding 1（回填 frontmatter 連結）與 finding 3（更新 stale 自檢列）"
+    },
+    {
+      "title": "A4 broaden 帳實相符：W1-025 acceptance 明文含「W1-024 A4 併入」字據",
+      "severity": "info",
+      "file": "docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-025.md",
+      "description": "W1-024 Solution 裁決 A4「併入 W1-025 範圍，建議 broaden」已實際落地：W1-025 acceptance 第 2 項明文「append-log section 白名單與 ticket-body-schema 必填章節對齊（含 Completion Info 等缺漏項，W1-024 A4 併入）」。broaden 字據存在於 acceptance（會被 complete gate 驗收），非僅 prose。附帶觀察：W1-025 仍 pending，Problem Analysis 全為「待填寫」placeholder，屬正常（IMP Problem Analysis 選填，待 claim 後填寫）。",
+      "evidence": "1.0.0-W1-025.md:39-40（acceptance 第 2 項含「W1-024 A4 併入」）；1.0.0-W1-024.md:130（A4 裁決「併入 W1-025 範圍」）",
+      "recommendation": "無需動作；W1-025 claim 後依 Context Bundle / Problem Analysis 流程補填即可"
+    },
+    {
+      "title": "W1-026 帳實一致：acceptance 與 commit c6809c1f / 現行 code / 測試復驗全部吻合",
+      "severity": "info",
+      "file": ".claude/hooks/bash-edit-guard-hook.py",
+      "description": "W1-026 兩項 acceptance（[x] 排除收窄為僅 repo-root 還原 / [x] pytest 涵蓋兩案例）與實況一致：(1) commit c6809c1f 僅改 bash-edit-guard-hook.py（+23）與 test_bash_edit_guard_hook.py（+53）兩檔，遵守 Context Bundle commit policy（未夾帶工作區遺留的 test_error_pattern_flat_gate_hook.py，該檔至今仍為 modified 未 commit）；(2) 現行 _detect_bare_cd 以 CLAUDE_PROJECT_DIR 正規化比對排除，env 未設時保守不排除，與 Solution 行為對照表逐項吻合；(3) 本次審計重跑 uv run --project .claude/hooks pytest test_bash_edit_guard_hook.py 得 28 passed，與 Test Results 宣稱一致。",
+      "evidence": "commit c6809c1f（2 files changed, 67 insertions, 9 deletions）；bash-edit-guard-hook.py _detect_bare_cd（project_root = os.environ.get('CLAUDE_PROJECT_DIR') + target.rstrip('/') == project_root）；本次復驗輸出「28 passed in 0.05s」",
+      "recommendation": "無需動作"
+    },
+    {
+      "title": "W1-024.1 帳實一致：commit 5df3d5f4 與 ticket 宣稱吻合，A2/A3 修復可在現行 code 驗證",
+      "severity": "info",
+      "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+      "description": "W1-024.1（completed）宣稱與實況一致：(1) grep WHY_REQUIRED 於 create.py 零命中，確認 A2 提前退出已移除；(2) _AmbiguousHowAction 定義於 create.py:1578、--how 攔截註冊於 :1633（nargs='?' + SUPPRESS），與 Solution 描述吻合；(3) commit 5df3d5f4 改 3 檔（create.py +32 / test_create_error_envelope.py 改寫 / 新增 test_create_ux_merged_validation.py 209 行），與 Problem Analysis 影響範圍一致；(4) 本次復驗兩測試檔 13 passed（6 新測試 + 7 envelope 測試）。",
+      "evidence": "commit 5df3d5f4（3 files changed, 241 insertions）；create.py:1578 class _AmbiguousHowAction / :1633 --how 註冊；grep -n WHY_REQUIRED create.py 無輸出；本次復驗「13 passed in 2.68s」",
+      "recommendation": "無需動作"
+    },
+    {
+      "title": "W1-023 鏈帳實一致：4 個 children + 孫票 .4.1 全部 completed，Solution 自檢與 frontmatter 吻合",
+      "severity": "info",
+      "file": "docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-023.md",
+      "description": "W1-023（completed）frontmatter children 列 023.1（DOC）/023.2（DOC）/023.3（ANA）/023.4（ANA）四票，逐一驗證 status 皆 completed；W1-023.4.1（IMP，hook 實作）parent_id=1.0.0-W1-023.4 且 023.4 children 含之，亦 completed。Solution 自檢「4 children 全 completed + .4.1（hook 實作 23 tests pass）」與實況一致。multi_view_status: reviewed + reviewers + conclusion flat 格式完整。",
+      "evidence": "1.0.0-W1-023.md:10-14（children 4 票）+ 各票 frontmatter status: completed（023.1/023.2/023.3/023.4/023.4.1 逐一 grep 驗證）；1.0.0-W1-023.4.1.md parent_id: 1.0.0-W1-023.4",
+      "recommendation": "無需動作"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "claim_under_review": "W1-024 識別的問題已被完整解決",
+  "verdict": "REFUTED（部分）— A2「必填一次列全」對 decision-tree/wave 缺漏情境不成立（實機模擬證實仍分批報錯，最壞 3 輪）；B2 裁決引用不存在的 agent-dispatch-template 防護；--force 語意變更零測試覆蓋。線索 2 的強形式不成立：未發現任何下游程式硬依賴「why 永不為待定義」。",
+  "findings": [
+    {
+      "title": "A2「必填欄位一次列全」對 decision-tree 缺漏情境不成立（實機模擬證實）",
+      "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+      "severity": "high",
+      "refutes_claim": true,
+      "description": "W1-024 Solution A2 裁決寫「spawn child IMP（create.py 必填驗證一次列全）」，但 W1-024.1 只合併了 WHY_REQUIRED 進 checklist。decision-tree 驗證（DECISION_TREE_MISSING_ALL/PARTIAL）位於 _parse_cli_args_to_config（create.py:777-785 呼叫 _build_decision_tree_path，create.py:204-215 raise ValueError → return None → execute 提前退出），仍在 _validate_create_checklist（_persist_and_report 步驟 1.5, create.py:1115）之前。實機模擬：IMP create 同時缺 decision-tree + why + when，第一輪只報 DECISION_TREE_MISSING_ALL（exit 1），完全不提 why/when；修復 decision-tree 後第二輪才報 CHECKLIST_VALIDATION_FAILED。多輪試錯模式（W1-024 A2 的核心痛點）對最常見的「全空白起手式」依然存在。W1-024.1 已誠實記錄此邊界（ticket md「已識別未納入本票範圍」「由 parent W1-024 複審裁決」），但 parent W1-024 的 Solution 至今（in_progress）沒有 decision-tree 分批報錯的裁決條目，且 A2 行的「一次列全」措辭會誤導後人以為全部必填驗證已單趟化。佐證：既有測試 test_error_channel_integration.py:196 早有註解「decision-tree 三引數提供以避免被 DECISION_TREE 錯誤先擋下」，新測試 test_create_ux_merged_validation.py 的合併情境也刻意提供 decision-tree x/y/z（line 91-93），即測試層從未覆蓋「decision-tree 與 checklist 欄位同缺」情境。",
+      "evidence": "create.py:204-215（DECISION_TREE_MISSING_ALL + raise ValueError）、create.py:777-785（except ValueError: return None）、create.py:1300→1315→1115 呼叫順序；實機模擬輸出 case1: 缺 decision-tree+why+when → 僅 DECISION_TREE_MISSING_ALL=True / CHECKLIST_VALIDATION_FAILED=False / mentions why=False；W1-024.md Solution A2 行「create.py 必填驗證一次列全」；1.0.0-W1-024.1.md:80-82,102-104；test_error_channel_integration.py:196；commit 5df3d5f4",
+      "recommendation": "W1-024 complete 前必須對 decision-tree 提前退出下明確裁決（合併進 checklist 或顯性標註豁免理由 + 修正 A2 行措辭為「why 合併、decision-tree/wave 除外」）；若裁決合併，spawn 子票並補「decision-tree 與 checklist 同缺」合併報錯測試"
+    },
+    {
+      "title": "wave（MISSING_WAVE_PARAMETER）是同模式第四來源，且完全未被 W1-024/W1-024.1 識別",
+      "file": ".claude/skills/ticket/ticket_system/commands/create.py",
+      "severity": "medium",
+      "refutes_claim": true,
+      "description": "MISSING_WAVE_PARAMETER 在 _resolve_ticket_id_and_wave（create.py:592-599）提前退出，位於 decision-tree 驗證之前（execute: line 1300 → 1315）。實機模擬：同時缺 wave + decision-tree + why，第一輪只報 MISSING_WAVE_PARAMETER。即最壞情境是三輪試錯：wave → decision-tree → checklist。W1-024.1「已識別未納入本票範圍」只列了 decision-tree，wave 這個第四來源無人識別、無 ticket 追蹤，違反 quality-baseline 規則 5（所有發現必須追蹤）。技術上 wave 是 ticket_id 生成的結構性前置（無 wave 無法算 seq），完全合併有實作成本，但至少應在邊界記錄中列出並裁決。",
+      "evidence": "create.py:592-599（MISSING_WAVE_PARAMETER）、create.py:1300（_resolve_ticket_id_and_wave 先於 1315 _parse_cli_args_to_config）；實機模擬 case2: 缺 wave+decision-tree+why → 僅 MISSING_WAVE_PARAMETER；1.0.0-W1-024.1.md:80-82（邊界記錄僅含 decision-tree）",
+      "recommendation": "在 W1-024 complete 前的複審中將 wave 與 decision-tree 一併裁決；若裁決不合併（結構性前置正當），在 ticket Solution 顯性標註豁免理由"
+    },
+    {
+      "title": "B2（agent 最終訊息劫持）裁決引用不存在的防護：agent-dispatch-template 內無任何劫持/檔案交付指引",
+      "file": "docs/work-logs/v1/v1.0/v1.0.0/tickets/1.0.0-W1-024.md",
+      "severity": "high",
+      "refutes_claim": true,
+      "description": "W1-024 Solution B2 行裁決「無需 spawn：已有 memory（review agent final message hijack）+ agent-dispatch-template；屬已知 workaround」。grep 驗證：.claude/references/agent-dispatch-template.md 對「劫持/最終訊息/hijack/tmp/交付/deliverable/回傳」全部零命中；.claude/rules/、.claude/pm-rules/、.claude/references/ 對「劫持/hijack」亦零命中。實際存在的防護只有單一通道：user-level memory 檔（~/.claude/projects/.../memory/feedback_review_agent_final_message_hijack.md）。memory 不在 .claude/ sync 範圍（不跨機器）、不被 subagent 載入、也不是框架規則層。B2 在本 session 又再現一次（basil 回傳「無動作」實則完整完成，W1-024 重現實驗 B2 行自證 2+ 次發生），依 pm-quality-baseline 規則 7 四問升級檢查，跨 session 重現的模式應升級框架層；裁決以不存在的第二通道為依據，屬會誤導後人的事實錯誤——後人查 dispatch template 找不到任何指引。",
+      "evidence": "1.0.0-W1-024.md Solution B2 行（「+ agent-dispatch-template」）；grep -n '劫持|最終訊息|hijack' .claude/references/agent-dispatch-template.md → 0 hits；grep -rn '劫持|hijack' .claude/rules/ .claude/pm-rules/ .claude/references/ → 0 hits；memory 檔存在於 ~/.claude/projects/-Users-tarragon-Projects-book-overview-v1/memory/feedback_review_agent_final_message_hijack.md；W1-024.md 重現實驗 B2 行（basil 案例）",
+      "recommendation": "修正 B2 裁決：改 spawn DOC 把「討論/審查型 agent deliverable 寫檔案 + PM git ground truth 驗證」寫入 agent-dispatch-template.md（框架層、會被 PM 派發前讀取），或在 Solution 顯性改寫為「僅 memory 單通道，接受此風險」的誠實裁決"
+    },
+    {
+      "title": "--force 語意變更（why 可豁免）已文件化為刻意決策但零測試覆蓋；下游無硬依賴（線索 2 強形式不成立）",
+      "file": ".claude/skills/ticket/ticket_system/tests/test_create_ux_merged_validation.py",
+      "severity": "medium",
+      "refutes_claim": false,
+      "description": "兩面結論。(a) 反駁不成立的部分：grep DEFAULT_UNDEFINED_VALUE/「待定義」全 repo，唯一下游消費點是 .claude/hooks/acceptance_checkers/five_w1h_checker.py（why 為待定義時列入 incomplete），其唯一 caller acceptance-gate-hook.py:391-395 僅輸出 [WARNING] 2. 5W1H 未補完，不阻擋 complete；claim/dispatch readiness/dispatch validate 路徑無任何 why 檢查。即沒有程式硬依賴「why 永不為待定義」，--force 豁免 why 不造成正確性破壞，且 W1-024.1 ticket md line 78/98 已顯性記錄為刻意設計決策。(b) 成立的部分：此語意變更（舊行為 --force 無法繞過 WHY_REQUIRED sys.exit(1)；新行為 --force 可建立 why=待定義 的 IMP/ANA）在新測試檔 6 個測試中全部 force=False，無任何測試鎖定「force=True + why 缺漏 → WARNING 放行」的新路徑；_enforce_create_checklist 的 force 分支（create.py:942-949）對 why 的覆蓋僅靠舊測試的其他欄位。刻意設計決策無回歸防護，未來重構可能無聲回退或進一步放寬。",
+      "evidence": "git show 5df3d5f4（WHY_REQUIRED sys.exit(1) 移除 diff）；five_w1h_checker.py:43-48（待定義判定）；acceptance-gate-hook.py:319,391-395（warning-only）；track_dispatch_readiness.py / claim_verification.py grep why/待定義 → 0 hits；test_create_ux_merged_validation.py:54（force=False，全檔無 force=True 案例）；1.0.0-W1-024.1.md:78,98",
+      "recommendation": "補一個 force=True + why 缺漏的測試：斷言建立成功 + WARNING 含 why（鎖定刻意語意）；可順帶在 SKILL.md --force 說明處同步此語意"
+    },
+    {
+      "title": "append-log 存在同款分批報錯鏈（status → section 白名單 → SECTION_NOT_FOUND），W1-025 broaden 後仍未涵蓋合併報錯",
+      "file": ".claude/skills/ticket/ticket_system/commands/track_acceptance.py",
+      "severity": "low",
+      "refutes_claim": true,
+      "description": "execute_append_log 是三層 fail-fast：require_in_progress（track_acceptance.py:633-642, return 2）→ section 白名單（:645-650, return 1）→ find_section SECTION_NOT_FOUND（:687-696, return 1）。W1-024 A5 重現實驗記錄的「雙重失敗」（先 status 錯、加 --force 後才看到章節錯）正是此鏈，與 A2 同構。W1-025 經 47b5edf7 broaden 後 acceptance 涵蓋（1）pending IMP 一步寫 Context Bundle（2）白名單對齊 schema（3）pytest，但無任何一條要求「status 與 section 錯誤合併一次報」——若用戶用錯 section 名 + pending status，修完一個才看到下一個的模式仍會重演（Context Bundle 之外的 section 不受 AC1 救濟）。屬同模式殘留，非 W1-025 範圍錯誤，但「完整解決」宣稱不成立。",
+      "evidence": "track_acceptance.py:633-650,687-696（三層 sequential return）；1.0.0-W1-024.md 重現實驗 A5 行（雙重失敗實證）；1.0.0-W1-025.md:36-41（broaden 後 acceptance 三條，無合併報錯項）；commit 47b5edf7",
+      "recommendation": "W1-025 實作時順手將 status 檢查與 section 驗證合併報錯（兩者皆唯讀前置檢查，無相依），或在 W1-025 Solution 顯性裁決不合併的理由"
+    },
+    {
+      "title": "分批報錯是 CLI 全域結構模式，W1-024 僅點狀修復未建立 collect-then-report 慣例",
+      "file": ".claude/skills/ticket/ticket_system/commands/lifecycle.py",
+      "severity": "info",
+      "refutes_claim": true,
+      "description": "claim（lifecycle.py execute_claim 起 1989 行）與其他 track 子命令同樣是逐檢查 return 1/return 2 的 fail-fast 鏈。claim 的前置多為狀態機檢查（存在性 → status → AC 漂移），sequential 有其正當性，不全是缺陷；但 W1-024 的關鍵洞察「ticket CLI 摩擦集中在驗證體驗」止於 create 一個命令的一個合併，未沉澱任何「唯讀前置驗證應 collect-then-report、狀態轉移類可 fail-fast」的設計慣例（rules/references 層），同類問題在新增子命令時會再生。",
+      "evidence": "lifecycle.py:1989 execute_claim 及其多處 sequential return（:459-1005 範圍 20+ 個 return 1/2）；W1-024.md 關鍵洞察段",
+      "recommendation": "可選：在 ticket skill references 補一條 CLI 驗證設計慣例（唯讀前置檢查合併報錯、狀態轉移 fail-fast），作為 W1-024 的知識沉澱；不阻擋現有工作"
+    },
+    {
+      "title": "整合測試保留已移除 errno 的寬容斷言，削弱 A2 修復的回歸訊號",
+      "file": ".claude/skills/ticket/tests/test_error_channel_integration.py",
+      "severity": "info",
+      "refutes_claim": false,
+      "description": "test_scenario_4_missing_required_field（:187-228）的 valid_errnos 仍含 WHY_REQUIRED、WHEN_REQUIRED、HOW_STRATEGY_REQUIRED（:220-225），其中 WHY_REQUIRED 已在 5df3d5f4 移除、後兩者程式碼中從不存在（grep 僅命中測試檔）。寬容斷言使該測試在「提前退出回歸」時依然綠燈（舊新行為皆 pass），與 test_create_ux_merged_validation.py 的精確斷言（WHY_REQUIRED not in combined）方向相反；單看本檔會誤以為 WHY_REQUIRED 仍是合法輸出。",
+      "evidence": "test_error_channel_integration.py:220-225；grep -rn WHY_REQUIRED .claude/ --include='*.py' → 僅 3 個測試檔命中，production code 0 命中；commit 5df3d5f4",
+      "recommendation": "收緊 valid_errnos 為 ('CHECKLIST_VALIDATION_FAILED',)（或加註解標明容忍歷史輸出的理由），避免回歸訊號被寬容斷言吸收"
+    }
+  ],
+  "clue_verdicts": {
+    "clue1_decision_tree_early_exit": "成立（refuted）— 實機模擬證實第一輪只報 DECISION_TREE_MISSING_ALL，why/when 隻字未提",
+    "clue2_force_why_downstream": "強形式不成立 — 全 repo 唯一消費點是 five_w1h_checker → acceptance-gate warning-only，無硬依賴；弱形式成立 — 語意變更零測試覆蓋",
+    "clue3_b2_underestimated": "成立（refuted）— B2 裁決引用的 agent-dispatch-template 防護不存在（grep 0 命中），實際僅 user-level memory 單通道",
+    "clue4_wave_early_exit": "成立（refuted）— 實機模擬證實 wave 更先於 decision-tree 提前退出，且未被任何邊界記錄識別；惟結構性前置有部分正當性",
+    "clue5_other_subcommands": "成立（部分）— append-log 三層 fail-fast 同構（A5 實證），W1-025 broaden 未涵蓋合併報錯；claim 類 sequential 有狀態機正當性，屬 info"
+  }
+}

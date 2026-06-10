@@ -1,0 +1,85 @@
+{
+  "summary": "審查範圍：origin/main..HEAD 中 tool-output-trust-rules.md（新檔 96 行）、bash-tool-usage-rules.md（+24/-3）、PC-166（+27，防護 E）、IMP-056（+6，受眾擴展）與配套 hook（bash-edit-guard-hook.py 裸 cd warn，commit f52feaee + c6809c1f）。核心一致性良好：tool-output-trust-rules 與 bash-tool-usage-rules 交叉引用雙向成立；PC-166 防護 E 內容（raw stdout 判據／固定值／重發比對）與規則 2/3 逐項一致；hook BARE_CD_WARNING 訊息與規則一 git -C 首選、confabulation 觸發鏈描述一致；W1-026 收窄（僅 repo-root 還原排除）與規則一「絕對路徑還原」合法用途對齊，且有 28 個測試覆蓋；hook 實機驗證有效（審查過程中對審查者自身命令觸發 warn-not-deny）。所有引用檔案路徑經 ls 驗證皆存在；變更內容無 emoji、無簡體字、無新增禁用詞。發現 2 個 medium：(1) PC-166 無任何回向引用 tool-output-trust-rules.md（單向引用，PC 讀者無從發現規則層固化）；(2) bash-tool-usage-rules.md 有實質新章節但 footer 版本停留 2.2.0/2026-05-29（違反專案版本記錄慣例）。另有 6 個 low（檔內章節未同步 git -C、規則 4 缺 Consequence、_detect_bare_cd 多行 FN 未列入限制、hook 模組 docstring 未更新、IMP-056 自稱「本 PC」+ footer 未更新、PC-166 升級註記放錯章節）與 2 個 info（既有禁用詞「數據」、rules/README「7 檔」計數漂移）。",
+  "findings": [
+    {
+      "title": "PC-166 缺對 tool-output-trust-rules.md 的回向引用（單向交叉引用）",
+      "severity": "medium",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/error-patterns/process-compliance/PC-166-confabulated-tool-result-and-git-working-tree-ground-truth.md",
+      "description": "tool-output-trust-rules.md 自稱是 PC-166「生成自律」的規則層固化（邊界表：「本規則是其『生成自律』的規則層固化（防護 E 無法 hook 的部分）」），但 PC-166 全文 grep 'tool-output-trust' 零命中。「規則層銜接」章節只列 pm-role.md 與 quality-baseline.md，「相關」清單也未列新規則檔。從 PC-166 入口閱讀的讀者無法發現已有自動載入的規則層防護，違反專案規則修訂的雙向引用慣例（如 ai-communication-rules 規則 6 明示「雙向因果鏈可追蹤」）。",
+      "evidence": "grep -n 'tool-output-trust' PC-166-*.md 無命中；PC-166 規則層銜接章節（約 163-165 行）僅引 pm-role.md / quality-baseline.md；對照 tool-output-trust-rules.md 邊界表第一列（commit 74e095b2 引入）",
+      "recommendation": "在 PC-166「規則層銜接」章節補一行：本 PC 的生成自律協議已固化為 .claude/rules/core/tool-output-trust-rules.md（規則 1-4，自動載入）；防護 E 對應其規則 2/3。"
+    },
+    {
+      "title": "bash-tool-usage-rules.md 實質修訂但 footer 版本與 Last Updated 未更新",
+      "severity": "medium",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/rules/core/bash-tool-usage-rules.md",
+      "description": "commit 348d0886 對規則一做了實質修訂（三種安全做法改四種、git -C 升為 git 操作首選、新增整節「輸出可疑/被淹沒當下的即時協議」），但檔尾 footer 仍為「Last Updated: 2026-05-29 | Version: 2.2.0 — 新增規則六…」。專案所有規則檔均維護版本記錄慣例（同 wave 的 tool-output-trust-rules.md 即有正確 footer），未更新會誤導後人以為 2.2.0 即含 confabulation 協議，git log 考古時版本錨點斷裂。",
+      "evidence": "git diff 348d0886 該檔無 footer hunk；現行檔尾（tail -5）：**Last Updated**: 2026-05-29 | **Version**: 2.2.0 — 新增規則六…",
+      "recommendation": "bump 為 2.3.0，註記「規則一 git -C 首選 + 輸出可疑即時協議（confabulation 防護，W1-023.2）」並更新 Last Updated 為實際修訂日。"
+    },
+    {
+      "title": "bash-tool-usage-rules.md 檔內其他章節未與規則一 git -C 修訂同步",
+      "severity": "low",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/rules/core/bash-tool-usage-rules.md",
+      "description": "規則一已將 git -C 列為 git 操作首選，但同檔兩處未同步：(1) 統一檢查清單第 168 行仍寫「命令含 cd？→ 改用子 shell () 或 uv -d」，未提 git -C；(2)「相關文件」章節（184-191 行）未列 tool-output-trust-rules.md（chpwd 警告與即時協議表共 4 處 inline 引用它，導航章節卻缺席）。檢查清單是 PM 高頻速查入口，漂移會讓首選方案在 hotpath 不可見。",
+      "evidence": "bash-tool-usage-rules.md:168「- [ ] 命令含 `cd`？→ 改用子 shell `()` 或 `uv -d`」；相關文件章節 184-191 行無 tool-output-trust-rules 條目（inline 引用在 27/35/37/38 行）",
+      "recommendation": "檢查清單第一項改為「git 操作改 git -C，其餘改子 shell () 或 uv -d」；相關文件章節補列 .claude/rules/core/tool-output-trust-rules.md。"
+    },
+    {
+      "title": "tool-output-trust-rules.md 規則 4 缺 Consequence（三明示不完整）",
+      "severity": "low",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/rules/core/tool-output-trust-rules.md",
+      "description": "規則 1/2/3 均有完整 Why/Consequence/Action 三明示，規則 4（用 git -C 取代裸 cd）只有 Why 與 Action。basil Layer 2 審查（commit f39446b9「規則3補Consequence」）補了規則 3 卻漏了規則 4。document-writing-style.md 要求每段論述三明示齊備。",
+      "evidence": "tool-output-trust-rules.md 規則 4 章節僅含 **Why** 與 **Action** 兩段（diff cd62ecf7 行 78-84）；對照規則 1-3 均有 **Consequence** 段",
+      "recommendation": "補一行 Consequence，例如「違反會觸發 chpwd ls 淹沒，工具 result 邊界模糊化，直接進入規則 1 的 confabulation 點火情境」。"
+    },
+    {
+      "title": "_detect_bare_cd 對多行命令中後續行的裸 cd 為 false negative，且未列入限制說明",
+      "severity": "low",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/hooks/bash-edit-guard-hook.py",
+      "description": "偵測 regex r'(^|&&|;|\\|\\||\\()\\s*\\bcd\\s+(\\S+)' 的 ^ 未開 re.MULTILINE，換行也不在 connector 集合中，因此多行 Bash 命令第二行起的行首裸 cd 完全不命中（實測 'echo hi\\ncd /tmp/foo' 零 match）。docstring「False-positive 務實邊界」只記載 heredoc/quoted 誤判（FP）風險，未記載此 FN。此 FN 對 heredoc body 內字面 cd 反而是保護（避免 FP），但對真實多行腳本的裸 cd 是漏網。warn-not-deny 防護層，誤漏成本低。",
+      "evidence": "bash-edit-guard-hook.py:112 finditer pattern（commit f52feaee 引入）；實測 pattern.finditer('echo hi\\ncd /tmp/foo') 回傳空 list；docstring 105-107 行僅述 FP 邊界",
+      "recommendation": "在 docstring 限制段補記多行 FN（含其對 heredoc FP 的抵消效果）；若要收網可將 connector 加入換行（r'(^|\\n|&&|;|\\|\\||\\()'）並評估 heredoc FP 增量，或維持現狀但顯性記載 trade-off。"
+    },
+    {
+      "title": "bash-edit-guard-hook.py 模組層 docstring 未更新（缺裸 cd 偵測描述，行為描述失準）",
+      "severity": "low",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/hooks/bash-edit-guard-hook.py",
+      "description": "模組 docstring（7-21 行）的「功能」「檢測模式」仍只描述 sed/awk/perl 編輯偵測，未提本次新增的裸 cd 偵測；「行為: 輸出警告訊息到 stderr」與實際行為（emit_hook_output 走 stdout JSON additionalContext）不符（stderr 描述為既有失準，本次重構 main() 時未順手修正）。函式級 docstring 完整詳盡，僅模組層滯後。",
+      "evidence": "bash-edit-guard-hook.py:7-21 模組 docstring vs main() 188-210 行雙偵測 + emit_hook_output 實作（commit f52feaee）",
+      "recommendation": "模組 docstring 檢測模式補「裸 cd（IMP-056 / confabulation 觸發鏈）」一項，行為描述改為「輸出 additionalContext JSON 提示，permission allow（warn 不 deny）」。"
+    },
+    {
+      "title": "IMP-056 新增章節自稱「本 PC」且 footer Last Updated 未反映本次修訂",
+      "severity": "low",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/error-patterns/implementation/IMP-056-chpwd-shell-hook-floods-agent-output.md",
+      "description": "兩個小漂移：(1) 第 53 行新增段落寫「本 PC 防護易被讀成…」，但 IMP-056 的 category 是 implementation（IMP），非 process-compliance（PC），自稱錯誤會讓 grep PC 編號考古時混淆；(2) footer Last Updated 仍為 2026-06-07 且只描述「變體：chpwd redirect」修訂，未反映 2026-06-09 commit 348d0886 新增的「主線程 PM 自身同樣適用（受眾擴展）」章節。",
+      "evidence": "IMP-056 第 53 行「本 PC 防護易被讀成…」（frontmatter category: implementation, id: IMP-056）；footer「**Last Updated**: 2026-06-07 — 新增『變體…』」",
+      "recommendation": "「本 PC」改為「本 pattern」或「本 IMP」；footer 追加 2026-06-09 受眾擴展修訂記錄。"
+    },
+    {
+      "title": "PC-166 防護 E 升級註記置於「相關」清單而非版本記錄",
+      "severity": "low",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/error-patterns/process-compliance/PC-166-confabulated-tool-result-and-git-working-tree-ground-truth.md",
+      "description": "檔尾第 173 行「- 防護 E（唯讀 stdout 虛構類）為後續 confabulation 根因 ANA（四視角整合）升級所補」是修訂歷史註記，卻以 list item 形式混在「相關」章節（該章節其餘條目均為 PC/IMP/ticket 引用）。PC-166 缺 Last Updated footer，註記只好寄居錯誤章節，降低「相關」清單的引用純度。",
+      "evidence": "PC-166 第 168-173 行「## 相關」清單：前 4 項為 PC-111/PC-147/IMP-071/W3-091 引用，第 5 項為修訂註記（commit 74e095b2 追加）",
+      "recommendation": "為 PC-166 補標準 footer（Last Updated + 修訂摘要），將第 173 行移入；「相關」清單保持純引用。"
+    },
+    {
+      "title": "IMP-056 既有內容含禁用詞「數據」（pre-existing，非本次變更引入）",
+      "severity": "info",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/error-patterns/implementation/IMP-056-chpwd-shell-hook-floods-agent-output.md",
+      "description": "第 70 行（變體章節標題）與第 95 行（footer）含 language-constraints.md 規則 2 禁用詞「數據」（應為「資料」）。經 git show origin/main 比對確認兩處均 pre-exists，非本次 diff 範圍引入；本次新增內容（受眾擴展章節）經掃描無禁用詞、無簡體字、無 emoji。依 quality-baseline 規則 5 應追蹤。",
+      "evidence": "IMP-056:70「…致下游處理拿到假數據（W1-018 near-miss）」、IMP-056:95 footer 同字樣；git show origin/main:該檔 grep -c 數據 = 2（pre-existing）",
+      "recommendation": "順手修正兩處「數據」→「資料」（純修正可併入下次該檔修訂），或建低優先 DOC ticket 追蹤。"
+    },
+    {
+      "title": "rules/README.md「7 檔」計數與 rules/core/ 實際 17 檔漂移（新規則檔擴大既有漂移）",
+      "severity": "info",
+      "file": "/Users/tarragon/Projects/book_overview_v1/.claude/rules/README.md",
+      "description": "README 第 5 行宣稱「本目錄只放所有角色通用的品質規則（7 檔）」，rules/core/ 實際已有 17 檔（本次新增 tool-output-trust-rules.md 前為 16，計數漂移 pre-exists）。新增自動載入規則檔時未同步 README 索引，且 README 內容索引表也未列 tool-output-trust 類別。漂移屬歷史累積，本次變更僅使其 +1。",
+      "evidence": "rules/README.md:5「（7 檔）」；ls .claude/rules/core/ | wc -l = 17（含本次新增 tool-output-trust-rules.md）",
+      "recommendation": "移除硬編碼檔數（改「通用品質規則」不計數）或更新計數，並在 rules/core/ 內容描述補「工具輸出信任」類別。"
+    }
+  ]
+}
