@@ -18,6 +18,7 @@ from ticket_system.lib.ticket_builder import (
     get_next_child_seq,
     create_ticket_frontmatter,
     create_ticket_body,
+    validate_create_checklist,
 )
 
 
@@ -31,6 +32,7 @@ class GeneratedTicket:
         content: 完整 Ticket Markdown 內容（frontmatter + body）
         tdd_phases: TDD 階段清單（Phase 1-4）
         wave: Wave 編號
+        missing_fields: checklist 缺失必填欄位清單（1.0.0-W1-027，warning 級）
     """
 
     id: str
@@ -38,6 +40,7 @@ class GeneratedTicket:
     content: str
     tdd_phases: List[str] = field(default_factory=list)
     wave: int = 1
+    missing_fields: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -242,6 +245,11 @@ def generate(
                 "acceptance": None,  # 使用預設驗收條件
             }
 
+            # checklist 驗證（1.0.0-W1-027：warning 級，不阻擋；flat config 階段）
+            # 補 generate 側門缺口，與 create / batch-create 共用驗證邏輯。
+            # lib 層只回傳缺失清單，由 command 層（generate.py）負責 print。
+            missing = validate_create_checklist(config, config["ticket_type"])
+
             # 產生 frontmatter 和 body
             frontmatter = create_ticket_frontmatter(config)
             body = create_ticket_body(
@@ -260,6 +268,7 @@ def generate(
                 content=content,
                 tdd_phases=tdd_phases,
                 wave=wave,
+                missing_fields=missing,
             )
 
             generated_tickets.append(gen_ticket)

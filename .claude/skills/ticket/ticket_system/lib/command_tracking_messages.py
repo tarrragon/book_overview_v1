@@ -590,6 +590,9 @@ class BulkCreateMessages:
     # _print_batch_result 中的警告項目標籤
     WARNED_ITEMS_TITLE = "警告項目："
 
+    # _create_batch_tickets 中的 checklist 缺欄位警告格式（1.0.0-W1-027）
+    CHECKLIST_WARNING_FORMAT = "缺必填欄位: {fields}"
+
 
 # ============================================================================
 # GenerateMessages - generate.py 相關訊息
@@ -623,6 +626,10 @@ class GenerateMessages:
 
     # _save_tickets 中的錯誤訊息（使用 BACKUP_FAILED，但這裡保留以供參考）
     # 注：實際使用來自 WarningMessages.BACKUP_FAILED
+
+    # _print_generation_summary 中的 checklist 缺欄位警告（1.0.0-W1-027，warning 級不阻擋）
+    CHECKLIST_WARNING_TITLE = "[WARNING] 以下 Ticket 缺必填欄位（warning 級，未阻擋建立）："
+    CHECKLIST_WARNING_ITEM = "   {id}: 缺 {fields}"
 
     # register 中的命令 help 文字
     HELP_GENERATE = "從 Plan 檔案生成 Atomic Tickets"

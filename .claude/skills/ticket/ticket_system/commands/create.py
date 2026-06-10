@@ -70,6 +70,7 @@ from ticket_system.lib.ticket_builder import (
     create_ticket_body,
     update_parent_children,
     update_source_spawned_tickets,
+    validate_create_checklist,
 )
 from ticket_system.lib.acceptance_auditor import detect_vague_acceptance, detect_srp_violations
 from ticket_system.lib.ui_constants import SEPARATOR_PRIMARY
@@ -859,70 +860,10 @@ def _validate_before_persist(
     return True
 
 
-def _validate_create_checklist(
-    config: TicketConfig,
-    ticket_type: str,
-) -> List[str]:
-    """PROP-009 清單式欄位驗證。
-
-    建立前檢查建議填寫的欄位，回傳缺失欄位名稱清單。
-    此驗證為 WARNING 層級，不阻擋建立。
-
-    Args:
-        config: Ticket 配置
-        ticket_type: Ticket 類型（IMP, ANA, DOC 等）
-
-    Returns:
-        缺失欄位名稱的清單，空清單表示全部通過
-    """
-    missing: List[str] = []
-
-    # where.files 至少 1 個
-    if not config.get("where_files"):
-        missing.append("where.files")
-
-    # acceptance 至少 1 項
-    if not config.get("acceptance"):
-        missing.append("acceptance")
-
-    # decision_tree_path 三個子欄位都非空（DOC 類型和子任務豁免）
-    is_exempt_from_decision_tree = (
-        ticket_type == "DOC" or config.get("parent_id")
-    )
-    if not is_exempt_from_decision_tree:
-        dt = config.get("decision_tree_path") or {}
-        has_complete_path = (
-            dt.get("entry_point")
-            and dt.get("final_decision")
-            and dt.get("rationale")
-        )
-        if not has_complete_path:
-            missing.append("decision_tree_path")
-
-    # when 非「待定義」
-    if config.get("when") == DEFAULT_UNDEFINED_VALUE:
-        missing.append("when")
-
-    # W11-003.5: 5W1H 全欄位必填擴充
-    # who 不可為空、"pending" 或「待定義」
-    who_value = config.get("who")
-    if not who_value or who_value in ("pending", DEFAULT_UNDEFINED_VALUE):
-        missing.append("who")
-
-    # what 不可為空（CLI argparse 已強制 --action/--target，此處為防禦性檢查）
-    if not config.get("what"):
-        missing.append("what")
-
-    # why 非「待定義」（DOC 類型豁免；此處為 why 必填的唯一驗證點——
-    # CLI 端 WHY_REQUIRED 提前退出已移除，與其他必填欄位一次列全，1.0.0-W1-024.1 A2）
-    if ticket_type != "DOC" and config.get("why") == DEFAULT_UNDEFINED_VALUE:
-        missing.append("why")
-
-    # how_strategy 非「待定義」
-    if config.get("how_strategy") == DEFAULT_UNDEFINED_VALUE:
-        missing.append("how_strategy")
-
-    return missing
+# _validate_create_checklist 已下沉至 lib/ticket_builder.py（1.0.0-W1-027，
+# 三建票路徑共用驗證邏輯，根除散落漂移 ARCH-020）。保留私有別名以向後相容
+# 既有 import（tests/test_create_ux_merged_validation.py）與本檔呼叫鏈。
+_validate_create_checklist = validate_create_checklist
 
 
 def _enforce_create_checklist(missing: List[str], force: bool) -> None:

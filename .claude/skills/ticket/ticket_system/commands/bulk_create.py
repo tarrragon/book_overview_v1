@@ -22,6 +22,7 @@ from ticket_system.lib.ticket_builder import (
     get_next_seq,
     create_ticket_frontmatter,
     create_ticket_body,
+    validate_create_checklist,
 )
 from ticket_system.lib.ticket_loader import (
     get_tickets_dir,
@@ -236,6 +237,18 @@ def _create_batch_tickets(
                 wave,
                 parent_id=parent_id,
             )
+
+            # checklist 驗證（1.0.0-W1-027：warning 級，不阻擋）
+            # 與 create 命令層共用 validate_create_checklist，補側門缺口。
+            # 在 flat config 階段呼叫（key 與驗證函式一致），非 save 階段。
+            missing = validate_create_checklist(config, config["ticket_type"])
+            if missing:
+                result.warned.append((
+                    ticket_id,
+                    BulkCreateMessages.CHECKLIST_WARNING_FORMAT.format(
+                        fields=", ".join(missing)
+                    ),
+                ))
 
             # 產生 frontmatter 和 body
             frontmatter = create_ticket_frontmatter(config)

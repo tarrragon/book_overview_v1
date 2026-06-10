@@ -22,7 +22,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, TypedDict
 
-from ticket_system.lib.constants import STATUS_PENDING
+from ticket_system.lib.constants import STATUS_PENDING, DEFAULT_UNDEFINED_VALUE
 from ticket_system.lib.paths import GIT_TOPLEVEL_TIMEOUT, get_project_root
 from ticket_system.lib.ticket_loader import (
     get_tickets_dir,
@@ -214,6 +214,77 @@ def get_default_acceptance_criteria(ticket_type: str) -> List[str]:
         ticket_type,
         DEFAULT_ACCEPTANCE_CRITERIA["IMP"]  # 預設為 IMP 類型
     )
+
+
+def validate_create_checklist(
+    config: TicketConfig,
+    ticket_type: str,
+) -> List[str]:
+    """PROP-009 清單式欄位驗證（三建票路徑共用）。
+
+    建立前檢查必填欄位，回傳缺失欄位名稱清單。本函式為純驗證，
+    不阻擋、不 print；由呼叫端決定 warning 或阻擋行為：
+    - create 命令層：缺失 + 未 --force 時阻擋（W11-003.5）
+    - batch-create / generate 路徑：warning 級不阻擋（1.0.0-W1-027）
+
+    讀取的是 flat config key（who/why/where_files 等），非經
+    create_ticket_frontmatter 轉換後的巢狀 frontmatter。呼叫端
+    必須在 flat config 階段呼叫，否則 key 不符會全部誤判。
+
+    Args:
+        config: Ticket 配置（flat key 形態）
+        ticket_type: Ticket 類型（IMP, ANA, DOC 等）
+
+    Returns:
+        缺失欄位名稱的清單，空清單表示全部通過
+    """
+    missing: List[str] = []
+
+    # where.files 至少 1 個
+    if not config.get("where_files"):
+        missing.append("where.files")
+
+    # acceptance 至少 1 項
+    if not config.get("acceptance"):
+        missing.append("acceptance")
+
+    # decision_tree_path 三個子欄位都非空（DOC 類型和子任務豁免）
+    is_exempt_from_decision_tree = (
+        ticket_type == "DOC" or config.get("parent_id")
+    )
+    if not is_exempt_from_decision_tree:
+        dt = config.get("decision_tree_path") or {}
+        has_complete_path = (
+            dt.get("entry_point")
+            and dt.get("final_decision")
+            and dt.get("rationale")
+        )
+        if not has_complete_path:
+            missing.append("decision_tree_path")
+
+    # when 非「待定義」
+    if config.get("when") == DEFAULT_UNDEFINED_VALUE:
+        missing.append("when")
+
+    # W11-003.5: 5W1H 全欄位必填擴充
+    # who 不可為空、"pending" 或「待定義」
+    who_value = config.get("who")
+    if not who_value or who_value in ("pending", DEFAULT_UNDEFINED_VALUE):
+        missing.append("who")
+
+    # what 不可為空（CLI argparse 已強制 --action/--target，此處為防禦性檢查）
+    if not config.get("what"):
+        missing.append("what")
+
+    # why 非「待定義」（DOC 類型豁免）
+    if ticket_type != "DOC" and config.get("why") == DEFAULT_UNDEFINED_VALUE:
+        missing.append("why")
+
+    # how_strategy 非「待定義」
+    if config.get("how_strategy") == DEFAULT_UNDEFINED_VALUE:
+        missing.append("how_strategy")
+
+    return missing
 
 
 def format_ticket_id(version: str, wave: int, seq: int) -> str:
