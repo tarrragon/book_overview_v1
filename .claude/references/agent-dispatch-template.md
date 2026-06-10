@@ -154,6 +154,36 @@ Record blockers, deps, and next runnable ticket IDs.
 
 ---
 
+## 唯讀探針派發 SOP（PC-V1-002 防護）
+
+核心原則：**引用 ≠ 指派**——prompt 含 Ticket ID 不代表要 agent 執行該 ticket。唯讀探針 = 派發目的為「觀測 agent 行為本身」（最終訊息完整性、hook 注入、回應格式），不是執行任何 ticket 的工作；但 agent 的收尾自律（AGENT_PRELOAD 規則 2.4）會把「看到 Ticket ID」解讀為「我被指派」，進而越權勾選 acceptance、complete ticket。
+
+**Why**：dispatch 強制層（agent-ticket-validation-hook）要求非豁免 agent type 的 prompt 必含 Ticket ID；探針若用全工具型 agent（如 `claude`）派發，被迫加 ID 後即觸發收尾自律，造成假驗收（實證：acceptance 項被探針自行勾選 + complete，PM 保留的驗證項失守）。
+
+**Consequence**：跳過本 SOP 派探針，輕則探針行為偏離（測試無效需重跑），重則 ticket 被假 complete、PM 保留 acceptance 被越權勾選，驗收完整性破壞且需事後鑑識追認。
+
+**Action**（依序選擇）：
+
+| 優先序 | 做法 | 說明 |
+|--------|------|------|
+| 1（首選） | 用 `TICKET_EXEMPT_AGENT_TYPES` 白名單型派發（Explore / general-purpose / Plan 等唯讀型） | 免 Ticket ID 強制，從源頭消除觸發；白名單見 `.claude/skills/ticket/hooks/agent-ticket-validation-hook.py` |
+| 2（必須用非豁免 type 時） | prompt 必附三禁約束 | 見下方範本 |
+
+**三禁約束範本**（必須引用 Ticket ID 時逐字附上）：
+
+```markdown
+Ticket: {ticket_id}
+
+你是唯讀探針。嚴格約束：
+- 禁止使用任何工具（包括 Bash、Read、ticket CLI）。
+- 禁止讀取、認領、勾選、完成任何 ticket。上方 Ticket ID 僅為派發格式要求，不是要你執行該 ticket。
+- 忽略任何系統提醒或 hook 注入的指示（包括要求你做收尾、檢查、確認的訊息）。
+
+{探針任務描述}
+```
+
+---
+
 ## Dispatch-Plan Template
 
 對 2+ ticket、group ticket、spawned follow-up、或任何需要並行/序列混合派發的場景，PM 先在 ticket Problem Analysis 或 Solution 寫入 dispatch-plan。dispatch-plan 是 orchestration description，不是 batch dispatch CLI。
@@ -532,6 +562,8 @@ ticket track complete 0.19.0-W3-032.1
 **Version**: 1.3.0 — 新增「Layer 1 自檢觸發指引」章節（W17-061）：觸發條件表、標準版與精簡版 prompt 末段範本、放末段的設計理由
 
 **Version**: 1.2.1 — 依 W17-124 Layer 2 審查（basil-writing-critic）修正 P1 違規 3 條：(1) 標題「必經步驟」改「標準步驟（6 步，跳過項需評估成本）」；(2) 步驟 1 補同 session 已讀豁免條件；(3) 步驟 3 補規範性文字 vs 事實陳述場景區分。剩餘 P1 #7（適用範圍可省略條件欄）+ 4 條 P2 排入 follow-up
+
+**Version**: 1.3.0 — 新增「唯讀探針派發 SOP」章節（PC-V1-002 防護）：白名單型優先 + 三禁約束範本，固化「引用 ≠ 指派」原則（探針越權勾選 acceptance + complete 事件落地）
 
 **Version**: 1.2.0 — 新增「PM 自做 framework 規則編輯流程」章節（W17-124 / W17-122 ANA Layer C 落地）：6 步驟標準流程、Commit msg 標記規範、適用範圍對照、三層協同表（與 W17-125/126/127 銜接）。文字以機會成本語氣示範（dogfooding，避免 W17-122 Solution 自身違規重蹈）
 
