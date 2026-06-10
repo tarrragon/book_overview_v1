@@ -337,6 +337,36 @@ def is_handoff_recently_created(record: dict, logger) -> bool:
         return False
 
 
+def is_subagent_context(input_data: Dict[str, Any], logger) -> bool:
+    """判斷 stdin 是否帶 subagent context 標記（W1-044）。
+
+    Why：本 hook 註冊於 Stop event（主線程停止）。CC hook input schema
+    （.claude/references/hook-architect-technical-reference.md）中 SubagentStop
+    才帶 agent_id / agent_type，Stop 不帶。若 stdin 出現 agent_id / agent_type，
+    代表本次觸發實際處於 subagent context（CC 版本路由變更或誤註冊 SubagentStop），
+    此時注入 decision:block + 恢復指令會劫持 agent 最終訊息（W1-024 / W1-030 證實）。
+
+    Consequence：subagent context 下不偵測會把 PM 用的恢復指令注入 agent 回傳值，
+    覆寫 agent 真實最終訊息（W1-024 實證 basil 回傳值遺失）。
+
+    Action：caller 在 generate_hook_output 開頭呼叫；True 時回 {"suppressOutput": True}
+    跳過所有注入。採 documented schema 欄位（agent_id/agent_type）判別，
+    不用 transcript 長度等不可靠 heuristic（ticket W1-044 防護要求）。
+
+    與 subagent-stop-dispatch-cleanup-hook.py 的 agent_id 依賴形成一致慣例。
+    """
+    if not isinstance(input_data, dict):
+        return False
+    has_marker = bool(input_data.get("agent_id")) or bool(input_data.get("agent_type"))
+    if has_marker:
+        logger.info(
+            "偵測到 subagent context（agent_id=%s, agent_type=%s），跳過 handoff 注入",
+            input_data.get("agent_id"),
+            input_data.get("agent_type"),
+        )
+    return has_marker
+
+
 def has_background_agents(input_data: Dict[str, Any], logger) -> bool:
     """
     判斷 input_data 是否有背景代理人正在執行。
@@ -602,6 +632,11 @@ def generate_hook_output(
         dict - Hook 輸出 JSON
     """
     try:
+        # Step 0: subagent context 偵測（W1-044）。subagent stop 時跳過所有注入，
+        # 避免恢復指令劫持 agent 最終訊息（W1-024 / W1-030）。
+        if is_subagent_context(input_data or {}, logger):
+            return {"suppressOutput": True}
+
         # Step 1: 防重複觸發
         if has_been_triggered_this_session(logger):
             logger.info("此 session 已觸發過 Stop hook，跳過")
