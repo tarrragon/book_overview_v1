@@ -397,18 +397,55 @@ def get_next_seq(version: str, wave: int) -> int:
         if seq is not None:
             max_seq = max(max_seq, seq)
 
-    # 降級可觀測（W1-042 / quality-baseline 規則 4 雙通道）：
+    candidate = max_seq + 1
+
+    # 降級可觀測 + 內聚 collision guard（W1-042 / W1-051 / quality-baseline 規則 4）：
     # 本地 glob 為空且 main ref 掃描降級（回 None，非有效空清單）時，
-    # 兩來源同時掃空會回傳 seq=1，可能誤配已存在 ID（W1-039 撞號事件）。
-    # 此處輸出 stderr warning 使降級對用戶可見；collision guard 在 create 層兜底。
+    # 兩來源同時掃空會回傳 candidate=1，可能誤配已存在 ID（W1-039 撞號事件）。
+    #
+    # linux caveat（W1-051）：正常路徑（任一來源有效）的 candidate = max+1 對
+    # 已掃描集合天然不撞，故不在正常路徑做逐一 .exists() 探測；guard 緊貼降級
+    # 分支——僅當降級偵測成立時，才以檔案系統探測推進至真正可用 seq，使
+    # get_next_seq 回傳值內部保證可用（消除 create.py caller 層 while-loop 外洩）。
     if not local_stems and main_files is None:
+        resolved = resolve_available_seq(version, wave, candidate)
         sys.stderr.write(
             f"[WARNING] get_next_seq: 本地工作樹與 main ref 同時掃描不到 "
-            f"{version} W{wave} 的 ticket（main ref 降級），配號回退為 1。"
-            f"若該 wave 實際已有 ticket，create 層 collision guard 將自動遞增至可用序號\n"
+            f"{version} W{wave} 的 ticket（main ref 降級），初始配號回退為 "
+            f"{candidate}；降級分支內 collision guard 已推進至可用序號 {resolved}\n"
         )
+        return resolved
 
-    return max_seq + 1
+    return candidate
+
+
+def resolve_available_seq(version: str, wave: int, start_seq: int) -> int:
+    """從 start_seq 起遞增，回傳第一個檔案系統上不存在的根任務序號。
+
+    W1-051 內聚 collision guard 的共用 helper：把「可用性保證」收斂到單一
+    權威點，供 get_next_seq 降級分支與 bulk_create 批次配號共享，消除 caller
+    層各自實作 while-loop 的特例外洩（L1）與 bulk 無 guard 的連鎖覆寫風險（R1）。
+
+    可用性判定用 get_ticket_path(...).exists()——該函式對 .md 與 .yaml 皆探測
+    （優先回存在者），故同時覆蓋 .md / .yaml 兩種落盤格式的撞號（W1-051 .yaml 缺口）。
+
+    Args:
+        version: 版本號（如 "1.0.0"）。
+        wave: Wave 編號。
+        start_seq: 起始候選序號（呼叫端通常傳 max_seq + 1 或批次當前 seq）。
+
+    Returns:
+        第一個 get_ticket_path 探測不存在的序號（>= start_seq）。
+
+    Examples:
+        若 1.0.0-W1-001.md 存在、W1-002 不存在：
+        >>> resolve_available_seq("1.0.0", 1, 1)
+        2
+    """
+    seq = start_seq
+    while get_ticket_path(version, format_ticket_id(version, wave, seq)).exists():
+        seq += 1
+    return seq
 
 
 def _parse_root_seq(stem: str, wave: int) -> Optional[int]:

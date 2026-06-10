@@ -742,14 +742,13 @@ def _resolve_ticket_id_and_wave(args: argparse.Namespace, version: str) -> Optio
             return None
 
         if args.seq is None:
-            # auto-seq 模式：算出 seq 後加 collision guard，遞增至可用值。
-            # 防護 W1-042：兩來源（本地 glob + main ref）同時掃空時 get_next_seq
-            # 降級回傳 1，可能誤配已存在 ID（靜默覆寫風險，PC-152 collision 家族）。
+            # auto-seq 模式：get_next_seq 回傳值已內部保證可用（W1-051 內聚
+            # collision guard 至 get_next_seq 降級分支），caller 不再兜底。
+            # 防護 W1-042：兩來源（本地 glob + main ref）同時掃空降級時，
+            # get_next_seq 內的 resolve_available_seq 已推進至可用序號
+            # （PC-152 collision 家族；消除 caller while-loop 特例外洩）。
             seq = get_next_seq(version, wave)
             ticket_id = format_ticket_id(version, wave, seq)
-            while get_ticket_path(version, ticket_id).exists():
-                seq += 1
-                ticket_id = format_ticket_id(version, wave, seq)
         else:
             # 顯式 --seq 模式：尊重用戶意圖，撞號報錯退出（不覆寫、不自動跳號）。
             seq = args.seq

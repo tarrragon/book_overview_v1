@@ -20,6 +20,7 @@ from ticket_system.lib.ticket_builder import (
     TicketConfig,
     format_ticket_id,
     get_next_seq,
+    resolve_available_seq,
     create_ticket_frontmatter,
     create_ticket_body,
     validate_create_checklist,
@@ -220,13 +221,16 @@ def _create_batch_tickets(
     # 迴圈建立各 Ticket
     for i, target in enumerate(targets, 1):
         try:
-            # 分配序號（使用 wave_seq_map 避免競態）
+            # 分配序號（使用 wave_seq_map 維持批次內遞增起點，避免競態）。
+            # W1-051：每個配號都經 resolve_available_seq 保證可用，消除稀疏佔用
+            # 撞號（例：起始 051 可用但 052 已被既有票佔用，批次 += 1 會撞）與
+            # 降級連鎖覆寫（R1）。dry_run 不寫檔，仍走 guard 使預演號與正式一致。
             if wave not in wave_seq_map:
-                wave_seq_map[wave] = get_next_seq(version, wave)
+                start = get_next_seq(version, wave)
             else:
-                wave_seq_map[wave] += 1
-
-            seq = wave_seq_map[wave]
+                start = wave_seq_map[wave] + 1
+            seq = resolve_available_seq(version, wave, start)
+            wave_seq_map[wave] = seq
             ticket_id = format_ticket_id(version, wave, seq)
 
             # 建立 TicketConfig
