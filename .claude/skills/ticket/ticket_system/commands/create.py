@@ -11,6 +11,7 @@ if __name__ == "__main__":
 
 
 import argparse
+import os
 import re
 import sys
 import traceback
@@ -54,6 +55,8 @@ from ticket_system.lib.constants import (
     STATUS_COMPLETED,
     DUPLICATE_DETECTION_THRESHOLD,
     DUPLICATE_DETECTION_COMPLETED_WINDOW_DAYS,
+    DUPLICATE_BLOCK_THRESHOLD,
+    DUPLICATE_BLOCK_WINDOW_MINUTES,
     DEFAULT_PRIORITY,
     DEFAULT_HOW_TASK_TYPE,
     DEFAULT_UNDEFINED_VALUE,
@@ -498,6 +501,148 @@ def _detect_duplicate_tickets(
         sys.stderr.write(f"[DEBUG] 重複偵測異常 ({type(e).__name__}): {e}\n")
 
 
+def _get_ticket_creation_time(version: str, ticket_id: str) -> Optional[datetime]:
+    """取得候選 Ticket 的建立時間（用於 Tier 2 短窗口判定）。
+
+    frontmatter 的 `created` 僅日期粒度，無法支撐 60 分鐘級窗口判定，
+    故改用 ticket md 檔案的 birth time（無則 fallback mtime）作為實際
+    建立時間估計——ghost 雙執行流同 turn 數分鐘內 spawn 的場景下，
+    檔案時間戳是最貼近真實建立時刻的可得訊號（Phase 1 決策，見 ticket）。
+
+    Args:
+        version: 版本號
+        ticket_id: 候選 Ticket ID
+
+    Returns:
+        建立時間 datetime；無法取得時返回 None（視為不在窗口內）
+    """
+    try:
+        path = get_ticket_path(version, ticket_id)
+        stat = os.stat(path)
+        # macOS 提供 st_birthtime；其他平台 fallback st_mtime
+        ts = getattr(stat, "st_birthtime", None) or stat.st_mtime
+        return datetime.fromtimestamp(ts)
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def _find_blocking_duplicate(
+    version: str,
+    new_title: str,
+    new_what: str,
+    new_ticket_id: str,
+) -> Optional[tuple]:
+    """Tier 2 阻擋層偵測：尋找同窗口高相似度的 pending/in_progress 候選票。
+
+    阻擋條件（三者交集）：
+    1. 候選為同版本 pending 或 in_progress（不含 completed——重建已完成票
+       屬合法重做，交 Tier 1 警告即可）
+    2. 相似度 >= DUPLICATE_BLOCK_THRESHOLD（高相似）
+    3. 候選建立時間在 DUPLICATE_BLOCK_WINDOW_MINUTES 內（短窗口）
+
+    Args:
+        version: 目標版本號
+        new_title: 即將建立的標題
+        new_what: 即將建立的目標描述
+        new_ticket_id: 即將建立的 Ticket ID（用於排除自身與 parent）
+
+    Returns:
+        命中時返回 (ticket_id, title, status, similarity)；無命中返回 None。
+        內部異常一律返回 None（不阻斷建立，與 Tier 1 容錯設計一致）。
+    """
+    try:
+        if not new_title and not new_what:
+            return None
+
+        all_tickets = list_tickets(version)
+
+        exclude_ids = {new_ticket_id}
+        seq_part = new_ticket_id.rsplit("-", 1)[-1]
+        if "." in seq_part:
+            parent_id = new_ticket_id.rsplit(".", 1)[0]
+            exclude_ids.add(parent_id)
+
+        window_start = datetime.now() - timedelta(
+            minutes=DUPLICATE_BLOCK_WINDOW_MINUTES
+        )
+        new_combined = f"{new_title} {new_what}"
+
+        for ticket in all_tickets:
+            ticket_id = ticket.get("id", "")
+            if ticket_id in exclude_ids:
+                continue
+            # 條件 1：僅 pending / in_progress
+            if ticket.get("status") not in (STATUS_PENDING, STATUS_IN_PROGRESS):
+                continue
+            # 條件 2：高相似度
+            candidate_combined = (
+                f"{ticket.get('title', '')} {ticket.get('what', '')}"
+            )
+            try:
+                similarity = _calculate_jaccard_similarity(
+                    new_combined, candidate_combined
+                )
+            except Exception:
+                continue
+            if similarity < DUPLICATE_BLOCK_THRESHOLD:
+                continue
+            # 條件 3：短窗口內建立
+            created_time = _get_ticket_creation_time(version, ticket_id)
+            if created_time is None or created_time < window_start:
+                continue
+            return (ticket_id, ticket.get("title", ""), ticket.get("status", ""), similarity)
+
+        return None
+
+    except Exception as e:
+        sys.stderr.write(f"[DEBUG] 阻擋層偵測異常 ({type(e).__name__}): {e}\n")
+        return None
+
+
+def _enforce_blocking_duplicate(
+    version: str,
+    new_title: str,
+    new_what: str,
+    new_ticket_id: str,
+    allow_duplicate: bool,
+) -> bool:
+    """Tier 2 阻擋層強制：命中時輸出阻擋訊息，回傳是否放行。
+
+    Args:
+        version: 版本號
+        new_title: 即將建立的標題
+        new_what: 即將建立的目標描述
+        new_ticket_id: 即將建立的 Ticket ID
+        allow_duplicate: 是否啟用 --allow-duplicate 旁路
+
+    Returns:
+        True 表示放行（無命中或已旁路）；False 表示阻擋（呼叫端應 exit 1）
+    """
+    hit = _find_blocking_duplicate(version, new_title, new_what, new_ticket_id)
+    if hit is None:
+        return True
+
+    ticket_id, title, status, similarity = hit
+
+    if allow_duplicate:
+        print(format_msg(CreateMessages.DUPLICATE_BLOCK_BYPASSED))
+        return True
+
+    lines = [
+        format_msg(CreateMessages.DUPLICATE_BLOCK_HEADER),
+        format_msg(
+            CreateMessages.DUPLICATE_BLOCK_ITEM,
+            ticket_id=ticket_id,
+            title=title,
+            status_label=_get_status_label(status) or status,
+            similarity=similarity,
+        ),
+        format_msg(CreateMessages.DUPLICATE_BLOCK_SUGGESTION),
+    ]
+    print("\n".join(lines))
+    return False
+
+
 def _detect_in_progress_groups(
     version: str, wave: Optional[int]
 ) -> List[Dict[str, Any]]:
@@ -825,17 +970,20 @@ def _validate_before_persist(
     version: str,
     ticket_id: str,
     config: TicketConfig,
+    allow_duplicate: bool = False,
 ) -> bool:
     """驗證層：執行持久化前的所有驗證。
 
     負責：
     1. 驗證 blockedBy 存在性和循環依賴
-    2. 重複偵測
+    2. Tier 2 阻擋層：同窗口高相似度冪等防護（命中且未旁路時阻擋）
+    3. Tier 1 警告層：重複偵測（僅警告不阻擋）
 
     Args:
         version: 版本號
         ticket_id: Ticket ID
         config: Ticket 配置
+        allow_duplicate: --allow-duplicate 旁路 Tier 2 阻擋層
 
     Returns:
         True 表示驗證通過，False 表示驗證失敗
@@ -846,7 +994,17 @@ def _validate_before_persist(
     if not _validate_blocked_by_references(version, ticket_id, blocked_by):
         return False
 
-    # 重複偵測
+    # Tier 2 阻擋層（W1-040.1 冪等防護）：命中且未旁路 → 阻擋
+    if not _enforce_blocking_duplicate(
+        version=version,
+        new_title=config["title"],
+        new_what=config["what"],
+        new_ticket_id=ticket_id,
+        allow_duplicate=allow_duplicate,
+    ):
+        return False
+
+    # Tier 1 警告層：重複偵測（僅警告不阻擋）
     _detect_duplicate_tickets(
         version=version,
         new_title=config["title"],
@@ -1047,7 +1205,8 @@ def _persist_and_report(
         0（成功）或 1（失敗）
     """
     # 步驟 1：驗證
-    if not _validate_before_persist(version, ticket_id, config):
+    allow_duplicate = bool(getattr(args, "allow_duplicate", False))
+    if not _validate_before_persist(version, ticket_id, config, allow_duplicate):
         return 1
 
     # 步驟 1.5：PROP-009 清單式欄位驗證（W11-003.5 升級為阻擋；--force 可豁免）
@@ -1616,6 +1775,16 @@ def register(subparsers: argparse._SubParsersAction) -> None:
         help=(
             "跳過 PROP-009 清單式欄位驗證（5W1H/acceptance/decision_tree_path）"
             "的阻擋（W11-003.5 逃生閥；不建議用於正式 Ticket）"
+        ),
+    )
+
+    parser.add_argument(
+        "--allow-duplicate",
+        dest="allow_duplicate",
+        action="store_true",
+        help=(
+            "旁路 Tier 2 同窗口高相似度阻擋層（W1-040.1 冪等防護逃生閥）；"
+            "用於失誤後刻意重建近似 Ticket 的合法情境"
         ),
     )
 

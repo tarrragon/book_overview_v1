@@ -41,6 +41,7 @@ from ticket_system.lib.command_tracking_messages import (
     BulkCreateMessages,
 )
 from ticket_system.lib.ui_constants import SEPARATOR_PRIMARY
+from ticket_system.commands.create import _detect_duplicate_tickets
 
 
 @dataclass
@@ -236,6 +237,17 @@ def _create_batch_tickets(
                 version,
                 wave,
                 parent_id=parent_id,
+            )
+
+            # Tier 1 警告層（1.0.0-W1-040.1：補齊 bulk_create 偵測缺口）
+            # 與 create 警告層共用 _detect_duplicate_tickets（僅警告不阻擋）。
+            # bulk_create 不套用 Tier 2 阻擋層——批次內部同質性高，
+            # 阻擋誤報風險大（parent W1-040 Solution 誤報率考量）。
+            _detect_duplicate_tickets(
+                version=version,
+                new_title=config.get("title", ""),
+                new_what=config.get("what", ""),
+                new_ticket_id=ticket_id,
             )
 
             # checklist 驗證（1.0.0-W1-027：warning 級，不阻擋）
