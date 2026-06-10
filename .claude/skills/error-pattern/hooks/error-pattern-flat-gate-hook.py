@@ -68,8 +68,23 @@ def is_flat_id(pattern_id) -> bool:
     """flat 號 = <CAT>-NNN（2 段）；前綴號 = <CAT>-<PROJ>-NNN（3+ 段）。
 
     例：PC-099 -> 2 段 flat；PC-V1-001 / PC-C2C-001 -> 3 段前綴。
+
+    W1-036：extract_pattern_id 的 SSOT regex 允許前綴段含數字（V1/C2C 等專案碼
+    本身含數字），故 `PC-099-3-layer-defense.md` 會被過度匹配為 `PC-099-3`（3 段），
+    若僅以段數判定會誤判為前綴號而繞過凍結 gate。但 _project-registry.yaml 規定
+    專案碼為「短大寫英數，語意可辨識」，實務上所有已註冊碼（V1/APP/SCLK/CCS/C2C）
+    皆含字母——純數字中段不可能是合法專案碼，只可能是 flat 號被吸入的描述段數字。
+    故 3 段且中段純數字者，仍判為 flat（真實 ID 為 <CAT>-<中段前的數字>）。
     """
-    return pattern_id is not None and len(pattern_id.split("-")) == 2
+    if pattern_id is None:
+        return False
+    parts = pattern_id.split("-")
+    if len(parts) == 2:
+        return True
+    # 中段純數字 = flat 號描述段數字被 SSOT regex 過度吸入（PC-099-3-...）。
+    if len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit():
+        return True
+    return False
 
 
 def extract_file_path(tool_input: dict) -> str:
