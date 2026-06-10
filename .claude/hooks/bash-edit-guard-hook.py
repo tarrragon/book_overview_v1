@@ -7,17 +7,25 @@
 """
 Bash Edit Guard Hook - PreToolUse Hook
 
-功能: 偵測 Bash 中的檔案編輯操作，建議使用 Edit 工具替代
+功能: 偵測 Bash 中的高風險操作，提示改用更安全替代方案
 
 觸發時機: 執行 Bash 工具時
-檢測模式:
-  - sed -i 或 sed --in-place (原地編輯)
-  - sed 配合管道輸出到檔案
-  - awk 輸出到檔案（>）
-  - perl -pi (原地編輯)
-  - 輸出重定向到程式碼檔案 (>.dart, >.arb, >.json)
 
-行為: 輸出警告訊息到 stderr，允許命令繼續執行 (exit code 0)
+檢測模式 A（原地編輯，建議改用 Edit 工具）:
+  - sed -i 或 sed --in-place (原地編輯，不可逆)
+  - perl -pi 或 perl -i.bak (原地編輯，不可逆)
+
+檢測模式 B（裸 cd / pushd，建議改用 git -C 或子 shell）:
+  - 行首裸 cd / pushd（含多行命令第二行行首，connector 集涵蓋 \\n）
+  - 串接後裸 cd / pushd（&& cd、; cd、|| cd）
+  - pushd 與 cd 同樣改變持久 cwd 並觸發 chpwd（IMP-056），一併偵測
+  - 排除子 shell 形式：以括號深度追蹤，未閉合子 shell 內的所有 cd/pushd
+    （不論 connector 為 (、&& 或 ;）皆不改變持久 cwd，一致排除
+  - 排除 git -C / uv -d（不含 cd 指令，天然不命中）
+  - 排除還原至專案根 cd /<repo-root>（污染後補救的合法用途）
+
+行為: 輸出警告訊息（permission_decision=allow），允許命令繼續執行 (exit code 0)
+      warn 不 deny，誤判成本低（裸 cd 本就該避免）。
 """
 
 import json
@@ -70,29 +78,37 @@ def _detect_bash_edit_patterns(command: str) -> bool:
     return False
 
 
-def _detect_bare_cd(command: str) -> bool:
-    """
-    偵測裸 cd（改變持久工作目錄的反模式）。
+# 裸 cd / pushd 出現點掃描樣式
+# connector 涵蓋：行首(^)、換行(\n)、&&、;、||、左括號(()
+# \bcd\b / \bpushd\b 後須接空白 + 引數，避免命中 cdrom / pushder 等字面
+_BARE_CD_PATTERN = re.compile(
+    r'(^|\n|&&|;|\|\||\()\s*\b(cd|pushd)\s+(\S+)'
+)
 
-    本環境 zsh 有 chpwd hook，裸 cd 會觸發 ls 淹沒工具結果（IMP-056），
+
+def _find_bare_cd_target(command: str) -> str | None:
+    """
+    掃描命令，回傳第一個構成「裸 cd / pushd」的命中 target，無命中回傳 None。
+
+    本環境 zsh 有 chpwd hook，裸 cd / pushd 會觸發 ls 淹沒工具結果（IMP-056），
     是 confabulation 觸發鏈第 1 環。規則建議改用 git -C 或子 shell。
 
     命中模式:
-    - 行首 cd（^cd）
-    - 串接後 cd（&& cd、; cd）
+    - 行首 cd / pushd（含換行後的行首，connector 集涵蓋 \\n —— 修復多行漏報）
+    - 串接後 cd / pushd（&& cd、; cd、|| cd）
+    - pushd 與 cd 同樣改變持久 cwd 並觸發 chpwd，一併偵測
 
     排除（不視為裸 cd）:
-    - 子 shell 形式 (cd ...)：cd 緊接於未閉合的左括號後
-    - git -C <path>：git 操作不換 cwd
-    - uv -d <path>：uv 指定目錄
-    - 還原至專案根 cd /<repo-root>：污染後補救的合法用途
+    - 子 shell 內的 cd / pushd：以括號深度追蹤命中位置，凡命中點落在未閉合
+      子 shell 內（depth > 0）一律排除，不論該命中 connector 為 (、&& 或 ;。
+      修復前 (cd a && cd b) 第二個 cd 因 connector 為 && 誤報，現一致排除。
+    - git -C <path> / uv -d <path>：不含 cd 指令，天然不命中
+    - 還原至專案根 cd /<repo-root>：污染後補救的合法用途（CLAUDE_PROJECT_DIR）
 
     收窄修正（W1-026）:
-    舊版排除所有絕對路徑 cd（target.startswith('/')），導致最常見違規
-    cd /<repo-root>/subdir（絕對子目錄）被靜默放行，chpwd 淹沒照樣發生。
-    現收窄為「target 正規化後恰等於專案根（CLAUDE_PROJECT_DIR）」才排除，
-    絕對子目錄與其他絕對路徑 cd 恢復 warn。CLAUDE_PROJECT_DIR 未設時保守
-    不排除（絕對子目錄仍 warn；repo-root 還原多一行提示可接受，warn 不 deny）。
+    舊版排除所有絕對路徑 cd，導致 cd /<repo-root>/subdir（絕對子目錄）被靜默放行。
+    現收窄為「target 正規化後恰等於專案根」才排除，絕對子目錄恢復 warn。
+    CLAUDE_PROJECT_DIR 未設時保守不排除（warn 不 deny）。
 
     False-positive 務實邊界（限制）:
     PreToolUse 只見 raw command 字串，無完整 shell parse。
@@ -102,7 +118,7 @@ def _detect_bare_cd(command: str) -> bool:
         command: Bash 命令
 
     Returns:
-        bool - 是否偵測到裸 cd（排除合法形式後）
+        str | None - 命中的 cd/pushd target；無命中回傳 None
     """
     # 專案根（用於排除「污染後還原至專案根」的合法 cd）
     # CLAUDE_PROJECT_DIR 未設時為 None，保守不排除任何絕對路徑
@@ -110,14 +126,16 @@ def _detect_bare_cd(command: str) -> bool:
     if project_root:
         project_root = project_root.rstrip('/')
 
-    # 找出所有 cd 出現點（行首、&& cd、; cd、( cd）
-    # \bcd\b 後須接空白 + 引數，避免命中 cdrom 等字面
-    for match in re.finditer(r'(^|&&|;|\|\||\()\s*\bcd\s+(\S+)', command):
-        connector = match.group(1)
-        target = match.group(2)
+    for match in _BARE_CD_PATTERN.finditer(command):
+        target = match.group(3)
 
-        # 排除 1: 子 shell 形式 (cd ...) — connector 為左括號
-        if connector == '(':
+        # 排除 1: 子 shell 內的 cd / pushd — 關鍵字落在未閉合括號內則排除。
+        # 以「cd/pushd 關鍵字起點」之前的括號淨深度判定（含 connector 的左括號）：
+        # 對 (cd a && cd b)，兩個關鍵字起點前的 depth 皆為 1 → 一致排除。
+        # 對 cd outer && (cd inner)，外層前 depth=0（命中），內層前 depth=1（排除）。
+        prefix = command[: match.start(2)]
+        depth = prefix.count('(') - prefix.count(')')
+        if depth > 0:
             continue
 
         # 排除 2: 還原至專案根 cd /<repo-root> — 污染後補救的合法用途
@@ -125,12 +143,16 @@ def _detect_bare_cd(command: str) -> bool:
         if project_root and target.rstrip('/') == project_root:
             continue
 
-        # 命中：裸 cd（行首或串接後，且非專案根還原、非子 shell）
-        return True
+        # 命中：裸 cd / pushd（行首或串接後，且非專案根還原、非子 shell）
+        return target
 
-    # 排除 3 & 4: git -C / uv -d 不含 cd 指令，天然不命中上方 finditer
-    # （此處不需特別處理，因 git -C/uv -d 的 -C/-d 不是 cd 指令）
-    return False
+    # 排除 3 & 4: git -C / uv -d 不含 cd 指令，天然不命中上方掃描
+    return None
+
+
+def _detect_bare_cd(command: str) -> bool:
+    """偵測裸 cd / pushd，回傳是否命中（細節見 _find_bare_cd_target）。"""
+    return _find_bare_cd_target(command) is not None
 
 
 def _print_warning_message(command: str) -> None:
@@ -192,11 +214,18 @@ def main() -> int:
         warnings = []
 
         if _detect_bash_edit_patterns(command):
-            logger.info("警告: 偵測到編輯操作 - %s", command[:100])
+            # 診斷日誌記錄完整命令（不截斷）以利 FP 診斷；UI 訊息仍截短顯示
+            logger.info("警告: 偵測到編輯操作 - %s", command)
             warnings.append(_print_warning_message(command))
 
-        if _detect_bare_cd(command):
-            logger.info("提示: 偵測到裸 cd - %s", command[:100])
+        bare_cd_target = _find_bare_cd_target(command)
+        if bare_cd_target is not None:
+            # 診斷日誌記錄完整命令 + 命中 target（不截斷）以利 FP 診斷
+            logger.info(
+                "提示: 偵測到裸 cd/pushd（target=%s）- %s",
+                bare_cd_target,
+                command,
+            )
             warnings.append(_bare_cd_warning_message(command))
 
         if not warnings:

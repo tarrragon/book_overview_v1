@@ -153,6 +153,89 @@ class TestBareCdAbsolutePathNarrowing:
 
 
 # ============================================================================
+# 裸 cd 偵測：newline 多行命令（W1-035 修復）
+# connector 集補 \n，多行命令第二行行首裸 cd 應命中。
+# ============================================================================
+
+
+class TestBareCdNewlineMultiline:
+    """換行分隔多行命令的行首裸 cd 應命中（修復前漏報）。"""
+
+    def test_newline_leading_cd_hits(self):
+        """第二行行首裸 cd 命中。"""
+        assert _detect_bare_cd("echo hi\ncd subdir") is True
+
+    def test_newline_leading_cd_with_chained_hits(self):
+        """第二行行首裸 cd 後串接命令命中。"""
+        assert _detect_bare_cd("npm install\ncd build && make") is True
+
+    def test_newline_first_line_clean_second_line_cd_hits(self):
+        """首行乾淨、第二行裸 cd 命中。"""
+        assert _detect_bare_cd("git status\ncd /tmp/other") is True
+
+    def test_multiline_no_bare_cd_not_hit(self):
+        """多行命令皆無裸 cd 不命中。"""
+        assert _detect_bare_cd("git status\nnpm test\nls") is False
+
+
+# ============================================================================
+# 裸 cd 偵測：pushd 涵蓋（W1-035 修復）
+# pushd 同樣改變持久 cwd 並觸發 chpwd，納入偵測。
+# ============================================================================
+
+
+class TestPushdDetection:
+    """pushd 改變持久 cwd，視同裸 cd 處理。"""
+
+    def test_leading_pushd_hits(self):
+        """行首 pushd 命中。"""
+        assert _detect_bare_cd("pushd subdir") is True
+
+    def test_and_chained_pushd_hits(self):
+        """&& pushd 串接命中。"""
+        assert _detect_bare_cd("git status && pushd subdir") is True
+
+    def test_newline_pushd_hits(self):
+        """換行後行首 pushd 命中。"""
+        assert _detect_bare_cd("echo hi\npushd /tmp") is True
+
+    def test_subshell_pushd_not_hit(self):
+        """子 shell 內 pushd 不命中（不改持久 cwd）。"""
+        assert _detect_bare_cd("(pushd subdir && ls)") is False
+
+    def test_pushd_word_in_path_not_matched(self):
+        """含 pushd 字面但非指令不誤命中。"""
+        assert _detect_bare_cd("ls /mnt/pushder") is False
+
+
+# ============================================================================
+# 裸 cd 偵測：子 shell FP 一致性（W1-035 修復）
+# 子 shell 內所有 cd（無論 connector 為 (、&& 或 ;）皆不改變持久 cwd，
+# 應一致排除。修復前 (cd a && cd b) 第二個 cd 因 connector 為 && 誤報。
+# ============================================================================
+
+
+class TestSubshellConsistency:
+    """子 shell 內串接 cd 不論連接符皆排除。"""
+
+    def test_subshell_nested_and_cd_not_hit(self):
+        """子 shell 內 && cd 不命中（修復前誤報）。"""
+        assert _detect_bare_cd("(cd a && cd b)") is False
+
+    def test_subshell_nested_semicolon_cd_not_hit(self):
+        """子 shell 內 ; cd 不命中（與 && 形式一致）。"""
+        assert _detect_bare_cd("(cd a; cd b)") is False
+
+    def test_subshell_then_outer_cd_hits(self):
+        """子 shell 閉合後外層裸 cd 命中。"""
+        assert _detect_bare_cd("(cd a && ls); cd b") is True
+
+    def test_outer_cd_before_subshell_hits(self):
+        """子 shell 前的外層裸 cd 命中。"""
+        assert _detect_bare_cd("cd outer && (cd inner && ls)") is True
+
+
+# ============================================================================
 # 既有原地編輯偵測 regression
 # ============================================================================
 
@@ -240,6 +323,25 @@ class TestMainBehavior:
         )
         assert exit_code == 0
         assert out.strip() == ""
+
+    def test_long_bare_cd_logged_untruncated(self, monkeypatch, capsys, caplog):
+        """長裸 cd 命令的診斷日誌不截斷（修復前 command[:100] 截斷妨礙 FP 診斷）。"""
+        import logging
+
+        long_target = "cd /tmp/" + "a" * 200 + "/deeply/nested/path && ls"
+        with caplog.at_level(logging.INFO):
+            exit_code, _ = self._run_main(
+                monkeypatch,
+                capsys,
+                {
+                    "tool_name": "Bash",
+                    "tool_input": {"command": long_target},
+                },
+            )
+        assert exit_code == 0
+        # 命中日誌應包含完整命令（含被截斷區段尾端的特徵）
+        joined = "\n".join(rec.getMessage() for rec in caplog.records)
+        assert long_target in joined
 
 
 if __name__ == "__main__":
