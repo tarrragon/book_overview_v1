@@ -59,6 +59,20 @@ def test_pm_identity_exempt(monkeypatch, capsys):
     assert "deny" not in captured.err
 
 
+def test_non_string_as_value_treated_as_unprovided(monkeypatch, capsys):
+    """非 str 值（如 Mock args auto-attr / getattr default）視為未提供 → 放行 + 警告。
+
+    回歸防護：既有 Mock-based 測試傳 args.as_agent 為 Mock 物件（truthy 但非
+    str），不得誤觸發 deny。argparse --as 恆為 str/None，此為防禦性。
+    """
+    from unittest.mock import Mock
+    _patch_who(monkeypatch, "thyme-python-developer")
+    result = check_identity("1.0.0", "1.0.0-W1-048", Mock())
+    assert result is None
+    captured = capsys.readouterr()
+    assert "deny" not in captured.err
+
+
 def test_matching_identity_passes(monkeypatch):
     """情境 3：--as = who.current → 放行。"""
     _patch_who(monkeypatch, "thyme-python-developer")

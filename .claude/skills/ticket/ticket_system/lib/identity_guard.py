@@ -60,7 +60,10 @@ def check_identity(version: str, ticket_id: str, as_value: Optional[str]) -> Opt
         None 表示放行；整數表示 deny 的 exit code（呼叫端應直接 return 此值）。
     """
     # 情境 1：未提供 --as → warn-only（向後相容）
-    if not as_value:
+    # 僅 str 且非空才視為「已提供」；None 或非 str（如 Mock args 的 auto-attr、
+    # getattr default）皆視為未提供，避免守衛誤觸發於既有 Mock-based 測試與
+    # 未升級的呼叫端（argparse --as 恆為 str 或 None，此檢查為防禦性）。
+    if not isinstance(as_value, str) or not as_value.strip():
         sys.stderr.write(
             "[identity-guard] 建議帶 --as <agent-name> 申報執行身份"
             "（過渡期不阻擋，向後相容；PC-V1-002 前提一）\n"
