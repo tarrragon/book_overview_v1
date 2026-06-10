@@ -215,16 +215,12 @@ class TestErrorChannelIntegration:
         assert "component:" in combined
         assert "action:" in combined
         assert "errno:" in combined
-        # 必填欄位錯誤的可能 errno（CHECKLIST_VALIDATION_FAILED 或先觸發的其他必填驗證 errno；
-        # 兩者均屬「missing-required-field」場景的合法分類）
-        valid_errnos = (
-            "CHECKLIST_VALIDATION_FAILED",
-            "WHY_REQUIRED",
-            "WHEN_REQUIRED",
-            "HOW_STRATEGY_REQUIRED",
-        )
-        assert any(e in combined for e in valid_errnos), (
-            f"預期 errno 屬必填欄位錯誤類別之一 {valid_errnos}，實際輸出：\n{combined[:500]}"
+        # 1.0.0-W1-024.1 A2 後：所有必填欄位缺漏統一由 _enforce_create_checklist 走
+        # CHECKLIST_VALIDATION_FAILED；舊的 WHY_REQUIRED / WHEN_REQUIRED /
+        # HOW_STRATEGY_REQUIRED 提前退出已移除（前兩者從未存在，WHY_REQUIRED 已刪）。
+        # 收斂為單一精確斷言，避免寬容析取在提前退出回歸時仍綠燈遮蔽訊號（1.0.0-W1-038）。
+        assert "errno: CHECKLIST_VALIDATION_FAILED" in combined, (
+            f"預期 errno=CHECKLIST_VALIDATION_FAILED，實際輸出：\n{combined[:500]}"
         )
 
     def test_scenario_5_wrong_value_type(self):
