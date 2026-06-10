@@ -71,7 +71,16 @@ ticket track append-log <id> --section "Test Results" "測試結果"
 
 **Why**：歷史設計將 complete 視為 PM 專屬，導致 PM 每次需額外執行 check-acceptance + complete（W17-020、W17-016.3 實證）。**Consequence**：違反代理人自律主責原則，PM 處理 N 個 ticket 即多 N 次 tool call 浪費。**Action**：實作類 agent 在 commit + body 填寫完成後，主動執行：
 
-**前提：引用 ≠ 指派（PC-V1-002 防護）**。收尾自律僅適用於 prompt **明確指示執行**的 ticket（含「claim」「實作」「修復」「依規格執行」「收尾」等動詞指令）。prompt 僅含追溯格式 Ticket ID（`Ticket: {id}`）而**無任何執行指令**時（如唯讀探針、純諮詢、行為觀測），禁止對該 ticket 做任何寫入操作（claim / 勾選 acceptance / complete / append-log）。**Why**：Ticket ID 可能只是 dispatch 強制層的追溯格式要求；把「看到 ID」解讀為「被指派」會越權勾選 PM 保留的 acceptance 並 complete，造成假驗收。**判別**：自問「prompt 是否含要我對此 ticket 做事的動詞指令？」否 → 該 ID 僅為追溯標記，零 ticket 寫入。
+**前提一（主判準）：who.current 機械對照（PC-V1-002 防護）**。對任何 ticket 做寫入操作（claim / 勾選 acceptance / complete / append-log）之前，先執行 `ticket track query <id>` 讀取 `who.current`，與自己的 agent 身份對照：
+
+| 對照結果 | 行動 |
+|---------|------|
+| who.current = 自己的 agent 名稱 | 正常執行寫入與收尾 |
+| who.current = 其他 agent 或空值 | **零寫入**，在最終訊息回報 PM「who.current 不符，未執行 ticket 寫入」 |
+
+**Why**：ticket 的 `who.current` 是世界平面的指派 SSOT（PM 派發前已設定）；兩個事實的相等比較不依賴語意解讀，比判讀 prompt 意圖可靠。**Consequence**：跳過對照會把「看到 Ticket ID」誤解為「被指派」，越權勾選 PM 保留的 acceptance 並 complete，造成假驗收。
+
+**前提二（輔助判準）：引用 ≠ 指派**。prompt 僅含追溯格式 Ticket ID（`Ticket: {id}`）而**無任何執行指令**時（如唯讀探針、純諮詢、行為觀測），即使 who.current 相符也禁止寫入。**判別**：自問「prompt 是否含要我對此 ticket 做事的動詞指令？」否 → 該 ID 僅為追溯標記，零 ticket 寫入。**兩判準為 AND 邏輯**：前提一（who.current 相符）與前提二（prompt 含執行指令）須同時成立才執行 ticket 寫入，任一不成立即零寫入。
 
 ```bash
 # 1. 勾選所有 acceptance（agent 已逐項確認完成）
@@ -88,7 +97,8 @@ ticket track complete <ticket-id>
 | 部分 acceptance 未達成 | 在 NeedsContext 章節記錄缺口，**不 complete**，回報 PM |
 | acceptance-gate-hook 阻擋 | 依 hook 訊息修補後重試（hook 是安全網，非懲罰） |
 | ANA 類 ticket（純分析）由 PM 派發者 | PM 在 prompt 明確指示時才執行 |
-| prompt 僅含追溯格式 Ticket ID、無執行指令（探針/諮詢型派發） | **零 ticket 寫入**（不 claim / 不勾選 / 不 complete / 不 append-log），見上方「引用 ≠ 指派」前提 |
+| who.current 與自身 agent 身份不符或為空值（query 對照後） | **零 ticket 寫入**，最終訊息回報 PM，見上方前提一 |
+| prompt 僅含追溯格式 Ticket ID、無執行指令（探針/諮詢型派發） | **零 ticket 寫入**（不 claim / 不勾選 / 不 complete / 不 append-log），見上方前提二 |
 
 > **安全網**：acceptance-gate-hook 在 complete 觸發前自動驗證，無論由 agent 或 PM 執行，故 agent 自律 complete 無安全風險。
 
@@ -283,7 +293,8 @@ ls <目標目錄>/<預期檔名>
 - [ ] （程式碼類 subagent）讀 >200 行原始碼前優先用 `mcp__serena__get_symbols_overview`（規則 7 程式碼大檔讀取）
 - [ ] （spec/ANA 規劃含既有資源名稱）已 grep/ls 驗證名稱存在性並標註來源（規則 8）
 - [ ] **任務完成後執行 `ticket track check-acceptance --all <id>` + `ticket track complete <id>`（規則 2.4）**
-- [ ] **收尾前已確認 prompt 含執行指令（引用 ≠ 指派）；僅含追溯 Ticket ID 時零 ticket 寫入（規則 2.4 前提，PC-V1-002）**
+- [ ] **ticket 寫入前已 query 對照 who.current 與自身身份（規則 2.4 前提一，主判準）；不符時零寫入並回報 PM（PC-V1-002）**
+- [ ] **收尾前已確認 prompt 含執行指令（引用 ≠ 指派，規則 2.4 前提二，輔助判準）；僅含追溯 Ticket ID 時零 ticket 寫入**
 
 ---
 
@@ -305,6 +316,7 @@ ls <目標目錄>/<預期檔名>
 ---
 
 **Last Updated**: 2026-06-10
+**Version**: 1.10.0 - 規則 2.4 前提升級為雙判準：前提一 who.current 機械對照（主判準，世界平面 SSOT 兩事實相等比較）+ 前提二引用 ≠ 指派（輔助判準，原 1.9.0 條款降級）；例外表與檢查清單同步（WRAP 二輪裁決方案 E，PC-V1-002）
 **Version**: 1.9.0 - 規則 2.4 新增「引用 ≠ 指派」前提（PC-V1-002 防護）：收尾自律僅適用 prompt 明確指示執行的 ticket；僅含追溯格式 Ticket ID 時零 ticket 寫入；例外情境表與檢查清單同步補項（探針越權勾選 acceptance + complete 事件落地）
 **Version**: 1.8.0 - 規則 7 新增「程式碼大檔讀取」子節：程式碼類 subagent (parsley/fennel/thyme/cinnamon/clove) 讀 >200 行原始碼前優先用 `mcp__serena__get_symbols_overview` + `find_symbol`，Read 為 fallback；檢查清單同步補項（W17-136 / 源 W17-093 ANA 方案 2 限縮）
 **Version**: 1.7.0 - 新增規則 2.4「收尾責任：自律 complete」+ 2.3 表格「任務完成」列 + 檢查清單 complete 項：實作類 agent commit/body 填寫完成後主動執行 check-acceptance --all + complete，acceptance-gate-hook 為安全網（W17-033 / 源 W17-022）
