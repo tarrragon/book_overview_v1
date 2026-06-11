@@ -12,7 +12,11 @@ ticket 狀態（純前置檢查）。
 轉強制（無 --as 即阻擋）的 trigger 由獨立監測 ticket 評估，不在本模組範圍。
 """
 
+import json
+import os
 import sys
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 from ticket_system.lib.parser import load_ticket
@@ -22,6 +26,63 @@ PM_AGENT_NAME = "rosemary-project-manager"
 
 # Deny 結果（exit 1）— 為業務拒絕（identity mismatch），非執行錯誤。
 IDENTITY_DENY_EXIT = 1
+
+# --- Telemetry（W1-057：warn/deny 落盤觀測管線）---------------------------------
+#
+# 過渡期（warn-only）需稽核 --as 使用率與 deny/warn 分佈，作為 W1-049 轉強制裁決
+# 的資料依據；僅寫 stderr 無法事後統計，故 warn 與 deny 兩路徑各 append 一行
+# 結構化記錄。基底目錄沿用 force-usage 的 HOOK_LOGS_DIR env 慣例（測試隔離），
+# 子目錄 identity-guard 區隔此管線。
+_HOOK_LOGS_DIR_ENV = "HOOK_LOGS_DIR"
+_DEFAULT_HOOK_LOGS_DIR = ".claude/hook-logs"
+_IDENTITY_LOG_SUBDIR = "identity-guard"
+_IDENTITY_LOG_FILENAME = "usage.log"
+
+# 結果列舉：warn = 未提供 --as 放行；deny = 身份不符攔截。
+RESULT_WARN = "warn"
+RESULT_DENY = "deny"
+
+
+def _resolve_identity_log_path() -> Path:
+    """解析 identity-guard usage.log 路徑；HOOK_LOGS_DIR 優先（測試隔離用）。"""
+    base = Path(os.environ.get(_HOOK_LOGS_DIR_ENV, _DEFAULT_HOOK_LOGS_DIR))
+    return base / _IDENTITY_LOG_SUBDIR / _IDENTITY_LOG_FILENAME
+
+
+def _write_telemetry(
+    *,
+    command: str,
+    ticket_id: str,
+    as_value: Optional[str],
+    result: str,
+) -> None:
+    """Append 一行結構化記錄；失敗不阻斷主流程，但寫 stderr（observability 規則 4）。
+
+    欄位：timestamp / command / ticket_id / has_as（--as 有無）/ result。
+    不記錄 as_value 原文，僅記其有無，避免將 agent 名稱寫入長期觀測檔。
+    """
+    record = {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "command": command,
+        "ticket_id": ticket_id,
+        "has_as": bool(isinstance(as_value, str) and as_value.strip()),
+        "result": result,
+    }
+    line = json.dumps(record, ensure_ascii=False) + "\n"
+
+    try:
+        log_path = _resolve_identity_log_path()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        # POSIX O_APPEND 對 ≤ PIPE_BUF (4096 bytes) 為原子，單行 JSON 遠低於此閾值
+        with open(log_path, mode="a", encoding="utf-8") as f:
+            f.write(line)
+            f.flush()
+    except OSError as exc:
+        # 落盤失敗不阻斷 CLI 主流程（telemetry 為旁路觀測），但雙通道可見：
+        # 此處寫 stderr，確保用戶端不靜默吞掉（quality-baseline 規則 4 擴充）。
+        sys.stderr.write(
+            f"[identity-guard] telemetry 落盤失敗（不影響本次操作）：{exc}\n"
+        )
 
 
 def _resolve_who_current(version: str, ticket_id: str) -> Optional[str]:
@@ -38,7 +99,12 @@ def _resolve_who_current(version: str, ticket_id: str) -> Optional[str]:
     return current.strip()
 
 
-def check_identity(version: str, ticket_id: str, as_value: Optional[str]) -> Optional[int]:
+def check_identity(
+    version: str,
+    ticket_id: str,
+    as_value: Optional[str],
+    command: str = "(unknown)",
+) -> Optional[int]:
     """
     對照申報身份與 ticket who.current，回傳 deny exit code 或 None（放行）。
 
@@ -55,6 +121,7 @@ def check_identity(version: str, ticket_id: str, as_value: Optional[str]) -> Opt
         version: 版本號
         ticket_id: Ticket ID
         as_value: --as 旗標值（未提供時為 None）
+        command: 觸發守衛的 CLI 命令名稱（telemetry 用；呼叫端未傳時為 "(unknown)"）
 
     Returns:
         None 表示放行；整數表示 deny 的 exit code（呼叫端應直接 return 此值）。
@@ -67,6 +134,12 @@ def check_identity(version: str, ticket_id: str, as_value: Optional[str]) -> Opt
         sys.stderr.write(
             "[identity-guard] 建議帶 --as <agent-name> 申報執行身份"
             "（過渡期不阻擋，向後相容；PC-V1-002 前提一）\n"
+        )
+        _write_telemetry(
+            command=command,
+            ticket_id=ticket_id,
+            as_value=as_value,
+            result=RESULT_WARN,
         )
         return None
 
@@ -85,5 +158,11 @@ def check_identity(version: str, ticket_id: str, as_value: Optional[str]) -> Opt
     sys.stderr.write(
         f"[identity-guard] deny：身份 {as_value} 與指派執行者 {who_display} 不符，"
         f"請回報 PM（PC-V1-002 前提一）\n"
+    )
+    _write_telemetry(
+        command=command,
+        ticket_id=ticket_id,
+        as_value=as_value,
+        result=RESULT_DENY,
     )
     return IDENTITY_DENY_EXIT
