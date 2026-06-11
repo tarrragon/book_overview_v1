@@ -21,6 +21,7 @@
     "test:e2e:performance": "jest --config jest.e2e.config.js tests/e2e/performance",
     "test:e2e:browser": "jest --config jest.e2e.config.js tests/e2e/browser",
     "test:hooks": "uv run --project .claude/hooks pytest .claude/hooks/tests/",
+    "test:hooks:perf": "uv run --project .claude/skills/ticket --extra test pytest .claude/skills/ticket/tests/ -m perf -v",
     "test:comprehensive": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "build": "node scripts/build.js",
     "build:dev": "node scripts/build.js --dev",
