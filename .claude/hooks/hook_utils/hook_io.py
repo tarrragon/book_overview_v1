@@ -557,22 +557,58 @@ def generate_hook_output(
     return output
 
 
+_VALID_AUDIENCES = ("all", "pm_only")
+"""emit_hook_output 的合法受眾枚舉：all（雙方可見）/ pm_only（僅 PM 主線程）"""
+
+
 def emit_hook_output(
     hook_event_name: str,
     additional_context: Optional[str] = None,
     permission_decision: Optional[str] = None,
     permission_decision_reason: Optional[str] = None,
+    *,
+    audience: str = "all",
+    input_data: "dict | None" = None,
 ) -> None:
-    """一步完成 Hook JSON stdout 輸出 — 防止遺漏 json.dumps 格式
+    """一步完成 Hook JSON stdout 輸出 — 統一格式 + 受眾過濾單點（ARCH-V1-001）
 
     組合 generate_hook_output + json.dumps + print，確保輸出格式正確。
+
+    受眾過濾（PC-V1-004 防護 C）：audience="pm_only" 且觸發方為 subagent
+    （input_data 含 agent_id）時，丟棄 additional_context，輸出退化為
+    無訊息的基本結構（沿用 W1-071 既有跳過慣例）。過濾邏輯只存在於
+    本函式，各 hook 禁止自行複製判斷（ARCH-020）。
+
+    已知盲區：Stop event 無 agent_id（CC runtime 硬約束），
+    is_subagent_environment 對其永遠返回 False；該盲區由
+    [PM-ONLY] 前綴規則（W1-076 契約）補位。
 
     Args:
         hook_event_name: Hook 事件名稱
         additional_context: 可選的額外上下文訊息
         permission_decision: 可選的權限決策
         permission_decision_reason: 可選的權限決策理由
+        audience: 訊息受眾，"all"（預設，向後相容既有呼叫）或 "pm_only"
+        input_data: Hook stdin JSON；audience="pm_only" 時應傳入，
+                    供 is_subagent_environment 判定觸發方（None 視為 PM）
+
+    Raises:
+        ValueError: audience 不在合法枚舉內（開發期錯誤，測試階段即暴露，
+                    避免拼字錯誤造成 PM-only 訊息靜默洩漏給 subagent）
     """
+    if audience not in _VALID_AUDIENCES:
+        raise ValueError(
+            "audience 必須為 {} 之一，收到: {!r}".format(
+                "/".join(_VALID_AUDIENCES), audience
+            )
+        )
+
+    if audience == "pm_only" and is_subagent_environment(input_data):
+        # subagent 觸發：丟棄 PM-only 訊息；permission 欄位屬功能性決策不過濾
+        additional_context = None
+    # W1-076 掛點：audience="pm_only" 且主線程觸發時，[PM-ONLY] 前綴
+    # 將在此加上（前綴契約屬 1.0.0-W1-076，本票不實作）
+
     output = generate_hook_output(
         hook_event_name, additional_context,
         permission_decision, permission_decision_reason,
