@@ -206,6 +206,66 @@ Ticket: {ticket_id}
 
 ---
 
+## 嵌套派發（descend）派發端指引
+
+> **用途**：被派發的 agent 再以 Agent 工具派發下層 agent（嵌套派發）時，派發端的前置確認、dispatch-plan 補充欄位與 child prompt 骨架。
+>
+> **協議 SSOT**：`.claude/agents/AGENT_PRELOAD.md` 規則 9（D1 三階段表與禁止模式表 / D2 決策速查 / D3 五步自檢與 `can_descend()` 唯一定義點）。本章僅提供派發端視角的操作速查；條件定義、深度上限數值與 ascend 載體以規則 9 為準，不在此平行定義。
+
+### descend 條件速查（派發前置確認）
+
+descend 預設不啟動（ascend 優先於 descend）；以下五條**全部 AND 成立**才建 child 派發。完整判定方式見 AGENT_PRELOAD 規則 9.2 的 D2 速查表，此處只列派發端對應動作：
+
+| # | 條件摘要 | 派發端動作 |
+|---|---------|-----------|
+| D-1 | 可拆分為 2+ 個各自聚焦單一職責的獨立子任務 | 列出子任務清單，逐一確認職責單一 |
+| D-2 | 並行 descend 時子任務間檔案無重疊（序列 descend 不適用） | 比對 dispatch-plan 各列 `files` 欄位交集 |
+| D-3 | `can_descend()` = true | `ticket track depth <自身 ticket id>` 查詢，讀 `can_descend` 欄位 |
+| D-4 | 各子任務修改檔案 <= 5 且 acceptance 條目 <= 7 | 建 child 前機械計數 |
+| D-5 | 不涉及需上層決策的敏感操作（架構決策、規則修改、用戶選擇、`.claude/` 寫入） | 對照規則 9.2 敏感操作清單 |
+
+任一條件不成立 → 在本層完成或 ascend（寫 NeedsContext / Exit Status，載體選擇見規則 9.2 ascend 表）。
+
+**層級查詢指令**：
+
+```bash
+ticket track depth <ticket-id>
+# 回傳 depth / max_depth / can_descend 三欄位
+# descend 判斷只看 can_descend；上限數值由 CLI 維護，prompt 與文件不重複硬編
+```
+
+### dispatch-plan 嵌套欄位
+
+嵌套派發場景的 dispatch-plan 在既有七欄（見上方 Dispatch-Plan Template）外，每列補兩欄：
+
+| 欄位 | 內容要求 |
+|------|---------|
+| `parent` | 派發者自身 ticket ID；child 以 `ticket track create --parent <自身 ticket ID>` 建立，CLI 自動維護 parent_id 鏈（深度的世界平面 SSOT） |
+| `depth / can_descend` | child 建立後以 `ticket track depth <child id>` 查詢回填；`can_descend = false` 的 child，其承接 agent 禁止再 descend（遇需拆分場景必須 ascend） |
+
+**Why 補這兩欄**：parent_id 鏈是層級自覺的唯一依據（D3），dispatch-plan 顯性記錄可讓上層與 PM 審計嵌套結構，不依賴 prompt 或 final message 轉述。
+
+### child prompt 範例（嵌套三段式）
+
+child prompt 沿用三段式快速填空骨架，與單層派發差異僅兩點：(1) context 必須先寫入 child ticket 的 Problem Analysis（D1 禁止派發者在 prompt 內嵌入所有 context）；(2) 結尾明示 ticket 為唯一主通道。
+
+```markdown
+Ticket: {child_ticket_id}
+
+## 任務
+
+{一句話動作描述，<= 40 字}
+
+讀取 ticket：`ticket track full {child_ticket_id}`
+依 Problem Analysis 的 Context Bundle 執行；claim 後依 AGENT_PRELOAD 規則 9.2 執行五步自檢。
+完成後 append-log Solution + complete；遇阻寫 NeedsContext + Exit Status 即停。
+final message 僅指向 ticket ID，不承載結論本體。
+```
+
+**派發後上層 agent 的回報義務**（對應規則 9.1 禁止模式第三列）：child 完成後，上層 agent 必須在**自身 ticket** append-log 引用 child ticket ID 與結論摘要，禁止只以 final message 向再上層轉述（血緣 vs 衍生語意見 `.claude/skills/ticket/references/field-semantics.md`）。
+
+---
+
 ## 填寫要點
 
 | 欄位 | 內容要求 |
@@ -550,7 +610,9 @@ ticket track complete 0.19.0-W3-032.1
 
 ---
 
-**Last Updated**: 2026-06-02
+**Last Updated**: 2026-06-11
+**Version**: 1.7.0 — 新增「嵌套派發（descend）派發端指引」章節：descend 條件速查（派發端動作對照）+ dispatch-plan 嵌套欄位（parent / depth-can_descend）+ child prompt 三段式範例；協議 SSOT 引用 AGENT_PRELOAD 規則 9，深度上限數值不在本檔重複定義（嵌套派發協議 S2 落地）
+
 **Version**: 1.6.0 — worktree 派發 base 同步指引（W1-035）章節新增「cc runtime worktree base 選擇邏輯（實證歸納）」與「三方案評估與選定理由」（選定方案 B，0.19.0-W1-053）
 
 **Version**: 1.5.0 — 新增「與 /goal 的邊界」章節：層級對照表（7 維度）、不可互相取代原因（含死鎖風險）、允許搭配使用範例（W3-032.1 落地，對應 W3-032 ANA 方案 D）
