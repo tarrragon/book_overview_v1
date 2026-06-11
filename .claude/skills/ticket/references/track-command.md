@@ -164,6 +164,8 @@ Wave 完成判定規則（Checkpoint 2 情境 C 前置條件）：
 
 # 追加執行日誌
 # 有效 section: Problem Analysis / Context Bundle / Solution / Test Results / Execution Log / NeedsContext / Exit Status
+# Status precondition（W3-044 / W1-058）：需 status=in_progress（completed 補 review 亦放行）；
+# 派發前章節 Problem Analysis / Context Bundle 例外允許 pending 直寫（PM bookkeeping，不需 --force）
 /ticket track append-log <id> --section "Problem Analysis" "內容"
 /ticket track append-log <id> --section "Context Bundle" "PCB 內容（派發前分析結果，PC-040）"
 #

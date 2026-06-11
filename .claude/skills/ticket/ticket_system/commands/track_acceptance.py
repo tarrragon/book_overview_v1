@@ -47,7 +47,10 @@ from ticket_system.lib.command_tracking_messages import (
     TrackAcceptanceMessages,
     format_msg,
 )
-from ticket_system.lib.precondition import require_in_progress
+from ticket_system.lib.precondition import (
+    PRE_DISPATCH_SECTIONS,
+    require_in_progress,
+)
 from ticket_system.lib.ticket_ops import (
     load_and_validate_ticket,
     resolve_ticket_path,
@@ -648,14 +651,17 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
     # exit code 維持既有契約（status 失敗 = 2，其餘 = 1）。
 
     # W3-044: body-op precondition 檢查（status 必須 in_progress 或 completed-allow）
-    # 注意：status precondition 語意不變（in_progress 限制的調整屬另案範圍），
-    # 僅改為聚合回報。
+    # W1-058: 派發前章節（Problem Analysis / Context Bundle）額外允許 pending
+    # 直寫——PM 依 PC-040 / PC-100 於 create 後立即寫入派發 context 屬合法
+    # bookkeeping，不應消耗 --force 逃生閥（保留其警示價值）。其餘章節維持
+    # in_progress 限制（W3-044 協議防護不變）。
     force = bool(getattr(args, "force", False))
     status_ok, status_error = require_in_progress(
         ticket,
         args.ticket_id,
         "append-log",
         allow_completed=True,  # append-log 支援 completed 補 review
+        allow_pending=args.section in PRE_DISPATCH_SECTIONS,
         force=force,
     )
     if not status_ok:

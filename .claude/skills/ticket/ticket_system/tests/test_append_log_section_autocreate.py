@@ -276,7 +276,12 @@ class TestAppendLogAggregatedPreconditions:
     def test_status_failure_blocks_autocreate(
         self, tmp_ticket_dir, patch_paths
     ):
-        """Case 7: pending status + 缺失 Schema 章節 → 不補建（檔案不變），exit 2。"""
+        """Case 7: pending status + 缺失 Schema 章節 → 不補建（檔案不變），exit 2。
+
+        W1-058 後 Context Bundle / Problem Analysis 屬派發前章節，pending 可直寫；
+        本 case 改用「重現實驗結果」（非派發前的缺失 Schema 章節）驗證原意：
+        status 失敗時自動補建不得執行。
+        """
         tid = "0.0.0-W0-AG3"
         path = tmp_ticket_dir / f"{tid}.md"
         _write_ticket_with_body(
@@ -284,9 +289,25 @@ class TestAppendLogAggregatedPreconditions:
         )
         before = path.read_text(encoding="utf-8")
 
-        rc = _call_append_log(tid, "Context Bundle", "內容")
+        rc = _call_append_log(tid, "重現實驗結果", "內容")
         assert rc == 2
         assert path.read_text(encoding="utf-8") == before
+
+    def test_pending_pre_dispatch_section_autocreate_proceeds(
+        self, tmp_ticket_dir, patch_paths
+    ):
+        """Case 7b（W1-058）: pending + 派發前章節（Context Bundle）→ 自動補建照常執行。"""
+        tid = "0.0.0-W0-AG4"
+        path = tmp_ticket_dir / f"{tid}.md"
+        _write_ticket_with_body(
+            path, tid, IMP_BODY_WITHOUT_CONTEXT_BUNDLE, status="pending"
+        )
+
+        rc = _call_append_log(tid, "Context Bundle", "### 派發前置資訊")
+        assert rc == 0
+        new_body = path.read_text(encoding="utf-8")
+        assert "## Context Bundle" in new_body
+        assert "### 派發前置資訊" in new_body
 
 
 # ============================================================
