@@ -1280,3 +1280,59 @@ def dedupe_schema_sections(body: str) -> str:
         rebuilt.append(appended_text)
 
     return "".join(rebuilt)
+
+
+def insert_missing_schema_section(
+    body: str,
+    section: str,
+    content: str,
+    ticket_type: str = "",
+) -> Optional[str]:
+    """於 canonical 順序位置插入缺失的 Schema H2 章節（含首筆內容）。
+
+    背景：create 模板僅預生成部分 Schema 章節（如 IMP 模板無 Context Bundle），
+    append-log 對「白名單合法但 body 缺失」的章節原本回報 SECTION_NOT_FOUND，
+    呼叫端（PM 派發前寫 Context Bundle）被迫繞道手動 Edit ticket md。
+    本函式讓缺失章節依 SCHEMA_H2_SECTIONS 的 canonical 順序自動補建，
+    消除「目標章節不存在導致 append-log 失敗」的派發前摩擦。
+
+    Args:
+        body: Ticket body markdown 字串。
+        section: 章節名稱，必須屬於 SCHEMA_H2_SECTIONS（Execution Log 等
+            非 Schema 章節不在自動補建範圍，呼叫端應走既有錯誤路徑）。
+        content: 首筆寫入內容（呼叫端已完成 H2 → H3 降級等前處理）。
+        ticket_type: Ticket 類型（用於補 type-aware Schema 標註註解；
+            未定義 type/章節組合時無標註，向後相容）。
+
+    Returns:
+        插入後的新 body；section 不在 SCHEMA_H2_SECTIONS 時回傳 None
+        （呼叫端 fallback 既有 SECTION_NOT_FOUND 錯誤路徑）。
+
+    插入規則：
+        1. 錨點 = body 中第一個 canonical 順序晚於目標章節的既有 Schema H2，
+           新章節插在錨點之前（維持 schema 章節相對順序）。
+        2. 非 Schema 自定義 H2 不作為錨點（位置語意不明，跳過）。
+        3. 無更晚章節時附加於 body 末尾（補 --- 分隔線維持章節邊界格式）。
+    """
+    if section not in SCHEMA_H2_SECTIONS:
+        return None
+
+    canonical_index = SCHEMA_H2_SECTIONS.index(section)
+    marker = _schema_marker(ticket_type, section)
+    new_block = f"## {section}{marker}\n\n{content}\n\n---\n\n"
+
+    for header_match in re.finditer(r"^##\s+(.+?)\s*$", body, re.MULTILINE):
+        title = header_match.group(1).strip()
+        if (
+            title in SCHEMA_H2_SECTIONS
+            and SCHEMA_H2_SECTIONS.index(title) > canonical_index
+        ):
+            insert_at = header_match.start()
+            return body[:insert_at] + new_block + body[insert_at:]
+
+    # 無 canonical 順序更晚的章節 → 附加於 body 末尾
+    trimmed = body.rstrip("\n")
+    if not trimmed:
+        return new_block.rstrip("\n") + "\n"
+    separator = "\n\n" if trimmed.endswith("---") else "\n\n---\n\n"
+    return trimmed + separator + new_block.rstrip("\n") + "\n"

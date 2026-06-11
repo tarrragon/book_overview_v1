@@ -163,12 +163,16 @@ class TestErrorChannelIntegration:
 
         為避免污染真實 ticket md，本測試走 in-process + monkeypatch load_ticket
         而非 subprocess（無法輕易構造缺 section 的真實 ticket）。
+
+        W1-025 調整：Schema 章節（Solution 等）缺失改為自動補建，不再走
+        SECTION_NOT_FOUND；本場景改以非 Schema 章節（Execution Log H2）驗證
+        錯誤通道行為（仍在 VALID_SECTIONS 白名單內，僅章節不存在）。
         """
         import argparse
         import io
         from ticket_system.commands import track_acceptance
 
-        # 構造缺 "Solution" section 的 body（僅含 Problem Analysis）
+        # 構造缺 "Execution Log" H2 section 的 body（僅含 Problem Analysis）
         fake_body = (
             "# Test Ticket\n"
             "\n"
@@ -197,7 +201,7 @@ class TestErrorChannelIntegration:
 
         args = argparse.Namespace(
             ticket_id="fake-id-for-test",
-            section="Solution",
+            section="Execution Log",
             content="dummy",
         )
         rc = track_acceptance.execute_append_log(args, "0.18.0")
@@ -205,7 +209,7 @@ class TestErrorChannelIntegration:
         output = captured.getvalue()
         assert rc != 0, f"預期非零 rc，實際 rc={rc}"
         # SECTION_NOT_FOUND 訊息
-        assert "Solution" in output
+        assert "Execution Log" in output
         assert "區段" in output or "section" in output.lower()
         # W17-008.9 引導：列出現有 H2 標題
         assert "Problem Analysis" in output or "Other Section" in output

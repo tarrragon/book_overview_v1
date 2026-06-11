@@ -176,6 +176,11 @@ class TrackAcceptanceMessages:
     # execute_append_log 中的有效值提示前綴
     VALID_VALUES_PREFIX = "   有效值:"
 
+    # execute_append_log 中缺失 Schema 章節自動建立的提示
+    # W1-025: 白名單合法但 body 缺失的 Schema 章節（如 IMP 模板未含 Context Bundle）
+    # 於 canonical 順序位置自動補建，消除「章節不存在 → 被迫繞道 Edit」的摩擦
+    SECTION_AUTO_CREATED_FORMAT = "[OK] 章節 ## {section} 原不存在，已於 schema 順序位置自動建立"
+
     # execute_append_log 中的時間戳標籤
     TIMESTAMP_PREFIX = "   時間戳:"
 
