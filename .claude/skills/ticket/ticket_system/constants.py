@@ -39,6 +39,8 @@ __all__ = [
     "TICKET_ID_PATTERN",
     "TICKET_ID_RE",
     "KNOWN_TICKET_SUFFIXES",
+    # 嵌套深度上限（W1-056.5 協議 v2 D3）
+    "MAX_TICKET_DEPTH",
     # 路徑
     "WORK_LOGS_DIR",
     "TICKETS_DIR",
@@ -155,6 +157,14 @@ CLOSE_REASON_RETROSPECTIVE_UNKNOWN: str = "unknown"
 
 TICKET_ID_PATTERN: str = r"^(\d+\.\d+\.\d+)-W(\d+)-(\d+(?:\.\d+)*)(-[a-z0-9][a-z0-9-]{0,59})?$"
 TICKET_ID_RE = re.compile(TICKET_ID_PATTERN)
+
+# ============================================================
+# 嵌套派發深度上限（W1-056.5 協議 v2 D3）
+# ============================================================
+# 深度 = 沿 parent_id 鏈回溯到根的邊數 + 1（根 = depth 1）。
+# 保守設計：平台 5 層 - 1 層 PM - 1 層安全邊距 = 3 層 agent 可用。
+# 此常數為 can_descend() 的唯一深度判準來源（DRY，linux F2 修正）。
+MAX_TICKET_DEPTH: int = 3
 
 # ============================================================
 # 已知的描述性後綴模式

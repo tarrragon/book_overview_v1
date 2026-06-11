@@ -61,7 +61,9 @@ from ticket_system.lib.constants import (
     DEFAULT_HOW_TASK_TYPE,
     DEFAULT_UNDEFINED_VALUE,
     TDD_PHASE_DISPLAY,
+    MAX_TICKET_DEPTH,
 )
+from ticket_system.lib.depth import compute_depth
 from ticket_system.lib.parallel_analyzer import ParallelAnalyzer
 from ticket_system.lib.tdd_sequence import suggest_tdd_sequence
 from ticket_system.lib.ticket_builder import (
@@ -725,6 +727,18 @@ def _resolve_ticket_id_and_wave(args: argparse.Namespace, version: str) -> Optio
                 child_seq=child_seq,
             ))
         ticket_id = format_child_ticket_id(args.parent, child_seq)
+
+        # 深度上限檢查（W1-056.5 協議 v2 D3）：沿 parent_id 鏈計算新子任務深度，
+        # 達/超過 MAX_TICKET_DEPTH 時 warn（不硬擋，留旁路）。深度沿 parent_id 鏈
+        # 而非 ID 字串數點（linux F1 fatal 教訓）。
+        new_depth = compute_depth(args.parent, version) + 1
+        if new_depth >= MAX_TICKET_DEPTH:
+            print(format_warning(
+                WarningMessages.DEPTH_LIMIT_REACHED,
+                ticket_id=ticket_id,
+                depth=new_depth,
+                max_depth=MAX_TICKET_DEPTH,
+            ))
 
         # 從 parent_id 中提取 wave
         extracted_wave = extract_wave_from_ticket_id(args.parent)

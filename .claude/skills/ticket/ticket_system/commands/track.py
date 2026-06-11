@@ -152,6 +152,11 @@ from .track_dispatch_readiness import (
     execute_dispatch_readiness,
     register_dispatch_readiness,
 )
+# 嵌套深度查詢（W1-056.8 落地，協議 v2 D3 層級自覺）
+from .track_depth import (
+    execute_depth,
+    register_depth,
+)
 # parallel-check 子任務衝突偵測（W17-203.1 落地）
 from .track_parallel_check import (
     execute_parallel_check,
@@ -263,6 +268,8 @@ def _create_command_handlers() -> dict:
     return {
         "summary": execute_summary,
         "query": execute_query,
+        # W1-056.8 嵌套深度查詢（協議 v2 D3）
+        "depth": execute_depth,
         "claim": _execute_claim,
         "complete": _execute_complete,
         "close": _execute_close,
@@ -960,6 +967,7 @@ def _register_all_subcommands(
     register_hook_health(track_subparsers)
     register_dispatch_validate(track_subparsers)
     register_dispatch_readiness(track_subparsers)
+    register_depth(track_subparsers)
 
 
 def _register_global_state_commands(
