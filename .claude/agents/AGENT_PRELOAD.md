@@ -275,6 +275,80 @@ ls <目標目錄>/<預期檔名>
 
 ---
 
+### 9. 嵌套派發資訊協議（D1 ticket 主通道 + D3 層級自覺）
+
+> **適用範圍**：嵌套派發 = 被派發的 agent 再以 Agent 工具派發下層 agent。本協議**同樣適用於 PM 直接派發層**——實證顯示 agent 的 final message 回傳通道系統性不可靠（收尾 hook 注入會擠掉回傳內容），ticket 是唯一可審計通道。
+
+#### 9.1 D1 資訊傳遞協議：ticket 為唯一主通道
+
+**核心主張**：每一層 agent 的資訊輸入與輸出必須經由 ticket 系統持久化；prompt（下行）與 final message（上行）僅作為「指向 ticket 的指標」，不作為資訊主通道。
+
+**Why**：prompt 與 final message 是 session-scoped（session 結束即消失），且嵌套層間傳遞必然遞減失真；append-log auto-commit 是唯一跨 session 可查詢、可審計的持久通道。**Consequence**：若以 prompt/final message 為唯一通道，上層無法追蹤下層 agent 的決策痕跡，形成資訊黑洞。**Action**：每層 agent 依下表三階段操作 ticket。
+
+##### 每層強制動作（三階段表）
+
+| 階段 | 動作 | 載體 | 既有機制 |
+|------|------|------|---------|
+| 進入 | `ticket track claim <id>` | frontmatter `started_at` / `who.current` | 規則 2.4 |
+| 執行中 | `ticket track append-log <id> --section "<章節>"` | body 章節（Problem Analysis / Solution / Test Results） | 規則 2.2 / 2.3 |
+| 結束 | (a) `ticket track complete <id>` 或 (b) NeedsContext 章節 + Exit Status | frontmatter `completed_at` + body | 規則 2.4 + ticket-body-schema |
+
+##### 禁止 prompt/final message 為唯一通道
+
+| 禁止模式 | 正確做法 |
+|---------|---------|
+| 派發者在 prompt 內嵌入所有 context，不建 child ticket | 先 `ticket track create --parent <自身 ticket ID>` 建 child，context 寫入 child 的 Problem Analysis |
+| 被派發 agent 結束後僅回傳 final message，不寫 ticket | 必須 append-log Solution + complete（或寫 NeedsContext 停止） |
+| 上層 agent 以 final message 摘要下層結果再上報 | 在自身 ticket append-log 引用下層 ticket ID 與結論摘要（引用既有 `spawned_tickets` / `children` 語意，見 `.claude/skills/ticket/references/field-semantics.md`） |
+
+#### 9.2 D3 層級自覺：parent_id 鏈深度 + can_descend()
+
+**核心主張**：agent 從 ticket 的 `parent_id` 鏈長度得知自身深度，以 `can_descend()` 單一判準決定是否可嵌套派發。**禁止以 ticket ID 字串的點號計數推算深度**——完整 ticket ID 含版本號點號（如 `1.0.0-` 前綴），字串計數會算出錯誤深度；`parent_id` 鏈是世界平面 SSOT，與 ID 字串格式解耦。
+
+**深度定義與單一判準**（MAX_TICKET_DEPTH 數值的本檔唯一定義點，其他位置一律引用 `can_descend()`）：
+
+```
+depth(ticket) = 沿 parent_id 鏈回溯到根（parent_id: null）的邊數 + 1
+MAX_TICKET_DEPTH = 3
+can_descend(ticket) = depth(ticket) < MAX_TICKET_DEPTH
+```
+
+##### 五步自檢流程（claim 後執行）
+
+```
+1. claim ticket → ticket track query <id> → 讀取 parent_id
+2. 計算 depth = 沿 parent_id 鏈計數（遞迴查詢至 parent_id: null）
+3. 計算 can_descend(ticket)（定義見上方唯一定義點）
+4. 若需拆分子任務：
+   - can_descend = true → 依 D2 descend 條件速查表判斷
+   - can_descend = false → ascend：寫 Exit Status（status: blocked, reason: 深度上限）
+5. 若不需拆分 → 在本層完成，無需考慮 depth
+```
+
+##### D2 決策速查（ascend 優先於 descend）
+
+預設路徑為「在本層完成或 ascend 上報」；descend 需以下條件**全部 AND 成立**才啟動：
+
+| # | descend 條件 | 判定方式 |
+|---|------------|---------|
+| D-1 | 可拆分為 2+ 個獨立子任務且各自聚焦單一職責 | 機械計數：職責數 > 2 |
+| D-2 | 子任務間檔案無重疊（**僅並行 descend 要求**；序列 descend 不適用） | `where.files` 交集檢查 |
+| D-3 | `can_descend()` = true | 五步自檢流程步驟 3 |
+| D-4 | 子任務複雜度可控 | 機械計數：各子任務修改檔案 <= 5 且 acceptance 條目 <= 7 |
+| D-5 | 不涉及需上層決策的敏感操作 | 敏感操作清單：架構決策、規則修改、用戶選擇、`.claude/` 寫入 |
+
+ascend 條件（**任一 OR 成立即停止執行、上報上層**）：
+
+| 條件 | 載體 |
+|------|------|
+| 需要上層才有的資訊（API 簽名、設計決策、規格缺口） | NeedsContext + Exit Status `needs_context` |
+| 任務超出自身 agent 定義的允許產出範圍 | Exit Status `blocked` |
+| 需要用戶決策（敏感規則、架構方向） | Exit Status `needs_context` |
+| 子任務複雜度超標（修改檔案 > 5 或 acceptance > 7）**且本層已嘗試重構拆分仍無法降低** | NeedsContext（載明計數與已嘗試的拆分方式） |
+| `can_descend()` = false **且**當前任務需要拆分才能完成 | Exit Status `blocked` + reason: 深度上限 |
+
+---
+
 ## 執行檢查清單
 
 代理人在開始任務前，自我確認：
@@ -295,6 +369,7 @@ ls <目標目錄>/<預期檔名>
 - [ ] **任務完成後執行 `ticket track check-acceptance --all <id>` + `ticket track complete <id>`（規則 2.4）**
 - [ ] **ticket 寫入前已 query 對照 who.current 與自身身份（規則 2.4 前提一，主判準）；不符時零寫入並回報 PM（PC-V1-002）**
 - [ ] **收尾前已確認 prompt 含執行指令（引用 ≠ 指派，規則 2.4 前提二，輔助判準）；僅含追溯 Ticket ID 時零 ticket 寫入**
+- [ ] （嵌套派發）descend 前已執行五步自檢且 D2 條件全數通過；ascend 時已寫 NeedsContext / Exit Status（規則 9）
 
 ---
 
@@ -315,7 +390,8 @@ ls <目標目錄>/<預期檔名>
 
 ---
 
-**Last Updated**: 2026-06-10
+**Last Updated**: 2026-06-11
+**Version**: 1.11.0 - 新增規則 9「嵌套派發資訊協議」：D1 ticket 為唯一主通道（三階段表 + 禁止模式表）+ D3 層級自覺（parent_id 鏈深度、can_descend() 單一判準、五步自檢流程）+ D2 決策速查（ascend 優先於 descend）；MAX_TICKET_DEPTH 數值單一定義點；檢查清單同步補項
 **Version**: 1.10.0 - 規則 2.4 前提升級為雙判準：前提一 who.current 機械對照（主判準，世界平面 SSOT 兩事實相等比較）+ 前提二引用 ≠ 指派（輔助判準，原 1.9.0 條款降級）；例外表與檢查清單同步（WRAP 二輪裁決方案 E，PC-V1-002）
 **Version**: 1.9.0 - 規則 2.4 新增「引用 ≠ 指派」前提（PC-V1-002 防護）：收尾自律僅適用 prompt 明確指示執行的 ticket；僅含追溯格式 Ticket ID 時零 ticket 寫入；例外情境表與檢查清單同步補項（探針越權勾選 acceptance + complete 事件落地）
 **Version**: 1.8.0 - 規則 7 新增「程式碼大檔讀取」子節：程式碼類 subagent (parsley/fennel/thyme/cinnamon/clove) 讀 >200 行原始碼前優先用 `mcp__serena__get_symbols_overview` + `find_symbol`，Read 為 fallback；檢查清單同步補項（W17-136 / 源 W17-093 ANA 方案 2 限縮）
