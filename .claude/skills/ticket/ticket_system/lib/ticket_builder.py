@@ -377,6 +377,12 @@ def get_next_seq(version: str, wave: int) -> int:
     """
     tickets_dir = get_tickets_dir(version)
 
+    # 掃描邊界（W1-052）：正常路徑的「max+1 天然不撞」論證只認 .md ——
+    # local glob 限 `*-W{wave}-*.md`，main ref 也只收 endswith(".md") 的 stem。
+    # .yaml-only ticket（無對應 .md）不在此掃描集合，理論上是「max+1 不撞」的洞。
+    # 現實風險 ~0（系統只產 .md、repo 現存 0 個 .yaml ticket），故不為此修碼；
+    # 降級分支的 resolve_available_seq 經 get_ticket_path 探測會同時覆蓋 .md/.yaml，
+    # 是 .yaml 撞號的實際防線。此處僅顯性標註正常路徑的邊界。
     # 來源 1：本地工作樹 glob
     local_stems: List[str] = []
     if tickets_dir.exists():
@@ -409,10 +415,14 @@ def get_next_seq(version: str, wave: int) -> int:
     # get_next_seq 回傳值內部保證可用（消除 create.py caller 層 while-loop 外洩）。
     if not local_stems and main_files is None:
         resolved = resolve_available_seq(version, wave, candidate)
+        # W1-052 措辭收斂：FS 探測看不到 main-only 檔（main ref 已降級），故
+        # collision guard 僅保證「本地檔案系統可用」，對 main-only 撞號無保證；
+        # 不過度承諾「已推進至可用序號」。
         sys.stderr.write(
             f"[WARNING] get_next_seq: 本地工作樹與 main ref 同時掃描不到 "
             f"{version} W{wave} 的 ticket（main ref 降級），初始配號回退為 "
-            f"{candidate}；降級分支內 collision guard 已推進至可用序號 {resolved}\n"
+            f"{candidate}；collision guard 已推進至本地檔案系統可用序號 {resolved}"
+            f"（僅保證本地 FS 可用，無法保證 main-only 票不撞）\n"
         )
         return resolved
 
