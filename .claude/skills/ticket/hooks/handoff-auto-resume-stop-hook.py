@@ -76,6 +76,7 @@ from hook_utils import (
     get_project_root,
     scan_ticket_files_by_version,
     find_ticket_file,
+    PM_ONLY_PREFIX,
 )
 
 # W3-039: session 管理 domain 已抽出為獨立模組（與本檔同目錄，合法識別符可直接 import）。
@@ -676,10 +677,13 @@ def generate_hook_output(
                 task = pending_tasks[0]
                 ticket_id = task.get("ticket_id")
                 logger.info(f"單任務，提示恢復: {ticket_id}")
+                # reason 會被注入給主線程 PM（恢復指令屬 PM 專屬動作）。
+                # Stop event 無 agent_id，程式層偵測（Step 0 的 W1-044 路徑）
+                # 涵蓋不到的環境由前綴 + AGENT_PRELOAD 忽略規則補位（PC-V1-004）。
                 return {
                     "decision": "block",
                     "reason": (
-                        f"[Handoff] 偵測到未完成的 handoff 任務：{ticket_id}\n"
+                        f"{PM_ONLY_PREFIX}[Handoff] 偵測到未完成的 handoff 任務：{ticket_id}\n"
                         f"請執行以下步驟：\n"
                         f"1. 檢查本 session 中是否有待辦工作尚未建立對應 Ticket（若有，先建立）\n"
                         f"2. 確認所有變更已 commit\n"
@@ -695,9 +699,10 @@ def generate_hook_output(
                 # 輸出到 stderr（exit 2）
                 print(tasks_list, file=sys.stderr)
 
+                # 同單任務路徑：reason 屬 PM 專屬注入，加受眾標記前綴（PC-V1-004）。
                 return {
                     "decision": "block",
-                    "reason": "多個待恢復任務，請選擇要恢復的任務"
+                    "reason": PM_ONLY_PREFIX + "多個待恢復任務，請選擇要恢復的任務"
                 }
         # 4b: 只有最近任務，無待恢復任務（可能有代理人在執行）
         elif recent_tasks:

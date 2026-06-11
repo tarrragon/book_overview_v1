@@ -45,6 +45,7 @@ from hook_utils import (  # noqa: E402
     get_project_root,
     scan_ticket_files_by_version,
     parse_ticket_frontmatter,
+    PM_ONLY_PREFIX,
 )
 from datetime import datetime  # noqa: E402
 
@@ -594,8 +595,11 @@ def main():
         if warning:
             # Stop event schema 不允許 hookSpecificOutput.additionalContext；
             # 改用 top-level systemMessage（W17-158）。
+            # 受眾標記（PC-V1-004 防護 C）：Stop event 無 agent_id，程式層無法
+            # 過濾 subagent；加 PM-only 前綴讓 AGENT_PRELOAD 忽略規則補位，
+            # 與既有 subagent context 偵測（W1-030 / W1-044）互補形成雙層。
             output = {
-                "systemMessage": warning,
+                "systemMessage": PM_ONLY_PREFIX + warning,
             }
             print(json.dumps(output, ensure_ascii=False))
             # W17-176 根因 1：成功輸出 warning 後標記 stop flag，後續本 session

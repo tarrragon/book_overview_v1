@@ -99,12 +99,18 @@ class TestEmitHookOutputAudience:
         assert output["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
 
     def test_pm_only_main_thread_outputs_message(self, capsys):
-        """audience="pm_only" + PM 主線程（無 agent_id）：照常輸出。"""
+        """audience="pm_only" + PM 主線程（無 agent_id）：照常輸出（含受眾前綴）。
+
+        前綴契約（PC-V1-004 防護 C）：pm_only 訊息抵達主線程時帶
+        PM_ONLY_PREFIX，供 AGENT_PRELOAD 忽略規則在程式層偵測不到的
+        環境（Stop event 無 agent_id）比對。
+        """
         output = _emit_and_parse(
             capsys, "PostToolUse", "PM 專屬訊息",
             audience="pm_only", input_data=PM_INPUT,
         )
-        assert output["hookSpecificOutput"]["additionalContext"] == "PM 專屬訊息"
+        assert output["hookSpecificOutput"]["additionalContext"] == \
+            hook_io.PM_ONLY_PREFIX + "PM 專屬訊息"
 
     def test_pm_only_none_input_treated_as_pm(self, capsys):
         """input_data=None 視為 PM（is_subagent_environment(None) 為 False）。"""
@@ -112,7 +118,8 @@ class TestEmitHookOutputAudience:
             capsys, "PostToolUse", "PM 專屬訊息",
             audience="pm_only", input_data=None,
         )
-        assert output["hookSpecificOutput"]["additionalContext"] == "PM 專屬訊息"
+        assert output["hookSpecificOutput"]["additionalContext"] == \
+            hook_io.PM_ONLY_PREFIX + "PM 專屬訊息"
 
     def test_pm_only_suppression_keeps_permission_fields(self, capsys):
         """過濾只丟訊息：permission 欄位屬功能性決策，subagent 觸發時保留。"""

@@ -561,6 +561,22 @@ _VALID_AUDIENCES = ("all", "pm_only")
 """emit_hook_output 的合法受眾枚舉：all（雙方可見）/ pm_only（僅 PM 主線程）"""
 
 
+PM_ONLY_PREFIX = "[PM-ONLY] "
+"""PM 專屬 hook 注入訊息的受眾標記前綴（PC-V1-004 防護 C 規則層契約）。
+
+單一來源（ARCH-020）：所有 PM-only 注入訊息的前綴一律引用本常數，
+禁止各 hook 自行複製字串字面，避免拼字漂移使 AGENT_PRELOAD 的
+忽略規則失去比對錨點。
+
+用途分兩層：
+1. emit_hook_output(audience="pm_only")：主線程觸發時自動加前綴（本模組單點實作）
+2. Stop 類 hook（systemMessage / decision-reason 等 emit_hook_output 無法
+   覆蓋的輸出 shape）：import 本常數自行前置。Stop event 無 agent_id，
+   程式層無法過濾，前綴是該盲區唯一的受眾標記手段，
+   由 AGENT_PRELOAD 規則層教 subagent 忽略。
+"""
+
+
 def emit_hook_output(
     hook_event_name: str,
     additional_context: Optional[str] = None,
@@ -579,9 +595,13 @@ def emit_hook_output(
     無訊息的基本結構（沿用 W1-071 既有跳過慣例）。過濾邏輯只存在於
     本函式，各 hook 禁止自行複製判斷（ARCH-020）。
 
+    受眾標記前綴（PC-V1-004 防護 C 規則層）：audience="pm_only" 且觸發方為
+    主線程時，additional_context 自動加上 PM_ONLY_PREFIX，供 AGENT_PRELOAD
+    忽略規則比對。
+
     已知盲區：Stop event 無 agent_id（CC runtime 硬約束），
     is_subagent_environment 對其永遠返回 False；該盲區由
-    [PM-ONLY] 前綴規則（W1-076 契約）補位。
+    [PM-ONLY] 前綴 + AGENT_PRELOAD 忽略規則補位。
 
     Args:
         hook_event_name: Hook 事件名稱
@@ -606,8 +626,10 @@ def emit_hook_output(
     if audience == "pm_only" and is_subagent_environment(input_data):
         # subagent 觸發：丟棄 PM-only 訊息；permission 欄位屬功能性決策不過濾
         additional_context = None
-    # W1-076 掛點：audience="pm_only" 且主線程觸發時，[PM-ONLY] 前綴
-    # 將在此加上（前綴契約屬 1.0.0-W1-076，本票不實作）
+    elif audience == "pm_only" and additional_context:
+        # 主線程觸發：加受眾標記前綴（PC-V1-004 防護 C）。程式層過濾涵蓋不到的
+        # 環境（如 Stop event 無 agent_id）由 AGENT_PRELOAD 忽略規則依此前綴補位。
+        additional_context = PM_ONLY_PREFIX + additional_context
 
     output = generate_hook_output(
         hook_event_name, additional_context,
