@@ -189,6 +189,57 @@ npm run test:e2e:full          # 完整流程（含 build + 所有子套件）
 
 ---
 
+## Claude Code Hook 系統隔離除錯（--safe-mode）
+
+本專案 `.claude/hooks/` 有 90 個 hook 腳本。當 Claude Code session 出現異常（啟動卡住、工具呼叫被不明原因阻擋、輸出被不明訊息污染）且懷疑是 hook 系統造成時，可用 Claude Code 2.1.169 引入的 **safe mode** 一鍵停用所有客製化，二分定位問題來源。
+
+### 使用時機
+
+| 場景 | 是否適用 safe mode |
+|------|------------------|
+| Session 啟動卡住或大量錯誤訊息，懷疑 hook 異常 | 是（先隔離確認問題是否來自客製化層） |
+| 工具呼叫被反覆 deny，但找不到對應規則或 hook | 是 |
+| 升級 Claude Code 版本後行為異常，需區分「CC 本體問題」vs「hook 相容性問題」 | 是 |
+| 已知是特定 hook 的 bug，要修復該 hook | 否（直接修 hook；safe mode 只用於定位，不用於修復） |
+| 日常開發 | 否（見下方注意事項） |
+
+**二分定位邏輯**：safe mode 下問題消失 → 問題來自客製化層（hooks / settings / CLAUDE.md 注入），逐步恢復客製化縮小範圍；safe mode 下問題仍在 → 問題來自 Claude Code 本體或專案環境，回到上方四層環境問題對照表或向官方回報。
+
+### 兩種啟用方式
+
+```bash
+# 方式 1：CLI flag（單次 session）
+claude --safe-mode
+
+# 方式 2：環境變數（適合腳本或反覆啟動）
+CLAUDE_CODE_SAFE_MODE=1 claude
+```
+
+兩者等效，皆停用所有客製化（hooks、自訂 settings、CLAUDE.md / rules 注入等）。
+
+### 與 hook-health-monitor 的互補關係
+
+| 機制 | 角色 | 涵蓋範圍 | 局限 |
+|------|------|---------|------|
+| `hook-health-monitor.py`（SessionStart 自動觸發） | 常態健康監測：依 settings.json 動態解析 SessionStart hooks，檢查各 hook 日誌目錄是否正常更新 | SessionStart hooks 的「靜默失敗」偵測 | 只能告訴你「哪個 hook 沒在運作」，無法隔離「哪個 hook 在搞破壞」；非 SessionStart hooks 不在監測範圍 |
+| `--safe-mode` | 異常時的隔離手段：全量停用後二分定位 | 所有 hook 與全部客製化層 | 粒度粗（全有或全無），定位到客製化層後仍需逐一恢復縮小範圍 |
+
+兩者互補：hook-health-monitor 負責「平時發現失效」，safe mode 負責「出事時隔離元兇」。除錯順序建議先看 hook-health-monitor 的 session 啟動報告（零成本），再決定是否動用 safe mode。
+
+### 注意事項
+
+**Safe mode 下框架規則與防護全部失效，僅供診斷，不供日常開發。**
+
+| 失效項目 | 後果 |
+|---------|------|
+| 全部 90 個 hook（branch-verify、acceptance-gate、charset-guard 等） | 品質防護消失：可直接 commit 到 main、空殼 ticket 可 complete、簡體字不被攔截 |
+| CLAUDE.md / rules 注入 | PM 行為準則、品質基線、語言約束全部不載入 |
+| 自訂 settings（allow list 等） | 權限行為回到 Claude Code 預設 |
+
+**Action**：診斷完成後立即以正常模式重啟 session；在 safe mode session 中只做觀察與定位，不做 commit、ticket complete 等會留下持久副作用的操作（這些操作繞過了所有防護層，產物不可信任）。
+
+---
+
 ## 相關 Ticket 與文件
 
 | 文件 | 內容 |
@@ -200,8 +251,11 @@ npm run test:e2e:full          # 完整流程（含 build + 所有子套件）
 | `docs/chrome-extension-dev-guide.md §11` | E2E 測試本地執行與除錯指南（含 Chrome 路徑、常見失敗排查） |
 | `docs/chrome-extension-dev-guide.md` | Chrome Extension 環境限制與最佳實踐 |
 | `CLAUDE.md §4.1` | 專案重啟狀態（含本指南指引） |
+| `1.0.0-W1-056.2.md` | --safe-mode hook 隔離除錯指引（CC 2.1.169 引入，源自 `1.0.0-W1-056` release 影響評估） |
+| `.claude/hooks/hook-health-monitor.py` | SessionStart hook 健康監測（與 safe mode 互補，見上方章節） |
 
 ---
 
-**Last Updated**: 2026-05-22 | **Version**: 1.1.0 — 新增 E2E 環境恢復章節（Source: `0.19.0-W5-005`）
+**Last Updated**: 2026-06-11 | **Version**: 1.2.0 — 新增「Claude Code Hook 系統隔離除錯（--safe-mode）」章節：使用時機、兩種啟用方式、與 hook-health-monitor 互補關係、safe mode 防護全失效注意事項（Source: `1.0.0-W1-056.2`，CC 2.1.169 引入）
+**Version**: 1.1.0 — 新增 E2E 環境恢復章節（Source: `0.19.0-W5-005`）
 **Version**: 1.0.0 — 建立（Source: `0.18.0-W6-013`，源自 `0.18.0-W6-012.1` 診斷實況，2026-05-17）
