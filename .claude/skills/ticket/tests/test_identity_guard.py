@@ -22,6 +22,8 @@ from ticket_system.lib.identity_guard import (
     PM_AGENT_NAME,
     IDENTITY_DENY_EXIT,
     RESULT_WARN,
+    RESULT_EXEMPT,
+    RESULT_PASS,
     RESULT_DENY,
 )
 
@@ -30,9 +32,10 @@ from ticket_system.lib.identity_guard import (
 def _isolate_identity_log(tmp_path, monkeypatch):
     """Autouse：將 telemetry 落盤導向 tmp，避免污染真實 .claude/hook-logs。
 
-    W1-057：check_identity 的 warn/deny 路徑現會 append usage.log；本檔測試
-    位於 tests/ 樹（無 ticket_system/tests/conftest.py 的 hook-logs autouse），
-    故此處自設 HOOK_LOGS_DIR 隔離。回傳 log 檔路徑供 telemetry 測試斷言。
+    W1-057 + W1-082：check_identity 全部判定路徑（warn/exempt/pass/deny）均
+    append usage.log；本檔測試位於 tests/ 樹（無 ticket_system/tests/conftest.py
+    的 hook-logs autouse），故此處自設 HOOK_LOGS_DIR 隔離。
+    回傳 log 檔路徑供 telemetry 測試斷言。
     """
     logs_dir = tmp_path / "hook-logs"
     monkeypatch.setenv("HOOK_LOGS_DIR", str(logs_dir))
@@ -142,7 +145,7 @@ def test_ticket_not_found_pm_still_exempt(monkeypatch):
 
 
 # ============================================================
-# W1-057 — warn/deny telemetry 落盤
+# Telemetry 落盤（W1-057 warn/deny + W1-082 pass/exempt 全路徑）
 # ============================================================
 
 
@@ -187,28 +190,66 @@ def test_deny_path_writes_telemetry(monkeypatch, _isolate_identity_log):
     assert rec["timestamp"]
 
 
-def test_pass_path_does_not_write_telemetry(monkeypatch, _isolate_identity_log):
-    """放行路徑（身份相符）不落盤（telemetry 只記 warn/deny 兩過渡期觀測點）。"""
+def test_pass_path_writes_telemetry(monkeypatch, _isolate_identity_log):
+    """pass 路徑（--as 與 who.current 相符）落盤 result=pass（W1-082：分母補齊）。
+
+    回歸防護：W1-057 原設計只記 warn/deny，完美遵循時 log 零增長，
+    使用率指標分母缺失不可計算（W1-049.2 量測缺口）。
+    """
     log_path = _isolate_identity_log
     _patch_who(monkeypatch, "thyme-python-developer")
 
-    check_identity("1.0.0", "1.0.0-W1-057", "thyme-python-developer", command="complete")
+    check_identity("1.0.0", "1.0.0-W1-082", "thyme-python-developer", command="complete")
 
-    assert not log_path.exists()
+    assert log_path.exists()
+    records = _read_records(log_path)
+    assert len(records) == 1
+    rec = records[0]
+    assert rec["result"] == RESULT_PASS
+    assert rec["command"] == "complete"
+    assert rec["ticket_id"] == "1.0.0-W1-082"
+    assert rec["has_as"] is True
+    assert rec["timestamp"]  # 非空
+
+
+def test_exempt_path_writes_telemetry(monkeypatch, _isolate_identity_log):
+    """exempt 路徑（--as = PM 豁免）落盤 result=exempt（W1-082）。"""
+    log_path = _isolate_identity_log
+    _patch_who(monkeypatch, "thyme-python-developer")  # 即使不符也豁免放行
+
+    result = check_identity(
+        "1.0.0", "1.0.0-W1-082", PM_AGENT_NAME, command="set-acceptance"
+    )
+
+    assert result is None
+    records = _read_records(log_path)
+    assert len(records) == 1
+    rec = records[0]
+    assert rec["result"] == RESULT_EXEMPT
+    assert rec["command"] == "set-acceptance"
+    assert rec["has_as"] is True
+    # 隱私設計維持：僅記 has_as 布林，不落 as_value 原文（agent 名稱）
+    assert PM_AGENT_NAME not in log_path.read_text(encoding="utf-8")
 
 
 def test_telemetry_appends_multiple_records(monkeypatch, _isolate_identity_log):
-    """多次 warn/deny append 累積（append-only 語義）。"""
+    """四路徑連續觸發各 append 一行累積（append-only 語義 + 全路徑覆蓋）。"""
     log_path = _isolate_identity_log
     _patch_who(monkeypatch, "thyme-python-developer")
 
     check_identity("1.0.0", "1.0.0-W1-057", None, command="complete")
     check_identity("1.0.0", "1.0.0-W1-057", "claude", command="set-acceptance")
+    check_identity("1.0.0", "1.0.0-W1-057", PM_AGENT_NAME, command="close")
+    check_identity("1.0.0", "1.0.0-W1-057", "thyme-python-developer", command="complete")
 
     records = _read_records(log_path)
-    assert len(records) == 2
-    assert records[0]["result"] == RESULT_WARN
-    assert records[1]["result"] == RESULT_DENY
+    assert len(records) == 4
+    assert [r["result"] for r in records] == [
+        RESULT_WARN,
+        RESULT_DENY,
+        RESULT_EXEMPT,
+        RESULT_PASS,
+    ]
 
 
 def test_telemetry_failure_does_not_block_main_flow(monkeypatch, capsys):

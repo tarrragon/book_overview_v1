@@ -27,19 +27,27 @@ PM_AGENT_NAME = "rosemary-project-manager"
 # Deny 結果（exit 1）— 為業務拒絕（identity mismatch），非執行錯誤。
 IDENTITY_DENY_EXIT = 1
 
-# --- Telemetry（W1-057：warn/deny 落盤觀測管線）---------------------------------
+# --- Telemetry（W1-057 warn/deny + W1-082 pass/exempt 全路徑落盤觀測管線）--------
 #
 # 過渡期（warn-only）需稽核 --as 使用率與 deny/warn 分佈，作為 W1-049 轉強制裁決
-# 的資料依據；僅寫 stderr 無法事後統計，故 warn 與 deny 兩路徑各 append 一行
-# 結構化記錄。基底目錄沿用 force-usage 的 HOOK_LOGS_DIR env 慣例（測試隔離），
+# 的資料依據；僅寫 stderr 無法事後統計，故每條判定路徑各 append 一行結構化記錄。
+# W1-082 補齊放行路徑（pass/exempt）：只記 warn/deny 會使「使用率指標」分母缺失
+# 不可計算，且完美遵循（全 --as 正確）時 log 零增長，10+ 樣本 trigger 永不成立。
+# 基底目錄沿用 force-usage 的 HOOK_LOGS_DIR env 慣例（測試隔離），
 # 子目錄 identity-guard 區隔此管線。
 _HOOK_LOGS_DIR_ENV = "HOOK_LOGS_DIR"
 _DEFAULT_HOOK_LOGS_DIR = ".claude/hook-logs"
 _IDENTITY_LOG_SUBDIR = "identity-guard"
 _IDENTITY_LOG_FILENAME = "usage.log"
 
-# 結果列舉：warn = 未提供 --as 放行；deny = 身份不符攔截。
+# 結果列舉（四路徑與 check_identity 判定邏輯一一對應）：
+#   warn   = 未提供 --as 放行（情境 1）
+#   exempt = PM 身份豁免放行（情境 2）
+#   pass   = --as 與 who.current 相符放行（情境 3）
+#   deny   = 身份不符攔截（情境 4）
 RESULT_WARN = "warn"
+RESULT_EXEMPT = "exempt"
+RESULT_PASS = "pass"
 RESULT_DENY = "deny"
 
 
@@ -59,6 +67,8 @@ def _write_telemetry(
     """Append 一行結構化記錄；失敗不阻斷主流程，但寫 stderr（observability 規則 4）。
 
     欄位：timestamp / command / ticket_id / has_as（--as 有無）/ result。
+    result 為四值列舉（warn / exempt / pass / deny），覆蓋 check_identity 全部
+    判定路徑，使「--as 使用率」分子分母皆可從 log 計算。
     不記錄 as_value 原文，僅記其有無，避免將 agent 名稱寫入長期觀測檔。
     """
     record = {
@@ -108,14 +118,15 @@ def check_identity(
     """
     對照申報身份與 ticket who.current，回傳 deny exit code 或 None（放行）。
 
-    判定邏輯（依序，對應 W1-048 規格表）：
-    1. 未提供 --as            → 僅 stderr 警告，放行（向後相容，回傳 None）
-    2. --as = PM_AGENT_NAME   → 一律放行（PM bookkeeping 豁免，回傳 None）
-    3. --as = who.current     → 放行（回傳 None）
+    判定邏輯（依序，對應 W1-048 規格表；括號為 telemetry result 列舉）：
+    1. 未提供 --as            → 僅 stderr 警告，放行（warn，回傳 None）
+    2. --as = PM_AGENT_NAME   → 一律放行（exempt；PM bookkeeping 豁免，回傳 None）
+    3. --as = who.current     → 放行（pass，回傳 None）
     4. --as != who.current    → deny（含 who.current 空值，回傳 IDENTITY_DENY_EXIT）
 
     本函式不寫入任何 ticket 狀態（純前置檢查）。所有提示走 stderr，
-    避免污染 stdout 消費者。
+    避免污染 stdout 消費者。四條路徑均 append telemetry（W1-082：全路徑落盤，
+    否則使用率分母缺失不可計算）。
 
     Args:
         version: 版本號
@@ -145,12 +156,24 @@ def check_identity(
 
     # 情境 2：PM 身份豁免
     if as_value == PM_AGENT_NAME:
+        _write_telemetry(
+            command=command,
+            ticket_id=ticket_id,
+            as_value=as_value,
+            result=RESULT_EXEMPT,
+        )
         return None
 
     who_current = _resolve_who_current(version, ticket_id)
 
     # 情境 3：相符放行
     if who_current is not None and as_value == who_current:
+        _write_telemetry(
+            command=command,
+            ticket_id=ticket_id,
+            as_value=as_value,
+            result=RESULT_PASS,
+        )
         return None
 
     # 情境 4：不符 deny（含 who.current 空值）
