@@ -156,7 +156,13 @@ def get_uncommitted_files(project_root: str, logger: logging.Logger) -> list[str
             return []
 
         files = []
-        for line in result.stdout.strip().splitlines():
+        # 禁止對 stdout 整體 strip：porcelain 格式為「XY filename」（X=index、
+        # Y=worktree 兩個狀態字元），worktree-modified 的 X 為前導空白；整體
+        # strip 會剝除第一行的前導空白，使 line[3:] 多切一個路徑首字元
+        # （.claude/ 變 claude/），進而繞過 EXCLUDED_PATH_PREFIXES 豁免。
+        for line in result.stdout.splitlines():
+            if not line.strip():
+                continue
             if len(line) < 4:
                 continue
             # git status --porcelain 格式: XY filename
