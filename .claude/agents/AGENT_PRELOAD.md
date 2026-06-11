@@ -65,7 +65,7 @@ ticket track append-log <id> --section "Test Results" "測試結果"
 | 實作完成 | Solution | 「新增方法 A、修改檔案 B」 |
 | 測試完成 | Test Results | 「40/40 通過，無回歸」 |
 | 遇到阻塞 | Problem Analysis | 「發現 X 問題，需 PM 決策」 |
-| **任務完成（收尾）** | check-acceptance + complete | `ticket track check-acceptance --all <id>` 後 `ticket track complete <id>` |
+| **任務完成（收尾）** | check-acceptance + complete | `ticket track check-acceptance --all <id> --as <自身 agent 名稱>` 後 `ticket track complete <id> --as <自身 agent 名稱>` |
 
 #### 2.4 收尾責任：自律 complete（W17-033）
 
@@ -83,12 +83,16 @@ ticket track append-log <id> --section "Test Results" "測試結果"
 **前提二（輔助判準）：引用 ≠ 指派**。prompt 僅含追溯格式 Ticket ID（`Ticket: {id}`）而**無任何執行指令**時（如唯讀探針、純諮詢、行為觀測），即使 who.current 相符也禁止寫入。**判別**：自問「prompt 是否含要我對此 ticket 做事的動詞指令？」否 → 該 ID 僅為追溯標記，零 ticket 寫入。**兩判準為 AND 邏輯**：前提一（who.current 相符）與前提二（prompt 含執行指令）須同時成立才執行 ticket 寫入，任一不成立即零寫入。
 
 ```bash
-# 1. 勾選所有 acceptance（agent 已逐項確認完成）
-ticket track check-acceptance --all <ticket-id>
+# 1. 勾選所有 acceptance（agent 已逐項確認完成）；--as 為身份申報（identity-guard 對照 who.current）
+ticket track check-acceptance --all <ticket-id> --as <自身 agent 名稱>
 
 # 2. acceptance 全數通過時 complete
-ticket track complete <ticket-id>
+ticket track complete <ticket-id> --as <自身 agent 名稱>
 ```
+
+**--as 全覆蓋要求（W1-049 裁決前置）**：`check-acceptance` / `set-acceptance` / `complete` 三個寫入命令**一律帶 `--as <自身 agent 名稱>`**。**Why**：telemetry 首輪 13 筆樣本顯示 92% warn 來自 check-acceptance 未帶 --as（SOP 過去只教 complete 帶）。**Consequence**：缺 --as 的寫入在過渡期雖 warn 放行，但每筆都記入 usage.log 成為評估噪音——噪音不除，--as 轉強制的後續裁決永遠拿不到乾淨資料。**Action**：收尾三命令逐一帶 --as；若 --as 被 deny（與 who.current 不符），**禁止拿掉 --as 重試繞過**，改在最終訊息回報 PM「who.current 不符」由 PM 裁決（誤傷案例見 W1-049 重現實驗結果）。
+
+> **邊界**：本段處理 **hook 強制層的 deny**（identity-guard 對照不符即擋）；前提一是 **agent 自律層**的 who.current 事前對照（不符即零寫入）。兩層互補、觸發路徑不同——自律層在寫入前自查，強制層在寫入時攔截。
 
 **例外情境**：
 
@@ -387,7 +391,8 @@ ascend 條件（**任一 OR 成立即停止執行、上報上層**）：
 - [ ] MCP 工具被拒時已嘗試 Edit 降級，未 self-imposed early stop（規則 7 Fallback）
 - [ ] （程式碼類 subagent）讀 >200 行原始碼前優先用 `mcp__serena__get_symbols_overview`（規則 7 程式碼大檔讀取）
 - [ ] （spec/ANA 規劃含既有資源名稱）已 grep/ls 驗證名稱存在性並標註來源（規則 8）
-- [ ] **任務完成後執行 `ticket track check-acceptance --all <id>` + `ticket track complete <id>`（規則 2.4）**
+- [ ] **任務完成後執行 `ticket track check-acceptance --all <id> --as <自身名稱>` + `ticket track complete <id> --as <自身名稱>`（規則 2.4，--as 全覆蓋）**
+- [ ] **--as 被 deny 時未拿掉 --as 繞過，已回報 PM 由其裁決（規則 2.4 --as 全覆蓋）**
 - [ ] **ticket 寫入前已 query 對照 who.current 與自身身份（規則 2.4 前提一，主判準）；不符時零寫入並回報 PM（PC-V1-002）**
 - [ ] **收尾前已確認 prompt 含執行指令（引用 ≠ 指派，規則 2.4 前提二，輔助判準）；僅含追溯 Ticket ID 時零 ticket 寫入**
 - [ ] （嵌套派發）descend 前已執行五步自檢且 D2 條件全數通過；ascend 時已寫 NeedsContext / Exit Status（規則 9）
@@ -413,6 +418,7 @@ ascend 條件（**任一 OR 成立即停止執行、上報上層**）：
 ---
 
 **Last Updated**: 2026-06-11
+**Version**: 1.13.0 - 規則 2.4 收尾三命令（check-acceptance / set-acceptance / complete）改為一律帶 `--as`（--as 全覆蓋），新增 deny 時禁繞過須回報 PM 條款；2.3 表格與檢查清單同步（W1-049 首輪裁決前置：92% warn 噪音源自 check-acceptance 未帶 --as）
 **Version**: 1.12.0 - 新增規則 10「忽略含 `[PM-ONLY]` 前綴的 hook 注入訊息」：Stop event 無 agent_id 致程式層 subagent 偵測失效，前綴為該盲區唯一受眾標記，subagent 須不執行、不轉述（PC-V1-004 防護 C 規則層）；檢查清單同步補項
 **Version**: 1.11.0 - 新增規則 9「嵌套派發資訊協議」：D1 ticket 為唯一主通道（三階段表 + 禁止模式表）+ D3 層級自覺（parent_id 鏈深度、can_descend() 單一判準、五步自檢流程）+ D2 決策速查（ascend 優先於 descend）；MAX_TICKET_DEPTH 數值單一定義點；檢查清單同步補項
 **Version**: 1.10.0 - 規則 2.4 前提升級為雙判準：前提一 who.current 機械對照（主判準，世界平面 SSOT 兩事實相等比較）+ 前提二引用 ≠ 指派（輔助判準，原 1.9.0 條款降級）；例外表與檢查清單同步（WRAP 二輪裁決方案 E，PC-V1-002）

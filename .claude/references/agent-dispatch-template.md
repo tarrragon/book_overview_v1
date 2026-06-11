@@ -595,10 +595,28 @@ PM 試圖直接 Edit tests/unit/scripts/build-version-check.test.js 被 branch-v
 # 允許：方向對齊但不取代
 /goal: 完成 ticket 0.19.0-W3-032.1 的所有 acceptance 條件
 
-# ticket acceptance 仍由以下機制負責驗收（不省略）：
-ticket track check-acceptance --all 0.19.0-W3-032.1
-ticket track complete 0.19.0-W3-032.1
+# ticket acceptance 仍由以下機制負責驗收（不省略；--as 為身份申報，見「收尾 --as 全覆蓋與建票 who 對齊」章節）：
+ticket track check-acceptance --all 0.19.0-W3-032.1 --as <agent-name>
+ticket track complete 0.19.0-W3-032.1 --as <agent-name>
 ```
+
+---
+
+## 收尾 --as 全覆蓋與建票 who 對齊（W1-049 裁決前置）
+
+**核心原則**：派發 prompt 的收尾指引必須教 agent 對 `check-acceptance` / `set-acceptance` / `complete` 三命令**一律帶 `--as <自身 agent 名稱>`**；PM 建票（尤其子票）必須以 `--who` 設定預期執行代理人。
+
+**Why**：identity-guard telemetry 首輪 13 筆樣本（W1-049）顯示兩個資料品質缺口——92% warn 噪音來自 check-acceptance 未帶 --as（SOP 過去只教 complete）；唯一 deny 是 false positive（子票 who.current 繼承 parent 而非實際執行者，誠實申報的 agent 被誤擋後學會拿掉 --as 繞過）。
+
+**Consequence**：兩缺口不補，warn-only 轉強制的評估資料永遠失真，且誤傷會訓練 agent 繞過申報（與防護目標反向）。
+
+**Action**：
+
+| 角色 | 義務 |
+|------|------|
+| PM 建票 | `ticket create --parent <id>` 建子票時必帶 `--who <預期執行代理人>`（子票預設繼承 parent who，是誤傷源）；派發前發現 who.current 與將派發的 agent 不符時先 `set-who` 對齊 |
+| PM 寫 prompt | 收尾步驟範本三命令均含 `--as <agent-name>`（prompt 骨架見本檔「三段式 prompt 骨架」章節，收尾段直接套用上方 /goal 章節的範例命令） |
+| Agent | 依 AGENT_PRELOAD 規則 2.4「--as 全覆蓋」執行；--as 被 deny 時禁拿掉 --as 繞過，回報 PM 裁決 |
 
 ---
 
@@ -611,6 +629,7 @@ ticket track complete 0.19.0-W3-032.1
 ---
 
 **Last Updated**: 2026-06-11
+**Version**: 1.8.0 — 新增「收尾 --as 全覆蓋與建票 who 對齊」章節（W1-049 首輪裁決前置）：收尾三命令一律帶 --as、PM 建子票必帶 --who（繼承 parent who 為 false positive deny 誤傷源）、agent deny 時禁繞過須回報；/goal 章節收尾範例同步補 --as
 **Version**: 1.7.0 — 新增「嵌套派發（descend）派發端指引」章節：descend 條件速查（派發端動作對照）+ dispatch-plan 嵌套欄位（parent / depth-can_descend）+ child prompt 三段式範例；協議 SSOT 引用 AGENT_PRELOAD 規則 9，深度上限數值不在本檔重複定義（嵌套派發協議 S2 落地）
 
 **Version**: 1.6.0 — worktree 派發 base 同步指引（W1-035）章節新增「cc runtime worktree base 選擇邏輯（實證歸納）」與「三方案評估與選定理由」（選定方案 B，0.19.0-W1-053）
