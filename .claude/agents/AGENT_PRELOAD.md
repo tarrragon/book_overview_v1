@@ -20,7 +20,7 @@
 | 數據 | 資料 |
 | 代碼 | 程式碼 |
 
-> 完整禁用詞彙清單見 `.claude/rules/core/language-constraints.md`
+> 上表僅列最高頻三項（context 節省設計，非完整清單）；完整禁用詞彙清單見 `.claude/rules/core/language-constraints.md`
 
 #### 技術術語保留英文
 
