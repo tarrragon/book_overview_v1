@@ -12,6 +12,8 @@ identity_guard.check_identity 單元測試（W1-048）。
 save_ticket 為前提；check_identity 僅讀取 load_ticket）。
 """
 
+import json
+
 import pytest
 
 from ticket_system.lib import identity_guard
@@ -19,7 +21,22 @@ from ticket_system.lib.identity_guard import (
     check_identity,
     PM_AGENT_NAME,
     IDENTITY_DENY_EXIT,
+    RESULT_WARN,
+    RESULT_DENY,
 )
+
+
+@pytest.fixture(autouse=True)
+def _isolate_identity_log(tmp_path, monkeypatch):
+    """Autouse：將 telemetry 落盤導向 tmp，避免污染真實 .claude/hook-logs。
+
+    W1-057：check_identity 的 warn/deny 路徑現會 append usage.log；本檔測試
+    位於 tests/ 樹（無 ticket_system/tests/conftest.py 的 hook-logs autouse），
+    故此處自設 HOOK_LOGS_DIR 隔離。回傳 log 檔路徑供 telemetry 測試斷言。
+    """
+    logs_dir = tmp_path / "hook-logs"
+    monkeypatch.setenv("HOOK_LOGS_DIR", str(logs_dir))
+    return logs_dir / "identity-guard" / "usage.log"
 
 
 def _patch_who(monkeypatch, who_current):
@@ -122,3 +139,102 @@ def test_ticket_not_found_pm_still_exempt(monkeypatch):
     """ticket 不存在但 --as = PM → 仍放行（豁免先於 who.current 解析）。"""
     _patch_who(monkeypatch, _SENTINEL_NO_TICKET)
     assert check_identity("1.0.0", "1.0.0-W1-999", PM_AGENT_NAME) is None
+
+
+# ============================================================
+# W1-057 — warn/deny telemetry 落盤
+# ============================================================
+
+
+def _read_records(log_path):
+    """讀取 usage.log，回傳逐行 parse 的 JSON record 列表。"""
+    text = log_path.read_text(encoding="utf-8")
+    return [json.loads(line) for line in text.splitlines() if line.strip()]
+
+
+def test_warn_path_writes_telemetry(monkeypatch, _isolate_identity_log):
+    """warn 路徑（未提供 --as）落盤一行結構化記錄，含 timestamp 與 result=warn。"""
+    log_path = _isolate_identity_log
+    _patch_who(monkeypatch, "thyme-python-developer")
+
+    check_identity("1.0.0", "1.0.0-W1-057", None, command="complete")
+
+    assert log_path.exists()
+    records = _read_records(log_path)
+    assert len(records) == 1
+    rec = records[0]
+    assert rec["result"] == RESULT_WARN
+    assert rec["command"] == "complete"
+    assert rec["ticket_id"] == "1.0.0-W1-057"
+    assert rec["has_as"] is False
+    assert rec["timestamp"]  # 非空
+
+
+def test_deny_path_writes_telemetry(monkeypatch, _isolate_identity_log):
+    """deny 路徑（身份不符）落盤同格式記錄，result=deny 且 has_as=True。"""
+    log_path = _isolate_identity_log
+    _patch_who(monkeypatch, "thyme-python-developer")
+
+    result = check_identity("1.0.0", "1.0.0-W1-057", "claude", command="complete")
+
+    assert result == IDENTITY_DENY_EXIT
+    records = _read_records(log_path)
+    assert len(records) == 1
+    rec = records[0]
+    assert rec["result"] == RESULT_DENY
+    assert rec["has_as"] is True
+    assert rec["ticket_id"] == "1.0.0-W1-057"
+    assert rec["timestamp"]
+
+
+def test_pass_path_does_not_write_telemetry(monkeypatch, _isolate_identity_log):
+    """放行路徑（身份相符）不落盤（telemetry 只記 warn/deny 兩過渡期觀測點）。"""
+    log_path = _isolate_identity_log
+    _patch_who(monkeypatch, "thyme-python-developer")
+
+    check_identity("1.0.0", "1.0.0-W1-057", "thyme-python-developer", command="complete")
+
+    assert not log_path.exists()
+
+
+def test_telemetry_appends_multiple_records(monkeypatch, _isolate_identity_log):
+    """多次 warn/deny append 累積（append-only 語義）。"""
+    log_path = _isolate_identity_log
+    _patch_who(monkeypatch, "thyme-python-developer")
+
+    check_identity("1.0.0", "1.0.0-W1-057", None, command="complete")
+    check_identity("1.0.0", "1.0.0-W1-057", "claude", command="set-acceptance")
+
+    records = _read_records(log_path)
+    assert len(records) == 2
+    assert records[0]["result"] == RESULT_WARN
+    assert records[1]["result"] == RESULT_DENY
+
+
+def test_telemetry_failure_does_not_block_main_flow(monkeypatch, capsys):
+    """落盤失敗（OSError）不阻斷 CLI 主流程，但 stderr 可見（雙通道）。"""
+    _patch_who(monkeypatch, "thyme-python-developer")
+
+    def _raise_oserror(*args, **kwargs):
+        raise OSError("simulated disk full")
+
+    # patch open，模擬寫入失敗；deny 判定仍應正常返回
+    monkeypatch.setattr("builtins.open", _raise_oserror)
+
+    result = check_identity("1.0.0", "1.0.0-W1-057", "claude", command="complete")
+
+    # 主流程仍正常返回 deny exit code（telemetry 失敗不影響判定）
+    assert result == IDENTITY_DENY_EXIT
+    captured = capsys.readouterr()
+    assert "telemetry 落盤失敗" in captured.err
+
+
+def test_default_command_is_unknown(monkeypatch, _isolate_identity_log):
+    """呼叫端未傳 command 時，記錄 command=(unknown)（向後相容預設）。"""
+    log_path = _isolate_identity_log
+    _patch_who(monkeypatch, "thyme-python-developer")
+
+    check_identity("1.0.0", "1.0.0-W1-057", None)
+
+    records = _read_records(log_path)
+    assert records[0]["command"] == "(unknown)"
