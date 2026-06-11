@@ -469,6 +469,9 @@ class FieldsMessages:
     FIELD_VALUE_SEPARATOR = ": "
     NO_FIELDS_FOUND = "未找到任何欄位"
 
+    # set-where 路徑型輸入同步 where.files（W1-078 修復）
+    WHERE_FILES_SYNCED = "   where.files 已同步（{count} 項）:"
+
 
 def format_msg(template: str, **kwargs) -> str:
     """

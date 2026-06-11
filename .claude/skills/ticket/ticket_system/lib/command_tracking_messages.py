@@ -374,7 +374,7 @@ class TrackMessages:
     HELP_SET_WHO = "設定 Ticket 的 who 欄位"
     HELP_SET_WHAT = "設定 Ticket 的 what 欄位"
     HELP_SET_WHEN = "設定 Ticket 的 when 欄位"
-    HELP_SET_WHERE = "設定 Ticket 的 where 欄位"
+    HELP_SET_WHERE = "設定 Ticket 的 where 欄位（路徑型輸入同步更新 where.files；逗號分隔多路徑）"
     HELP_SET_WHY = "設定 Ticket 的 why 欄位"
     HELP_SET_HOW = "設定 Ticket 的 how 欄位"
     HELP_SET_PRIORITY = "設定 Ticket 的 priority 欄位"
