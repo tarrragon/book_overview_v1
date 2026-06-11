@@ -745,8 +745,9 @@ def _resolve_ticket_id_and_wave(args: argparse.Namespace, version: str) -> Optio
             # auto-seq 模式：get_next_seq 回傳值已內部保證可用（W1-051 內聚
             # collision guard 至 get_next_seq 降級分支），caller 不再兜底。
             # 防護 W1-042：兩來源（本地 glob + main ref）同時掃空降級時，
-            # get_next_seq 內的 resolve_available_seq 已推進至可用序號
-            # （PC-152 collision 家族；消除 caller while-loop 特例外洩）。
+            # get_next_seq 內的 resolve_available_seq 推進至本地檔案系統可用
+            # 序號——僅保證本地 FS 可用，main-only 票不在保證範圍（W1-052 措辭
+            # 對齊；PC-152 collision 家族；消除 caller while-loop 特例外洩）。
             seq = get_next_seq(version, wave)
             ticket_id = format_ticket_id(version, wave, seq)
         else:

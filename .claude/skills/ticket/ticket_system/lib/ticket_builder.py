@@ -525,6 +525,10 @@ def _scan_child_files_max_seq(tickets_dir: Path, parent_id: str) -> int:
     Returns:
         最大直接子任務序號，無子 Ticket 檔案時返回 0
     """
+    # 掃描邊界（W1-052 對齊 root 路徑標註）：glob 限 `{parent_id}.*.md`，
+    # .yaml-only 子票不在掃描集合——與 get_next_seq 正常路徑的 .md-only 邊界
+    # 同構。現實風險 ~0（系統只產 .md），children 欄位為另一獨立來源可兜底，
+    # 故不為此修碼，僅顯性標註。
     # 來源 1：本地工作樹 glob
     local_stems: List[str] = []
     if tickets_dir.exists():
