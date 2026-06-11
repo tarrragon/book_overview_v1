@@ -12,6 +12,7 @@ identity_guard.check_identity 單元測試（W1-048）。
 save_ticket 為前提；check_identity 僅讀取 load_ticket）。
 """
 
+import argparse
 import json
 
 import pytest
@@ -279,3 +280,59 @@ def test_default_command_is_unknown(monkeypatch, _isolate_identity_log):
 
     records = _read_records(log_path)
     assert records[0]["command"] == "(unknown)"
+
+
+# ============================================================
+# 呼叫端 command 歸因（W1-083：三個寫入命令各傳真實名稱）
+# ============================================================
+#
+# 回歸防護：W1-082 實機 smoke 發現 usage.log 全部紀錄 command 恆為 (unknown)
+# （W1-057 設計含 command 欄位但呼叫端未傳），per-command 使用率歸因不可自動
+# 計算。本節以 deny 早退路徑驗證各呼叫端傳入值——deny 在 check_identity 內
+# 直接 return，不執行命令本體，無需鋪設完整 ticket 環境且零狀態副作用。
+
+
+def _make_args(ticket_id: str, as_agent: str) -> argparse.Namespace:
+    """組最小 args；deny 早退只會讀 ticket_id 與 as_agent 兩欄位。"""
+    return argparse.Namespace(ticket_id=ticket_id, as_agent=as_agent)
+
+
+def _caller_complete(args, version):
+    from ticket_system.commands.track import _execute_complete
+    return _execute_complete(args, version)
+
+
+def _caller_check_acceptance(args, version):
+    from ticket_system.commands.track_acceptance import execute_check_acceptance
+    return execute_check_acceptance(args, version)
+
+
+def _caller_set_acceptance(args, version):
+    from ticket_system.commands.track_set_acceptance import execute_set_acceptance
+    return execute_set_acceptance(args, version)
+
+
+@pytest.mark.parametrize(
+    ("caller", "expected_command"),
+    [
+        (_caller_complete, "complete"),
+        (_caller_check_acceptance, "check-acceptance"),
+        (_caller_set_acceptance, "set-acceptance"),
+    ],
+    ids=["complete", "check-acceptance", "set-acceptance"],
+)
+def test_caller_passes_real_command_name(
+    monkeypatch, _isolate_identity_log, caller, expected_command
+):
+    """三個寫入命令呼叫 check_identity 時皆傳入真實 command 名稱（非 (unknown)）。"""
+    log_path = _isolate_identity_log
+    _patch_who(monkeypatch, "thyme-python-developer")
+
+    # 身份不符 → deny 早退：呼叫端在 check_identity 後直接 return，無命令本體副作用
+    result = caller(_make_args("1.0.0-W1-083", "claude"), "1.0.0")
+
+    assert result == IDENTITY_DENY_EXIT
+    records = _read_records(log_path)
+    assert len(records) == 1
+    assert records[0]["command"] == expected_command
+    assert records[0]["command"] != "(unknown)"

@@ -206,8 +206,11 @@ def _execute_claim(args: argparse.Namespace, version: str) -> int:  # type: igno
 def _execute_complete(args: argparse.Namespace, version: str) -> int:
     """標記完成 - 包裝生命週期模組"""
     # W1-048: --as 身份申報對照（純前置檢查，deny 不寫入任何狀態）
+    # W1-083: 傳入 command 名稱，使 telemetry 可做 per-command 歸因
     from ticket_system.lib.identity_guard import check_identity
-    deny = check_identity(version, args.ticket_id, getattr(args, "as_agent", None))
+    deny = check_identity(
+        version, args.ticket_id, getattr(args, "as_agent", None), command="complete"
+    )
     if deny is not None:
         return deny
     return execute_complete(args, version)
