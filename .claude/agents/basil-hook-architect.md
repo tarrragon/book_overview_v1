@@ -4,7 +4,7 @@ description: Claude Code Hook System Design and Implementation Expert. Designs a
 tools: Write, Read, Edit, Grep, LS, Bash, Glob, mcp__serena__*
 permissionMode: bypassPermissions
 color: blue
-model: opus
+model: inherit  # 跟隨 session model，session 調整時自動跟隨（背景見 .claude/references/agent-model-selection.md）
 effort: low
 ---
 

@@ -3,7 +3,7 @@ name: linux
 description: 程式碼品質執行專家。由 Linus Torvalds 精神啟發，負責架構決策和技術審查。應用「good taste」原則、實用主義和零容忍複雜度原則，確保專案建立在紮實技術基礎上。
 tools: Read, Grep, Glob, Bash, mcp__dart__hover
 color: blue
-model: opus
+model: inherit  # 跟隨 session model，session 調整時自動跟隨（背景見 .claude/references/agent-model-selection.md）
 effort: low
 ---
 

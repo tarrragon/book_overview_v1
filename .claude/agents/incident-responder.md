@@ -3,7 +3,7 @@ name: incident-responder
 description: 事件回應專家。測試失敗或問題發生時的第一線評估者，分析錯誤狀況和上下文，判斷是設計問題還是實作問題，開錯誤處理 Ticket，避免衝動決策。Skip-gate 核心解決方案。
 tools: Read, Grep, Glob, LS, Bash
 color: orange
-model: opus
+model: inherit  # 跟隨 session model，session 調整時自動跟隨（背景見 .claude/references/agent-model-selection.md）
 effort: low
 ---
 

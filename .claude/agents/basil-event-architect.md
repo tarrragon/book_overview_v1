@@ -4,7 +4,7 @@ description: "Event-driven architecture specialist. Designs event patterns, comm
 allowed-tools: Grep, LS, Read, Glob, mcp__dart__hover
 metadata:
   color: purple
-model: opus
+model: inherit  # 跟隨 session model，session 調整時自動跟隨（背景見 .claude/references/agent-model-selection.md）
 effort: low
 ---
 
