@@ -79,6 +79,7 @@ from ticket_system.lib.ticket_builder import (
     validate_create_checklist,
 )
 from ticket_system.lib.acceptance_auditor import detect_vague_acceptance, detect_srp_violations
+from ticket_system.lib.file_lock import create_id_allocation_lock
 from ticket_system.lib.ui_constants import SEPARATOR_PRIMARY
 
 
@@ -1442,28 +1443,33 @@ def execute(args: argparse.Namespace) -> int:
         )))
         return 1
 
-    # Step 1: 解析版本和 Ticket ID
-    resolved = _resolve_ticket_id_and_wave(args, version)
-    if resolved is None:
-        return 1
-    version, ticket_id, wave = resolved
+    # IMP-072 方案 A：Step 1（ID 分配）到 Step 3（落盤）之間原本無鎖，跨
+    # process / 跨 session 並行 create 會同讀相同 max seq 配出同一 ID，後寫者
+    # 靜默覆寫前者。目錄級 fcntl lock 將整段臨界區序列化；lock 取得失敗時
+    # graceful degradation（stderr warn + 無鎖續行），不阻斷單 process create。
+    with create_id_allocation_lock(get_tickets_dir(version)):
+        # Step 1: 解析版本和 Ticket ID
+        resolved = _resolve_ticket_id_and_wave(args, version)
+        if resolved is None:
+            return 1
+        version, ticket_id, wave = resolved
 
-    # Step 1.5: --source-ticket 前置驗證（PC-073）
-    # 順序：互斥 → 格式 → 存在 → 狀態
-    if not _validate_source_ticket_arg(args):
-        return 1
+        # Step 1.5: --source-ticket 前置驗證（PC-073）
+        # 順序：互斥 → 格式 → 存在 → 狀態
+        if not _validate_source_ticket_arg(args):
+            return 1
 
-    # 識別任務類型並取得 TDD 順序建議（需要在 Step 2 使用）
-    ticket_type = args.type or "IMP"
-    tdd_result = suggest_tdd_sequence(task_type=ticket_type)
+        # 識別任務類型並取得 TDD 順序建議（需要在 Step 2 使用）
+        ticket_type = args.type or "IMP"
+        tdd_result = suggest_tdd_sequence(task_type=ticket_type)
 
-    # Step 2: CLI 參數轉換為 TicketConfig
-    config = _parse_cli_args_to_config(args, version, ticket_id, wave, tdd_result)
-    if config is None:
-        return 1
+        # Step 2: CLI 參數轉換為 TicketConfig
+        config = _parse_cli_args_to_config(args, version, ticket_id, wave, tdd_result)
+        if config is None:
+            return 1
 
-    # Step 3: 驗證 blockedBy + 重複偵測 + 持久化 + 輸出
-    rc = _persist_and_report(args, config, version, ticket_id, tdd_result)
+        # Step 3: 驗證 blockedBy + 重複偵測 + 持久化 + 輸出
+        rc = _persist_and_report(args, config, version, ticket_id, tdd_result)
 
     # Step 4 (W17-002.2)：Context Bundle 自動抽取（post-persist enhancement）
     if rc == 0:

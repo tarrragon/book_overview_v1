@@ -30,6 +30,7 @@ from ticket_system.lib.ticket_loader import (
     get_ticket_path,
     save_ticket,
 )
+from ticket_system.lib.file_lock import create_id_allocation_lock
 from ticket_system.lib.messages import (
     ErrorMessages,
     InfoMessages,
@@ -169,14 +170,28 @@ def execute(args: argparse.Namespace) -> int:
     dry_run = args.dry_run if hasattr(args, "dry_run") else False
     parent_id = args.parent if hasattr(args, "parent") else None
 
-    result = _create_batch_tickets(
-        template_defaults,
-        targets,
-        version,
-        wave,
-        dry_run=dry_run,
-        parent_id=parent_id,
-    )
+    # IMP-072 方案 A：批次配號（get_next_seq / resolve_available_seq）+ 落盤與
+    # ticket create 共用同一目錄級 lock，防止跨 process 並行 create / bulk 撞號。
+    # dry_run 不寫檔（無 race 標的），不持鎖。
+    if dry_run:
+        result = _create_batch_tickets(
+            template_defaults,
+            targets,
+            version,
+            wave,
+            dry_run=dry_run,
+            parent_id=parent_id,
+        )
+    else:
+        with create_id_allocation_lock(get_tickets_dir(version)):
+            result = _create_batch_tickets(
+                template_defaults,
+                targets,
+                version,
+                wave,
+                dry_run=dry_run,
+                parent_id=parent_id,
+            )
 
     # 顯示摘要
     _print_batch_summary(result, args.template, version, wave)
