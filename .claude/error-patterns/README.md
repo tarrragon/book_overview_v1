@@ -258,6 +258,7 @@ Claude Code 內建了官方的 memory 系統（`~/.claude/projects/{project}/mem
 | IMP-070 | Hook stdin 欄位命名規範混淆（input snake_case vs output camelCase） | 高 | v0.18.0 |
 | IMP-078 | CE-Node 環境前提誤判 — Jest 測試綠燈但 CE Runtime 崩潰 | 高 | v0.19.0 |
 | IMP-079 | 批次替換工具誤傷偵測目標字面 — regex/meta-test 內嵌待測字元被盲目轉換後語意塌縮 | 中 | v0.19.1 |
+| IMP-V1-001 | 估算係數未經實測校準即上線 — 守門機制低估真值提供假安心 | 中 | v1.0.0 |
 
 ### 流程合規 (PC)
 
