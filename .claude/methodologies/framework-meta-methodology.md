@@ -1,6 +1,6 @@
 # 框架元層管理方法論
 
-> **定位**：本文件管理「框架內的知識載體分類」，決定何時建立 SKILL、何時建立 methodology、何時建立 rule。這是框架治理層的原則，不是寫作方法本身。
+> **定位**：本文件管理「框架內的知識載體分類」，決定何時建立 SKILL、何時建立 methodology、何時建立 rule。這是框架治理層的原則，不是寫作方法本身。全載體（受眾 x 形態）責任地圖見 `knowledge-carrier-allocation-methodology.md`；本檔為其中形態軸 skill / methodology / rule 三分的細分。
 
 ---
 
