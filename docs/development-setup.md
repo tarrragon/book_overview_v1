@@ -163,7 +163,9 @@ codegraph status
 
 ### Hook 行為速查
 
-完整規則與 `--no-verify` 緊急豁免流程見 `CLAUDE.md` §5「Pre-commit Hook（ESLint 把關）」章節。
+**核心原則**：pre-commit hook 是阻擋 ESLint 違規累積的本機第一道防線（local first line），CI lint job 是第二道安全網（safety net）。
+
+**Why**：commit 時若無 lint 把關，新引入的違規會靜默累積。W4-009 已暴露此根因——9 天內 ESLint 違規從 194 累積到 220（+26），因缺乏本機防線而無人即時攔截。**Consequence**：缺少本機防線會讓違規持續滲入 main 分支，清理成本隨累積量以指數增長（W4-018 範圍即由此擴大）。**Action**：日常 commit 一律走 hook（不加 `--no-verify`）；遇 hook 阻擋時，先用 `npm run lint:fix` 自動修復，再 manual 修正剩餘項並重新 `git add`，確認 `npm run lint` 全綠後再 commit。
 
 | 場景 | 行為 |
 |------|------|
@@ -173,6 +175,24 @@ codegraph status
 | 緊急豁免 | `git commit --no-verify`（git 內建機制） |
 
 **Consequence**：此速查表對應的阻擋行為若失效（hook 未初始化或被 `--no-verify` 慣性繞過），新違規會直接進入 main 分支，回到 W4-009「9 天累積 +26 違規」的失控狀態。**正向錨點**：只要 staged 檔案維持零違規，commit 不受任何阻擋——hook 對乾淨的變更完全透明。
+
+#### `--max-warnings=0` 設計理由
+
+W4-024 完成後本專案 `npm run lint` 已達零違規（0 error / 0 warning）。此時加入 `--max-warnings=0` 作為「warning 穿透防線」——任何新引入的 warning 同樣阻擋 commit，與 error 一視同仁。**正向錨點**：保持 staged 檔案零違規即可順利 commit，無需任何額外操作。
+
+#### `--no-verify` 緊急豁免
+
+```bash
+git commit --no-verify -m "..."
+```
+
+| 適用情境（豁免合理） | 不適用情境（請改走 hook） |
+|---------|-----------|
+| 緊急修復（hotfix）需立即合併但 lint 違規屬其他模組既有問題 | 日常 commit 為求方便——應走 hook，遇阻擋用 `npm run lint:fix` |
+| WIP / draft commit 但用戶明確知道後續會修補（例如 PR 流程中的階段性 push） | 規避自己引入的新違規——應 manual 修正後重新 `git add` |
+| Phase 4 重構評估中的中間狀態 commit | 取代 `npm run lint:fix` 自動修復流程——應先跑 `lint:fix` |
+
+**豁免使用守則**：`--no-verify` 是緊急情境的合法出口，但不應成為預設行為。違反此原則會讓本機防線形同虛設（與 W4-009 根因相同）。**正確做法**：確需豁免時，在 commit message 明示豁免理由，使後人可追溯；其餘情境一律走 hook。
 
 ### 驗證 husky 已正確初始化
 
