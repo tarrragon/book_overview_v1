@@ -38,6 +38,8 @@
 
 ## 寫入決策速查（新知識該放哪一層）
 
+> 本表為「自動載入層判定」的快速子集；完整載體分配（受眾 x 形態十載體地圖）見 `.claude/methodologies/knowledge-carrier-allocation-methodology.md`。
+
 | 自問 | 答案 → 去處 |
 |------|------------|
 | 這是否每回合都需要遵守的行為禁令？ | 是 → `rules/core/`（禁令 + 路由形態）；否 → 下一問 |
