@@ -49,6 +49,7 @@
 
 ## 相關文件
 
+- `.claude/methodologies/knowledge-carrier-allocation-methodology.md` — 知識載體頂層責任地圖（本檔為其自動載入層形態的執行規範）
 - `.claude/rules/README.md` — 自動載入預算原則（上游判準）
 - `.claude/rules/core/document-writing-style.md` + `references/document-writing-style-details.md`「載入層邊界」 — 三明示適用範圍限定
 - `.claude/pm-rules/pm-quality-baseline.md` 規則 7 — 升級目的地預算閘門 + 升級即搬家
