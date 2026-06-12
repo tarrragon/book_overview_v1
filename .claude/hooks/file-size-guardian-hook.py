@@ -40,8 +40,11 @@ CODE_FILE_CRITICAL = 500   # 程式碼檔案必須拆分值
 
 # Auto-load 集合 token 預算（來源: 1.0.0-W7-004.7，防止自動載入層回彈膨脹）
 AUTO_LOAD_BUDGET_TOKENS = 45_000
-# Token 估算係數：合計字元數 / 3（中文為主的保守近似；與 /context 實測校準後可調）
-CHARS_PER_TOKEN = 3
+# Token 估算係數：tokens = int(chars / CHARS_PER_TOKEN)。
+# 校準依據（2026-06-12，1.0.0-W7-006）：/context Memory files 同集合實測 38.9k tokens
+# vs 合計 chars 50.7k → 50.7k / 38.9k ≈ 1.30 chars/token（繁中為主集合）。
+# 原值 3 為未經實測的保守假設，低估 2.3 倍（IMP-V1-001：估算係數未經實測校準即上線）。
+CHARS_PER_TOKEN = 1.3
 # @ 引用解析最大遞迴深度（目前 CLAUDE.md 的 @ 鏈深度為 1，遞迴一層即可）
 AT_REF_MAX_DEPTH = 1
 # 超標時列出的最大體量檔數
@@ -251,7 +254,7 @@ def measure_auto_load_budget(root: Path) -> tuple[int, list[tuple[str, int]]]:
         except (OSError, UnicodeDecodeError):
             continue  # 單檔不可讀時跳過：量測為提醒性質
         rel = str(file_path.relative_to(root))
-        per_file.append((rel, char_count // CHARS_PER_TOKEN))
+        per_file.append((rel, int(char_count / CHARS_PER_TOKEN)))
 
     per_file.sort(key=lambda item: -item[1])
     total_tokens = sum(tokens for _, tokens in per_file)

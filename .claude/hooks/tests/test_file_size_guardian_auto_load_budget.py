@@ -3,7 +3,7 @@
 涵蓋：
 - @ 引用解析（行首 / 行內 / 不存在路徑 graceful skip / email 與裝飾器排除）
 - 集合收集（CLAUDE.md + rules/core/*.md + @ 引用鏈遞迴一層、去重）
-- Token 估算（chars // 3）
+- Token 估算（int(chars / CHARS_PER_TOKEN)，係數引用 hook 常數，1.0.0-W7-006 校準為 1.3）
 - 預算內 / 超標兩路徑輸出斷言（含 top 3 體量檔與差值）
 - state 檔首次不存在的初始化路徑與後續差值計算
 - 失敗安全：量測異常時 stderr 警告 + 不阻擋（quality-baseline 規則 4 雙通道）
@@ -133,16 +133,18 @@ class TestCollectAutoLoadFiles:
 
 
 class TestMeasureAutoLoadBudget:
-    def test_token_estimation_chars_div_3(self, hook_mod, project_root):
-        # 固定內容驗證 chars // 3 估算
+    def test_token_estimation_uses_chars_per_token_constant(self, hook_mod, project_root):
+        # 固定內容驗證 int(chars / CHARS_PER_TOKEN) 估算（引用常數而非硬編碼係數）
         (project_root / "CLAUDE.md").write_text("x" * 300, encoding="utf-8")
         (project_root / ".claude" / "rules" / "core" / "rule-a.md").write_text(
             "y" * 90, encoding="utf-8"
         )
         total, per_file = hook_mod.measure_auto_load_budget(project_root)
-        assert total == 300 // 3 + 90 // 3
+        expected_claude_md = int(300 / hook_mod.CHARS_PER_TOKEN)
+        expected_rule_a = int(90 / hook_mod.CHARS_PER_TOKEN)
+        assert total == expected_claude_md + expected_rule_a
         # 由大到小排序
-        assert per_file[0] == ("CLAUDE.md", 100)
+        assert per_file[0] == ("CLAUDE.md", expected_claude_md)
 
     def test_empty_project_returns_zero(self, hook_mod, tmp_path):
         total, per_file = hook_mod.measure_auto_load_budget(tmp_path)
@@ -200,7 +202,7 @@ class TestBudgetReportOutput:
     def test_over_budget_warning_with_top_files(
         self, hook_mod, project_root, quiet_logger, capsys
     ):
-        # 寫入超過 45k tokens（> 135k chars）的內容
+        # 寫入超過 45k tokens（> 45k * CHARS_PER_TOKEN ≈ 58.5k chars）的內容
         (project_root / "CLAUDE.md").write_text("x" * 200_000, encoding="utf-8")
         hook_mod.report_auto_load_budget(project_root, quiet_logger)
         out = capsys.readouterr().out
