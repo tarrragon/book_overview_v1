@@ -26,9 +26,9 @@
 
 ## 執行步驟
 
-1. **受眾是誰**？（所有角色 / 僅 PM / 全體代理人 / 單一代理人 / 動作觸發者 / 僅本專案）→ 縮小候選載體
+1. **受眾是誰**？（所有角色 / 僅 PM / 全體代理人 / 單一代理人 / 動作觸發者 / 僅本專案）→ 縮小候選載體。「動作觸發者」統括地圖表受眾欄的按需情境詞（觸發者 / 主動查閱者 / 執行特定動作者 / 任務前查詢者）
 2. **形態是什麼**？（行為禁令 / 調度流程 / 身份偏好 / 工作流方法 / 理念清單 / 技術參考 / 失敗案例 / 專案設定）→ 確定載體
-3. 候選屬**自動載入層**（CLAUDE.md / rules/ / MEMORY.md）？→ 過預算閘門（「這是否每回合都需要？」）；規範類知識形態降為「禁令 + 路由」，專案設定 / 指令等事實類過閘門即可
+3. 候選屬**自動載入層**（CLAUDE.md / rules/ / MEMORY.md）？→ 過預算閘門；規範類知識的閘門是必要性否決（「這是否每回合都需要？」否則外移按需層）+ 形態降為「禁令 + 路由」，專案設定 / 指令等事實類的閘門是體積與專案特定性約束（精簡陳述、不含框架通用知識），不適用必要性否決
 4. skill / methodology / rule 三選一拿不準 → `framework-meta-methodology.md` 決策樹
 5. 寫完 grep 概念詞，盤點與既有規範的指令方向矛盾，並對齊執法強度（PC-V1-006）
 
@@ -66,6 +66,7 @@
 ---
 
 **Last Updated**: 2026-06-12
+**Version**: 1.4.0 — multi-round-review Round 4（實例分配演練）修正：步驟 1 補受眾詞彙映射橋（六選項 vs 地圖表受眾欄斷層）、步驟 3 事實類閘門判準明文化（體積與專案特定性約束，非必要性否決）。8 條盲跑 6 條乾淨落點，停止訊號達成收斂
 **Version**: 1.3.0 — multi-round-review Round 3 修正：Scope 句（LLM context 載體限定 + 機器讀取層另計 + memory 受眾軸唯一決定）、rules/core 列量測集合精確化（MEMORY.md 不在 guardian 集合）、規範表補「多方案技術知識庫」劃界列（與 framework-asset-separation §1 對齊）、地圖補 templates / root 遺留行、Reference 補 skill-design-guide
 **Version**: 1.2.0 — multi-round-review Round 2 修正：檢查清單與步驟 3/5 的 R1 劃界同步（清單漂移）、步驟 5 拆動作解歧義、地圖欄名補形態軸、定位句「（如有）」、Reference 補寫作 skill SSOT 例外路由
 **Version**: 1.1.0 — multi-round-review Round 1 修正：步驟 3 形態約束劃界（規範類 vs 事實類）、步驟 5 補執法強度對齊、章名對齊 methodology 標準結構、rules/core 列預算範圍精確化、agents 列改路由至專節
