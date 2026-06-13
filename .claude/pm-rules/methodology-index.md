@@ -78,10 +78,7 @@
 
 | 文件 | 用途 |
 |------|------|
-| layered-ticket-methodology.md | 分層 Ticket 方法論 |
-| layered-ticket-quick-start.md | 快速入門 |
-| layered-ticket-faq.md | FAQ |
-| layered-ticket-examples.md | 範例 |
+| layered-ticket-methodology.md | 分層 Ticket 方法論（五層架構、單層修改、粒度標準，30 秒核心） |
 | frontmatter-ticket-tracking-methodology.md | Frontmatter 追蹤 |
 | csv-ticket-tracking-methodology.md | CSV 追蹤（已棄用） |
 
