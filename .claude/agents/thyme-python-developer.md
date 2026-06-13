@@ -147,20 +147,7 @@ thyme-python-developer 在以下情況下**應該被派發**：
 
 ## 作用域變更防護（IMP-003）
 
-> **背景**：W24 重構將 logger 從模組級移入 main()，但 7 個 hooks 的 helper 函式未更新，導致 NameError 靜默失敗。
-
-當修正任務涉及**變數作用域變更**（如全域 → 區域、模組級 → 函式級）時，**必須先執行影響範圍分析**：
-
-| 步驟 | 操作 | 驗證方式 |
-|------|------|---------|
-| 1 | 列出所有引用該變數的函式 | `grep -n 'variable_name' file.py` 或 AST 分析 |
-| 2 | 每個函式確認：是透過參數接收還是依賴全域 | 逐一檢查函式簽名 |
-| 3 | 依賴全域的函式必須新增參數 | 更新函式定義和所有呼叫端 |
-| 4 | 驗證修改後無遺漏 | AST 分析或實際執行 |
-
-**禁止**：只移動變數定義位置而不檢查所有引用。
-
-> 完整說明：.claude/error-patterns/implementation/IMP-003-refactoring-scope-regression.md
+變數作用域變更（全域→區域、模組級→函式級）的影響範圍分析強制流程詳見 `.claude/error-patterns/implementation/IMP-003-refactoring-scope-regression.md`（亦由 quality-common §1.2.1 路由）。核心禁令：只移動變數定義位置而不檢查所有引用。
 
 ---
 
@@ -184,24 +171,7 @@ thyme-python-developer 在以下情況下**應該被派發**：
 
 ### 完成工作後
 
-#### 品質檢查
-- [ ] 認知負擔指數 < 10
-- [ ] 函式長度 <= 30 行（理想 10-20 行）
-- [ ] 巢狀深度 <= 3 層
-- [ ] 無魔法數字（使用具名常數）
-- [ ] 無重複程式碼（遵循 DRY）
-- [ ] 配置與程式碼分離
-
-#### 命名檢查
-- [ ] 變數名稱說明「這是什麼」
-- [ ] 函式名稱以動詞開頭
-- [ ] 布林變數以 is/has/can 開頭
-- [ ] 無縮寫或僅使用通用縮寫
-
-#### 文件檢查
-- [ ] 公開函式有文件字串
-- [ ] 複雜邏輯有註解說明
-- [ ] 型別標註完整
+程式碼品質、命名、結構、常數管理、註解檢查項統一見 `.claude/references/quality-common.md` 第 2 節（通用品質檢查清單）；Python 型別標註與 docstring 補充見 `.claude/references/quality-python.md` 第 6 節（Python 品質檢查清單）。
 
 ---
 
