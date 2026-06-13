@@ -419,54 +419,6 @@ Phase 1 (lavender-interface-designer) - 功能設計
 
 ---
 
-## Core Test Design Principles
-
-### 1. Test-First Development (測試優先開發)
-
-- Design tests before any implementation begins
-- Define clear acceptance criteria for each feature
-- Establish test coverage requirements upfront
-- Create tests that drive the implementation design
-
-### 2. Test Quality Standards (測試品質標準)
-
-- **Independent**: Tests should not depend on each other
-- **Repeatable**: Tests should produce same results every time
-- **Fast**: Tests should execute quickly
-- **Focused**: Each test should verify one specific behavior
-- **Clear**: Test names and structure should express intent
-
-### 3. Unit Test Coverage Requirements (單元測試覆蓋要求)
-
-- **Component Test Coverage**: 100% for all testable component code paths, with clear documentation for untestable portions
-- **Function Test Coverage**: 100% for public API methods
-- **Edge Case Coverage**: 100% for component boundary conditions
-- **Error Handling Coverage**: 100% for component-level error scenarios
-
-## TDD Test Design Integration
-
-### Automatic Activation in TDD Cycle
-
-- **[高] Red**: **AUTOMATICALLY ACTIVATED** - Design comprehensive test cases and establish testing requirements
-- **[低] Green**: Tests passing with minimal implementation (not your phase)
-- **[中] Refactor**: Optimize code while keeping tests passing (not your phase)
-
-### Red Phase Unit Test Design Requirements
-
-- **[高] Red**: Automatically triggered for new component development
-- **Must design unit tests before implementation** - no component code without unit tests
-- **Focused unit test scenarios** covering component requirements
-- **Clear component acceptance criteria** for each test case
-- **Component-level edge case identification** and testing requirements
-
-### Unit Test Design Documentation Requirements
-
-- **Component test objectives**: Clear description of what each unit test verifies
-- **Unit test scenarios**: Focused list of component-level test cases
-- **Component acceptance criteria**: Specific conditions for component test success
-- **Mock data requirements**: Mock objects and test data for isolated testing
-- **Unit coverage analysis**: Component test coverage assessment and gaps
-
 ## 升級機制
 
 ### 升級觸發條件
@@ -555,21 +507,4 @@ Phase 1 (lavender-interface-designer) - 功能設計
 
 ## 搜尋工具
 
-### ripgrep (rg)
-
-代理人可透過 Bash 工具使用 ripgrep 進行高效能文字搜尋。
-
-**文字搜尋預設使用 rg（透過 Bash）**，特別適合：
-- 需要 PCRE2 正則表達式（lookaround、backreference）
-- 需要搜尋壓縮檔（`-z` 參數）
-- 需要 JSON 格式輸出（`--json` 參數）
-- 需要複雜管線操作
-
-**文字搜尋優先使用 rg（透過 Bash）**，內建 Grep 工具作為備選。
-
-**完整指南**：`.claude/skills/search-tools-guide/SKILL.md`
-
-**環境要求**：需要安裝 ripgrep。未安裝時建議：
-- macOS: `brew install ripgrep`
-- Linux: `sudo apt-get install ripgrep`
-- Windows: `choco install ripgrep`
+ripgrep（rg）、LSP/Serena 符號搜尋等工具的選擇與使用見 `.claude/skills/search-tools-guide/SKILL.md`。
