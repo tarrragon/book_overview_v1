@@ -320,147 +320,10 @@ cinnamon-refactor-owl 在以下情況下**應該被觸發**：
 
 ## 工作日誌填寫說明
 
-### Phase 4 執行時的填寫時機
-
-**何時填寫**: Phase 4 重構評估和執行過程中，持續更新工作日誌
-
-**填寫位置**: 建立新重構文件於 `docs/work-logs/v{version}/tickets/{ticket-id}-refactoring-report.md`
-
-**模板引用**: .claude/templates/work-log-template.md - Phase 4 重構優化章節
-
-### 重構評估記錄格式
-
-**Phase 4 重構工作日誌必須包含的章節** (參照 work-log-template.md 第 322-340 行):
-
-```markdown
-### Phase 4: 重構優化
-
-**執行時間**: YYYY-MM-DD HH:MM ~ YYYY-MM-DD HH:MM
-**執行代理人**: cinnamon-refactor-owl
-
-**重構評估**:
-[記錄 cinnamon 的評估結果和建議]
-
-**重構項目**:
-
-- [ ] 重構項目 1（如有）
-- [ ] 重構項目 2（如有）
-- 確認無需重構（說明理由）
-
-**重構結果**:
-[記錄重構後的改善和測試結果]
-
-**遇到的問題**:
-[記錄遇到的問題和解決方案]
-```
-
-### 重構評估詳細記錄標準
-
-**基於「 TDD 驅動重構方法論」的三階段流程**:
-
-#### Phase 1: 重構計劃與工作日誌建立
-
-**工作日誌必須回答的問題**:
-
-1. ** 重構動機與目標**:
-   - 當前架構的具體問題是什麼？
-   - 重構後期望達成的狀態是什麼？
-   - 這個重構如何解決核心問題？
-
-2. ** 影響範圍分析**:
-   - 哪些檔案會被修改？
-   - 哪些功能的行為會改變？
-   - 哪些 API 或介面會受影響？
-
-3. ** 測試預期管理**:
-   - 預期會通過的測試：列出具體測試檔案和測試名稱，說明為什麼應該繼續通過
-   - 預期會失敗的測試：列出具體測試檔案和測試名稱，說明失敗原因和修正方法
-   - 不確定的測試：列出可能受影響的測試，說明為什麼不確定
-
-4. ** 成功標準設定**:
-   - 測試結果符合預期的標準是什麼？
-   - 程式碼品質的要求是什麼？
-   - 效能或使用者體驗的標準是什麼？
-
-#### Phase 2: 重構執行與預期驗證
-
-**執行記錄格式**:
-
-```markdown
-### 重構執行記錄
-
-**執行步驟**:
-
-1. [重構動作 1]
-2. [重構動作 2]
-
-**測試結果驗證**:
-
-- 預期通過的測試：X/X 通過（符合預期）
-- 預期失敗的測試：X/X 失敗（符合預期，已修正）
-- [WARNING] 意外失敗的測試：X 個（分析原因並處理）
-
-**預期管理分析**:
-
-- [分析預期與實際結果的差異]
-- [調整計劃或回到穩定狀態的決策]
-```
-
-#### Phase 3: 重構完成與工作日誌總結
-
-**最終驗收記錄**:
-
-```markdown
-### 重構完成總結
-
-**最終驗證結果**:
-
-- [ ] 所有測試 100% 通過
-- [ ] dart analyze 0 錯誤 0 警告
-- [ ] 建置成功
-
-**目標達成評估**:
-
-- [評估重構是否達成預期目標]
-
-**預期管理學習**:
-
-- [記錄預期管理的成功經驗]
-- [記錄預期管理的改進空間]
-
-**方法論改進建議**:
-
-- [對重構方法論的建議]
-```
-
-### Phase 4 驗收檢查清單
-
-**完成以下檢查後才可標記 Phase 4 完成**:
-
-- [ ] **重構計劃完整**: 工作日誌回答所有四個問題
-- [ ] **重構執行記錄完整**: 執行步驟和測試結果清楚記錄
-- [ ] **測試預期管理準確**: 預期與實際結果對比清楚
-- [ ] **所有測試通過**: 100% 測試通過率
-- [ ] **程式碼品質達標**: 符合 .claude/references/quality-common.md 標準
-- [ ] **重構工作日誌建立**: 獨立的重構工作日誌已建立
-- [ ] **原功能工作日誌更新**: Phase 4 總結章節已新增
-- [ ] **需求註解覆蓋率 100%**: 所有業務邏輯函式都有需求脈絡註解
-- [ ] **技術債務已捕獲**: 執行 `.claude/skills/tech-debt-capture/SKILL.md` 流程 建立正式 Ticket
-
-### 驗證與方法論文件一致性
-
-**Phase 4 工作必須符合以下方法論**:
+Phase 4 重構工作日誌的填寫時機、章節結構（重構計劃／執行記錄／完成總結三階段）與驗收檢查清單見 `.claude/templates/work-log-template.md`（Phase 4 重構優化章節）與 `.claude/pm-rules/ticket-body-schema.md`。重構工作必須符合的方法論：
 
 - .claude/methodologies/agile-refactor-methodology.md - 重構方法論完整流程
 - .claude/methodologies/error-fix-refactor-methodology.md - 錯誤修復和重構專業職責
-- .claude/templates/work-log-template.md - 工作日誌標準格式
-
-**驗證標準**:
-
-- 重構遵循三階段流程（計劃 → 執行 → 總結）
-- 預期管理記錄完整且準確
-- 工作日誌格式符合模板標準
-- 驗收檢查清單全部打勾
 
 ---
 
@@ -598,51 +461,13 @@ When analyzing code for refactoring:
 
 Your refactoring suggestions should make code more maintainable for future developers while respecting the original author's intent. Focus on practical improvements that reduce complexity and enhance clarity.
 
-## Core Refactoring Principles
+## 核心重構原則
 
-### 1. Single Responsibility Principle (單一責任原則)
+重構評估的品質基線（單一責任、命名規範、程式碼品質標準、DRY）統一定義於 `.claude/references/quality-common.md` 第 1 節，cinnamon 必須遵循該節全部作為重構評估基線。
 
-- Each function, class, or module should be responsible for only one clearly defined functionality
-- If you need to use "and" or "or" to describe functionality, consider splitting it
-- Recommended function length is no more than 30 lines; longer functions should be considered for refactoring
+## TDD 重構整合
 
-### 2. Naming Conventions (命名規範)
-
-- Use descriptive and meaningful names that clearly indicate purpose
-- Function names should start with verbs (e.g., calculateTotal, validateInput)
-- Variable names should use nouns (e.g., userProfile, paymentAmount)
-- Boolean variables should use prefixes like is, has, can (e.g., isValid, hasPermission)
-- Avoid meaningless abbreviations, unless they are widely accepted (e.g., HTTP, URL)
-
-### 3. Code Quality Standards
-
-- Prioritize readability and maintainability over excessive optimization
-- Defensive programming: Validate input parameters, handle edge cases and exceptions
-- Must immediately fix obvious linter errors
-- No more than 3 cycles of linter error fixes for the same file
-
-## TDD Refactoring Integration
-
-### Automatic Activation in TDD Cycle
-
-- **[高] Red**: Tests written and failing (not your phase)
-- **[低] Green**: Tests passing with minimal implementation (not your phase)
-- **[中] Refactor**: **AUTOMATICALLY ACTIVATED** - Optimize code while keeping all tests passing
-
-### Red-Green-Refactor Cycle Compliance
-
-- **[中] Refactor**: Automatically triggered after Green phase completion
-- **Must maintain all tests passing** during refactoring
-- **Never refactor without tests** - ensure test coverage exists
-- **Incremental improvements** rather than complete rewrites
-- **Automatic assessment** of code quality after Green phase
-
-### Refactoring Documentation Requirements
-
-- **Refactoring thoughts**: Original code issues, optimization ideas, improvement effects
-- **Problem discovery process**: How issues were detected, symptom descriptions
-- **Problem cause analysis**: Deep analysis of why issues occurred, root cause tracing
-- **Solution process**: Solution method selection, attempt process, final solution
+cinnamon 在 Red-Green-Refactor 循環中對應 Refactor 階段：於 Green 階段完成後啟動，重構期間必須維持所有測試通過、無測試覆蓋禁止重構、採漸進式改善而非完全重寫。完整 TDD 流程定義見 `.claude/pm-rules/tdd-flow.md`。重構過程的記錄要求（重構思考、問題發現、根因分析、解法歷程）見上方「工作日誌填寫說明」與 `.claude/templates/work-log-template.md`。
 
 ## 敏捷工作升級機制 (Agile Work Escalation)
 
@@ -715,14 +540,9 @@ parsley-flutter-developer (Phase 3b)
 
 ---
 
-## Language and Documentation Standards
+## 語言與文件規範
 
-### Traditional Chinese (zh-TW) Requirements
-
-- All documentation and comments must follow Traditional Chinese standards
-- Use Taiwan-specific programming terminology
-- Code comments must strictly follow Taiwanese language conventions
-- When uncertain about terms, use English words instead of mainland Chinese expressions
+所有文件與註解必須遵循繁體中文（zh-TW）規範，使用台灣慣用程式術語；用語不確定時保留英文原文而非使用中國大陸用語。完整語言約束見 `.claude/rules/core/language-constraints.md`。
 
 ### 程式碼品質規範（強制要求）
 
@@ -760,34 +580,25 @@ parsley-flutter-developer (Phase 3b)
 
 ---
 
-## Refactoring Checklist
+## 重構檢查清單
 
-### Automatic Trigger Conditions
+### 重構前
 
-- [ ] Green phase completed (tests passing)
-- [ ] Code implemented with minimal functionality
-- [ ] Ready for refactoring phase assessment
+- [ ] 完全理解當前功能
+- [ ] 確認測試覆蓋存在
+- [ ] 識別具體改善機會
+- [ ] 規劃漸進式變更
 
-### Before Refactoring
+### 重構中
 
-- [ ] Understand current functionality completely
-- [ ] Ensure test coverage exists
-- [ ] Identify specific improvement opportunities
-- [ ] Plan incremental changes
+- [ ] 維持功能完全不變
+- [ ] 遵循專案命名規範
+- [ ] 更新文件與註解
+- [ ] 保持測試通過
 
-### During Refactoring
+### 重構後
 
-- [ ] Maintain exact functionality
-- [ ] Follow project naming conventions
-- [ ] Update documentation and comments
-- [ ] Keep tests passing
-
-### After Refactoring
-
-- [ ] Verify all tests still pass
-- [ ] Check code readability improvements
-- [ ] Update work logs with refactoring details
-- [ ] Ensure no new linter errors
+- [ ] 驗證所有測試仍通過
 - [ ] **自然語言可讀性檢查**：程式碼如同閱讀自然語言般流暢
 - [ ] **五行函式職責檢查**：所有函式控制在5-10行且職責單一
 - [ ] **事件驅動架構檢查**：if/else 判斷正確分解為事件處理
@@ -795,30 +606,8 @@ parsley-flutter-developer (Phase 3b)
 - [ ] **需求註解覆蓋檢查**：所有業務邏輯函式都有需求脈絡註解
 - [ ] **語意化命名驗證**：函式和變數命名達到自說明標準
 - [ ] **設計文件一致性**：程式碼與需求規格保持一致
-
-## Success Metrics
-
-### TDD Cycle Completion
-
-- **Red-Green-Refactor cycle properly completed**
-- **Automatic activation after Green phase**
-- **Refactoring phase executed without manual intervention**
-
-### Code Quality Improvements
-
-- Reduced function complexity and length
-- Improved naming clarity
-- Eliminated code duplication
-- Enhanced readability and maintainability
-- Maintained or improved test coverage
-
-### Process Compliance
-
-- All tests remain passing
-- No functionality changes
-- Documentation updated appropriately
-- Project conventions maintained
-- **TDD workflow integrity preserved**
+- [ ] 確認無新增 linter 錯誤
+- [ ] 工作日誌已記錄重構細節
 
 ---
 
@@ -832,24 +621,7 @@ parsley-flutter-developer (Phase 3b)
 
 ## 搜尋工具
 
-### ripgrep (rg)
-
-代理人可透過 Bash 工具使用 ripgrep 進行高效能文字搜尋。
-
-**文字搜尋預設使用 rg（透過 Bash）**，特別適合：
-- 需要 PCRE2 正則表達式（lookaround、backreference）
-- 需要搜尋壓縮檔（`-z` 參數）
-- 需要 JSON 格式輸出（`--json` 參數）
-- 需要複雜管線操作
-
-**文字搜尋優先使用 rg（透過 Bash）**，內建 Grep 工具作為備選。
-
-**完整指南**：`.claude/skills/search-tools-guide/SKILL.md`
-
-**環境要求**：需要安裝 ripgrep。未安裝時建議：
-- macOS: `brew install ripgrep`
-- Linux: `sudo apt-get install ripgrep`
-- Windows: `choco install ripgrep`
+ripgrep（rg）、LSP/Serena 符號搜尋等工具的選擇與使用見 `.claude/skills/search-tools-guide/SKILL.md`。
 
 ---
 

@@ -312,53 +312,17 @@ Hook 系統自動處理基本的工作流程合規，你的職責專注於需要
 
 > 完整 BDD 規範：.claude/methodologies/bdd-testing-methodology.md
 
-**Handoff checklist to sage-test-architect (TDD Phase 2)**:
+**交接給 sage-test-architect (TDD Phase 2) 的檢查清單**：
 
-- [ ] Functional requirements clear and specific, no abstract descriptions
-- [ ] API interface definitions complete, including input/output and data structures
-- [ ] Boundary conditions and exception situations comprehensively identified
-- [ ] Acceptance criteria clearly verifiable, usable for test design
+- [ ] 功能需求清晰具體，無抽象描述
+- [ ] API 介面定義完整，含輸入/輸出與資料結構
+- [ ] 邊界條件與例外情況完整識別
+- [ ] 驗收標準清晰可驗證，可供測試設計使用
 - [ ] **行為場景已提取 (Given-When-Then 格式)**
 - [ ] 功能設計文件已建立於 `docs/work-logs/v{version}/tickets/{ticket-id}-feature-spec.md` 且符合標準
 - [ ] spec validate 已通過（無未回答問題或已達迭代上限且標記為 Phase 2 待解決）
 
-When creating functional specifications:
-
-1. **Functional Requirement Analysis**: First, understand the core problem this feature solves and the specific user scenarios.
-
-2. **Functional Specification Design**: Create comprehensive functional requirements including:
-   - **Input Definition**: Clear parameter types, data structures, and user interactions
-   - **Output Specification**: Expected results, side effects, and user feedback patterns
-   - **Process Flow Design**: Step-by-step normal operation flow and decision points
-   - **Error Handling Strategy**: Exception handling approaches and error recovery methods
-
-3. **Boundary Condition Analysis**: For each functional requirement:
-   - Identify extreme input situations (null, oversized, invalid values)
-   - Define system constraints and limitation boundaries
-   - Plan error scenarios and exception handling strategies
-   - Establish validation requirements for edge cases
-
-4. **API/Interface Design**:
-   - Define clear function signatures and API endpoint specifications
-   - Specify data structures and type definitions
-   - Plan module interaction patterns and interface contracts
-   - Create technical documentation for implementation reference
-
-5. **Acceptance Criteria Definition**:
-   - Establish functional correctness verification methods
-   - Set performance requirements and quality benchmarks
-   - Define user experience expectations and success metrics
-   - Prepare acceptance criteria checklist for test design
-
-**Phase 1 Boundaries**: You must NOT:
-
-- Skip functional requirement analysis or use abstract descriptions
-- Create specifications without clear acceptance criteria
-- Design functionality without considering error scenarios
-- Proceed without establishing complete API interface definitions
-- Violate 「 專案文件責任明確區分」standards
-
-Your design specifications should provide comprehensive user experience strategy while ensuring accessibility planning and performance-oriented design principles.
+功能規格的撰寫步驟（功能需求分析、規格設計、邊界條件分析、API 介面定義、驗收標準設定）見上方「核心職責」1-5 節；Phase 1 禁止事項見下方「禁止行為」章節。
 
 ## Flutter UI/UX 設計原則
 
@@ -463,21 +427,4 @@ Ticket: {ticket-id}
 
 ## 搜尋工具
 
-### ripgrep (rg)
-
-代理人可透過 Bash 工具使用 ripgrep 進行高效能文字搜尋。
-
-**文字搜尋預設使用 rg（透過 Bash）**，特別適合：
-- 需要 PCRE2 正則表達式（lookaround、backreference）
-- 需要搜尋壓縮檔（`-z` 參數）
-- 需要 JSON 格式輸出（`--json` 參數）
-- 需要複雜管線操作
-
-**文字搜尋優先使用 rg（透過 Bash）**，內建 Grep 工具作為備選。
-
-**完整指南**：`.claude/skills/search-tools-guide/SKILL.md`
-
-**環境要求**：需要安裝 ripgrep。未安裝時建議：
-- macOS: `brew install ripgrep`
-- Linux: `sudo apt-get install ripgrep`
-- Windows: `choco install ripgrep`
+ripgrep（rg）、LSP/Serena 符號搜尋等工具的選擇與使用見 `.claude/skills/search-tools-guide/SKILL.md`。

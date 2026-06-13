@@ -230,109 +230,7 @@ class DurationConstants {
 
 ## 工具權限與使用
 
-### Dart MCP 核心工具
-
-#### 開發循環工具
-```bash
-# 執行測試
-mcp__dart__run_tests
-  - 執行 Dart/Flutter 測試
-  - 提供 agent 友善的輸出格式
-  - 自動整合測試結果
-
-  [WARNING] 重要限制：
-  - 禁止不指定 paths 執行全部測試（會卡住 20+ 分鐘）
-  - 必須指定 paths 參數限制測試範圍
-  - 全量測試請改用 flutter test 或 test-summary.sh
-
-# Hot Reload（快速驗證變更）
-mcp__dart__hot_reload
-  - 即時套用程式碼變更
-  - 保持應用程式狀態
-  - 快速迭代開發
-
-# 取得 Runtime Errors
-mcp__dart__get_runtime_errors
-  - 捕獲即時執行錯誤
-  - 提供詳細的錯誤堆疊
-  - 協助快速除錯
-```
-
-#### 程式碼分析工具
-```bash
-# 分析檔案
-mcp__dart__analyze_files
-  - 完整的專案程式碼分析
-  - 識別語法和邏輯錯誤
-  - 提供修復建議
-
-# Hover 資訊
-mcp__dart__hover
-  - 取得符號的型別資訊
-  - 查看文件註解
-  - 理解 API 用法
-
-# Signature Help
-mcp__dart__signature_help
-  - 取得函式簽名資訊
-  - 理解參數需求
-  - 減少 API 誤用
-```
-
-#### Widget 開發工具
-```bash
-# 取得 Widget Tree
-mcp__dart__get_widget_tree
-  - 檢視完整的 Widget 結構
-  - 理解 UI 階層
-  - 診斷渲染問題
-
-# 取得選中的 Widget
-mcp__dart__get_selected_widget
-  - 檢視當前選中的 Widget
-  - 分析 Widget 屬性
-  - 除錯 UI 問題
-```
-
-#### 套件管理工具
-```bash
-# Pub 指令
-mcp__dart__pub
-  - add: 新增套件依賴
-  - get: 取得套件依賴
-  - upgrade: 升級套件版本
-  - remove: 移除套件依賴
-
-# 搜尋 pub.dev
-mcp__dart__pub_dev_search
-  - 搜尋可用的 Dart/Flutter 套件
-  - 查看套件描述和評分
-  - 選擇合適的第三方套件
-```
-
-### Serena 整合工具
-
-#### 符號查找與編輯
-```bash
-# 查找符號
-mcp__serena__find_symbol
-  - 精準定位類別、函式、變數
-  - 支援階層式查找
-  - 取得符號定義和位置
-
-# 替換符號內容
-mcp__serena__replace_symbol_body
-  - 替換整個函式或類別
-  - 保持程式碼結構
-  - 精準修改不影響其他部分
-
-# 插入程式碼
-mcp__serena__insert_after_symbol
-mcp__serena__insert_before_symbol
-  - 在特定位置插入程式碼
-  - 維持程式碼組織
-  - 支援階層式插入
-```
+Dart MCP（`mcp__dart__*`）與 Serena（`mcp__serena__*`）工具的完整指令清單與使用策略見 `.claude/skills/search-tools-guide/SKILL.md`。
 
 ## TDD Phase 3b 執行流程
 
@@ -512,50 +410,7 @@ mcp__dart__dart_format
 - [ ] **品質規範**：符合所有程式碼品質規範
 - [ ] **工作日誌**：Phase 3b 實作記錄完整
 
-**交接文件更新（工作日誌）**：
-```markdown
-## Phase 3b Flutter 實作執行記錄
-
-**實作時間**：[開始時間] - [結束時間]
-**執行代理人**：parsley-flutter-developer
-
-### Phase 3a → Phase 3b 策略轉換
-**接收內容**：
-- 虛擬碼：X 個函式/方法
-- 流程圖：Y 個關鍵流程
-- 架構決策：Z 個設計模式
-- 技術債務：W 個標記項目
-
-**轉換過程**：
-- 虛擬碼轉換為 Dart 語法
-- 通用類型對應到 Dart 強型別系統
-- 整合 Flutter SDK 和 Widget 系統
-- 應用專案程式碼品質規範
-
-### 實作成果
-- [功能A] 實作完成，測試通過
-- [功能B] 實作完成，測試通過
-- 所有測試執行結果：X/X 通過 (100%)
-
-### Dart MCP 工具使用記錄
-- `mcp__dart__run_tests`：執行 X 次
-- `mcp__dart__hot_reload`：使用 Y 次
-- `mcp__dart__get_runtime_errors`：修復 Z 個錯誤
-- `mcp__dart__analyze_files`：最終 0 issues
-
-### 程式碼品質確認
-- Dart Analyze：0 issues
-- Package 導入：100% 使用 `package:` 格式
-- 函式行數：平均 X 行（符合 5-10 行原則）
-- 需求註解：100% 覆蓋業務邏輯函式
-- 錯誤處理：100% 使用預編譯錯誤或專用異常
-
-### 技術債務記錄
-- 從 Phase 3a 接收：W 個標記項目
-- Phase 3b 新增：V 個技術限制項目
-
-**準備交接給 Phase 4 三步驟流程（4a 多視角分析 → 4b cinnamon 重構執行 → 4c 多視角再審核）**
-```
+**交接文件更新（工作日誌）**：Phase 3b 執行記錄章節格式見 `.claude/pm-rules/ticket-body-schema.md` 與 `.claude/templates/work-log-template.md`。完成後準備交接給 Phase 4 三步驟流程（4a 多視角分析 → 4b cinnamon 重構執行 → 4c 多視角再審核）。
 
 ## 允許產出
 
@@ -1194,24 +1049,7 @@ mcp__serena__replace_symbol_body
 
 ## 搜尋工具
 
-### ripgrep (rg)
-
-代理人可透過 Bash 工具使用 ripgrep 進行高效能文字搜尋。
-
-**文字搜尋預設使用 rg（透過 Bash）**，特別適合：
-- 需要 PCRE2 正則表達式（lookaround、backreference）
-- 需要搜尋壓縮檔（`-z` 參數）
-- 需要 JSON 格式輸出（`--json` 參數）
-- 需要複雜管線操作
-
-**文字搜尋優先使用 rg（透過 Bash）**，內建 Grep 工具作為備選。
-
-**完整指南**：`.claude/skills/search-tools-guide/SKILL.md`
-
-**環境要求**：需要安裝 ripgrep。未安裝時建議：
-- macOS: `brew install ripgrep`
-- Linux: `sudo apt-get install ripgrep`
-- Windows: `choco install ripgrep`
+ripgrep（rg）、LSP/Serena 符號搜尋等工具的選擇與使用見 `.claude/skills/search-tools-guide/SKILL.md`。
 
 ---
 
