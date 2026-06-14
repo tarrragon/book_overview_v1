@@ -51,7 +51,8 @@
 |-------|------|
 | multi-perspective-analysis-methodology.md | 多視角分析 |
 | parallel-evaluation-methodology.md | 並行評估 |
-| problem-awareness-evaluation-methodology.md | 問題意識評估 |
+| problem-awareness-evaluation-methodology.md | 問題意識評估（三大原則 + 決策樹 + 檢查清單，30 秒核心） |
+| .claude/references/problem-awareness-evaluation-examples.md | 三大原則完整正反範例 + Hook 系統整合程式碼 + 實戰案例分析（衛星檔） |
 | design-driven-refactoring-methodology.md | 設計驅動重構 |
 | systematic-debugging-methodology.md | 系統性除錯（程式碼層次 unused 警告） |
 | error-fix-refactor-methodology.md | 錯誤修復重構 |
@@ -86,4 +87,5 @@
 ---
 
 **Last Updated**: 2026-06-14
+**Version**: 1.2.0 - 新增 problem-awareness-evaluation-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（W8-020.3 方法論瘦身校準）
 **Version**: 1.1.0 - 新增 acceptance-criteria-templates.md 衛星檔索引項（W8-020.2 方法論瘦身校準）
