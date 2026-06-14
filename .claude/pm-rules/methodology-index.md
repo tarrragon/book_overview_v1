@@ -24,7 +24,8 @@
 |-------|------|
 | natural-language-programming-methodology.md | 命名方法論 |
 | .claude/skills/compositional-writing/references/writing-code-comments.md | 註解方法論 |
-| package-import-methodology.md | 導入路徑方法論 |
+| package-import-methodology.md | 導入路徑方法論（5 原則 + 開發階段檢查清單，30 秒核心） |
+| .claude/references/package-import-language-mechanisms.md | 各語言語意化導入機制 + 跨語言程式碼範例 + Linter/自動化工具配置（衛星檔） |
 | code-smell-quality-gate-methodology.md | 程式碼壞味道檢測 |
 | clean-architecture-implementation-methodology.md | Clean Architecture 實作 |
 | layered-architecture-quality-checking.md | 分層架構品質檢查 |
@@ -96,6 +97,7 @@
 ---
 
 **Last Updated**: 2026-06-14
+**Version**: 1.7.0 - 補列 package-import-language-mechanisms.md 衛星檔索引項 + 主檔用途補「30 秒核心」（程式碼品質節，W8-020.1 衛星檔原未入索引，W8-020.12 campaign 收尾 gate 補齊）
 **Version**: 1.6.0 - 新增 five-document-system-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（核心方法論節，W8-020.11 方法論瘦身校準）
 **Version**: 1.5.0 - 新增 business-layer-i18n-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（i18n 與業務節，W8-020.10 方法論瘦身校準）
 **Version**: 1.4.0 - 新增 personalized-consultation-methodology.md 主檔 + personalized-consultation-examples.md 衛星檔索引項（分析與決策節，原未列入索引）（W8-020.9 方法論瘦身校準）
