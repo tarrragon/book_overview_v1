@@ -285,7 +285,7 @@ npm run lint | grep "🚨" && exit 1 || echo "錯誤處理規範檢查通過"
 
 - [專案錯誤處理標準化方案](../domains/03-reference/archive/architecture/error-handling-standardization-plan.md)
 - [StandardError 使用指引](../../../src/core/errors/README.md) (待建立)
-- [TDD 協作開發流程](./tdd-collaboration-flow.md)
+- [TDD 協作開發流程](./methodologies/tdd-collaboration-flow.md)
 - [CLAUDE.md 主規範](../../CLAUDE.md)
 
 ---

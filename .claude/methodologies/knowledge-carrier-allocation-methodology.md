@@ -23,6 +23,10 @@
 | `error-patterns/` | ticket 前查詢者 | 按需 | 失敗案例（症狀 / 根因 / 解法 / 預防） | 規則正文（規則只放一行路由指向 PC/IMP） |
 | memory（專案層） | 本專案 PM | MEMORY.md 每回合 | 專案特定活教訓的單行索引 | 已固化內容（升級即搬家）、跨專案原則（四問升級後外移） |
 | `templates/`、`.claude/` root 歷史遺留檔 | （未分類） | 不自動載入 | — | 依本地圖二軸重分配（templates 內容須與對應規範同步，否則新實例從模板長出舊形態）；盤點另由 ticket 追蹤 |
+| `.claude/README.md` | 框架瀏覽者 | 不自動載入 | 框架頂層導覽：目錄結構、各載體用途、入口索引 | 規範 substance（→ rules / references）、流程方法（→ skills） |
+| `.claude/CHANGELOG.md` | 框架維護者 | 不自動載入 | 框架變更記錄（sync 歷史、版本演進） | 當前規範內容（→ 對應載體；CHANGELOG 只記「變了什麼」不記「規範是什麼」） |
+| `.claude/README-subtree-sync.md` | 執行 sync-pull / sync-push 者 | 不自動載入 | 同步機制操作說明：設計原理、方案比較、衝突處理 | 同步以外的框架知識（→ 對應載體） |
+| `.claude/terminology-dictionary.md` | 所有角色（撰寫文字時） | 經 `.claude/rules/core/language-constraints.md` 的 `@` 引用實質載入 | 用語規範對照表：禁用詞 / 正確用語 / 台灣用語 | 語言規則正文（→ `.claude/rules/core/language-constraints.md`，本檔僅承載對照資料） |
 
 ## 執行步驟
 
@@ -65,7 +69,8 @@
 
 ---
 
-**Last Updated**: 2026-06-12
+**Last Updated**: 2026-06-14
+**Version**: 1.5.0 — 載體地圖補列 4 個 legit root 資產各一行歸屬（README 框架導覽 / CHANGELOG 變更記錄 / README-subtree-sync 同步機制 / terminology-dictionary 用語規範表，後者經 language-constraints `@` 引用實質載入）（1.0.0-W8-022）
 **Version**: 1.4.0 — multi-round-review Round 4（實例分配演練）修正：步驟 1 補受眾詞彙映射橋（六選項 vs 地圖表受眾欄斷層）、步驟 3 事實類閘門判準明文化（體積與專案特定性約束，非必要性否決）。8 條盲跑 6 條乾淨落點，停止訊號達成收斂
 **Version**: 1.3.0 — multi-round-review Round 3 修正：Scope 句（LLM context 載體限定 + 機器讀取層另計 + memory 受眾軸唯一決定）、rules/core 列量測集合精確化（MEMORY.md 不在 guardian 集合）、規範表補「多方案技術知識庫」劃界列（與 framework-asset-separation §1 對齊）、地圖補 templates / root 遺留行、Reference 補 skill-design-guide
 **Version**: 1.2.0 — multi-round-review Round 2 修正：檢查清單與步驟 3/5 的 R1 劃界同步（清單漂移）、步驟 5 拆動作解歧義、地圖欄名補形態軸、定位句「（如有）」、Reference 補寫作 skill SSOT 例外路由

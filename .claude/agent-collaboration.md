@@ -474,7 +474,7 @@ cinnamon-refactor-owl必須按照「🧠 TDD 驅動重構方法論」執行：
 
 ## 🔄 Agent與TDD流程整合
 
-**TDD流程執行方式**: Agent 嚴格按照 [🤝 TDD 協作開發流程](tdd-collaboration-flow.md) 章節定義的四個階段執行，每個 Agent 對應一個 TDD Phase。
+**TDD流程執行方式**: Agent 嚴格按照 [TDD 協作開發流程](./methodologies/tdd-collaboration-flow.md) 章節定義的四個階段執行，每個 Agent 對應一個 TDD Phase。
 
 **Agent 與 TDD Phase 對應關係**:
 
@@ -592,7 +592,7 @@ cinnamon-refactor-owl必須按照「🧠 TDD 驅動重構方法論」執行：
 
 ### Agent協作品質驗證
 
-**品質檢查標準**: 參考 [🤝 TDD 協作開發流程](tdd-collaboration-flow.md) 章節的「完整協作檢查清單」和 [📚 專案文件責任明確區分](../guidelines/document-responsibilities.md) 章節的品質標準。
+**品質檢查標準**: 參考 [TDD 協作開發流程](./methodologies/tdd-collaboration-flow.md) 章節的「完整協作檢查清單」和 [專案文件責任明確區分](../guidelines/document-responsibilities.md) 章節的品質標準。
 
 ## 🔍 專家審查標準格式與輸出要求
 
@@ -788,7 +788,7 @@ cinnamon-refactor-owl必須按照「🧠 TDD 驅動重構方法論」執行：
 **🔗 相關文件連結**:
 
 - [返回主指導文件](../../CLAUDE.md)
-- [TDD 協作開發流程](tdd-collaboration-flow.md)
+- [TDD 協作開發流程](./methodologies/tdd-collaboration-flow.md)
 - [錯誤修復和重構方法論]($CLAUDE_PROJECT_DIR/.claude/methodologies/error-fix-refactor-methodology.md)
 - [專案文件責任明確區分](../guidelines/document-responsibilities.md)
 - [事件驅動架構規範](../architecture/event-driven-architecture.md)

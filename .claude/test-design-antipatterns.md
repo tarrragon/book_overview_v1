@@ -282,7 +282,7 @@ test('each item should process according to its validity', async () => {
 ## 📚 延伸閱讀
 
 - [CLAUDE.md - 測試設計哲學強制原則](../CLAUDE.md#-測試設計哲學強制原則)
-- [TDD 協作開發流程](./tdd-collaboration-flow.md)
+- [TDD 協作開發流程](./methodologies/tdd-collaboration-flow.md)
 - [程式碼品質範例彙編](./code-quality-examples.md)
 
 ---
