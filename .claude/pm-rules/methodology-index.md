@@ -50,8 +50,8 @@
 
 | 方法論 | 用途 |
 |-------|------|
-| multi-perspective-analysis-methodology.md | 多視角分析 |
-| parallel-evaluation-methodology.md | 並行評估 |
+| parallel-evaluation-methodology.md | 並行評估 + 多視角分析（含視角分工、衝突處理策略、分析任務並行差異） |
+| .claude/references/multi-perspective-report-templates.md | 多視角分析完整報告模板（單一視角報告 + 彙整報告，衛星檔） |
 | problem-awareness-evaluation-methodology.md | 問題意識評估（三大原則 + 決策樹 + 檢查清單，30 秒核心） |
 | .claude/references/problem-awareness-evaluation-examples.md | 三大原則完整正反範例 + Hook 系統整合程式碼 + 實戰案例分析（衛星檔） |
 | design-driven-refactoring-methodology.md | 設計驅動重構 |
