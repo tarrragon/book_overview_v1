@@ -63,7 +63,9 @@
 
 | 方法論 | 用途 |
 |-------|------|
-| hook-system-methodology.md | Hook 設計 |
+| hook-system-methodology.md | Hook 設計（系統架構 + 六大設計原則 + 階段平衡 + 生命週期與降級，30 秒核心） |
+| .claude/references/hook-system-operations.md | Hook per-hook 程式碼詳解 + 模組化開發規範 + 跨平台部署 + 完整決策樹 + 反模式（衛星檔） |
+| .claude/references/hook-system-downgrade-tracking.md | 8 Hook 降級觀察追蹤表 + Rollback 觸發條件 + 快速恢復 SOP + 觀察期評估結果（衛星檔） |
 | lsp-first-development-methodology.md | LSP 優先開發 |
 | migration-methodology.md | 遷移策略 |
 | instant-review-mechanism-methodology.md | 即時審查機制 |

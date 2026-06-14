@@ -154,7 +154,7 @@ Skill 是預建的專用工具，優先於代理人派發。
 | 反思迴路偵測（session ANA ≥ 3 / 鏈深度 ≥ 3 / 耗時 > 4 hr） | reflection-termination.md | 強制 AUQ 詢問終止，防止反思無限循環（W15-010 Layer 3） |
 | Proposal 建立 / 狀態變更 | proposal-evaluation-gate.md | docs/proposals/ 新建或修改 confirmed/approved 狀態時的強制分級與評估 |
 | 書面文字品質審查（強制：情境 C/D/F/G） | parallel-evaluation SKILL + basil-writing-critic | 規則/Skill/方法論變更後、分析報告（ANA Solution）產出後、Phase 1 功能規格產出後、Ticket body 完成後：自動加入 basil-writing-critic 委員（與 linux 並列常駐）；觸發條件對照 `.claude/agents/basil-writing-critic.md`「適用情境」章節 |
-| Hook 設計 / 盤點 / 降級 | hook-stage-balance-methodology.md | 新增 Hook、既有 Hook 盤點、降級評估時的階段平衡設計原則 |
+| Hook 設計 / 盤點 / 降級 | hook-system-methodology.md「Hook 階段平衡」「Hook 生命週期與降級觀察」章節 | 新增 Hook、既有 Hook 盤點、降級評估時的階段平衡設計原則（追蹤表與 Rollback SOP 見 `.claude/references/hook-system-downgrade-tracking.md`） |
 | 問題類型訊息 | question-routing.md | 查詢、諮詢、進度 |
 | 命令類型訊息 | command-routing.md | 開發、修改、TDD 階段 |
 | 錯誤/失敗 | incident-routing.md | 事件回應（含 WRAP 強制） |
