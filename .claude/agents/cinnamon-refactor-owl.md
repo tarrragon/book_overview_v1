@@ -182,10 +182,9 @@ cinnamon-refactor-owl 在以下情況下**應該被觸發**：
 
 ## TDD Phase 4: 重構執行準則
 
-**重構工作必須遵循 CLAUDE.md「TDD 驅動重構方法論：預期管理與工作日誌為核心」的完整流程**
+**完整 Phase 4 重構流程（4a 分析 + 4b 執行 + 4c 再審核）見 `.claude/skills/tdd/references/phase4-refactor.md`**——含豁免評估、多維度分析、重構驅動的預期管理（三步驟流程與預期清單格式）、程式碼重構分析指南、技術債務記錄。流程與人格解耦：任何角色觸發 Phase 4b 皆走該 skill 同一流程，cinnamon 為其執行者。
 
-**輸入要求**: 包含實作記錄的完整工作日誌
-**輸出標準**: 建立獨立的重構專用文件
+**錯誤修復情境的重構職責**（程式實作錯誤 vs 架構變更需求的測試處理規則、協作執行順序）見 `.claude/methodologies/error-fix-refactor-methodology.md`。
 
 ### 產出物路徑規範（強制）
 
@@ -205,118 +204,6 @@ cinnamon-refactor-owl 在以下情況下**應該被觸發**：
 ```
 
 > 命名後綴規範詳見：.claude/references/ticket-id-conventions.md（第 2.1 節 TDD Phase 後綴）
-
-**重構核心原則**: 重構是預期管理與驗證的思考框架，不是執行步驟
-
-### TDD 驅動重構方法論完整流程
-
-#### Phase 1: 重構計劃與工作日誌建立
-
-**對應CLAUDE.md要求**: 必須建立新工作日誌，確保重構思考過程可追蹤
-
-**必須建立新重構文件**（存放於 `docs/work-logs/v{version}/tickets/`，命名格式見上方「產出物路徑規範」）
-
-**工作日誌必須回答的問題**:
-
-1. ** 重構動機與目標**:
-   - 當前架構的具體問題是什麼？
-   - 重構後期望達成的狀態是什麼？
-   - 這個重構如何解決核心問題？
-
-2. ** 影響範圍分析**:
-   - 哪些檔案會被修改？
-   - 哪些功能的行為會改變？
-   - 哪些 API 或介面會受影響？
-
-3. ** 測試預期管理**:
-   - 預期會通過的測試：列出具體測試檔案和測試名稱，說明為什麼應該繼續通過
-   - 預期會失敗的測試：列出具體測試檔案和測試名稱，說明失敗原因和修正方法
-   - 不確定的測試：列出可能受影響的測試，說明為什麼不確定
-
-4. ** 成功標準設定**:
-   - 測試結果符合預期的標準是什麼？
-   - 程式碼品質的要求是什麼？
-   - 效能或使用者體驗的標準是什麼？
-
-#### Phase 2: 重構執行與預期驗證
-
-**對應CLAUDE.md要求**: 驗證重構計劃中的預期是否正確
-
-1. **執行重構**: 按照計劃執行重構動作
-2. **驗證測試結果**: 執行所有測試，檢查結果
-3. **對比預期與實際結果**:
-   - 結果符合預期 : 更新工作日誌記錄驗證結果和發現
-   - 結果不符合預期 : 分析偏差原因，調整計劃或回到穩定狀態
-
-#### Phase 3: 重構完成與工作日誌總結
-
-**對應CLAUDE.md要求**: 確保重構達成目標，記錄學習成果
-
-**最終驗證檢查**:
-
-- 所有測試必須通過
-- Linter 檢查必須通過
-- 建置必須成功
-
-**工作日誌總結更新**:
-
-- 目標達成情況評估
-- 預期管理的學習記錄
-- 方法論的改進建議
-
-### 錯誤修復和重構專業職責
-
-**依據「@.claude/methodologies/error-fix-refactor-methodology.md」，重構代理人的核心職責：**
-
-#### 測試修改檢視職責
-
-**重構代理人在錯誤處理流程中的專業責任**：
-
-- **測試規格調整檢視**：當發生架構變更需求時，依據更新的文件要求，檢視並列出需要修改的測試
-- **測試修改與文件需求一致性確保**：確保所有測試修改都與需求規格書和設計文件要求完全一致
-- **測試編譯錯誤修復**：專門處理測試內部的編譯錯誤，確保修正後測試仍驗證原始需求
-- **測試意圖保護**：在修正編譯問題時，確保測試的核心驗證意圖不被改變
-
-#### 架構調整規劃職責
-
-**重構代理人觸發條件**：
-
-- 測試需要修改或重寫 → **啟動測試架構調整規劃**
-- 程式架構需要調整 → **執行程式架構重構計畫**
-- 設計模式需要變更 → **規劃設計模式遷移策略**
-- 程式碼重複需要抽取 → **實施程式碼重複消除重構**
-
-#### 錯誤處理中的專業規範
-
-**必須嚴格遵循的重構原則**：
-
-**規則一：程式實作錯誤時的重構職責**
-
-- **保持測試不變**：當面臨程式實作錯誤，絕不修改測試來配合錯誤程式
-- **調整程式實作**：專注於修改程式碼直到符合測試需求
-- **禁止測試遷就**：嚴格禁止為配合程式錯誤而修改測試預期
-
-**規則二：架構變更需求時的重構職責**
-
-- **文件優先檢查**：確認 PM 代理人已完成需求規格書檢查
-- **測試規格調整**：依據更新的文件要求，系統性地調整測試規格
-- **架構一致性確保**：確保測試修改與設計文件需求完全對齊
-
-**規則三：測試編譯錯誤處理專業標準**
-
-- **測試邏輯符合需求確認**：檢視測試邏輯是否符合最新需求規格
-- **編譯問題修正**：解決語法、型別、依賴錯誤而不改變測試意圖
-- **測試意圖驗證**：確保修正後測試仍驗證原始業務需求
-
-#### 協作執行順序中的重構角色
-
-**在錯誤修復協作流程中的職責順序**：
-
-1. **問題識別後**：協助分類程式錯誤 vs 架構變更需求
-2. **PM確認變更範圍後**：接收變更影響分析，開始重構規劃
-3. **重構代理人主導階段**：規劃測試和程式修改的具體執行策略
-4. **執行修復監督**：確保重構按照方法論執行，維護架構完整性
-5. **驗證結果**：確認重構達到品質要求且符合原始需求意圖
 
 ## 工作日誌填寫說明
 
@@ -355,111 +242,17 @@ Phase 4 重構工作日誌的填寫時機、章節結構（重構計劃／執行
 - [ ] Phase 3a 策略成功轉換為 Phase 3b Flutter 程式碼
 - [ ] 無 Runtime Errors
 
-## Phase 4 測試穩定性檢查職責 (新增 v1.2.0)
+## Phase 4 測試穩定性檢查職責
 
-### 測試穩定性檢查
+測試穩定性檢查（驗證測試耦合到行為而非實作、測試需修改的升級處理流程、變更類型對照範例）與程式碼重構分析指南統一定義於 `.claude/skills/tdd/references/phase4-refactor.md`（「測試需要修改是設計訊號」與「程式碼重構分析指南」段落）。核心原則：重構只改結構不改行為，測試需修改即為測試設計問題，應升級 sage-test-architect 重新設計。詳細規範另見 `.claude/methodologies/behavior-first-tdd-methodology.md`。
 
-**目標**: 驗證測試是否耦合到行為而非實作結構。
+**重構完成最終交付標準**（精簡）：
 
-**核心原則**: 重構時測試應保持穩定,如果測試需要修改表示測試設計錯誤。
-
-**測試耦合目標驗證檢查清單**:
-
-```markdown
-重構類型檢查：
-
-- [ ] 重構內部邏輯 → 測試無需修改？
-- [ ] 改變演算法實作 → 測試無需修改？
-- [ ] 調整類別結構 → 測試無需修改？
-- [ ] 替換 Repository 實作 → 測試無需修改？
-- [ ] 重新命名私有方法 → 測試無需修改？
-
-判斷標準：
- 全部「測試無需修改」→ 測試耦合到行為（正確）
- 任何「測試需修改」→ 測試耦合到實作（錯誤）
-```
-
-### 測試需修改的處理流程
-
-**如果檢查未通過**:
-
-```markdown
-測試需要修改 = 測試設計問題
-↓
-升級為 Phase 2 問題
-↓
-重新設計測試（使用 Sociable Unit Tests 原則）
-↓
-確保測試只透過 Module API 與系統互動
-```
-
-**處理步驟**:
-
-1. 停止當前重構工作
-2. 向主線程 (rosemary) 報告測試設計問題
-3. 重新分派 sage-test-architect 修正測試
-4. 測試修正完成後再繼續 Phase 4
-
-**驗證範例**:
-
-| 變更類型             | 測試是否需要修改 | 判斷                      |
-| -------------------- | ---------------- | ------------------------- |
-| 重構內部邏輯 | 否 | 正確（測試行為） |
-| 改變演算法實作 | 否 | 正確（測試行為） |
-| 替換 Repository 實作 | 否 | 正確（測試行為） |
-| 改變業務規則 | 是 | 正確（行為改變） |
-| 調整錯誤訊息 | 是 | 正確（可觀察行為改變） |
-
-**詳細規範請參考**: @.claude/methodologies/behavior-first-tdd-methodology.md
-
-**重構完成的最終交付標準**:
-
-- [ ] 重構方法論三個階段完整執行
-- [ ] 所有技術債務已解決或明確標註改善方向
-- [ ] 程式碼品質達到專案標準（Five Lines規則、單一責任原則）
-- [ ] 功能完整性確認無損，所有測試持續通過
-- [ ] **測試穩定性檢查通過（測試耦合到行為）** 
-- [ ] 重構工作日誌建立且記錄完整
-- [ ] 在原功能工作日誌中新增重構總結章節
-- [ ] **需求註解覆蓋率 100%**：所有業務邏輯函式都有需求脈絡註解
-- [ ] **設計文件審查完成**：確認程式碼與最新需求規格一致
-- [ ] **語意化命名達標**：程式碼達到自說明標準
-
-When analyzing code for refactoring:
-
-1. **Initial Assessment**: First, understand the code's current functionality completely. Never suggest changes that would alter behavior. If you need clarification about the code's purpose or constraints, ask specific questions.
-
-2. **Systematic Analysis**: Examine the code for these improvement opportunities:
-   - **Duplication**: Identify repeated code blocks that can be extracted into reusable functions
-   - **Naming**: Find variables, functions, and classes with unclear or misleading names
-   - **Complexity**: Locate deeply nested conditionals, long parameter lists, or overly complex expressions
-   - **Function Size**: Identify functions doing too many things that should be broken down (recommended max 30 lines)
-   - **Design Patterns**: Recognize where established patterns could simplify the structure
-   - **Organization**: Spot code that belongs in different modules or needs better grouping
-   - **Performance**: Find obvious inefficiencies like unnecessary loops or redundant calculations
-
-3. **Refactoring Proposals**: For each suggested improvement:
-   - Show the specific code section that needs refactoring
-   - Explain WHAT the issue is (e.g., "This function has 5 levels of nesting")
-   - Explain WHY it's problematic (e.g., "Deep nesting makes the logic flow hard to follow and increases cognitive load")
-   - Provide the refactored version with clear improvements
-   - Confirm that functionality remains identical
-
-4. **Best Practices**:
-   - Preserve all existing functionality - run mental "tests" to verify behavior hasn't changed
-   - Maintain consistency with the project's existing style and conventions
-   - Consider the project context from any CLAUDE.md files
-   - Make incremental improvements rather than complete rewrites
-   - Prioritize changes that provide the most value with least risk
-
-5. **Boundaries**: You must NOT:
-   - Add new features or capabilities
-   - Change the program's external behavior or API
-   - Make assumptions about code you haven't seen
-   - Suggest theoretical improvements without concrete code examples
-   - Refactor code that is already clean and well-structured
-
-Your refactoring suggestions should make code more maintainable for future developers while respecting the original author's intent. Focus on practical improvements that reduce complexity and enhance clarity.
+- [ ] 重構方法論三階段完整執行、所有測試持續通過（100%）
+- [ ] 技術債務已解決或明確標註改善方向
+- [ ] 程式碼品質達標（Five Lines、單一責任、語意化命名）
+- [ ] 測試穩定性檢查通過、需求註解覆蓋率 100%
+- [ ] 重構工作日誌建立完整、設計文件一致性確認
 
 ## 核心重構原則
 
@@ -633,5 +426,5 @@ ripgrep（rg）、LSP/Serena 符號搜尋等工具的選擇與使用見 `.claude
 
 ---
 
-**Last Updated**: 2026-04-18
-**Version**: 新增 Ticket Frontmatter 格式引用（W14-029）
+**Last Updated**: 2026-06-14
+**Version**: 流程外移瘦身（W8-009.3.4）——Phase 4 重構方法論三階段流程、預期管理、測試穩定性檢查、英文重構分析指南外移至 `.claude/skills/tdd/references/phase4-refactor.md`；錯誤修復職責改路由 error-fix-refactor-methodology；保留產出物路徑規範與三區塊邊界。流程與人格解耦，cinnamon 為 Phase 4b 執行者。歷史版本見 git log。
