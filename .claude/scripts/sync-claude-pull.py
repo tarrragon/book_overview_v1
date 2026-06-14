@@ -1104,6 +1104,34 @@ def warn_conflict_residue(claude_dir: Path) -> list[str]:
     return residue
 
 
+def warn_upstream_deleted_residue(residue: list[str]) -> None:
+    """pull 結尾通報「上游已刪除但本地分歧而保留」之檔（缺口 1，W8-037）。
+
+    背景：上游 delta 標記某框架檔為刪除，但本地已修改過該檔，three_way_merge_file
+    保留本地（conflict=False），不進 .sync-conflicts/，pull 原本完全無通報——客製過
+    框架檔後被上游刪除的孤兒於是靜默殘留。此處於 pull 結尾把這些案例列出（stdout
+    可見），鏡像 warn_conflict_residue 模式。
+
+    措辭刻意非阻擋（W8-037 Premortem R1）：保留的檔可能是應清理的孤兒，也可能是
+    刻意客製，腳本無法自動判別，故僅提醒不自動刪、不阻擋、不視為失敗。
+
+    參數:
+        residue: apply_upstream_delta 回傳的上游已刪保留檔清單（相對 .claude/）
+    """
+    if not residue:
+        return
+    print_color(
+        f"提醒: {len(residue)} 個檔案上游已刪除，但本地版本已修改而保留:",
+        "yellow",
+    )
+    for rel in sorted(residue):
+        print_color(f"   ! {rel}")
+    print_color(
+        "   若為應清理的孤兒請手動移除；若為刻意客製可忽略此提醒。",
+        "yellow",
+    )
+
+
 def _rel_under_claude(repo_rel_path: str) -> str | None:
     """將上游 repo root 相對路徑轉為 .claude/ 內相對路徑。
 
@@ -1326,7 +1354,7 @@ def apply_upstream_delta(
     temp_dir: Path,
     base_sha: str,
     preserve: set[str] | None = None,
-) -> tuple[int, list[str]]:
+) -> tuple[int, list[str], list[str]]:
     """以三方合併方式套用上游 delta，原子置換只搬 delta 涉及的檔案（H2）。
 
     流程：
@@ -1344,7 +1372,15 @@ def apply_upstream_delta(
         preserve: sync-preserve.yaml 的 preserve 清單（相對 .claude/）
 
     傳回:
-        tuple[int, list[str]]: (套用成功檔數, 衝突檔清單)
+        tuple[int, list[str], list[str]]: (套用成功檔數, 衝突檔清單,
+            上游已刪除但本地分歧而保留之檔清單)
+
+    上游刪除但本地分歧保留（缺口 1，W8-037）：
+        上游 delta 標記某檔為 D（刪除），但本地已修改過該檔（local != base），
+        three_way_merge_file 回 (local_content, False)——保留本地、不視為衝突、
+        不進 .sync-conflicts/。此路徑使「客製過框架檔後被上游刪除」的孤兒靜默殘留，
+        pull 無任何通報。此處收集這些案例於第三個回傳值，由呼叫端 pull 結尾通報，
+        鏡像 W1-084 .sync-conflicts 殘留警告模式（非阻擋、非自動刪，僅提醒人工判斷）。
     """
     if preserve is None:
         preserve = set()
@@ -1354,6 +1390,8 @@ def apply_upstream_delta(
 
     applied = 0
     conflicts: list[str] = []
+    # 上游已刪除但本地分歧而保留（缺口 1，W8-037）：靜默殘留候選清單
+    upstream_deleted_residue: list[str] = []
     # 回滾記錄：(目標路徑, 備份路徑 or None 表原本不存在)
     rollback_log: list[tuple[Path, Path | None]] = []
     # PC 撞號偵測索引（瑕疵 D）：合併前一次性掃描本地 error-patterns。
@@ -1452,6 +1490,13 @@ def apply_upstream_delta(
                     applied += 1
                 continue
 
+            # 缺口 1（W8-037）：上游刪除（status==D → upstream_path is None）但本地
+            # 分歧而保留——three_way_merge_file 回 (local_content, False)，merged 即
+            # 本地原內容。收集為靜默殘留候選，於 pull 結尾通報供人工判斷孤兒/客製。
+            # 排除 local_deleted（本地已刪走 merged is None 路徑）與本地未改（已跟刪）。
+            if status == "D" and not local_deleted:
+                upstream_deleted_residue.append(claude_rel)
+
             # 原子套用：staging → os.replace
             _atomic_write(local_file, merged, rollback_log)
             applied += 1
@@ -1463,7 +1508,7 @@ def apply_upstream_delta(
         sys.stderr.write(f"apply_upstream_delta 失敗已回滾: {exc}\n")
         raise
 
-    return applied, conflicts
+    return applied, conflicts, upstream_deleted_residue
 
 
 def _atomic_write(target: Path, content: bytes, rollback_log: list) -> None:
@@ -1682,7 +1727,7 @@ def _sync_with_backup(project_root: Path, temp_dir: Path) -> Path:
     else:
         # A3 三方合併：只搬 base→HEAD delta 涉及的檔案，保留本地刪除與 runtime state
         print_color("更新 .claude 資料夾（三方合併）...")
-        applied, conflicts = apply_upstream_delta(
+        applied, conflicts, upstream_deleted_residue = apply_upstream_delta(
             project_root, temp_dir, base_sha, preserve
         )
         print_color(f"   已套用 {applied} 個 delta 變更", "green")
@@ -1695,6 +1740,8 @@ def _sync_with_backup(project_root: Path, temp_dir: Path) -> Path:
                 print_color(f"     - {c}")
         else:
             print_color("   無衝突", "green")
+        # 缺口 1（W8-037）：上游已刪但本地分歧保留之檔，pull 結尾通報（非阻擋）
+        warn_upstream_deleted_residue(upstream_deleted_residue)
 
     # 同步成功後寫入新的 base SHA（上游 HEAD）
     head_result = run_git(["rev-parse", "HEAD"], cwd=str(temp_dir))
