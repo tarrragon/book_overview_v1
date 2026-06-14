@@ -82,11 +82,13 @@
 | 文件 | 用途 |
 |------|------|
 | layered-ticket-methodology.md | 分層 Ticket 方法論（五層架構、單層修改、粒度標準，30 秒核心） |
-| frontmatter-ticket-tracking-methodology.md | Frontmatter 追蹤 |
+| frontmatter-ticket-tracking-methodology.md | Frontmatter 追蹤（單一文件架構 + 欄位 schema + 操作流程概念，30 秒核心） |
+| .claude/references/frontmatter-ticket-tracking-operations.md | 逐字 bash 命令 + frontmatter 完整範例 + 執行日誌範本 + 工具速查 + 舊版 CSV 相容（衛星檔） |
 | csv-ticket-tracking-methodology.md | CSV 追蹤（已棄用） |
 
 ---
 
 **Last Updated**: 2026-06-14
+**Version**: 1.3.0 - 新增 frontmatter-ticket-tracking-operations.md 衛星檔索引項 + 主檔用途補「30 秒核心」（W8-020.5 方法論瘦身校準）
 **Version**: 1.2.0 - 新增 problem-awareness-evaluation-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（W8-020.3 方法論瘦身校準）
 **Version**: 1.1.0 - 新增 acceptance-criteria-templates.md 衛星檔索引項（W8-020.2 方法論瘦身校準）
