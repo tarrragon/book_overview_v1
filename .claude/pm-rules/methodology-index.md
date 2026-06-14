@@ -32,7 +32,8 @@
 |-------|------|
 | bdd-testing-methodology.md | BDD 測試 |
 | hybrid-testing-strategy-methodology.md | 混合測試策略 |
-| acceptance-criteria-methodology.md | 驗收標準設計 |
+| acceptance-criteria-methodology.md | 驗收標準設計（4V 原則 + 情境分類 + 檢查清單，30 秒核心） |
+| .claude/references/acceptance-criteria-templates.md | 驗收條件格式模板三式 + 好/壞範例 + 各系統整合模板（衛星檔） |
 
 ## 流程管理
 
@@ -84,5 +85,5 @@
 
 ---
 
-**Last Updated**: 2026-03-03
-**Version**: 1.0.0
+**Last Updated**: 2026-06-14
+**Version**: 1.1.0 - 新增 acceptance-criteria-templates.md 衛星檔索引項（W8-020.2 方法論瘦身校準）
