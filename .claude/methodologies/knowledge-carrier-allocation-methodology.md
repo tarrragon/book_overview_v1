@@ -70,6 +70,7 @@
 ---
 
 **Last Updated**: 2026-06-14
+**Version**: 1.6.0 — root 錯置檔重分配（1.0.0-W8-023.1，第 1/4 批）：`hook-system-reference.md`（Hook 事件索引 / 技術參考）、`code-smell-checklist.md`（Code Smell 檢測清單 / 技術參考）依二軸（受眾＝動作觸發者、形態＝技術參考）歸入既有 `references/` 載體列（line 22），故不另加 map 行；superseded 副本 `code-quality-examples.md`（已遷 `docs/`，DOC-010 W10-102）與 `document-responsibilities.md`（DEPRECATED，已被 `five-document-system-methodology.md` + `doc-flow/references/document-responsibilities.md` 取代）flag 不併入，留 PM follow-up
 **Version**: 1.5.0 — 載體地圖補列 4 個 legit root 資產各一行歸屬（README 框架導覽 / CHANGELOG 變更記錄 / README-subtree-sync 同步機制 / terminology-dictionary 用語規範表，後者經 language-constraints `@` 引用實質載入）（1.0.0-W8-022）
 **Version**: 1.4.0 — multi-round-review Round 4（實例分配演練）修正：步驟 1 補受眾詞彙映射橋（六選項 vs 地圖表受眾欄斷層）、步驟 3 事實類閘門判準明文化（體積與專案特定性約束，非必要性否決）。8 條盲跑 6 條乾淨落點，停止訊號達成收斂
 **Version**: 1.3.0 — multi-round-review Round 3 修正：Scope 句（LLM context 載體限定 + 機器讀取層另計 + memory 受眾軸唯一決定）、rules/core 列量測集合精確化（MEMORY.md 不在 guardian 集合）、規範表補「多方案技術知識庫」劃界列（與 framework-asset-separation §1 對齊）、地圖補 templates / root 遺留行、Reference 補 skill-design-guide
