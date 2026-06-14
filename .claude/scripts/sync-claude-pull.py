@@ -663,6 +663,7 @@ def sync_directory(
     dst: Path,
     preserve: set[str] | None = None,
     prefix: Path = Path(),
+    project_root: Path | None = None,
 ) -> int:
     """增量同步來源目錄到目標目錄。
 
@@ -675,6 +676,7 @@ def sync_directory(
         dst: 目標目錄路徑
         preserve: 需要保留的本地特化檔案相對路徑集合
         prefix: 目前遞迴的相對路徑前綴
+        project_root: git repo root，預設 dst.parent（git-delete 復活防護判定基準）
 
     傳回:
         int: 更新或複製的檔案總數
@@ -683,10 +685,13 @@ def sync_directory(
         - 跳過 SKIP_DURING_SYNC 清單中的目錄和檔案
         - 跳過所有符號連結
         - 跳過 preserve 清單中的本地特化檔案
+        - 跳過本地刻意刪除（git 史最後事件為 D）的復活（M2）
         - 保留檔案的修改時間戳（使用 shutil.copy2）
     """
     if preserve is None:
         preserve = set()
+    if project_root is None:
+        project_root = dst.parent
     count = 0
     for item in src.iterdir():
         if item.name in SKIP_DURING_SYNC:
@@ -698,13 +703,21 @@ def sync_directory(
         dest_item = dst / item.name
         if item.is_dir():
             if dest_item.exists():
-                count += sync_directory(item, dest_item, preserve, rel)
+                count += sync_directory(item, dest_item, preserve, rel, project_root)
             else:
                 shutil.copytree(item, dest_item, symlinks=False,
                                 ignore=shutil.ignore_patterns(*SKIP_DURING_SYNC))
                 count += sum(1 for f in dest_item.rglob("*") if f.is_file())
         else:
             rel_str = str(rel).replace("\\", "/")
+            # M2：上游有、本地磁碟無、git 史最後事件為刪除 → 不復活
+            if not dest_item.exists() and _is_intentionally_deleted(
+                f".claude/{rel_str}", project_root
+            ):
+                print_color(
+                    f"   跳過復活本地刻意刪除檔: {rel_str}", "yellow"
+                )
+                continue
             if rel_str in preserve:
                 if not dest_item.exists():
                     print_color(f"   本地特化檔案不存在（可能已刪除）: {rel_str}", "yellow")
@@ -806,6 +819,48 @@ def _is_git_tracked(rel_under_root: str, project_root: Path) -> bool:
     return result.returncode == 0
 
 
+def _is_intentionally_deleted(rel_under_root: str, project_root: Path) -> bool:
+    """判斷相對 project_root 的路徑是否為「本地刻意刪除」。
+
+    full overlay 復活防護（M2）：用本地 git 史（隨 repo clone 而存在，survives
+    fresh clone）作刪除 SSOT，判定上游有但本地刻意刪除的孤兒檔不應被復活。
+
+    判定為刻意刪除須同時滿足：
+    1. 該檔目前不在本地磁碟（在磁碟者屬 overwrite 非復活，不適用）。
+    2. 本地 git 史最後一次涉及該檔的事件為刪除（D），非後續 re-add。
+
+    用 git log -1 --name-status 取最近一次涉及該檔的 commit 的 status：
+    最後事件 status 為 D（刪除）→ 刻意刪除。從未在 git 史出現（如上游新檔）
+    或最後事件為 A/M（新增/修改，re-add 後磁碟也應 present）→ 非刻意刪除。
+
+    參數:
+        rel_under_root: 相對 git repo root 的路徑（如 .claude/orphan.md）
+        project_root: git repo root 路徑
+
+    傳回:
+        bool: 為本地刻意刪除（磁碟 absent 且最後 git 事件為 D）為 True
+    """
+    # 條件 1：磁碟存在者不適用復活防護（屬 overwrite）
+    if (project_root / rel_under_root).exists():
+        return False
+    # 條件 2：最後一次涉及該檔的 git 事件 status
+    result = run_git(
+        ["log", "-1", "--name-status", "--format=", "--", rel_under_root],
+        cwd=str(project_root),
+    )
+    if result.returncode != 0:
+        return False
+    for line in result.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # name-status 行形如 "D\t.claude/orphan.md" 或 "R100\told\tnew"
+        status = line.split("\t", 1)[0]
+        return status.startswith("D")
+    # 無任何 commit 涉及此檔（從未在 git 史出現）→ 非刻意刪除
+    return False
+
+
 def cleanup_stale_files(
     claude_dir: Path,
     remote_files: set[Path],
@@ -894,11 +949,11 @@ def preview_overlay_changes(
     remote_files: set[Path],
     preserve: set[str] | None = None,
     project_root: Path | None = None,
-) -> tuple[list[str], list[tuple[str, bool]]]:
+) -> tuple[list[str], list[tuple[str, bool]], list[str]]:
     """full overlay 前的 dry-run 預覽。
 
     在實際 sync_directory + cleanup_stale_files 前，收集本次 overlay 的影響清單，
-    讓使用者在覆蓋發生前看見將被覆蓋與將被刪除（含 git 追蹤標記）的檔案。
+    讓使用者在覆蓋/刪除/跳過復活發生前看見受影響的檔案。
 
     參數:
         temp_dir: 上游 repo clone 路徑
@@ -908,11 +963,13 @@ def preview_overlay_changes(
         project_root: git repo root，預設 claude_dir.parent
 
     傳回:
-        tuple[list[str], list[tuple[str, bool]]]:
-          (will_overwrite, will_delete)
+        tuple[list[str], list[tuple[str, bool]], list[str]]:
+          (will_overwrite, will_delete, will_skip_resurrection)
           will_overwrite = 本地存在且與遠端內容不同的相對路徑（會被覆蓋）
           will_delete = [(rel, is_tracked)] 本地有遠端無的檔；is_tracked True 者
                         將轉存 .sync-conflicts（非真刪），False 者真刪
+          will_skip_resurrection = 上游有、本地磁碟無、git 史最後事件為刪除的相對
+                        路徑（M2 跳過復活，消除復活靜默）
     """
     if preserve is None:
         preserve = set()
@@ -920,6 +977,7 @@ def preview_overlay_changes(
         project_root = claude_dir.parent
     will_overwrite: list[str] = []
     will_delete: list[tuple[str, bool]] = []
+    will_skip_resurrection: list[str] = []
 
     def _walk(directory: Path, prefix: Path = Path()) -> None:
         if not directory.exists():
@@ -943,8 +1001,29 @@ def preview_overlay_changes(
                 if upstream_item.exists() and _files_differ(upstream_item, item):
                     will_overwrite.append(rel_str)
 
+    def _walk_upstream(directory: Path, prefix: Path = Path()) -> None:
+        """走訪上游目錄，找出本地磁碟無但屬刻意刪除的復活候選。"""
+        if not directory.exists():
+            return
+        for item in sorted(directory.iterdir()):
+            if item.name in SKIP_DURING_SYNC or item.is_symlink():
+                continue
+            rel = prefix / item.name
+            if item.is_dir():
+                _walk_upstream(item, rel)
+                continue
+            rel_str = str(rel).replace("\\", "/")
+            if rel_str in preserve:
+                continue
+            local_item = claude_dir / rel
+            if not local_item.exists() and _is_intentionally_deleted(
+                f".claude/{rel_str}", project_root
+            ):
+                will_skip_resurrection.append(rel_str)
+
     _walk(claude_dir)
-    return will_overwrite, will_delete
+    _walk_upstream(temp_dir)
+    return will_overwrite, will_delete, will_skip_resurrection
 
 
 def _ensure_conflicts_dir(claude_dir: Path) -> Path:
@@ -1553,9 +1632,9 @@ def _sync_with_backup(project_root: Path, temp_dir: Path) -> Path:
         print_color("更新 .claude 資料夾（全量 overlay）...")
         remote_files = collect_remote_files(temp_dir)
 
-        # full overlay 前 dry-run 預覽（讓覆蓋/刪除在發生前可見）
-        will_overwrite, will_delete = preview_overlay_changes(
-            temp_dir, claude_dir, remote_files, preserve
+        # full overlay 前 dry-run 預覽（讓覆蓋/刪除/跳過復活在發生前可見）
+        will_overwrite, will_delete, will_skip_resurrection = preview_overlay_changes(
+            temp_dir, claude_dir, remote_files, preserve, project_root
         )
         if will_overwrite:
             print_color(f"   [dry-run] 將覆蓋 {len(will_overwrite)} 個本地檔案", "yellow")
@@ -1573,8 +1652,15 @@ def _sync_with_backup(project_root: Path, temp_dir: Path) -> Path:
                 print_color(f"     -> conflict: {r}")
             for r in untracked[:50]:
                 print_color(f"     - delete: {r}")
+        if will_skip_resurrection:
+            print_color(
+                f"   [dry-run] 將跳過復活 {len(will_skip_resurrection)} 個本地刻意刪除檔"
+                "（git 史最後事件為刪除）:", "yellow"
+            )
+            for r in will_skip_resurrection[:50]:
+                print_color(f"     x skip-resurrection: {r}")
 
-        file_count = sync_directory(temp_dir, claude_dir, preserve)
+        file_count = sync_directory(temp_dir, claude_dir, preserve, project_root=project_root)
         print_color(f"   已更新 {file_count} 個檔案", "green")
 
         removed, preserved_conflicts = cleanup_stale_files(
