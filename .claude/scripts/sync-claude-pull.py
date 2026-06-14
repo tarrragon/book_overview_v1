@@ -1921,6 +1921,76 @@ def _complete_sync(temp_dir: Path, project_root: Path, backup_dir: Path) -> None
     _finalize_sync(backup_dir)
 
 
+def compute_orphan_candidates(
+    claude_dir: Path,
+    upstream_dir: Path,
+    preserve: set[str] | None = None,
+) -> list[str]:
+    """列出本地 .claude/ 有但上游 HEAD 無之檔（孤兒候選，缺口 2，W8-037.3）。
+
+    主動孤兒稽核：delta 路徑（base..HEAD）只看上次同步後的窗，看不到早於 base
+    即已分歧的孤兒。本函式以「上游 HEAD 全檔集」對比「本地全檔集」做全量差集，
+    涵蓋所有「本地有上游無」之檔（含早於 base 不在 delta 窗者）。
+
+    過濾規則與同步主流程一致：collect_remote_files 已跳過 SKIP_DURING_SYNC 與
+    symlink；再排除 preserve 清單與 should_exclude（LOCAL_ONLY / 憑證），
+    避免本地特化 / runtime state 被誤列為孤兒。
+
+    措辭刻意非阻擋（W8-037 Premortem R1）：列出之檔可能是應清理的孤兒，也可能是
+    刻意本地特化，腳本無法自動判別，僅供人工判斷，不自動刪、不阻擋。
+
+    參數:
+        claude_dir: 本地 .claude 目錄路徑
+        upstream_dir: 上游 repo clone 路徑（其 root 對應本地 .claude/）
+        preserve: sync-preserve.yaml 的 preserve 清單（相對 .claude/）
+
+    傳回:
+        list[str]: 孤兒候選相對 .claude/ 的路徑清單，已排序
+    """
+    if preserve is None:
+        preserve = set()
+    local_files = collect_remote_files(claude_dir)
+    upstream_files = collect_remote_files(upstream_dir)
+    orphans: list[str] = []
+    for rel in local_files - upstream_files:
+        rel_str = str(rel).replace("\\", "/")
+        if rel_str in preserve or should_exclude(rel):
+            continue
+        orphans.append(rel_str)
+    return sorted(orphans)
+
+
+def run_audit() -> None:
+    """sync-pull --audit：唯讀稽核本地有上游無之孤兒候選（不動同步主流程）。
+
+    clone 上游 → 計算孤兒候選 → stdout 列出（非阻擋提醒）。不寫入任何本地檔，
+    不更新 base SHA，純唯讀分支。
+    """
+    print_color("孤兒稽核：比對本地 .claude/ 與上游 HEAD...", "yellow")
+    project_root = find_project_root()
+    claude_dir = project_root / ".claude"
+    temp_dir = Path(tempfile.mkdtemp())
+    try:
+        clone_repo(temp_dir)
+        preserve = load_preserve_list(claude_dir)
+        orphans = compute_orphan_candidates(claude_dir, temp_dir, preserve)
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+    if not orphans:
+        print_color("   無孤兒候選（本地 .claude/ 皆存在於上游 HEAD）", "green")
+        return
+    print_color(
+        f"   {len(orphans)} 個本地有上游無之檔（孤兒候選）:", "yellow"
+    )
+    for rel in orphans:
+        print_color(f"   ! {rel}")
+    print_color(
+        "   若為應清理的孤兒請手動移除；若為刻意本地特化可忽略此提醒。",
+        "yellow",
+    )
+
+
 def main() -> None:
     """同步 .claude 配置從獨立 repo。
 
@@ -1929,7 +1999,14 @@ def main() -> None:
     2. 驗證環境和本地狀態
     3. 克隆遠端 repo 並執行備份同步
     4. 完成同步（更新模板、清理、輸出結果）
+
+    旗標：
+        --audit  唯讀孤兒稽核（列本地有上游無之檔），不執行同步主流程。
     """
+    if "--audit" in sys.argv[1:]:
+        run_audit()
+        return
+
     print_color("開始從獨立 repo 拉取 .claude 更新...")
 
     project_root = find_project_root()
