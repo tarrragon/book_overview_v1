@@ -8,7 +8,8 @@
 
 | 方法論 | 用途 |
 |-------|------|
-| 5w1h-self-awareness-methodology.md | 決策框架 |
+| 5w1h-self-awareness-methodology.md | 決策框架（六維度判斷標準 + 強制檢查 + 逃避識別，30 秒核心） |
+| .claude/references/5w1h-self-awareness-examples.md | 5W1H 六維度完整正反判斷範例 + Hook 系統整合程式碼（衛星檔） |
 | atomic-ticket-methodology.md | Ticket 設計 |
 | behavior-first-tdd-methodology.md | 測試設計 |
 | agile-refactor-methodology.md | 開發流程 |
