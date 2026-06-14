@@ -13,7 +13,8 @@
 | atomic-ticket-methodology.md | Ticket 設計 |
 | behavior-first-tdd-methodology.md | 測試設計 |
 | agile-refactor-methodology.md | 開發流程 |
-| cognitive-load-design-methodology.md | 程式碼設計 |
+| cognitive-load-design-methodology.md | 程式碼設計（WHY + 三種類型 + 來源機制 + SOLID 視角，30 秒核心） |
+| .claude/references/cognitive-load-design-examples.md | 五大來源完整程式碼範例 + SOLID 五原則認知負擔視角詳解（衛星檔） |
 | five-document-system-methodology.md | 文件管理 |
 
 ## 程式碼品質
