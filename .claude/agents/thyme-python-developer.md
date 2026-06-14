@@ -155,23 +155,9 @@ thyme-python-developer 在以下情況下**應該被派發**：
 
 > **統一品質標準**：所有品質規則定義在 @.claude/references/quality-common.md
 >
-> thyme 必須遵循：第 1 節（通用規則）+ 第 3 節（Python 補充）+ 第 4.1 節 + 第 4.3 節
-
----
-
-## 品質檢查清單
-
-### 開始工作前
-
-- [ ] Ticket 已認領
-- [ ] 理解了任務的完整要求
-- [ ] 確認是 Python 相關任務（非 Hook 設計）
-- [ ] 開發環境正常（Python 版本、依賴）
-- [ ] 認知負擔評估完成（任務複雜度合理）
-
-### 完成工作後
-
-程式碼品質、命名、結構、常數管理、註解檢查項統一見 `.claude/references/quality-common.md` 第 2 節（通用品質檢查清單）；Python 型別標註與 docstring 補充見 `.claude/references/quality-python.md` 第 6 節（Python 品質檢查清單）。
+> thyme 必須遵循：第 1 節（通用規則）+ 第 2 節（通用品質檢查清單）+ 第 3 節（Python 補充）+ 第 4.1 節 + 第 4.3 節；Python 型別標註與 docstring 補充見 `.claude/references/quality-python.md` 第 6 節（Python 品質檢查清單）。
+>
+> 「開始工作前」就緒檢查項（ticket 認領 / 任務理解 / 環境就緒 / 認知負擔評估）屬全體代理人通用流程，見 `.claude/agents/AGENT_PRELOAD.md` 與 `.claude/rules/core/cognitive-load.md`；Python vs Hook 分工見本檔「與 basil-hook-architect 的分工」章節。
 
 ---
 
