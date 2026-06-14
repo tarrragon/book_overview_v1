@@ -2,7 +2,7 @@
 
 > **用途**：本檔為 `.claude/methodologies/package-import-methodology.md` 的衛星參考檔，存放各語言的語意化導入實現機制、跨語言程式碼範例、Linter / 自動化工具配置。寫具體語言的導入程式碼或配置工具前按需讀取。
 >
-> **核心方法論（5 原則 + 檢查清單）**：`.claude/methodologies/package-import-methodology.md`
+> **核心方法論（5 原則 + 檢查清單）**：`.claude/methodologies/package-import-methodology.md`（需回顧原則定義或開發階段檢查清單時讀）
 
 ---
 
