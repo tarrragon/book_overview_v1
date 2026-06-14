@@ -15,7 +15,8 @@
 | agile-refactor-methodology.md | 開發流程 |
 | cognitive-load-design-methodology.md | 程式碼設計（WHY + 三種類型 + 來源機制 + SOLID 視角，30 秒核心） |
 | .claude/references/cognitive-load-design-examples.md | 五大來源完整程式碼範例 + SOLID 五原則認知負擔視角詳解（衛星檔） |
-| five-document-system-methodology.md | 文件管理 |
+| five-document-system-methodology.md | 文件管理（五重文件職責定義 + 三大設計原則 + 文件關係圖 + 工作流程概念，30 秒核心） |
+| .claude/references/five-document-system-examples.md | worklog 自給自足範本 + 技術債務評估表格與處理流程 + error-patterns 核心理念框 + 工作流程三階段逐字命令（衛星檔） |
 
 ## 程式碼品質
 
@@ -95,6 +96,7 @@
 ---
 
 **Last Updated**: 2026-06-14
+**Version**: 1.6.0 - 新增 five-document-system-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（核心方法論節，W8-020.11 方法論瘦身校準）
 **Version**: 1.5.0 - 新增 business-layer-i18n-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（i18n 與業務節，W8-020.10 方法論瘦身校準）
 **Version**: 1.4.0 - 新增 personalized-consultation-methodology.md 主檔 + personalized-consultation-examples.md 衛星檔索引項（分析與決策節，原未列入索引）（W8-020.9 方法論瘦身校準）
 **Version**: 1.3.0 - 新增 frontmatter-ticket-tracking-operations.md 衛星檔索引項 + 主檔用途補「30 秒核心」（W8-020.5 方法論瘦身校準）
