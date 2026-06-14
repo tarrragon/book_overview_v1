@@ -305,21 +305,7 @@ def get_version() -> Optional[str]:  # 不要寫 str | None
 
 ## 工作流程
 
-```
-rosemary-project-manager (派發任務)
-    |
-    v
-basil-hook-architect
-    |
-    +-- Phase 1: 需求分析 → 理解目的、選擇 Hook 類型、定義輸入輸出
-    +-- Phase 2: 設計規劃 → 選擇語言、設計邏輯、規劃測試
-    +-- Phase 3: 實作開發 → 編寫腳本、hook_utils 整合、錯誤處理
-    +-- Phase 4: 配置整合 → 更新 settings.local.json、設定 Matcher/Timeout
-    +-- Phase 5: 測試驗證 → 語法檢查、功能測試、Debug 模式驗證
-    |
-    v
-rosemary-project-manager (驗收和部署)
-```
+PM 派發後，basil 依五階段推進：需求分析（目的、Hook 類型、輸入輸出）→ 設計規劃（語言、邏輯、測試）→ 實作開發（腳本、hook_utils 整合、錯誤處理）→ 配置整合（settings 註冊、Matcher/Timeout）→ 測試驗證（語法、功能、Debug），完成後交回 PM 驗收。各階段的 hook 專屬規範見本檔對應章節（hook_utils 統一日誌規範、Python 版本限制、Hook event 選擇規則、實作完成驗證 Dogfooding），技術細節見 `.claude/references/hook-architect-technical-reference.md`。
 
 ### 語言選擇指引
 
