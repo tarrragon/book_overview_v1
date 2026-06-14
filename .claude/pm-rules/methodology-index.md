@@ -55,6 +55,8 @@
 | .claude/references/multi-perspective-report-templates.md | 多視角分析完整報告模板（單一視角報告 + 彙整報告，衛星檔） |
 | problem-awareness-evaluation-methodology.md | 問題意識評估（三大原則 + 決策樹 + 檢查清單，30 秒核心） |
 | .claude/references/problem-awareness-evaluation-examples.md | 三大原則完整正反範例 + Hook 系統整合程式碼 + 實戰案例分析（衛星檔） |
+| personalized-consultation-methodology.md | 個人化諮詢（核心理念 + 三層機制 + 決策流程 + 陷阱概念 + 檢查清單，30 秒核心） |
+| .claude/references/personalized-consultation-examples.md | 羽球選拍實證案例 + 五個跨領域案例完整回應 + 五種陷阱完整範例（衛星檔） |
 | design-driven-refactoring-methodology.md | 設計驅動重構 |
 | systematic-debugging-methodology.md | 系統性除錯（程式碼層次 unused 警告） |
 | error-fix-refactor-methodology.md | 錯誤修復重構 |
@@ -92,6 +94,7 @@
 ---
 
 **Last Updated**: 2026-06-14
+**Version**: 1.4.0 - 新增 personalized-consultation-methodology.md 主檔 + personalized-consultation-examples.md 衛星檔索引項（分析與決策節，原未列入索引）（W8-020.9 方法論瘦身校準）
 **Version**: 1.3.0 - 新增 frontmatter-ticket-tracking-operations.md 衛星檔索引項 + 主檔用途補「30 秒核心」（W8-020.5 方法論瘦身校準）
 **Version**: 1.2.0 - 新增 problem-awareness-evaluation-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（W8-020.3 方法論瘦身校準）
 **Version**: 1.1.0 - 新增 acceptance-criteria-templates.md 衛星檔索引項（W8-020.2 方法論瘦身校準）
