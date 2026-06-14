@@ -79,7 +79,8 @@
 
 | 方法論 | 用途 |
 |-------|------|
-| business-layer-i18n-management-methodology.md | 業務層 i18n 管理 |
+| business-layer-i18n-management-methodology.md | 業務層 i18n 管理（分層責任 + 錯誤訊息流程 + 反模式概念 + 檢查清單，30 秒核心） |
+| .claude/references/business-layer-i18n-examples.md | 三層責任完整程式碼範例 + 參數化訊息完整範例 + 四反模式正反程式碼對照（衛星檔） |
 | claude-self-check-methodology.md | 自我檢查 |
 
 ## Ticket 格式（參考）
@@ -94,6 +95,7 @@
 ---
 
 **Last Updated**: 2026-06-14
+**Version**: 1.5.0 - 新增 business-layer-i18n-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（i18n 與業務節，W8-020.10 方法論瘦身校準）
 **Version**: 1.4.0 - 新增 personalized-consultation-methodology.md 主檔 + personalized-consultation-examples.md 衛星檔索引項（分析與決策節，原未列入索引）（W8-020.9 方法論瘦身校準）
 **Version**: 1.3.0 - 新增 frontmatter-ticket-tracking-operations.md 衛星檔索引項 + 主檔用途補「30 秒核心」（W8-020.5 方法論瘦身校準）
 **Version**: 1.2.0 - 新增 problem-awareness-evaluation-examples.md 衛星檔索引項 + 主檔用途補「30 秒核心」（W8-020.3 方法論瘦身校準）
