@@ -6,7 +6,12 @@
 
 **Scope**：本地圖涵蓋 LLM context 載體（人與 AI 閱讀的知識）；專案產物層（`docs/` / `src/`）不屬本地圖，劃分見 `framework-asset-separation.md`；機器讀取層（`config/*.yaml`、hook 引用的凍結錨點）另計。memory 行由受眾軸「僅本專案」唯一決定，不需形態軸。
 
-**一句話判定**：代理人定義回答「你是誰、你能做什麼、你偏好怎麼做」；skill 回答「這件事怎麼做」。前者是人格與授權（換人即不同），後者是可重複流程（任何角色觸發應得到同一流程）。
+**代理人定義 vs skill 的歸屬判準**：一段知識可能落在代理人定義或 skill、不易區分時，以「該知識是否隨執行者改變」為判準，不憑直覺擇一。
+
+- 屬**代理人定義**的知識回答「你是誰、你能做什麼、你偏好怎麼做」——身份定位、授權邊界、設計偏好。識別測試：換一個代理人來執行，這段內容就應該不同。本質是人格與授權。
+- 屬 **skill** 的知識回答「這件事怎麼做」——可重複執行的流程步驟。識別測試：任何角色觸發都應得到同一份流程，與執行者是誰無關。本質是可重複流程。
+
+兩者衝突時，對該知識套用識別測試「換一個代理人，內容會不會變」：會變則歸代理人定義；不會變、任何角色執行都應一致則歸 skill。
 
 ## 載體地圖（受眾 x 載入時機 x 形態）
 
@@ -69,7 +74,8 @@
 
 ---
 
-**Last Updated**: 2026-06-14
+**Last Updated**: 2026-06-15
+**Version**: 1.8.0 — 「代理人定義 vs skill 歸屬判準」改寫：去除「一句話判定」總結框架，改為含明確識別測試（換一個執行者內容是否改變）的判準段落。方法論作為框架核心規則供 AI 開發時判斷，內容須明確而可套用，不採壓縮式總結（避免單句總結遮蔽判準細節導致 AI 判斷失準）
 **Version**: 1.7.0 — root 錯置檔重分配（1.0.0-W8-023.2，第 2/4 批）：4 檔（`agent-collaboration.md` 794 / `decision-workflows.md` 116 / `quick-ref-agent-dispatch-recovery.md` 202 / `thinking-process.md` 271）逐檔讀內容後**全數 flag superseded/obsolete**（campaign 規則 3，零搬移零連結手術）：`agent-collaboration` 與 `analyses/archived/` 同名 794 行副本 near-identical 且內容已被 `methodologies/tdd-collaboration-flow.md` + agent 定義覆蓋；`decision-workflows` 五情境已被 `pm-rules/skip-gate`+`incident-response`+`decision-tree` 覆蓋；`quick-ref-agent-dispatch-recovery` 所述 `agent_dispatch_recovery.py` hook 已不存在；`thinking-process` 為 2025-12-01 一次性 session 快照非知識載體。本批 0 檔搬移，故不加 map 行，留 PM follow-up 清理（inbound 連結多在 .3/.4 批檔群）
 **Version**: 1.6.0 — root 錯置檔重分配（1.0.0-W8-023.1，第 1/4 批）：`hook-system-reference.md`（Hook 事件索引 / 技術參考）、`code-smell-checklist.md`（Code Smell 檢測清單 / 技術參考）依二軸（受眾＝動作觸發者、形態＝技術參考）歸入既有 `references/` 載體列（line 22），故不另加 map 行；superseded 副本 `code-quality-examples.md`（已遷 `docs/`，DOC-010 W10-102）與 `document-responsibilities.md`（DEPRECATED，已被 `five-document-system-methodology.md` + `doc-flow/references/document-responsibilities.md` 取代）flag 不併入，留 PM follow-up
 **Version**: 1.5.0 — 載體地圖補列 4 個 legit root 資產各一行歸屬（README 框架導覽 / CHANGELOG 變更記錄 / README-subtree-sync 同步機制 / terminology-dictionary 用語規範表，後者經 language-constraints `@` 引用實質載入）（1.0.0-W8-022）
