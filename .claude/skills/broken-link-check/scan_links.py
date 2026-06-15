@@ -37,6 +37,38 @@ PLACEHOLDER_SAMPLES = {
     "../path/file.md",
 }
 
+# 樣式型 placeholder 偵測（W8-047 缺陷 2）：文件中的示意路徑非真實引用。
+# - glob 萬用字元 * 或 ?（如 .claude/agents/*.md、.claude/rules/**/*.md）
+# - 角括號佔位 <name> / <檔名>（如 .claude/agents/<agent>.md）
+# - 大括號模板 {language} / {name}（如 quality-{language}.md）
+_GLOB_PLACEHOLDER = re.compile(r"[*?]")
+_ANGLE_PLACEHOLDER = re.compile(r"<[^>]*>")
+_BRACE_PLACEHOLDER = re.compile(r"\{[^}]*\}")
+# token sentinel：路徑段為 xxx（不分大小寫）或 UPPERCASE TEST 系列哨兵
+# （TEST / TEST_AGENT / TEST_EXEMPT...）。小寫 test 嵌在真實描述名中
+# （如 test-helper-design-methodology.md）不視為 placeholder，避免誤排真實斷鏈。
+_XXX_TOKEN = re.compile(r"(?:^|/)xxx(?:\.md|/|$)", re.IGNORECASE)
+_TEST_TOKEN = re.compile(r"(?:^|/)TEST(?:_[A-Z0-9]+)*(?:\.md|/|$)")
+
+
+def is_placeholder_pattern(raw):
+    """判定引用字串是否為樣式型 placeholder（文件示意路徑，非真實引用）。
+
+    涵蓋 glob 萬用字元、角括號佔位、大括號模板、xxx/TEST 哨兵 token。
+    與固定 PLACEHOLDER_SAMPLES exact-match 互補。
+    """
+    if _GLOB_PLACEHOLDER.search(raw):
+        return True
+    if _ANGLE_PLACEHOLDER.search(raw):
+        return True
+    if _BRACE_PLACEHOLDER.search(raw):
+        return True
+    if _XXX_TOKEN.search(raw):
+        return True
+    if _TEST_TOKEN.search(raw):
+        return True
+    return False
+
 
 def extract_refs(text):
     """從單檔內容抽 4 種前綴的 .md 引用，標記 code-block 狀態 + 行號。
@@ -77,8 +109,9 @@ def classify_ref(raw, resolved, knobs, exists):
 
     判定順序即優先級（短路）：placeholder → backup → exists → broken。
     """
-    if raw in PLACEHOLDER_SAMPLES and not knobs["include_placeholder"]:
-        return "placeholder"
+    if not knobs["include_placeholder"]:
+        if raw in PLACEHOLDER_SAMPLES or is_placeholder_pattern(raw):
+            return "placeholder"
     if "migration-backups/" in resolved or "hook-logs/" in resolved:
         if not knobs["include_migration_backups"]:
             return "excluded_backup"
@@ -119,10 +152,20 @@ def scan(root, knobs=None):
             sys.stderr.write(f"[WARN] cannot read {f}: {e}\n")
             continue
         scanned += 1
+        # W8-047 缺陷 1：來源端排除——source 檔本身在 migration-backups/ 時，
+        # 其內部引用屬備份內容（非當前活躍框架債），預設整檔歸 excluded_backup。
+        # 與 classify_ref 的 target 端 backup 排除對稱（旋鈕開啟才計入）。
+        source_in_backup = (
+            "migration-backups/" in str(f).replace(os.sep, "/")
+            and not knobs["include_migration_backups"]
+        )
         for ref in extract_refs(text):
             total_refs += 1
             if ref["in_code_block"] and not knobs["include_code_block"]:
                 categories["excluded_code_block"] += 1
+                continue
+            if source_in_backup:
+                categories["excluded_backup"] += 1
                 continue
             resolved = resolve_path(ref["raw_ref"], f, root)
             exists = Path(resolved).exists()

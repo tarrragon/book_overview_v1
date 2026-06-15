@@ -214,6 +214,98 @@ class TestClassifyRef:
         assert cat == "broken"
 
 
+class TestPlaceholderPatternDetection:
+    """W8-047 缺陷 2：placeholder 改樣式偵測（glob/角括號/模板/token）。
+
+    原 PLACEHOLDER_SAMPLES 4 項 exact-match 漏掉大量樣式型範例路徑，
+    導致 SKILL/規則文件中的示意路徑被誤判 broken（FP）。
+    """
+
+    DEFAULT_KNOBS = {
+        "include_code_block": False,
+        "include_migration_backups": False,
+        "include_placeholder": False,
+    }
+
+    @pytest.mark.parametrize(
+        "raw",
+        [
+            ".claude/agents/*.md",          # 單層 glob
+            ".claude/rules/**/*.md",        # 遞迴 glob
+            ".claude/error-patterns/PC-061-*.md",  # 部分 glob
+            ".claude/references/<檔名>.md",  # 角括號（中文）
+            ".claude/agents/<agent>.md",    # 角括號（英文）
+            ".claude/skills/{name}/SKILL.md",  # 模板大括號
+            ".claude/rules/core/quality-{language}.md",  # 模板大括號
+            "../tickets/xxx.md",            # xxx token
+            ".claude/agents/TEST.md",       # TEST sentinel
+            ".claude/agents/TEST_AGENT_1.md",  # TEST_ sentinel
+        ],
+    )
+    def test_pattern_placeholders_classified_placeholder(self, raw):
+        cat = scan_links.classify_ref(
+            raw, "/repo/" + raw, self.DEFAULT_KNOBS, exists=False
+        )
+        assert cat == "placeholder", f"{raw!r} 應歸 placeholder"
+
+    def test_lowercase_test_in_real_name_not_placeholder(self):
+        # 反例守護：真實檔名含小寫 test（test-helper-design）不可被誤排除
+        raw = ".claude/methodologies/test-helper-design-methodology.md"
+        cat = scan_links.classify_ref(
+            raw, "/repo/" + raw, self.DEFAULT_KNOBS, exists=False
+        )
+        assert cat == "broken", "含小寫 test 的真實檔名不應誤判為 placeholder"
+
+    def test_pattern_counted_broken_when_placeholder_knob_on(self):
+        knobs = {**self.DEFAULT_KNOBS, "include_placeholder": True}
+        cat = scan_links.classify_ref(
+            ".claude/agents/*.md", "/repo/.claude/agents/*.md", knobs, exists=False
+        )
+        assert cat == "broken"
+
+
+class TestBackupSourceExclusion:
+    """W8-047 缺陷 1：backup 來源端排除（source 檔在 migration-backups/）。
+
+    原邏輯僅排 resolved target 端，未排除 source_file 本身在
+    migration-backups/ 的引用，造成 30 筆 backup 內部斷鏈被計入 broken。
+    """
+
+    @pytest.fixture
+    def backup_source_repo(self, tmp_path):
+        claude = tmp_path / ".claude"
+        (claude / "migration-backups" / "old").mkdir(parents=True)
+        # source 在 migration-backups/，引用一個不存在的真實樣式路徑
+        (claude / "migration-backups" / "old" / "legacy.md").write_text(
+            "ref .claude/gone/missing.md here\n"
+        )
+        # 對照：正常檔的真實斷鏈仍須被偵測
+        (claude / "live.md").write_text("ref .claude/real/gone.md here\n")
+        return tmp_path
+
+    def test_backup_source_refs_excluded(self, backup_source_repo):
+        result = scan_links.scan(backup_source_repo, knobs=None)
+        broken = result["broken"]
+        srcs = [e["source_file"] for e in broken]
+        assert all("migration-backups/" not in s for s in srcs), (
+            "source 在 migration-backups/ 的引用不應計入 broken"
+        )
+        # 正常檔斷鏈仍被偵測
+        assert any("live.md" in s for s in srcs)
+
+    def test_backup_source_counted_when_knob_on(self, backup_source_repo):
+        knobs = {
+            "include_code_block": False,
+            "include_migration_backups": True,
+            "include_placeholder": False,
+        }
+        result = scan_links.scan(backup_source_repo, knobs=knobs)
+        srcs = [e["source_file"] for e in result["broken"]]
+        assert any("migration-backups/" in s for s in srcs), (
+            "旋鈕開啟時 backup-source 引用應計入"
+        )
+
+
 # ===========================================================================
 # B. scan() 整合 + GWT 場景
 # ===========================================================================
