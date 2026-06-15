@@ -34,7 +34,6 @@ from typing import List
 
 import pytest
 
-from ticket_system.lib import file_lock as file_lock_mod
 from ticket_system.lib import ticket_builder
 from ticket_system.lib.file_lock import (
     CREATE_LOCK_FILENAME,
@@ -164,21 +163,12 @@ class TestParallelCreateNoCollision:
 class TestGracefulDegradation:
     """lock 失敗時 warn + 無鎖續行，不阻斷單 process create。"""
 
-    def test_no_fcntl_platform_degrades_with_warning(
-        self, tickets_dir: Path, monkeypatch, capsys
-    ):
-        """模擬 Windows（無 fcntl）：不丟例外、body 照常執行、stderr 有警告。"""
-        monkeypatch.setattr(file_lock_mod, "_HAS_FCNTL", False)
-
-        executed = False
-        with create_id_allocation_lock(tickets_dir):
-            executed = True
-
-        assert executed, "降級路徑必須仍 yield（不阻斷單 process create）"
-        captured = capsys.readouterr()
-        assert "create_id_allocation_lock" in captured.err
-        assert "無鎖模式續行" in captured.err
-        assert "序列執行" in captured.err, "降級警告須含序列執行建議"
+    # 註（W9-001）：原 test_no_fcntl_platform_degrades_with_warning 已移除。
+    # 該測試 monkeypatch file_lock._HAS_FCNTL=False 以模擬「Windows 無 fcntl →
+    # 無鎖降級」。改用跨平台 filelock 後，Windows 亦取得有效鎖，「無 fcntl
+    # 平台」場景不復存在（_HAS_FCNTL 符號亦移除），故該測試前提失效而移除。
+    # 真正的環境異常降級（lock file 無法建立）仍由下方
+    # test_lock_open_failure_degrades_with_warning 覆蓋。
 
     def test_lock_open_failure_degrades_with_warning(
         self, tmp_path: Path, monkeypatch, capsys
