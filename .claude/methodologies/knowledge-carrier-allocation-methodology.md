@@ -23,7 +23,7 @@
 | `agents/AGENT_PRELOAD.md` | 全體代理人 | 派發時 @ 注入 | 代理人通用行為禁令（ticket 操作、git 限制、工具選擇、嵌套協議） | 單一代理人偏好（→ 各 agent 定義）、PM 流程（→ pm-rules） |
 | `agents/<name>.md` | 單一代理人 | 派發時載入 | 身份定位、三區塊（允許產出 / 禁止行為 / 適用情境）、設計偏好（命名習慣、技術手法傾向、文法語氣）、分工路由與升級條件 | → 見「代理人定義內容規範」節 |
 | `skills/` | 觸發者（角色無關） | 觸發時漸進揭露 | 可重複執行的工作流、方法、CLI 工具（TDD、寫作、ticket、worktree） | 身份偏好（→ agents）、專案設定（→ CLAUDE.md） |
-| `methodologies/` | 主動查閱者 | 按需 | 30 秒理念複習清單（核心概念 + 步驟 + 檢查清單） | 完整流程 / 範例 / 錯誤處理（→ skills） |
+| `methodologies/` | 主動查閱者與 AI | 按需 | 框架判斷標準 / 核心規則（判準 + 步驟 + 檢查清單，明確且可直接套用） | 完整流程 / 範例 / 錯誤處理（→ skills） |
 | `references/` | 執行特定動作者 | 按需 | 技術參考、規則 substance（auto-load stub 的完整版） | 每回合禁令（→ rules/core stub） |
 | `error-patterns/` | ticket 前查詢者 | 按需 | 失敗案例（症狀 / 根因 / 解法 / 預防） | 規則正文（規則只放一行路由指向 PC/IMP） |
 | memory（專案層） | 本專案 PM | MEMORY.md 每回合 | 專案特定活教訓的單行索引 | 已固化內容（升級即搬家）、跨專案原則（四問升級後外移） |
@@ -63,7 +63,7 @@
 
 ## Reference
 
-- `.claude/methodologies/framework-meta-methodology.md` — skill / methodology / rule 三分決策樹 + 30 秒標準（形態軸的細分）
+- `.claude/methodologies/framework-meta-methodology.md` — skill / methodology / rule 三分決策樹 + 方法論判斷標準定位（形態軸的細分）
 - `.claude/references/framework-asset-separation.md` — 框架資產 vs 專案產物、專案設定 vs 代理人知識、Skill Hook 雙層
 - `.claude/references/auto-load-stub-conventions.md` — 自動載入層 stub 構成 + 外移 SOP + 預算驗證
 - `.claude/rules/core/agent-definition-standard.md` — 代理人三區塊結構標準
@@ -75,6 +75,7 @@
 ---
 
 **Last Updated**: 2026-06-15
+**Version**: 1.9.0 — W8-041 標籤同步：methodologies 地圖列「30 秒理念複習清單」改為「框架判斷標準 / 核心規則（明確且可直接套用）」、受眾補 AI，Reference 對 framework-meta 描述「30 秒標準」改為「方法論判斷標準定位」，對齊 W8-040 新定位
 **Version**: 1.8.0 — 「代理人定義 vs skill 歸屬判準」改寫：去除「一句話判定」總結框架，改為含明確識別測試（換一個執行者內容是否改變）的判準段落。方法論作為框架核心規則供 AI 開發時判斷，內容須明確而可套用，不採壓縮式總結（避免單句總結遮蔽判準細節導致 AI 判斷失準）
 **Version**: 1.7.0 — root 錯置檔重分配（1.0.0-W8-023.2，第 2/4 批）：4 檔（`agent-collaboration.md` 794 / `decision-workflows.md` 116 / `quick-ref-agent-dispatch-recovery.md` 202 / `thinking-process.md` 271）逐檔讀內容後**全數 flag superseded/obsolete**（campaign 規則 3，零搬移零連結手術）：`agent-collaboration` 與 `analyses/archived/` 同名 794 行副本 near-identical 且內容已被 `methodologies/tdd-collaboration-flow.md` + agent 定義覆蓋；`decision-workflows` 五情境已被 `pm-rules/skip-gate`+`incident-response`+`decision-tree` 覆蓋；`quick-ref-agent-dispatch-recovery` 所述 `agent_dispatch_recovery.py` hook 已不存在；`thinking-process` 為 2025-12-01 一次性 session 快照非知識載體。本批 0 檔搬移，故不加 map 行，留 PM follow-up 清理（inbound 連結多在 .3/.4 批檔群）
 **Version**: 1.6.0 — root 錯置檔重分配（1.0.0-W8-023.1，第 1/4 批）：`hook-system-reference.md`（Hook 事件索引 / 技術參考）、`code-smell-checklist.md`（Code Smell 檢測清單 / 技術參考）依二軸（受眾＝動作觸發者、形態＝技術參考）歸入既有 `references/` 載體列（line 22），故不另加 map 行；superseded 副本 `code-quality-examples.md`（已遷 `docs/`，DOC-010 W10-102）與 `document-responsibilities.md`（DEPRECATED，已被 `five-document-system-methodology.md` + `doc-flow/references/document-responsibilities.md` 取代）flag 不併入，留 PM follow-up
