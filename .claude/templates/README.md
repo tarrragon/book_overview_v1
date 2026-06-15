@@ -11,11 +11,8 @@
 | [CLAUDE-template.md](./CLAUDE-template.md) | 專案入口文件範本 | 新專案初始化時複製為 `CLAUDE.md` |
 | [agent-template.md](./agent-template.md) | 代理人定義範本 | 新增代理人到 `.claude/agents/` 和 `.claude/rules/dispatch-rules/` |
 | [work-log-template.md](./work-log-template.md) | 版本工作日誌範本 | 開始新版本時建立 `docs/work-logs/vX.X.X/` |
-| [ticket-log-template.md](./ticket-log-template.md) | Ticket 執行日誌範本 | `/ticket create` 指令使用 |
-| [ticket.md.template](./ticket.md.template) | Ticket Markdown 範本 | `/ticket create` 指令使用 |
-| [ticket.yaml.template](./ticket.yaml.template) | Ticket YAML 範本 | `/ticket create` 指令使用 |
-| [tickets.csv.template](./tickets.csv.template) | Ticket CSV 追蹤範本 | 版本 Ticket 總覽表 |
-| [learning-record-template.md](./learning-record-template.md) | 學習記錄範本 | memory-network-builder 使用 |
+| [ticket-log-template.md](./ticket-log-template.md) | Ticket 執行日誌結構參考 | PM / ticket-lifecycle 方法論引用（非 `/ticket create` 自動套用） |
+| [learning-record-template.md](./learning-record-template.md) | 學習記錄範本 | continuous-learning skill 使用 |
 | [phase-3a-simplified-template.md](./phase-3a-simplified-template.md) | Phase 3a 策略規劃範本 | pepper-test-implementer 使用 |
 
 ---
@@ -52,7 +49,7 @@ cp .claude/templates/work-log-template.md docs/work-logs/v{版本號}/README.md
 
 ### 建立 Ticket
 
-使用 `/ticket create` 指令會自動套用對應的 Ticket 範本。
+使用 `/ticket create` 指令建立新 Ticket。Ticket body（含 frontmatter 與各 section）由 live CLI 的 `ticket_system/lib/ticket_builder.py` 以程式碼生成，不讀取本目錄的 `.template` 檔。
 
 ---
 
@@ -69,7 +66,7 @@ cp .claude/templates/work-log-template.md docs/work-logs/v{版本號}/README.md
 
 | 指令 | 說明 |
 |------|------|
-| `/ticket create` | 使用 Ticket 範本建立新 Ticket |
+| `/ticket create` | 建立新 Ticket（body 由 `ticket_builder.py` 程式碼生成） |
 | `/version-release` | 版本發布時參考 work-log-template |
 
 ---

@@ -258,7 +258,6 @@ Ticket 摘要 v0.15.16 (15/34 完成) [csv]
 | `.claude/hooks/ticket-creator.py` | Ticket 建立腳本 |
 | `.claude/hooks/ticket tracker.py` | 狀態追蹤腳本 |
 | `.claude/hooks/frontmatter_parser.py` | Frontmatter 解析模組 |
-| `.claude/templates/ticket.md.template` | Ticket 檔案模板 |
 | `.claude/skills/ticket create/SKILL.md` | Skill 定義 |
 | `.claude/skills/ticket track/SKILL.md` | Skill 定義 |
 
