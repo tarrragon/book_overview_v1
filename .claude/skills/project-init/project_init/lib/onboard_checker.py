@@ -633,6 +633,7 @@ def _create_missing_gitignore_result(exists: bool = False) -> GitignoreCheckInfo
         has_worktrees_rule=False,
         has_tool_results_rule=False,
         has_handoff_rule=False,
+        has_dispatch_active_rule=False,
         has_pycache_rule=False,
         all_required_complete=False,
         missing_rules=[
@@ -642,6 +643,7 @@ def _create_missing_gitignore_result(exists: bool = False) -> GitignoreCheckInfo
             ".claude/worktrees/",
             ".claude/tool-results/",
             ".claude/handoff/",
+            ".claude/dispatch-active.json",
             "__pycache__/",
         ],
     )

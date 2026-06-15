@@ -455,6 +455,7 @@ htmlcov/
 .claude/worktrees/
 .claude/tool-results/
 .claude/handoff/
+.claude/dispatch-active
 __pycache__/
 """
         (tmp_path / ".gitignore").write_text(gitignore_content)
@@ -485,7 +486,7 @@ __pycache__/
 
         assert not result.exists
         assert not result.all_required_complete
-        assert len(result.missing_rules) == 7
+        assert len(result.missing_rules) == 8
 
     def test_gitignore_fuzzy_match_coverage_variants(self, tmp_path: Path) -> None:
         """測試 coverage 規則變體."""
@@ -510,7 +511,7 @@ htmlcov/*
 
         assert result.exists
         assert not result.all_required_complete
-        assert len(result.missing_rules) == 7
+        assert len(result.missing_rules) == 8
 
     def test_gitignore_encoding_error(self, tmp_path: Path) -> None:
         """測試編碼錯誤時的優雅處理."""
