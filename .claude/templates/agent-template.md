@@ -384,10 +384,9 @@ You are a {role description in English}. Your core mission is {mission statement
 - 使用與 name 相同的 kebab-case
 - 範例：`saffron-system-analyst.md`
 
-### 觸發條件規則檔案
-- 位置：`.claude/rules/dispatch-rules/`
-- 命名：`{agent-name}.md`
-- 範例：`system-analyst.md`
+### 觸發條件規則
+- 位置：代理人定義主文（`.claude/agents/{name}.md`）的「適用情境」區塊
+- 說明：派發觸發條件併入單一代理人定義檔，不再使用獨立的派發規則目錄
 
 ---
 
@@ -397,17 +396,15 @@ You are a {role description in English}. Your core mission is {mission statement
 
 | 文件 | 說明 | 位置 |
 |------|------|------|
-| Task 工具版本 | 完整的代理人定義（詳細指令） | `.claude/agents/` |
-| 派發規則版本 | 精簡的派發規則摘要 | `.claude/rules/dispatch-rules/` |
-| 職責矩陣 | 更新職責邊界 | `.claude/rules/dispatch-rules/overview.md` |
+| 代理人定義 | 完整的代理人定義（含三區塊：允許產出/禁止行為/適用情境） | `.claude/agents/{name}.md` |
 | CLAUDE.md | 更新代理人列表（如適用） | `CLAUDE.md` |
 | 決策流程 | 更新派發規則（如適用） | `.claude/pm-rules/decision-tree.md` |
 
-### 雙目錄建立檢查
+### 建立檢查
 
-- [ ] `.claude/agents/{name}.md` 已建立（Task 工具版本）
-- [ ] `.claude/rules/dispatch-rules/{name}.md` 已建立（派發規則版本）
-- [ ] `.claude/rules/dispatch-rules/overview.md` 已更新
+- [ ] `.claude/agents/{name}.md` 已建立（含三區塊：允許產出/禁止行為/適用情境）
+- [ ] CLAUDE.md 代理人列表已更新（如適用）
+- [ ] `.claude/pm-rules/decision-tree.md` 派發規則已更新（如適用）
 
 ---
 

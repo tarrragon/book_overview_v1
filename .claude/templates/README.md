@@ -9,7 +9,7 @@
 | 範本 | 用途 | 使用情境 |
 |------|------|---------|
 | [CLAUDE-template.md](./CLAUDE-template.md) | 專案入口文件範本 | 新專案初始化時複製為 `CLAUDE.md` |
-| [agent-template.md](./agent-template.md) | 代理人定義範本 | 新增代理人到 `.claude/agents/` 和 `.claude/rules/dispatch-rules/` |
+| [agent-template.md](./agent-template.md) | 代理人定義範本 | 新增代理人到 `.claude/agents/` |
 | [work-log-template.md](./work-log-template.md) | 版本工作日誌範本 | 開始新版本時建立 `docs/work-logs/vX.X.X/` |
 | [ticket-log-template.md](./ticket-log-template.md) | Ticket 執行日誌結構參考 | PM / ticket-lifecycle 方法論引用（非 `/ticket create` 自動套用） |
 | [learning-record-template.md](./learning-record-template.md) | 學習記錄範本 | continuous-learning skill 使用 |
@@ -29,14 +29,9 @@ cp .claude/templates/CLAUDE-template.md ./CLAUDE.md
 ### 新增代理人
 
 ```bash
-# 1. 建立 Task 工具版本（詳細指令）
+# 建立代理人定義（單一檔案，含三區塊：允許產出/禁止行為/適用情境）
 cp .claude/templates/agent-template.md .claude/agents/{agent-name}.md
 # 編輯並填入代理人完整定義
-
-# 2. 建立派發規則版本（精簡摘要）
-# 從 Task 工具版本提取精簡版到：
-cp .claude/templates/agent-template.md .claude/rules/dispatch-rules/{agent-name}.md
-# 編輯並簡化為派發規則摘要
 ```
 
 ### 開始新版本
