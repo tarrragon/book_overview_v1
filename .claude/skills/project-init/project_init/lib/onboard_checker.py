@@ -643,7 +643,7 @@ def _create_missing_gitignore_result(exists: bool = False) -> GitignoreCheckInfo
             ".claude/worktrees/",
             ".claude/tool-results/",
             ".claude/handoff/",
-            ".claude/dispatch-active.json",
+            ".claude/dispatch-active*",
             "__pycache__/",
         ],
     )
@@ -693,7 +693,7 @@ def check_gitignore_completeness(project_root: Path) -> GitignoreCheckInfo:
     if not has_handoff:
         missing.append(".claude/handoff/")
     if not has_dispatch_active:
-        missing.append(".claude/dispatch-active.json")
+        missing.append(".claude/dispatch-active*")
     if not has_pycache:
         missing.append("__pycache__/")
 

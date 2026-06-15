@@ -524,6 +524,29 @@ htmlcov/*
         assert result.exists
         assert not result.all_required_complete
 
+    def test_gitignore_missing_rules_are_actionable(self, tmp_path: Path) -> None:
+        """missing_rules 建議的規則原樣寫入 .gitignore 後應能通過檢查（往返一致性）.
+
+        防止建議字面與 _has_gitignore_rule 精確比對不對齊：如 .claude/dispatch-active.json
+        經 normalize（rstrip "/*"）仍不等於 pattern .claude/dispatch-active，
+        致使用者照 missing 建議加入後仍被判缺失（W9-008）。
+        """
+        # 空 .gitignore 取得完整 missing 建議
+        (tmp_path / ".gitignore").write_text("")
+        first = check_gitignore_completeness(tmp_path)
+        assert not first.all_required_complete
+        assert first.missing_rules
+
+        # 將 missing 建議的規則原樣寫回 .gitignore
+        (tmp_path / ".gitignore").write_text("\n".join(first.missing_rules) + "\n")
+        second = check_gitignore_completeness(tmp_path)
+
+        # 照建議加入後應全部通過（每條建議字面必須 actionable）
+        assert second.all_required_complete, (
+            f"missing 建議字面無法通過檢查，殘留: {second.missing_rules}"
+        )
+        assert second.missing_rules == []
+
 
 class TestCheckClaudeDirectoryStructure:
     """測試 .claude 目錄結構檢查."""
