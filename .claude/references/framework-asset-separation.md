@@ -177,7 +177,7 @@ Skill 私有 Hook **必須在 `settings.json` 註冊**才會被觸發。**Why**:
 - `.claude/error-patterns/architecture/ARCH-012-agent-project-specific-hardcoding.md` - 代理人定義硬編碼專案特定內容的錯誤模式
 - `.claude/error-patterns/process-compliance/PC-061-memory-upgrade-blindness.md` - Memory 跨專案原則升級遺漏的錯誤模式
 - `.claude/hooks/hook-completeness-check.py` - 雙層 Hook 掃描器
-- `.claude/plugin-dev/hook-development/SKILL.md`（plugin-dev plugin）- Claude Code Hook 開發通用指引（事件、API）
+- plugin-dev plugin 的 `hook-development` skill（plugin 形式，非 .claude/ 內檔）- Claude Code Hook 開發通用指引（事件、API）
 - `.claude/commands/sync-push.md` - sync-push 流程與 `--clean` 刪除傳播紀律（§4 連結來源）
 
 ---
