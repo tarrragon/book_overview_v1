@@ -19,15 +19,21 @@ import re
 import sys
 from pathlib import Path
 
-# 預設旋鈕：三排除全開啟（皆排除），可由 CLI flag 顯式覆寫納入
+# 預設旋鈕：四排除全開啟（皆排除），可由 CLI flag 顯式覆寫納入
 DEFAULT_KNOBS = {
     "include_code_block": False,
     "include_migration_backups": False,
     "include_placeholder": False,
+    "include_documented": False,
 }
 
 # 4 種引用前綴；http(s):// 與 #anchor 不在清單中故天然排除
 REF_REGEX = re.compile(r"(?:@\.claude/|\.claude/|\.\./|\./)[^\s)\]\"'`]*?\.md")
+
+# W8-049：per-line 豁免 marker。error-pattern 案例表刻意記錄的不存在路徑
+# （confabulation 錯誤參照 / 歷史遷移檔案軌跡）以行內 marker 顯式 opt-in 豁免，
+# 歸 excluded_documented 不計 broken。marker 僅影響所在行（PC-146 放置精確性）。
+EXEMPT_MARKER = re.compile(r"<!--\s*broken-link-exempt\b.*?-->")
 
 # 固定 placeholder 樣式集（SKILL 表格自身範例路徑，非真實引用）
 PLACEHOLDER_SAMPLES = {
@@ -81,10 +87,16 @@ def extract_refs(text):
         if line.lstrip().startswith("```"):
             in_fence = not in_fence
             continue
+        line_exempt = bool(EXEMPT_MARKER.search(line))
         for match in REF_REGEX.finditer(line):
             raw = match.group()
             refs.append(
-                {"raw_ref": raw, "line": line_no, "in_code_block": in_fence}
+                {
+                    "raw_ref": raw,
+                    "line": line_no,
+                    "in_code_block": in_fence,
+                    "exempt": line_exempt,
+                }
             )
     return refs
 
@@ -104,10 +116,12 @@ def resolve_path(raw, source_file, root):
     return os.path.normpath(str(source_file.parent / raw))
 
 
-def classify_ref(raw, resolved, knobs, exists):
-    """判定引用分類：placeholder / excluded_backup / broken / ok。
+def classify_ref(raw, resolved, knobs, exists, exempt=False):
+    """判定引用分類：placeholder / excluded_backup / excluded_documented / broken / ok。
 
-    判定順序即優先級（短路）：placeholder → backup → exists → broken。
+    判定順序即優先級（短路）：placeholder → backup → exists → documented → broken。
+    documented 豁免僅作用於「不存在」的引用（exempt marker 行）；存在者仍歸 ok，
+    不誤計 excluded_documented（marker 只取消「真實 broken」的計列，不遮蔽存在事實）。
     """
     if not knobs["include_placeholder"]:
         if raw in PLACEHOLDER_SAMPLES or is_placeholder_pattern(raw):
@@ -118,6 +132,8 @@ def classify_ref(raw, resolved, knobs, exists):
         # 旋鈕開啟 → 落到下方 exists/broken 判定
     if exists:
         return "ok"
+    if exempt and not knobs.get("include_documented"):
+        return "excluded_documented"
     return "broken"
 
 
@@ -140,6 +156,7 @@ def scan(root, knobs=None):
         "placeholder": 0,
         "excluded_code_block": 0,
         "excluded_backup": 0,
+        "excluded_documented": 0,
     }
     broken_entries = []
     total_refs = 0
@@ -169,7 +186,10 @@ def scan(root, knobs=None):
                 continue
             resolved = resolve_path(ref["raw_ref"], f, root)
             exists = Path(resolved).exists()
-            cat = classify_ref(ref["raw_ref"], resolved, knobs, exists=exists)
+            cat = classify_ref(
+                ref["raw_ref"], resolved, knobs,
+                exists=exists, exempt=ref.get("exempt", False),
+            )
             if cat in categories:
                 categories[cat] += 1
             if cat == "broken":
@@ -205,7 +225,8 @@ def _print_text_view(result):
         "categories: "
         f"broken={cats['broken']} placeholder={cats['placeholder']} "
         f"excluded_code_block={cats['excluded_code_block']} "
-        f"excluded_backup={cats['excluded_backup']}"
+        f"excluded_backup={cats['excluded_backup']} "
+        f"excluded_documented={cats['excluded_documented']}"
     )
     print("--- broken list (sorted source:line) ---")
     for e in result["broken"]:
@@ -227,6 +248,7 @@ def main(argv=None):
     parser.add_argument("--include-code-block", action="store_true")
     parser.add_argument("--include-migration-backups", action="store_true")
     parser.add_argument("--include-placeholder", action="store_true")
+    parser.add_argument("--include-documented", action="store_true")
     parser.add_argument("--format", choices=["text", "json"], default="text")
     args = parser.parse_args(argv)
 
@@ -240,6 +262,7 @@ def main(argv=None):
         "include_code_block": args.include_code_block,
         "include_migration_backups": args.include_migration_backups,
         "include_placeholder": args.include_placeholder,
+        "include_documented": args.include_documented,
     }
     try:
         result = scan(root, knobs)

@@ -486,3 +486,122 @@ class TestLiveTreeSmoke:
         assert proc.returncode in (0, 1)
         data = json.loads(proc.stdout)
         assert data["broken_count"] >= 0
+
+
+# ===========================================================================
+# F. W8-049: documented-error 豁免 marker（excluded_documented 類別）
+# ===========================================================================
+
+
+class TestDocumentedExemptMarker:
+    """W8-049：per-line `<!-- broken-link-exempt: documented-error -->` marker。
+
+    error-pattern 案例表中刻意記錄的不存在路徑（confabulation 錯誤參照 /
+    歷史遷移檔案軌跡）以行內 marker 豁免，歸 excluded_documented 不計 broken。
+    顯式 opt-in（per-occurrence），無 marker 的真實 broken 不受影響。
+    """
+
+    DOCUMENTED_KNOBS = {
+        "include_code_block": False,
+        "include_migration_backups": False,
+        "include_placeholder": False,
+        "include_documented": True,
+    }
+
+    @pytest.fixture
+    def documented_repo(self, tmp_path):
+        claude = tmp_path / ".claude"
+        claude.mkdir()
+        # 含 marker 行：documented-intentional broken → excluded_documented
+        (claude / "case.md").write_text(
+            "| 1 | `.claude/pm-rules/gone.md` | "
+            "<!-- broken-link-exempt: documented-error --> |\n"
+        )
+        # 對照：無 marker 的真實 broken 仍須計入
+        (claude / "live.md").write_text("ref .claude/real/missing.md here\n")
+        return tmp_path
+
+    def test_marker_line_ref_goes_excluded_documented(self, documented_repo):
+        result = scan_links.scan(documented_repo, knobs=None)
+        srcs = [e["source_file"] for e in result["broken"]]
+        assert all("case.md" not in s for s in srcs)
+        assert result["categories"].get("excluded_documented", 0) >= 1
+
+    def test_non_marker_broken_still_broken(self, documented_repo):
+        result = scan_links.scan(documented_repo, knobs=None)
+        srcs = [e["source_file"] for e in result["broken"]]
+        assert any("live.md" in s for s in srcs)
+
+    def test_categories_contains_excluded_documented_key(self, documented_repo):
+        result = scan_links.scan(documented_repo, knobs=None)
+        assert "excluded_documented" in result["categories"]
+
+    def test_marker_exempts_all_refs_on_same_line(self, tmp_path):
+        # 一行多個 documented ref，marker 一次豁免全部（DOC-010:97 場景）
+        claude = tmp_path / ".claude"
+        claude.mkdir()
+        (claude / "multi.md").write_text(
+            "| `.claude/a/gone.md` `.claude/b/gone.md` `.claude/c/gone.md` "
+            "<!-- broken-link-exempt: documented-error --> |\n"
+        )
+        result = scan_links.scan(tmp_path, knobs=None)
+        assert result["broken_count"] == 0
+        assert result["categories"]["excluded_documented"] == 3
+
+    def test_marker_does_not_exempt_other_lines(self, tmp_path):
+        # PC-146 防護：marker 只豁免本行，他行真實 broken 不受影響
+        claude = tmp_path / ".claude"
+        claude.mkdir()
+        (claude / "mix.md").write_text(
+            "exempt .claude/x/gone.md <!-- broken-link-exempt: documented-error -->\n"
+            "real .claude/y/gone.md here\n"
+        )
+        result = scan_links.scan(tmp_path, knobs=None)
+        broken_lines = [e["line"] for e in result["broken"]]
+        assert broken_lines == [2]
+        assert result["categories"]["excluded_documented"] == 1
+
+    def test_existing_path_on_marker_line_stays_ok(self, tmp_path):
+        # marker 僅影響「不存在」的引用；存在者仍歸 ok（不誤計 excluded_documented）
+        claude = tmp_path / ".claude"
+        claude.mkdir()
+        (claude / "target.md").write_text("# t\n")
+        (claude / "case.md").write_text(
+            "ref @.claude/target.md <!-- broken-link-exempt: documented-error -->\n"
+        )
+        result = scan_links.scan(tmp_path, knobs=None)
+        assert result["broken_count"] == 0
+        assert result["categories"]["excluded_documented"] == 0
+
+    def test_documented_counted_broken_when_knob_on(self, documented_repo):
+        # --include-documented：marker 行也計入 broken（對稱既有三旋鈕）
+        result = scan_links.scan(documented_repo, knobs=self.DOCUMENTED_KNOBS)
+        srcs = [e["source_file"] for e in result["broken"]]
+        assert any("case.md" in s for s in srcs)
+
+    def test_classify_ref_exempt_only_affects_broken(self):
+        # 單元：exempt=True 但 exists=True → 非 excluded_documented
+        knobs = {
+            "include_code_block": False,
+            "include_migration_backups": False,
+            "include_placeholder": False,
+            "include_documented": False,
+        }
+        cat = scan_links.classify_ref(
+            "@.claude/here.md", "/repo/.claude/here.md", knobs,
+            exists=True, exempt=True,
+        )
+        assert cat == "ok"
+        cat2 = scan_links.classify_ref(
+            "@.claude/gone.md", "/repo/.claude/gone.md", knobs,
+            exists=False, exempt=True,
+        )
+        assert cat2 == "excluded_documented"
+
+    def test_cli_include_documented_flag(self, documented_repo):
+        # CLI 旋鈕：--include-documented 使 marker 行計入 → exit 1
+        default = run_cli(documented_repo, "--format", "json")
+        widened = run_cli(documented_repo, "--include-documented", "--format", "json")
+        d = json.loads(default.stdout)["broken_count"]
+        w = json.loads(widened.stdout)["broken_count"]
+        assert w > d
