@@ -147,16 +147,22 @@
 - **不是**：完整流程說明、程式碼範例、決策表格（這些屬 skill reference）
 - **是**：明確判斷標準、操作清單、快速參考表
 
+**Why**：方法論聚焦判斷標準（< 1 頁可複習），skill reference 承載完整流程與範例（按需載入）。**Consequence**：混淆兩者會導致方法論膨脹為多頁文件失去快速參考價值。**Action**：寫方法論時問「這段是判斷依據還是執行細節」，後者移至對應 skill。
+
 ### 認知負擔最小化
 
 所有設計原則的終極目標：降低閱讀者的認知負擔。參考 `cognitive-load-design-methodology`。
+
+**Consequence**：認知負擔過載使閱讀者需同時追蹤 > 7 個概念（Miller's Law），導致理解錯誤與維護成本上升。**Action**：設計時依 cognitive-load-design-methodology 量化標準（函式 ≤ 15 行 / 參數 ≤ 3 / 巢狀深度 ≤ 3）自我檢查。
 
 ### 行為驅動測試
 
 測試應耦合到行為而非結構。重構時測試不應破裂。參考 `behavior-first-tdd-methodology`。
 
+**Why**：行為（對外可見功能）比結構（內部實作）穩定；測試耦合到行為使重構時測試不需修改。**Consequence**：耦合到結構（如測試 private 方法）會使每次重構需同步改測試，增加重構成本並降低測試對重構的保護。
+
 ---
 
 **Last Updated**: 2026-06-15
-**Version**: 2.0.0 — 全目錄導覽（52 檔，8 家族分組）+ README 瘦身（538→~200 行）+ three-phase-reflection 歸入分析反思家族（W8-027 強制輸入）
+**Version**: 2.1.0 — Layer 2 審查修正（補充 3 處三明示：方法論定義 / 認知負擔 / 行為驅動測試的 Why/Consequence/Action）
 **Maintained by**: thyme-documentation-integrator
