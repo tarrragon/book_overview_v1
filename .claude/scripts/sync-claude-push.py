@@ -872,6 +872,60 @@ def bump_patch_version(version: str) -> str:
     return bump_version(version, "patch")
 
 
+def create_and_push_version_tag(repo_dir: Path, version: str) -> None:
+    """對 repo_dir 當前 HEAD 打 annotated tag v<version> 並 push 到 origin。
+
+    tagged-release 機制：每次成功 push 框架更新後，對該版本 commit 打 git tag，
+    使下游 consumer 可 pin 至特定版本（tag commit），收斂壞變更的爆炸半徑——壞版
+    不再瞬時傳染全部 consumer，consumer 可選擇停留在已知良好的 tag。
+
+    冪等性：tag v<version> 已存在時不重複建立（避免同版重 push 失敗）。本地已有
+    tag 但 remote 無時，仍嘗試 push 該 tag。tag push 失敗僅警告不中止整個 push
+    流程（main 分支已成功推送，tag 為附加機制）。
+
+    參數:
+        repo_dir: 已 push 成功的本地 clone 路徑（含 origin remote）
+        version: 純版本號（不含 v 前綴，如 "1.0.1"）
+    """
+    tag_name = f"v{version}"
+    existing = run_git(["tag", "--list", tag_name], cwd=str(repo_dir), check=False)
+    if existing.returncode == 0 and tag_name in existing.stdout.split():
+        # 本地已有此 tag：確保 remote 也有（容錯前次 tag push 失敗），不重建
+        push_existing = run_git(
+            ["push", "origin", tag_name], cwd=str(repo_dir), check=False
+        )
+        if push_existing.returncode != 0:
+            print_color(
+                f"   警告: 推送既有 tag {tag_name} 失敗: {push_existing.stderr.strip()}",
+                "yellow",
+            )
+        return
+
+    create_result = run_git(
+        ["tag", "-a", tag_name, "-m", f"Release {tag_name}"],
+        cwd=str(repo_dir),
+        check=False,
+    )
+    if create_result.returncode != 0:
+        print_color(
+            f"   警告: 建立 tag {tag_name} 失敗: {create_result.stderr.strip()}",
+            "yellow",
+        )
+        return
+
+    push_result = run_git(
+        ["push", "origin", tag_name], cwd=str(repo_dir), check=False
+    )
+    if push_result.returncode != 0:
+        print_color(
+            f"   警告: 推送 tag {tag_name} 失敗（main 已推送成功）: "
+            f"{push_result.stderr.strip()}",
+            "yellow",
+        )
+        return
+    print_color(f"   已打並推送版本 tag {tag_name}", "green")
+
+
 def update_changelog(repo_dir: Path, new_version: str, commit_message: str, old_content: str = "") -> None:
     """Update CHANGELOG.md with a new version entry, preserving old entries."""
     changelog_path = repo_dir / "CHANGELOG.md"
@@ -1348,6 +1402,9 @@ def main() -> None:
             else:
                 print_color(f"推送失敗: {push_result.stderr}", "red")
             sys.exit(1)
+
+        # tagged-release：push 成功後對本版打 git tag（remote 可見），供下游 pin 特定版。
+        create_and_push_version_tag(temp_dir, new_version)
 
         # 計算內容指紋並寫入 .sync-state.json（保留 last_synced_base_sha，禁覆蓋遺失）
         content_hash = _compute_content_hash(claude_dir)
