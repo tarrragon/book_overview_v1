@@ -3,6 +3,7 @@
 全程以 mock 攔截 gh subprocess，不真打 GitHub API。
 """
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -17,6 +18,7 @@ import gh_common  # noqa: E402
 import create_issue  # noqa: E402
 import list_issues  # noqa: E402
 import link_issue  # noqa: E402
+import fix_status  # noqa: E402
 
 
 def _completed(returncode=0, stdout="", stderr=""):
@@ -177,6 +179,97 @@ def test_link_degraded_gh_not_installed(monkeypatch, capsys, tmp_path):
     assert "未安裝" in capsys.readouterr().err
     # 降級時未寫入 canonical_issue
     assert "canonical_issue" not in pattern_file.read_text(encoding="utf-8")
+
+
+# --- fix-status 命令 ---
+
+_BODY_WITH_MATRIX = (
+    "壞 change 描述\n\n"
+    "<!-- fix-matrix -->\n"
+    "| consumer | status |\n"
+    "|----------|--------|\n"
+    "| V1 | fixed |\n"
+    "| APP | pending |\n"
+    "<!-- /fix-matrix -->\n"
+)
+
+
+def _patched_fix_env(monkeypatch):
+    """fix-status 共用前置：gh 已裝已登入。"""
+    monkeypatch.setattr(gh_common, "check_gh_available", lambda: True)
+    monkeypatch.setattr(gh_common, "check_gh_authenticated", lambda: True)
+
+
+def test_fix_status_view_parses_matrix(monkeypatch, capsys):
+    """view：gh issue view 取含矩陣 body → 解析並印各 consumer 狀態。"""
+    _patched_fix_env(monkeypatch)
+    payload = '{"body": %s}' % json.dumps(_BODY_WITH_MATRIX)
+    with mock.patch.object(
+        fix_status.subprocess, "run", return_value=_completed(stdout=payload)
+    ):
+        rc = fix_status.main(["tarrragon/claude#42"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "| V1 | fixed |" in out
+    assert "| APP | pending |" in out
+
+
+def test_fix_status_mark_fixed_updates_consumer(monkeypatch, tmp_path):
+    """mark-fixed：本 consumer（APP）由 pending 更新為 fixed 並走 issue edit 回寫。"""
+    _patched_fix_env(monkeypatch)
+    monkeypatch.setattr(fix_status, "get_git_toplevel", lambda: "/x/book_overview_app")
+
+    captured = {}
+
+    def fake_run(args, *a, **k):
+        if args[:3] == ["gh", "issue", "view"]:
+            return _completed(stdout='{"body": %s}' % json.dumps(_BODY_WITH_MATRIX))
+        if args[:3] == ["gh", "issue", "edit"]:
+            body_file = args[args.index("--body-file") + 1]
+            captured["body"] = Path(body_file).read_text(encoding="utf-8")
+            return _completed(stdout="edited\n")
+        return _completed()
+
+    with mock.patch.object(fix_status.subprocess, "run", side_effect=fake_run):
+        rc = fix_status.main(["tarrragon/claude#42", "--mark-fixed"])
+    assert rc == 0
+    # APP 由 pending → fixed，V1 既有 fixed 保留，不新增重複列
+    assert "| APP | fixed |" in captured["body"]
+    assert captured["body"].count("| APP |") == 1
+    assert "| V1 | fixed |" in captured["body"]
+
+
+def test_fix_status_mark_fixed_initializes_when_absent(monkeypatch):
+    """mark-fixed：body 無矩陣時初始化矩陣並寫入本 consumer 列。"""
+    _patched_fix_env(monkeypatch)
+    monkeypatch.setattr(fix_status, "get_git_toplevel", lambda: "/x/book_overview_v1")
+
+    captured = {}
+
+    def fake_run(args, *a, **k):
+        if args[:3] == ["gh", "issue", "view"]:
+            return _completed(stdout='{"body": "純描述無矩陣"}')
+        if args[:3] == ["gh", "issue", "edit"]:
+            body_file = args[args.index("--body-file") + 1]
+            captured["body"] = Path(body_file).read_text(encoding="utf-8")
+            return _completed(stdout="edited\n")
+        return _completed()
+
+    with mock.patch.object(fix_status.subprocess, "run", side_effect=fake_run):
+        rc = fix_status.main(["tarrragon/claude#7", "--mark-fixed"])
+    assert rc == 0
+    body = captured["body"]
+    assert fix_status.MATRIX_BEGIN in body and fix_status.MATRIX_END in body
+    assert "| V1 | fixed |" in body
+    assert "純描述無矩陣" in body  # 既有內文保留
+
+
+def test_fix_status_degraded_gh_not_installed(monkeypatch, capsys):
+    """gh 未安裝 → 降級 exit 3，不嘗試讀 issue。"""
+    monkeypatch.setattr(gh_common.shutil, "which", lambda _: None)
+    rc = fix_status.main(["tarrragon/claude#42"])
+    assert rc == gh_common.EXIT_DEGRADED
+    assert "未安裝" in capsys.readouterr().err
 
 
 if __name__ == "__main__":

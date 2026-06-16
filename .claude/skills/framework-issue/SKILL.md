@@ -16,9 +16,9 @@ issue。framework issue 三重用途：provenance 錨點、error-pattern canonic
 | create | `gh issue create --repo tarrragon/claude.git` | 建立 framework issue |
 | list | `gh issue list --repo tarrragon/claude.git` | 列出 / 去重查詢 framework issue |
 | link | 寫本地 error-pattern 檔 | 把 canonical_issue stamp 進 error-pattern 分類資訊表格 |
+| fix-status | `gh issue view/edit --repo tarrragon/claude.git` | 查 / 更新 issue body 內跨 consumer 修復矩陣（軸 C） |
 
-> 範圍：本 skill 含 create / list / link。fix-status（修復矩陣）為後續
-> ticket，尚未實作。
+> 範圍：本 skill 含 create / list / link / fix-status，四命令齊備。
 
 ## Usage
 
@@ -56,6 +56,27 @@ GitHub API；issue ref 由呼叫端先以 create / list 取得。
 升格時機：error-pattern 升格為 canonical 後，先 `create` / 找到對應 framework
 issue，再以 `link` 把 issue ref stamp 回 error-pattern 作 canonical 錨點。詳見
 `.claude/methodologies/error-pattern-numbering-methodology.md`「canonical 升格機制」。
+
+fix-status（軸 C：跨 consumer 修復追蹤）：
+
+```bash
+# view：顯示哪些 consumer 修了該壞 change
+python3 .claude/skills/framework-issue/scripts/fix_status.py <issue-ref>
+
+# mark-fixed：把「本 consumer」標為 fixed 並回寫 issue body
+python3 .claude/skills/framework-issue/scripts/fix_status.py <issue-ref> --mark-fixed
+```
+
+修復狀態 SSOT 為 framework issue body 內的標記區段
+`<!-- fix-matrix -->...<!-- /fix-matrix -->`，內嵌 markdown 表格
+`| consumer | status |`（flat-base 號無狀態無法追蹤，此為 framework issue
+獨有價值）。read=`gh issue view --json body` 解析；write=更新區段後
+`gh issue edit --body-file` 回寫；矩陣不存在時 `--mark-fixed` 自動初始化。
+
+consumer 自我識別沿用 `.claude/error-patterns/_project-registry.yaml` + git
+toplevel basename（同 error-pattern allocator 的 `identify_project_code`），
+**不需也不接受手動傳 consumer 名**；basename 未登錄於 registry 時降級報錯
+（防止靜默產生錯誤 consumer 前綴）。
 
 ## Graceful Degradation
 
