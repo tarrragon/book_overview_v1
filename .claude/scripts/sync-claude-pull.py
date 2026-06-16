@@ -247,15 +247,41 @@ def load_preserve_list(claude_dir: Path) -> set[str]:
         )
 
     # 簡易 fallback 解析：讀取 "- path" 格式的行
+    #
+    # fail-loud：簡易解析器只支援「preserve: 後接 '- path' 區塊清單」這一種
+    # 格式。遇到無法可靠解析的結構（tab 縮排、inline flow 清單 'preserve: [...'）
+    # 時，必須 fail-loud（stderr 警告 + raise），不可靜默回空集合——靜默回空
+    # 會關閉全部 preserve 保護，導致本地特化檔案被遠端覆蓋（違反 quality-baseline
+    # 規則 4，禁止靜默失敗）。
     paths: set[str] = set()
     in_preserve = False
     for line in content.splitlines():
+        if "\t" in line:
+            # tab 縮排是 YAML 語法錯誤，簡易解析器無法可靠處理
+            sys.stderr.write(
+                f"[sync-pull] preserve 清單含 tab 縮排，簡易解析器無法可靠解析，"
+                f"sync 中止以避免關閉全部 preserve 保護: {preserve_file}\n"
+            )
+            raise ValueError(
+                f"sync-preserve.yaml 含 tab 縮排，無法在無 PyYAML 環境下安全解析："
+                f"{preserve_file}"
+            )
         stripped = line.strip()
         if stripped.startswith("#") or not stripped:
             continue
         if stripped == "preserve:":
             in_preserve = True
             continue
+        if stripped.startswith("preserve:"):
+            # 'preserve: [...]' 等 inline flow 清單，簡易解析器無法處理
+            sys.stderr.write(
+                f"[sync-pull] preserve 清單使用 inline flow 格式，簡易解析器無法"
+                f"可靠解析，sync 中止以避免關閉全部 preserve 保護: {preserve_file}\n"
+            )
+            raise ValueError(
+                f"sync-preserve.yaml 使用 inline flow 清單，無法在無 PyYAML 環境下"
+                f"安全解析：{preserve_file}"
+            )
         if in_preserve and stripped.startswith("- "):
             paths.add(stripped[2:].strip())
         elif stripped and not stripped.startswith("#"):
