@@ -128,6 +128,10 @@ __pycache__/
 # Claude migration backups (ticket migrate auto-generated)
 .claude/migration-backups/
 
+# Claude 專案產物（per-project，非框架資產，不跨專案 sync）
+.claude/analyses/
+.claude/plans/
+
 # Project-level backup directories (smart_fix / manual snapshots)
 .backup/
 backups/
