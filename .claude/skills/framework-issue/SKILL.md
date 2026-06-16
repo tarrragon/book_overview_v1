@@ -15,9 +15,10 @@ issue。framework issue 三重用途：provenance 錨點、error-pattern canonic
 |------|------|------|
 | create | `gh issue create --repo tarrragon/claude.git` | 建立 framework issue |
 | list | `gh issue list --repo tarrragon/claude.git` | 列出 / 去重查詢 framework issue |
+| link | 寫本地 error-pattern 檔 | 把 canonical_issue stamp 進 error-pattern 分類資訊表格 |
 
-> 範圍：本 skill 首建僅 create / list。link（canonical_issue stamp）與
-> fix-status（修復矩陣）為後續 ticket，尚未實作。
+> 範圍：本 skill 含 create / list / link。fix-status（修復矩陣）為後續
+> ticket，尚未實作。
 
 ## Usage
 
@@ -36,6 +37,25 @@ python3 .claude/skills/framework-issue/scripts/list_issues.py \
 ```
 
 建 issue 前先用 `list --search "<關鍵字>"` 查既有 canonical issue 避免重複。
+
+link：
+
+```bash
+python3 .claude/skills/framework-issue/scripts/link_issue.py \
+  <error-pattern-id-或路徑> <issue-ref>
+# 例：link PC-020 tarrragon/claude#42
+```
+
+link 把 `| canonical_issue | <issue-ref> |` 寫入該 error-pattern 的
+「## 分類資訊」表格（落點為表格列，非 YAML frontmatter，與既有結構一致）。
+pattern 可傳 id（如 `PC-020`，於 `error-patterns/` 下遞迴解析 `<id>-*.md`）或
+直接傳 `.md` 路徑。重複 link 為**更新既有列**而非新增重複列；找不到 pattern
+或缺分類資訊表格時降級報錯（exit 3）不寫檔。link 寫的是本地檔，不真打
+GitHub API；issue ref 由呼叫端先以 create / list 取得。
+
+升格時機：error-pattern 升格為 canonical 後，先 `create` / 找到對應 framework
+issue，再以 `link` 把 issue ref stamp 回 error-pattern 作 canonical 錨點。詳見
+`.claude/methodologies/error-pattern-numbering-methodology.md`「canonical 升格機制」。
 
 ## Graceful Degradation
 
