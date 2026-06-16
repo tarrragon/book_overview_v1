@@ -1,3 +1,199 @@
+## [1.48.8] - 2026-06-16
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.48.7] - 2026-06-16
+
+### Summary
+fix: 移除 v1.48.6 誤推的專案特化檔（PC-177/178 + wrap-decision project-integration 7 檔）
+
+v1.48.6 由 consumer 專案 sync-push 全樹 overlay 誤推上來的 project-specific 內容。
+push 端 preserve-aware 排除已落地（防未來復發），本次外科手術移除已推副本。
+保留 PC-APP-001/002（staging error-pattern，跨專案適用）。
+
+Changes: 1 fix
+
+- fix: 移除 9 個誤推的專案特化檔（preserve-listed），framework 回歸通用內容
+
+---
+
+## [1.48.6] - 2026-06-16
+
+### Summary
+--help
+
+---
+
+## [1.48.5] - 2026-06-16
+
+### Summary
+fix: check_gitignore_completeness 改 git check-ignore 混合語意消除 false positive; fix: dispatch-active missing 建議字面改 .claude/dispatch-active*; fix: 同步 project-init gitignore/check 測試斷言並修 _create_missing_gitignore_result 漏列 dispatch-active (+1 more)
+
+Changes: 3 fix, 1 chore
+
+- fix: check_gitignore_completeness 改 git check-ignore 混合語意消除 false positive
+- fix: dispatch-active missing 建議字面改 .claude/dispatch-active*
+- fix: 同步 project-init gitignore/check 測試斷言並修 _create_missing_gitignore_result 漏列 dispatch-active
+- chore: test_hook_completeness_reverse_check.py 執行權限對齊 100755
+
+---
+
+## [1.48.4] - 2026-06-16
+
+### Summary
+fix: get_tickets_dir 加既有 flat 結構讀取相容（issue #1 問題4）; fix: save_ticket 保留檔尾換行 + race 測試 win32 skip（跨平台收尾）; fix: hook-completeness 新增反向檢查（幽靈註冊+跨檔重複偵測） (+3 more)
+
+Changes: 6 fix
+
+- fix: get_tickets_dir 加既有 flat 結構讀取相容（issue #1 問題4）
+- fix: save_ticket 保留檔尾換行 + race 測試 win32 skip（跨平台收尾）
+- fix: hook-completeness 新增反向檢查（幽靈註冊+跨檔重複偵測）
+- fix: uv-tool-staleness install 指令改絕對路徑免 cd（PowerShell 相容）
+- fix: project-init Python 偵測多候選+uv fallback、安裝指引 OS 感知（Windows 跨平台）
+- fix: file_lock 改用 filelock 取代 fcntl（Windows 跨平台 P0）
+
+---
+
+## [1.48.3] - 2026-06-15
+
+### Summary
+清理遠端孤兒：傳播過時 legacy 文件與 dead 範本之刪除
+
+移除 agent 協作規範舊副本、tdd 協作流程 legacy 副本、ticket-system 範本
+（本地已刪除，--clean 傳播至遠端避免 full overlay 復發孤兒）
+
+---
+
+## [1.48.2] - 2026-06-15
+
+### Summary
+--help
+
+---
+
+## [1.48.1] - 2026-06-14
+
+### Summary
+fix: 非阻塞 reap 收割殘留 stale .md.lock
+
+Changes: 1 fix
+
+- fix: 非阻塞 reap 收割殘留 stale .md.lock
+
+---
+
+## [1.48.0] - 2026-06-14
+
+### Summary
+feat: SessionStart agent 定義標準執法掃描 hook; docs: campaign 收尾 gate broken-link 修復 + methodology-index 補齊; docs: 瘦身 five-document-system-methodology 336→202 (+34 more)
+
+Changes: 1 feat, 36 docs
+
+- feat: SessionStart agent 定義標準執法掃描 hook
+- docs: campaign 收尾 gate broken-link 修復 + methodology-index 補齊
+- docs: 瘦身 five-document-system-methodology 336→202
+- docs: 瘦身 business-layer-i18n 方法論 354->145 行 + 衛星檔
+- docs: 瘦身 personalized-consultation-methodology 431->275 + 衛星檔
+- docs: 瘦身 cognitive-load-design-methodology 419->139 + 衛星檔外移 + rule 去重
+- docs: 合併 multi-perspective(419) → parallel-evaluation 方案 A
+- docs: 整併 hook 家族 3 檔為 1 主檔 + 2 衛星檔
+- docs: 瘦身 frontmatter-ticket-tracking-methodology 561→232 行
+- docs: 瘦身 5w1h-self-awareness-methodology 605->265 行
+- docs: 瘦身 problem-awareness-evaluation-methodology 698->227
+- docs: 瘦身 acceptance-criteria-methodology 701→297 行 + 外移衛星檔
+- docs: 校準審查 B2 修正 — 衛星檔回指補 intent 情境句
+- docs: 瘦身 package-import-methodology 736→86 行 + 衛星檔外移
+- docs: 移除 thyme 品質檢查清單冗餘標題，路由併入品質標準章節
+- docs: 批 C TRIM 通用4階段骨架（thyme-ext/ginger/basil-event）
+- docs: 批 B 外移 SD/SE/DBA 輸出範本至 references/
+- docs: 批A ROUTE 三檔流程外移（thyme-doc/pepper/basil-hook）
+- docs: 外移 parsley Phase3b+Phase4 交接通用骨架至 tdd skill
+- docs: 外移 fennel Phase3b 通用骨架至 tdd/phase3-implementation skill
+- docs: 外移 cinnamon Phase4 重構流程到 tdd/phase4-refactor
+- docs: 外移 oregano 資料提取流程到 data-extraction skill
+- docs: 外移 lavender Phase1 通用六階段流程至 tdd/phase1
+- docs: 外移 sage Phase2 流程到 tdd/phase2/rules
+- docs: 建立 data-extraction skill（oregano 流程外移目標）
+- docs: 補強 malformed-tool-call-detector docstring 架構邊界說明
+- docs: 整併瘦身 group-ticket-design(156→83)+ticket-lifecycle-management(178→144)
+- docs: 整併瘦身 atomic-ticket(884→366)+ticket-design-dispatch(1168→180)
+- docs: 整併瘦身 layered-ticket 家族 4 檔 → 30 秒核心
+- docs: 去重整併 TDD/testing 家族其餘 5 檔
+- docs: 整併瘦身 tdd-collaboration-flow 完整流程外移 tdd skill
+- docs: thyme-python C3 品質清單 + C4 IMP-003 路由化
+- docs: 清理 C1 輕量 5 檔搜尋工具路由化 + DEPRECATED 2 檔確認
+- docs: 清理 oregano/sage/star-anise/sumac C1+C6
+- docs: 清理中檔 linux/saffron/mint/project-compliance/clove 的 C1/C5（linux 含 C6）
+- docs: 清理 parsley/cinnamon/lavender 重檔 C1/C5/C6 錯置
+- docs: 統一 ANA 衍生票血緣模型為 children（Option A）+ 修跨檔矛盾
+
+---
+
+## [1.47.0] - 2026-06-12
+
+### Summary
+feat: 回流 blog 實戰改良版寫作 skill（compositional-writing + 新增 multi-round-review）; docs: multi-round-review R4 收斂 + ANA 收口（方法論 ）; docs: multi-round-review Round 3 修正（框架側 8 檔） (+4 more)
+
+Changes: 1 feat, 6 docs
+
+- feat: 回流 blog 實戰改良版寫作 skill（compositional-writing + 新增 multi-round-review）
+- docs: multi-round-review R4 收斂 + ANA 收口（方法論 ）
+- docs: multi-round-review Round 3 修正（框架側 8 檔）
+- docs: multi-round-review Round 2 修正（框架側）
+- docs: multi-round-review Round 1 修正（框架側）
+- docs: README 註記寫作 skill 訓練上游（blog repo git URL）
+- docs: 新增 DOC-V1-001 位置編號引用靜默失效 error-pattern + 審查票
+
+---
+
+## [1.46.2] - 2026-06-12
+
+### Summary
+docs: 知識載體責任分配方法論落地 + 盤點 ticket spawn
+
+Changes: 1 docs
+
+- docs: 知識載體責任分配方法論落地 + 盤點 ticket spawn
+
+---
+
+## [1.46.1] - 2026-06-12
+
+### Summary
+docs: 新增 PC-V1-006 規則變更未盤點既有規則矛盾即上線; docs: 防膨脹機制正規化三缺口收口
+
+Changes: 2 docs
+
+- docs: 新增 PC-V1-006 規則變更未盤點既有規則矛盾即上線
+- docs: 防膨脹機制正規化三缺口收口
+
+---
+
+## [1.46.0] - 2026-06-12
+
+### Summary
+feat: file-size-guardian 擴充 auto-load 集合 token 預算量測; feat: sync-pull 衝突處理標準化; fix: 校準 file-size-guardian CHARS_PER_TOKEN 係數 3 → 1.3 (+9 more)
+
+Changes: 2 feat, 1 fix, 2 docs, 7 chore
+
+- feat: file-size-guardian 擴充 auto-load 集合 token 預算量測
+- feat: sync-pull 衝突處理標準化
+- fix: 校準 file-size-guardian CHARS_PER_TOKEN 係數 3 → 1.3
+- docs: 新增 IMP-V1-001 估算係數未經實測校準即上線 error-pattern
+- docs: 新增 PC-V1-005 acceptance 量化目標未考慮 substance 密度上限
+- chore: 測試檔執行權限修正（HookCheck IMP-054 自動 chmod +x）
+- chore: 三檔 token 收斂瘦身
+- chore: 六檔 auto-load 文件輕量修剪（減量 20.8%）
+- chore: 三檔主文外移 references/，core/ 降速查 stub
+- chore: CLAUDE.md 收斂至 149 行 + project-conventions @ 改純路徑
+- chore: test-assertion-design-rules 主文外移 references/ 降 stub
+- chore: sync-pull — .version-release.yaml 納入 local-only 排除 + VERSION/CHANGELOG 採上游解衝突
+
+---
+
 ## [1.45.1] - 2026-06-12
 
 ### Summary
