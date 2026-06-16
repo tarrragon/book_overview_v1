@@ -95,6 +95,9 @@ __pycache__/
 # 對齊 sync manifest LOCAL_ONLY_PATTERNS 的 "handoff"（0.19.1-W1-032）
 .claude/handoff/
 
+# Claude tool results (runtime state, auto-managed by hooks)
+.claude/tool-results/
+
 # Claude dispatch tracker (runtime state, auto-managed by hooks)
 .claude/dispatch-active.json
 .claude/dispatch-active.lock

@@ -547,6 +547,78 @@ htmlcov/*
         )
         assert second.missing_rules == []
 
+    def test_gitignore_git_semantic_recognizes_legal_variants(self, tmp_path: Path) -> None:
+        """git repo 中合法 gitignore 變體（萬用字元 / 具體檔名）應被認可（git check-ignore 語意，W9-009.1）.
+
+        _has_gitignore_rule 字面精確比對對 **/hook-logs/、.claude/dispatch-active.json
+        等合法寫法系統性 false positive；改用 git check-ignore 語意判定後應認可。
+        """
+        import subprocess
+        subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+        # 合法但非精確字面的變體寫法
+        (tmp_path / ".gitignore").write_text(
+            "coverage/\n"
+            "htmlcov/\n"
+            "**/hook-logs/\n"                    # 萬用字元前綴
+            ".claude/worktrees/\n"
+            ".claude/tool-results/\n"
+            ".claude/handoff/\n"
+            ".claude/dispatch-active.json\n"     # 具體檔名（非萬用字元）
+            ".claude/dispatch-active.lock\n"
+            "__pycache__/\n"
+        )
+
+        result = check_gitignore_completeness(tmp_path)
+
+        assert result.all_required_complete, (
+            f"git 語意應認可合法變體寫法，殘留: {result.missing_rules}"
+        )
+
+    def test_gitignore_fallback_when_not_git_repo(self, tmp_path: Path) -> None:
+        """非 git repo 時 fallback 至字面匹配（git check-ignore 不可用，W9-009.1）."""
+        # tmp_path 非 git repo（未 git init）→ git check-ignore 回 None → fallback 字面
+        (tmp_path / ".gitignore").write_text(
+            "coverage/\n"
+            "htmlcov/\n"
+            ".claude/hook-logs/\n"
+            ".claude/worktrees/\n"
+            ".claude/tool-results/\n"
+            ".claude/handoff/\n"
+            ".claude/dispatch-active*\n"
+            "__pycache__/\n"
+        )
+
+        result = check_gitignore_completeness(tmp_path)
+
+        # 精確字面寫法在 fallback 路徑仍應認可
+        assert result.all_required_complete, (
+            f"fallback 字面應認可精確寫法，殘留: {result.missing_rules}"
+        )
+
+    def test_gitignore_git_semantic_covers_all_variant_syntaxes(self, tmp_path: Path) -> None:
+        """git 語意涵蓋 4 種曾被字面匹配誤判的 gitignore 語法（W9-009.1 acceptance）.
+
+        萬用字元前綴 **、根錨定 /、具體檔名、副檔名萬用 .* 全部應被認可。
+        """
+        import subprocess
+        subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+        (tmp_path / ".gitignore").write_text(
+            "coverage/\n"
+            "htmlcov/\n"
+            "**/hook-logs/\n"                # 萬用字元前綴
+            "/.claude/worktrees/\n"          # 根錨定
+            ".claude/tool-results/\n"
+            ".claude/handoff/\n"
+            ".claude/dispatch-active.*\n"    # 副檔名萬用
+            "__pycache__/\n"
+        )
+
+        result = check_gitignore_completeness(tmp_path)
+
+        assert result.all_required_complete, (
+            f"4 種變體語法（**/、/錨定、.*、具體檔名）應全認可: {result.missing_rules}"
+        )
+
 
 class TestCheckClaudeDirectoryStructure:
     """測試 .claude 目錄結構檢查."""
