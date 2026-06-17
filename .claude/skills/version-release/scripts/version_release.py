@@ -1818,30 +1818,34 @@ def mark_version_completed(
 
 
 def create_worklog_structure(
-    version: str, description: str, dry_run: bool = False
+    version: str, description: str, dry_run: bool = False,
+    worklog_path_pattern: Optional[str] = None,
 ) -> Tuple[bool, List[str]]:
     """建立版本 worklog 目錄結構和主檔案。
 
-    建立目錄結構：docs/work-logs/v{major}/v{major}.{minor}/v{version}/tickets/
     建立 worklog 主檔案（從模板生成）。
-    如果 middle worklog 不存在，也一併建立。
+    如果 middle worklog 不存在（nested 樣式時），也一併建立。
 
     Args:
         version: 版本號（如 "0.17.2"）
         description: 版本描述
         dry_run: 預覽模式
+        worklog_path_pattern: worklog 路徑範本（None 時從 config 讀取）
 
     Returns:
         (是否成功, 建立的檔案/目錄清單)
     """
     root = get_project_root()
-    major = version.split(".")[0]
     major_minor = extract_major_minor(version)
 
-    worklog_base = root / "docs" / "work-logs"
-    major_dir = worklog_base / f"v{major}"
-    minor_dir = major_dir / f"v{major_minor}"
-    version_dir = minor_dir / f"v{version}"
+    if not worklog_path_pattern:
+        config = load_version_release_config(root)
+        worklog_path_pattern = config.get(
+            "worklog_path_pattern",
+            DEFAULT_VERSION_RELEASE_CONFIG["worklog_path_pattern"],
+        )
+
+    version_dir = resolve_worklog_dir(root, version, worklog_path_pattern)
     tickets_dir = version_dir / "tickets"
 
     created_items: List[str] = []
@@ -1854,9 +1858,11 @@ def create_worklog_structure(
         tickets_dir.mkdir(parents=True, exist_ok=True)
         created_items.append(str(tickets_dir.relative_to(root)))
 
-    # 建立 middle worklog（如果不存在）
-    middle_worklog = minor_dir / f"v{major_minor}-main.md"
-    if not middle_worklog.exists():
+    # 建立 middle worklog（nested 樣式時，如果不存在）
+    minor_dir = version_dir.parent
+    is_nested = minor_dir != version_dir and minor_dir.name.startswith("v")
+    middle_worklog = minor_dir / f"v{major_minor}-main.md" if is_nested else None
+    if middle_worklog and not middle_worklog.exists():
         middle_content = (
             f"# v{major_minor} 版本系列索引\n\n"
             f"| 版本 | 狀態 | 說明 |\n"
@@ -2032,6 +2038,42 @@ def bump_toml_version(file_path: Path, new_version: str, dry_run: bool = False) 
     return True
 
 
+def _resolve_worklog_pattern(root: Path, config: dict, project_type: str) -> str:
+    """依使用者 config 或 project_type 決定 worklog 路徑範本。
+
+    優先序：
+    1. 使用者在 .version-release.yaml 明確設定 worklog_path_pattern → 使用
+    2. 未設定 → flutter 用 nested-3，其餘用 flat
+    """
+    WORKLOG_NESTED_3 = "docs/work-logs/v{major}/v{major_minor}/v{version}"
+    WORKLOG_FLAT = "docs/work-logs/v{version}"
+
+    # 讀取原始 config 判斷使用者是否明確設定
+    raw_config = _load_raw_version_release_config(root)
+    if raw_config and "worklog_path_pattern" in raw_config:
+        return raw_config["worklog_path_pattern"]
+
+    if project_type == PROJECT_TYPE_FLUTTER:
+        return WORKLOG_NESTED_3
+    return WORKLOG_FLAT
+
+
+def _load_raw_version_release_config(root: Path) -> Optional[dict]:
+    """讀取原始 .version-release.yaml（不補 DEFAULT），用於判斷使用者是否明確設定。"""
+    candidate_paths = [
+        root / VERSION_RELEASE_CONFIG_FILE,
+        root / ".claude" / VERSION_RELEASE_CONFIG_FILE,
+    ]
+    config_path = next((p for p in candidate_paths if p.exists()), None)
+    if config_path is None:
+        return None
+    try:
+        with open(config_path, encoding="utf-8") as f:
+            return yaml.safe_load(f)
+    except Exception:
+        return None
+
+
 def cmd_start_version(
     version: str,
     from_version: Optional[str] = None,
@@ -2105,6 +2147,25 @@ def cmd_start_version(
     except Exception:
         print_warning("無法檢查 git tag（非致命）")
 
+    # ── 偵測專案類型與版本源 ──
+    config = load_version_release_config(root)
+    project_type = config.get("project_type")
+    if not project_type:
+        project_type = detect_project_type(root)
+
+    version_file, parser_type = resolve_version_source(root, config)
+    print_info(f"專案類型: {project_type}")
+    if version_file:
+        print_info(f"版本源: {version_file.name} ({parser_type})")
+    else:
+        print_info(f"版本源: git-tag")
+
+    # worklog 預設路徑依 project_type 決定（使用者明確設定優先）
+    WORKLOG_NESTED_3 = "docs/work-logs/v{major}/v{major_minor}/v{version}"
+    WORKLOG_FLAT = "docs/work-logs/v{version}"
+    worklog_pattern = _resolve_worklog_pattern(root, config, project_type)
+    print_info(f"Worklog 路徑樣式: {worklog_pattern}")
+
     # ── Step 2: 重複檢查 ──
     print_section("Step 2: 重複檢查")
 
@@ -2116,9 +2177,7 @@ def cmd_start_version(
             return False
     print_success("todolist.yaml 中無重複版本")
 
-    major = version.split(".")[0]
-    major_minor = extract_major_minor(version)
-    version_dir = root / "docs" / "work-logs" / f"v{major}" / f"v{major_minor}" / f"v{version}"
+    version_dir = resolve_worklog_dir(root, version, worklog_pattern)
     if version_dir.exists():
         print_error(f"Worklog 目錄已存在: {version_dir.relative_to(root)}")
         return False
@@ -2138,7 +2197,10 @@ def cmd_start_version(
     # ── Step 4: 建立 worklog 目錄結構 ──
     print_section("Step 4: 建立 worklog 目錄結構")
 
-    ok, created = create_worklog_structure(version, description or "待定義", dry_run)
+    ok, created = create_worklog_structure(
+        version, description or "待定義", dry_run,
+        worklog_path_pattern=worklog_pattern,
+    )
     if not ok:
         return False
     for item in created:
@@ -2148,13 +2210,40 @@ def cmd_start_version(
     # ── Step 5: Bump 版本檔案 ──
     print_section("Step 5: Bump 版本檔案")
 
-    for json_file in ["package.json", "manifest.json"]:
-        path = root / json_file
-        ok = bump_json_version(path, version, dry_run)
+    bump_dispatch = {
+        "json": bump_json_version,
+        "yaml": bump_yaml_version,
+        "toml": bump_toml_version,
+    }
+
+    if version_file and parser_type in bump_dispatch:
+        bump_fn = bump_dispatch[parser_type]
+        ok = bump_fn(version_file, version, dry_run)
         if not ok:
             return False
-        print_success(f"{json_file} 版本已更新為 {version}")
-        changed_files.append(json_file)
+        print_success(f"{version_file.name} 版本已更新為 {version}")
+        changed_files.append(str(version_file.relative_to(root)))
+
+        # Chrome Extension：同步 bump manifest.json
+        vs_config = config.get("version_source")
+        sync_targets = vs_config.get("sync_targets", []) if isinstance(vs_config, dict) else []
+        if not sync_targets and project_type == PROJECT_TYPE_CHROME_EXT:
+            manifest_path = root / "manifest.json"
+            if manifest_path.exists():
+                sync_targets = [{"path": "manifest.json", "parser": "json"}]
+
+        for target in sync_targets:
+            target_path = root / target["path"]
+            target_parser = target.get("parser", "json")
+            if target_path.exists() and target_parser in bump_dispatch:
+                ok = bump_dispatch[target_parser](target_path, version, dry_run)
+                if ok:
+                    print_success(f"{target['path']} 版本已同步為 {version}")
+                    changed_files.append(target["path"])
+    elif parser_type == "git-tag":
+        print_info("版本由 git tag 管理，start 階段不 bump 檔案")
+    else:
+        print_warning(f"未知 parser 類型 {parser_type}，跳過版本 bump")
 
     # ── 摘要報告 ──
     print_section("摘要")
