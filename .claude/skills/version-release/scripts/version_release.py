@@ -121,6 +121,19 @@ DEFAULT_VERSION_RELEASE_CONFIG = {
     #   巢狀範例："docs/work-logs/v{major}/v{major_minor}/v{version}"
     #   扁平範例（舊結構）："docs/work-logs/v{version}"
     "worklog_path_pattern": "docs/work-logs/v{major}/v{major_minor}/v{version}",
+    # project_type：專案類型（影響版本偵測與 bump 策略）
+    #   可選值：chrome-ext | flutter | go | php | python | monorepo | npm | None
+    #   None 表示未指定，由自動偵測判定
+    "project_type": None,
+    # version_source：版本源配置
+    #   primary: 主版本源檔案路徑（None 時依 VERSION_FILE_CANDIDATES 自動偵測）
+    #   parser:  版本源 parser 類型（json | yaml | toml | git-tag；None 時由副檔名推斷）
+    #   key:     版本 key（json/yaml/toml 用，預設 "version"）
+    #   sync_targets: 版本 bump 時一併更新的檔案清單
+    "version_source": None,
+    # subprojects：monorepo 子專案配置（僅 project_type: monorepo 時使用）
+    #   每個子專案為 dict，含 path 和 version_source 子配置
+    "subprojects": None,
 }
 
 
@@ -238,6 +251,84 @@ def detect_version_files(root: Path) -> List[Tuple[Path, str]]:
         if full_path.exists():
             found.append((full_path, parser_type))
     return found
+
+
+# 專案類型常數
+PROJECT_TYPE_FLUTTER = "flutter"
+PROJECT_TYPE_GO = "go"
+PROJECT_TYPE_CHROME_EXT = "chrome-ext"
+PROJECT_TYPE_PHP = "php"
+PROJECT_TYPE_NPM = "npm"
+PROJECT_TYPE_PYTHON = "python"
+PROJECT_TYPE_MONOREPO = "monorepo"
+PROJECT_TYPE_UNKNOWN = "unknown"
+
+# 根目錄檔案 → 專案類型的對應（順序即優先序）
+_PROJECT_TYPE_MARKERS = [
+    ("pubspec.yaml", PROJECT_TYPE_FLUTTER),
+    ("go.mod", PROJECT_TYPE_GO),
+    ("composer.json", PROJECT_TYPE_PHP),
+    ("pyproject.toml", PROJECT_TYPE_PYTHON),
+]
+
+# monorepo 子目錄偵測用的版本檔名稱集合
+_SUBPROJECT_VERSION_FILES = {"pubspec.yaml", "package.json", "go.mod", "composer.json", "pyproject.toml"}
+
+
+def detect_project_type(root: Path) -> str:
+    """
+    依根目錄檔案自動判定專案類型。
+
+    優先序：
+    1. pubspec.yaml → flutter
+    2. go.mod → go
+    3. package.json + manifest.json → chrome-ext
+    4. composer.json → php
+    5. package.json（無 manifest.json）→ npm
+    6. pyproject.toml → python
+    7. 子目錄（depth=1）含版本檔 → monorepo
+    8. 全無 → unknown
+
+    Args:
+        root: 專案根目錄
+
+    Returns:
+        專案類型字串（PROJECT_TYPE_* 常數之一）
+    """
+    for marker_file, project_type in _PROJECT_TYPE_MARKERS:
+        if (root / marker_file).exists():
+            print(f"[INFO] 自動偵測專案類型：{project_type}（根據 {marker_file}）", file=sys.stderr)
+            return project_type
+
+    has_package_json = (root / "package.json").exists()
+    has_manifest_json = (root / "manifest.json").exists()
+
+    if has_package_json and has_manifest_json:
+        print("[INFO] 自動偵測專案類型：chrome-ext（根據 package.json + manifest.json）", file=sys.stderr)
+        return PROJECT_TYPE_CHROME_EXT
+
+    if has_package_json:
+        print("[INFO] 自動偵測專案類型：npm（根據 package.json）", file=sys.stderr)
+        return PROJECT_TYPE_NPM
+
+    # monorepo：根目錄無版本檔但子目錄（depth=1）有
+    try:
+        for entry in sorted(root.iterdir()):
+            if not entry.is_dir() or entry.name.startswith("."):
+                continue
+            for vf in _SUBPROJECT_VERSION_FILES:
+                if (entry / vf).exists():
+                    print(
+                        f"[INFO] 自動偵測專案類型：monorepo（子目錄 {entry.name}/ 含 {vf}）",
+                        file=sys.stderr,
+                    )
+                    return PROJECT_TYPE_MONOREPO
+    except PermissionError:
+        pass
+
+    print("[INFO] 自動偵測專案類型：unknown（未找到已知版本檔）", file=sys.stderr)
+    print("[INFO] 若偵測不正確，請建立 .version-release.yaml 指定 project_type", file=sys.stderr)
+    return PROJECT_TYPE_UNKNOWN
 
 
 def resolve_version_source(root: Path, config: Optional[dict] = None) -> Tuple[Optional[Path], str]:
@@ -786,6 +877,9 @@ def load_version_release_config(root: Path) -> dict:
             "release_workflow",
             "tag_format",
             "worklog_path_pattern",
+            "project_type",
+            "version_source",
+            "subprojects",
         ]:
             if key not in config:
                 config[key] = DEFAULT_VERSION_RELEASE_CONFIG.get(key, {})
@@ -1845,6 +1939,95 @@ def bump_json_version(file_path: Path, new_version: str, dry_run: bool = False) 
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
             f.write("\n")
+
+    return True
+
+
+def bump_yaml_version(file_path: Path, new_version: str, dry_run: bool = False) -> bool:
+    """更新 YAML 檔案中的 version 欄位。
+
+    支援 pubspec.yaml 的 X.Y.Z+build 格式：
+    - 若原版本含 build number（如 1.0.0+1），bump 後自動遞增（如 2.0.0+2）
+    - 若原版本無 build number，直接替換版本號
+
+    以 regex 逐行替換保留檔案格式（不重新序列化整份 YAML）。
+
+    Args:
+        file_path: YAML 檔案路徑
+        new_version: 新版本號（不含 build number 部分）
+        dry_run: 預覽模式
+
+    Returns:
+        是否成功
+    """
+    if not file_path.exists():
+        print_error(f"找不到 {file_path}")
+        return False
+
+    content = file_path.read_text(encoding="utf-8")
+
+    version_pattern = re.compile(r"^(version:\s+)(.+)$", re.MULTILINE)
+    match = version_pattern.search(content)
+    if not match:
+        print_error(f"{file_path.name} 中找不到 version 欄位")
+        return False
+
+    old_full = match.group(2).strip()
+    build_match = re.match(r"^[\d.]+\+(\d+)$", old_full)
+
+    if build_match:
+        old_build = int(build_match.group(1))
+        new_full = f"{new_version}+{old_build + 1}"
+    else:
+        new_full = new_version
+
+    if dry_run:
+        print_info(f"[DRY RUN] {file_path.name}: {old_full} -> {new_full}")
+    else:
+        new_content = version_pattern.sub(rf"\g<1>{new_full}", content, count=1)
+        file_path.write_text(new_content, encoding="utf-8")
+
+    return True
+
+
+def bump_toml_version(file_path: Path, new_version: str, dry_run: bool = False) -> bool:
+    """更新 TOML 檔案中的 version 欄位。
+
+    以 regex 逐行替換保留檔案格式（不重新序列化整份 TOML）。
+    支援 `version = "X.Y.Z"` 和 `version = 'X.Y.Z'` 兩種引號風格。
+
+    Args:
+        file_path: TOML 檔案路徑
+        new_version: 新版本號
+        dry_run: 預覽模式
+
+    Returns:
+        是否成功
+    """
+    if not file_path.exists():
+        print_error(f"找不到 {file_path}")
+        return False
+
+    content = file_path.read_text(encoding="utf-8")
+
+    version_pattern = re.compile(
+        r'^(version\s*=\s*)(["\'])([^"\']+)\2', re.MULTILINE
+    )
+    match = version_pattern.search(content)
+    if not match:
+        print_error(f"{file_path.name} 中找不到 version 欄位")
+        return False
+
+    old_version = match.group(3)
+    quote_char = match.group(2)
+
+    if dry_run:
+        print_info(f"[DRY RUN] {file_path.name}: {old_version} -> {new_version}")
+    else:
+        new_content = version_pattern.sub(
+            rf"\g<1>{quote_char}{new_version}{quote_char}", content, count=1
+        )
+        file_path.write_text(new_content, encoding="utf-8")
 
     return True
 
