@@ -1,3 +1,118 @@
+## [1.52.2] - 2026-06-17
+
+### Summary
+fix: 允許 PM 編輯任意層級 README.md
+
+Changes: 1 fix
+
+- fix: 允許 PM 編輯任意層級 README.md
+
+---
+
+## [1.52.1] - 2026-06-17
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.52.0] - 2026-06-17
+
+### Summary
+feat: saas↔doc 雙向銜接 + CLAUDE.md 瘦身（決策記錄移交為代謝機制）
+
+Changes: 1 feat
+
+- feat: saas↔doc 雙向銜接 + CLAUDE.md 瘦身（決策記錄移交為代謝機制）
+
+---
+
+## [1.51.3] - 2026-06-16
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.51.2] - 2026-06-16
+
+### Summary
+fix: _is_placeholder 補行尾空殼偵測修 行首語意回歸; chore: pull .claude 更新（上游 2c3d77f7）; chore: .claude 框架同步 + 還原至 docs/analyses
+
+Changes: 1 fix, 2 chore
+
+- fix: _is_placeholder 補行尾空殼偵測修 行首語意回歸
+- chore: pull .claude 更新（上游 2c3d77f7）
+- chore: .claude 框架同步 + 還原至 docs/analyses
+
+---
+
+## [1.51.1] - 2026-06-16
+
+### Summary
+chore: 整理 settings.json 共用層權限; chore: 移除原作者專案產物殘留並補齊 sync/gitignore 排除
+
+Changes: 2 chore
+
+- chore: 整理 settings.json 共用層權限
+- chore: 移除原作者專案產物殘留並補齊 sync/gitignore 排除
+
+---
+
+## [1.51.0] - 2026-06-16
+
+### Summary
+feat: 導入 saas-tech-selection 選型訪談 skill（上游來源 blog repo）
+
+Changes: 1 feat
+
+- feat: 導入 saas-tech-selection 選型訪談 skill（上游來源 blog repo）
+
+---
+
+## [1.50.0] - 2026-06-16
+
+### Summary
+feat: ticket create --where 驗證並拒絕非路徑 token 防 where.files 髒值
+
+Changes: 1 feat
+
+- feat: ticket create --where 驗證並拒絕非路徑 token 防 where.files 髒值
+
+---
+
+## [1.49.1] - 2026-06-16
+
+### Summary
+docs: 修正 README stale PC-018 引用為 PC-183
+
+Changes: 1 docs
+
+- docs: 修正 README stale PC-018 引用為 PC-183
+
+---
+
+## [1.49.0] - 2026-06-16
+
+### Summary
+feat: sync-push 前框架 import smoke test 閘門（C1 生產閘）; feat: sync tagged-release + pin-aware pull; feat: framework-issue fix-status 跨 consumer 修復矩陣（軸 C） (+8 more)
+
+Changes: 5 feat, 2 fix, 3 docs, 1 chore
+
+- feat: sync-push 前框架 import smoke test 閘門（C1 生產閘）
+- feat: sync tagged-release + pin-aware pull
+- feat: framework-issue fix-status 跨 consumer 修復矩陣（軸 C）
+- feat: framework-issue link 命令 + canonical_issue stamp
+- feat: 建立 /framework-issue SKILL（create/list + scaffold）
+- fix: sync-pull preserve fallback parser fail-loud on malformed YAML
+- fix: 去重 file_lock.py 重複函式定義（死碼 shadow 活碼）
+- docs: 新增 PC-V1-010 + 補 PC-V1-009/ARCH-V1-002 索引缺漏
+- docs: 規則 8 補框架 code 註解識別符衛生 + frontmatter/trailer 溯源慣例
+- docs: 框架治理 ANA 評估產物 — 2 error-pattern + 4 spawn ticket
+- chore: pull .claude 更新（上游 a883d6e321b9）
+
+---
+
 ## [1.48.8] - 2026-06-16
 
 ### Summary
