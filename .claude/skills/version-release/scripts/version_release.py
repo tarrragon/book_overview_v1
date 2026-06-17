@@ -127,8 +127,11 @@ DEFAULT_VERSION_RELEASE_CONFIG = {
 # 版本檔配置：(相對路徑, 解析方式)
 # 按優先順序排列，偵測專案語言
 VERSION_FILE_CANDIDATES = [
-    ("package.json", "json"),           # NPM 專案版本
-    ("manifest.json", "json"),          # Chrome Extension 版本
+    ("pubspec.yaml", "yaml"),           # Flutter
+    ("package.json", "json"),           # NPM / Chrome Extension
+    ("manifest.json", "json"),          # Chrome Extension
+    ("composer.json", "json"),          # PHP
+    ("pyproject.toml", "toml"),         # Python
 ]
 
 
@@ -235,6 +238,52 @@ def detect_version_files(root: Path) -> List[Tuple[Path, str]]:
         if full_path.exists():
             found.append((full_path, parser_type))
     return found
+
+
+def resolve_version_source(root: Path, config: Optional[dict] = None) -> Tuple[Optional[Path], str]:
+    """
+    依 config 或自動偵測選擇版本源。
+
+    優先序：
+    1. config 指定 version_source.primary → 使用指定檔案
+    2. 無 config 或無 primary → 依 VERSION_FILE_CANDIDATES 順序掃描
+    3. 所有候選檔案都不存在 → fallback 到 git-tag（回傳 (None, "git-tag")）
+
+    Args:
+        root: 專案根目錄
+        config: .version-release.yaml 配置字典（None 時自動載入）
+
+    Returns:
+        (file_path, parser_type) — file_path 為 None 時表示 git-tag 策略
+    """
+    if config is None:
+        config = load_version_release_config(root)
+
+    version_source = config.get("version_source")
+    if isinstance(version_source, dict):
+        primary = version_source.get("primary")
+        if primary:
+            primary_path = root / primary
+            if primary_path.exists():
+                parser = version_source.get("parser")
+                if not parser:
+                    suffix = Path(primary).suffix.lstrip(".")
+                    parser_map = {"json": "json", "yaml": "yaml", "yml": "yaml", "toml": "toml"}
+                    parser = parser_map.get(suffix, "json")
+                return (primary_path, parser)
+            print(f"[WARNING] config 指定版本源 {primary} 不存在，fallback 到自動偵測", file=sys.stderr)
+        if version_source.get("parser") == "git-tag":
+            return (None, "git-tag")
+
+    found = detect_version_files(root)
+    if found:
+        return found[0]
+
+    go_mod = root / "go.mod"
+    if go_mod.exists():
+        return (None, "git-tag")
+
+    return (None, "git-tag")
 
 
 def extract_version_from_file(file_path: Path, parser_type: str) -> Optional[str]:
