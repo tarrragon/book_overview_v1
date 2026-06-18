@@ -3,6 +3,15 @@
 last_updated: "2026-06-07"
 
 versions:
+  - version: "1.2.0"
+    status: planned
+    description: "QR Code 動畫離線同步（Extension 端）— PROP-012"
+    worklog: "docs/work-logs/v1/v1.2/v1.2.0/"
+    notes: |
+      Extension 端 QR 離線同步實作（對應 App PROP-014）。
+      W1: QR 動畫產生（Popup canvas）+ JSON 匯入（sync_meta 驗證 + 智慧合併）。
+      W2: 與 App 端端到端整合測試。
+
   - version: "1.0.0"
     status: active
     description: "內測版本 — 可打包分發 + Readmoo 提取 + 匯出入 + 跨裝置同步（含跨配套 APP v3 canonical）正常 + Skill Market 上架前置"
