@@ -5,7 +5,8 @@
       "args": [
         "-y",
         "chrome-devtools-mcp@latest",
-        "--isolated",
+        "--userDataDir",
+        "/Users/mac-eric/Library/Application Support/Google/Chrome",
         "--categoryExtensions"
       ]
     },
