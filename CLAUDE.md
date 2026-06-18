@@ -90,6 +90,9 @@ another agent. Therefore:
 | `npm run test:watch` | 監視模式 |
 | `npm run test:coverage` | 覆蓋率報告 |
 | `npm run test:comprehensive` | 所有測試（含 E2E） |
+| `npm run test:cross-project` | V1↔APP 跨端 round-trip 驗證 |
+| `npm run fixture:v1-canonical` | 生成 V1 canonical v3 fixture（供 APP 消費） |
+| `npm run verify:cross-project` | 完整跨端驗證流程（生成 fixture + 測試） |
 | `npm run test:hooks` | `.claude/hooks/` Python 測試 |
 
 **Hook 測試說明**：`npm run test:hooks` 透過 `uv run --project .claude/hooks pytest tests/` 執行 `.claude/hooks/tests/`。dev deps（pytest, pyyaml）統一由 `.claude/hooks/pyproject.toml` 宣告，避免 UV ephemeral env 不拉 transitive deps 的 PC-124 模式。
