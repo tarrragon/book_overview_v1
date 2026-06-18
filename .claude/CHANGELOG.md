@@ -1,3 +1,73 @@
+## [1.54.9] - 2026-06-18
+
+### Summary
+docs: 回饋 report #169 — 新增「原子筆記要有議題入口」principle（）; docs: 補「冷讀/零脈絡單卡落地」frame（）
+
+Changes: 2 docs
+
+- docs: 回饋 report #169 — 新增「原子筆記要有議題入口」principle（）
+- docs: 補「冷讀/零脈絡單卡落地」frame（）
+
+---
+
+## [1.54.8] - 2026-06-18
+
+### Summary
+chore: pull .claude 更新（上游 c389f9a，含 PR #7 merge）
+
+Changes: 1 chore
+
+- chore: pull .claude 更新（上游 c389f9a，含 PR #7 merge）
+
+---
+
+## [1.54.7] - 2026-06-18
+
+### Summary
+docs: 固化 SA 前置審查提醒的假陽性邊界（）
+
+Changes: 1 docs
+
+- docs: 固化 SA 前置審查提醒的假陽性邊界（）
+
+---
+
+## [1.54.6] - 2026-06-18
+
+### Summary
+chore: pull .claude 更新（上游 9e734b9，含 PR #5/#6 merge）
+
+Changes: 1 chore
+
+- chore: pull .claude 更新（上游 9e734b9，含 PR #5/#6 merge）
+
+---
+
+## [1.54.5] - 2026-06-18
+
+### Summary
+docs: 補 push 側孤兒過刪變體
+
+Changes: 1 docs
+
+- docs: 補 push 側孤兒過刪變體
+
+---
+
+## [1.54.4] - 2026-06-18
+
+### Summary
+docs: 持久化 monorepo 版本取捨判斷 + 開 version-release 設計缺口 issue; docs: 固化「monorepo 子端未進 CI 守門」流程缺口; chore: version-release CLI 在地適配 monorepo (+1 more)
+
+Changes: 2 docs, 2 chore
+
+- docs: 持久化 monorepo 版本取捨判斷 + 開 version-release 設計缺口 issue
+- docs: 固化「monorepo 子端未進 CI 守門」流程缺口
+- chore: version-release CLI 在地適配 monorepo
+- chore: pull .claude 更新（上游 70c4576）
+
+---
+
 ## [1.54.3] - 2026-06-18
 
 ### Summary
