@@ -1,3 +1,62 @@
+## [1.56.3] - 2026-06-19
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.56.2] - 2026-06-19
+
+### Summary
+chore: pull .claude 更新（上游 73a76fb4866a）
+
+Changes: 1 chore
+
+- chore: pull .claude 更新（上游 73a76fb4866a）
+
+---
+
+## [1.56.1] - 2026-06-19
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.56.0] - 2026-06-19
+
+### Summary
+feat: renumber native intruder PC-177/178→184/185 + lineage-aware 孤兒守衛; feat: sync-push 補撞號對稱（鏡像 pull）+ 首跑對帳辨識上游 mess; fix: 修正 +build 後綴崩潰與 monorepo in-dev 版本偵測 (+1 more)
+
+Changes: 2 feat, 2 fix
+
+- feat: renumber native intruder PC-177/178→184/185 + lineage-aware 孤兒守衛
+- feat: sync-push 補撞號對稱（鏡像 pull）+ 首跑對帳辨識上游 mess
+- fix: 修正 +build 後綴崩潰與 monorepo in-dev 版本偵測
+- fix: PC-183 lineage typo PC-18→PC-018 + H1 對齊 183（修 038 parser 誤判隱因）
+
+---
+
+## [1.55.0] - 2026-06-18
+
+### Summary
+feat: 泛化 presence-detection hook 為 language-pluggable; feat: worktree 守護 hook + 規則（固化兩起事故）; feat: presence-detection hook（偵測應有設施缺席） (+7 more)
+
+Changes: 5 feat, 1 fix, 4 docs
+
+- feat: 泛化 presence-detection hook 為 language-pluggable
+- feat: worktree 守護 hook + 規則（固化兩起事故）
+- feat: presence-detection hook（偵測應有設施缺席）
+- feat: 落地集中化 acceptance 維度（prevention gate）
+- feat: 落地決策閘門預算+退場 meta 規則 + 並行層搬遷 pilot
+- fix: presence hook skip 對齊 sink 命名 + 排除 dev 訊息
+- docs: 補 see-also（linux 審查 should-fix）— 釐清 D 軸對帳與並行 session 層職責分工
+- docs: 落地 F+D 認知接地雙層 + 軸登錄協議（）
+- docs: 方法論修 basil 兩 Warning（G 軸語意化 + F 子軸可重跑邊界）
+- docs: 實證決策軸發現方法論
+
+---
+
 ## [1.54.9] - 2026-06-18
 
 ### Summary
