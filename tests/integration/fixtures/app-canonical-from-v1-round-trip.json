@@ -1,0 +1,6969 @@
+{
+  "format": "book-interchange-v1",
+  "formatVersion": "3.0.0",
+  "metadata": {
+    "exportedAt": "2026-06-18T15:55:23.101108",
+    "sourceApp": "book_overview_app",
+    "totalBooks": 6
+  },
+  "books": [
+    {
+      "id": "rt-005",
+      "title": "刻意練習",
+      "crossPlatformId": null,
+      "dataFingerprint": null,
+      "progress": {
+        "percentage": 0.0
+      },
+      "createdAt": "2026-05-01T08:00:00.000",
+      "updatedAt": "2026-05-01T08:00:00.000",
+      "tags": {
+        "author": [
+          {
+            "id": "a-Anders Ericsson",
+            "name": "Anders Ericsson"
+          },
+          {
+            "id": "a-Robert Pool",
+            "name": "Robert Pool"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-方智出版社",
+            "name": "方智出版社"
+          }
+        ],
+        "custom": [
+          {
+            "id": "tag-friend",
+            "name": "tag-friend"
+          }
+        ],
+        "reading_status": [
+          {
+            "id": "rs-queued",
+            "name": "queued"
+          }
+        ]
+      },
+      "activeLoan": null,
+      "_passthrough": {}
+    },
+    {
+      "id": "rt-004",
+      "title": "被討厭的勇氣",
+      "cover": {
+        "original": "https://readmoo.com/cover/rt-004.jpg"
+      },
+      "crossPlatformId": null,
+      "dataFingerprint": null,
+      "progress": {
+        "percentage": 30.0
+      },
+      "createdAt": "2026-03-01T08:00:00.000",
+      "updatedAt": "2026-03-01T08:00:00.000",
+      "tags": {
+        "author": [
+          {
+            "id": "a-岸見一郎",
+            "name": "岸見一郎"
+          },
+          {
+            "id": "a-古賀史健",
+            "name": "古賀史健"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-究竟出版",
+            "name": "究竟出版"
+          }
+        ],
+        "reading_status": [
+          {
+            "id": "rs-abandoned",
+            "name": "abandoned"
+          }
+        ]
+      },
+      "activeLoan": null,
+      "_passthrough": {}
+    },
+    {
+      "id": "rt-002",
+      "title": "原子習慣",
+      "crossPlatformId": null,
+      "dataFingerprint": null,
+      "progress": {
+        "percentage": 0.0
+      },
+      "createdAt": "2026-02-01T18:00:00.000",
+      "updatedAt": "2026-02-01T18:00:00.000",
+      "tags": {
+        "author": [
+          {
+            "id": "a-James Clear",
+            "name": "James Clear"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-方智出版社",
+            "name": "方智出版社"
+          }
+        ],
+        "isbn": [
+          {
+            "id": "isbn-9789861755267",
+            "name": "9789861755267"
+          }
+        ],
+        "reading_status": [
+          {
+            "id": "rs-not_started",
+            "name": "not_started"
+          }
+        ]
+      },
+      "activeLoan": null,
+      "_passthrough": {}
+    },
+    {
+      "id": "rt-001",
+      "title": "挪威的森林",
+      "cover": {
+        "original": "https://readmoo.com/cover/rt-001.jpg"
+      },
+      "crossPlatformId": null,
+      "dataFingerprint": null,
+      "progress": {
+        "percentage": 45.5
+      },
+      "createdAt": "2026-01-15T16:30:00.000",
+      "updatedAt": "2026-01-15T16:30:00.000",
+      "tags": {
+        "author": [
+          {
+            "id": "a-村上春樹",
+            "name": "村上春樹"
+          },
+          {
+            "id": "a-Haruki Murakami",
+            "name": "Haruki Murakami"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-時報出版",
+            "name": "時報出版"
+          }
+        ],
+        "isbn": [
+          {
+            "id": "isbn-9789571234567",
+            "name": "9789571234567"
+          }
+        ],
+        "custom": [
+          {
+            "id": "tag-gift",
+            "name": "tag-gift"
+          }
+        ],
+        "reading_status": [
+          {
+            "id": "rs-reading",
+            "name": "reading"
+          }
+        ]
+      },
+      "activeLoan": null,
+      "_passthrough": {}
+    },
+    {
+      "id": "rt-003",
+      "title": "人類大歷史",
+      "cover": {
+        "original": "https://readmoo.com/cover/rt-003.jpg"
+      },
+      "crossPlatformId": null,
+      "dataFingerprint": null,
+      "progress": {
+        "percentage": 100.0
+      },
+      "createdAt": "2025-12-01T08:00:00.000",
+      "updatedAt": "2025-12-01T08:00:00.000",
+      "tags": {
+        "author": [
+          {
+            "id": "a-Yuval Noah Harari",
+            "name": "Yuval Noah Harari"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-天下文化",
+            "name": "天下文化"
+          }
+        ],
+        "reading_status": [
+          {
+            "id": "rs-finished",
+            "name": "finished"
+          }
+        ]
+      },
+      "activeLoan": null,
+      "_passthrough": {}
+    },
+    {
+      "id": "rt-006",
+      "title": "Clean Code",
+      "cover": {
+        "original": "https://readmoo.com/cover/rt-006.jpg"
+      },
+      "crossPlatformId": null,
+      "dataFingerprint": null,
+      "progress": {
+        "percentage": 65.0
+      },
+      "createdAt": "2025-06-01T08:00:00.000",
+      "updatedAt": "2025-06-01T08:00:00.000",
+      "tags": {
+        "author": [
+          {
+            "id": "a-Robert C. Martin",
+            "name": "Robert C. Martin"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-Prentice Hall",
+            "name": "Prentice Hall"
+          }
+        ],
+        "reading_status": [
+          {
+            "id": "rs-reference",
+            "name": "reference"
+          }
+        ]
+      },
+      "activeLoan": null,
+      "_passthrough": {}
+    }
+  ],
+  "tagTree": {
+    "ccl": [
+      {
+        "id": "ccl_0",
+        "name": "總類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_00",
+        "name": "特藏",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_000",
+        "name": "特藏總論",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_001",
+        "name": "善本",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_002",
+        "name": "手稿/稿本",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_003",
+        "name": "圖譜",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_004",
+        "name": "拓本",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_005",
+        "name": "微縮資料",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_006",
+        "name": "視聽資料",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_007",
+        "name": "電子資源",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_008",
+        "name": "其他特藏",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_009",
+        "name": "地方文獻",
+        "parentId": "ccl_00",
+        "locked": true
+      },
+      {
+        "id": "ccl_01",
+        "name": "目錄學",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_010",
+        "name": "目錄學總論",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_011",
+        "name": "圖書館學",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_012",
+        "name": "圖書館行政",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_013",
+        "name": "各類型圖書館",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_014",
+        "name": "圖書選擇/採訪",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_015",
+        "name": "資料編目",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_016",
+        "name": "圖書分類",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_017",
+        "name": "書目/索引",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_018",
+        "name": "參考工具書",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_019",
+        "name": "讀書法/學習法",
+        "parentId": "ccl_01",
+        "locked": true
+      },
+      {
+        "id": "ccl_02",
+        "name": "資訊科學",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_020",
+        "name": "資訊科學總論",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_021",
+        "name": "資訊理論",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_022",
+        "name": "電腦科學",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_023",
+        "name": "電腦硬體",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_024",
+        "name": "電腦軟體/程式",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_025",
+        "name": "電腦應用",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_026",
+        "name": "網路/通訊",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_027",
+        "name": "資料庫/資料處理",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_028",
+        "name": "人工智慧",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_029",
+        "name": "資訊社會/資訊倫理",
+        "parentId": "ccl_02",
+        "locked": true
+      },
+      {
+        "id": "ccl_03",
+        "name": "百科全書",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_030",
+        "name": "百科全書總論",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_031",
+        "name": "中國百科全書",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_032",
+        "name": "日本百科全書",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_033",
+        "name": "英美百科全書",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_034",
+        "name": "法國百科全書",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_035",
+        "name": "德國百科全書",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_036",
+        "name": "西班牙百科全書",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_037",
+        "name": "俄國百科全書",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_038",
+        "name": "其他各國百科全書",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_039",
+        "name": "辭典/字典",
+        "parentId": "ccl_03",
+        "locked": true
+      },
+      {
+        "id": "ccl_04",
+        "name": "類書/叢書",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_040",
+        "name": "類書/叢書總論",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_041",
+        "name": "中國古類書",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_042",
+        "name": "現代百科年鑑",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_043",
+        "name": "中國叢書",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_044",
+        "name": "日本叢書",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_045",
+        "name": "西洋叢書",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_046",
+        "name": "合刻本",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_047",
+        "name": "自著叢書",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_048",
+        "name": "全集",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_049",
+        "name": "選集/文庫",
+        "parentId": "ccl_04",
+        "locked": true
+      },
+      {
+        "id": "ccl_05",
+        "name": "連續出版品",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_050",
+        "name": "連續出版品總論",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_051",
+        "name": "學報",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_052",
+        "name": "中國期刊",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_053",
+        "name": "日本期刊",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_054",
+        "name": "西洋期刊",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_055",
+        "name": "報紙",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_056",
+        "name": "新聞學",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_057",
+        "name": "公報/政府出版品",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_058",
+        "name": "機關刊物",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_059",
+        "name": "年鑑/年報",
+        "parentId": "ccl_05",
+        "locked": true
+      },
+      {
+        "id": "ccl_06",
+        "name": "普通會社/學會",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_060",
+        "name": "會社/學會總論",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_061",
+        "name": "國際學術機構",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_062",
+        "name": "學術研究機構",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_063",
+        "name": "學術會議",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_064",
+        "name": "學會/協會",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_065",
+        "name": "博物館/展覽",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_066",
+        "name": "基金會",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_067",
+        "name": "文化交流",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_068",
+        "name": "獎勵/競賽",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_069",
+        "name": "其他學術團體",
+        "parentId": "ccl_06",
+        "locked": true
+      },
+      {
+        "id": "ccl_07",
+        "name": "論叢/雜著",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_070",
+        "name": "論叢/雜著總論",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_071",
+        "name": "中國雜考",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_072",
+        "name": "日本雜著",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_073",
+        "name": "西洋雜著",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_074",
+        "name": "演講集",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_075",
+        "name": "雜錄/札記",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_076",
+        "name": "書評",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_077",
+        "name": "問答/對話",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_078",
+        "name": "格言/箴言",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_079",
+        "name": "笑話/幽默",
+        "parentId": "ccl_07",
+        "locked": true
+      },
+      {
+        "id": "ccl_08",
+        "name": "普通叢書",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_080",
+        "name": "普通叢書總論",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_081",
+        "name": "中文普通叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_082",
+        "name": "日文普通叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_083",
+        "name": "英文普通叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_084",
+        "name": "法文普通叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_085",
+        "name": "德文普通叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_086",
+        "name": "其他語文叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_087",
+        "name": "混合語文叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_088",
+        "name": "兒童叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_089",
+        "name": "青少年叢書",
+        "parentId": "ccl_08",
+        "locked": true
+      },
+      {
+        "id": "ccl_09",
+        "name": "特種圖書館",
+        "parentId": "ccl_0",
+        "locked": true
+      },
+      {
+        "id": "ccl_090",
+        "name": "特種圖書館總論",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_091",
+        "name": "寫本/手抄本",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_092",
+        "name": "禁書",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_093",
+        "name": "偽書/輯佚書",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_094",
+        "name": "地方出版品",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_095",
+        "name": "少數民族文獻",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_096",
+        "name": "非書資料",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_097",
+        "name": "兒童圖書",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_098",
+        "name": "小冊子/傳單",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_099",
+        "name": "其他特種資料",
+        "parentId": "ccl_09",
+        "locked": true
+      },
+      {
+        "id": "ccl_1",
+        "name": "哲學類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_10",
+        "name": "哲學總論",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_100",
+        "name": "哲學總論",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_101",
+        "name": "哲學理論",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_102",
+        "name": "哲學史",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_103",
+        "name": "哲學辭典",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_104",
+        "name": "哲學論文集",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_105",
+        "name": "哲學期刊",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_106",
+        "name": "哲學團體/會議",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_107",
+        "name": "哲學教育/研究",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_108",
+        "name": "哲學家/思想家",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_109",
+        "name": "哲學與其他學科",
+        "parentId": "ccl_10",
+        "locked": true
+      },
+      {
+        "id": "ccl_11",
+        "name": "思想/學術史",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_110",
+        "name": "思想史總論",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_111",
+        "name": "中國思想史",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_112",
+        "name": "先秦思想",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_113",
+        "name": "漢代思想",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_114",
+        "name": "魏晉南北朝思想",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_115",
+        "name": "隋唐思想",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_116",
+        "name": "宋元思想",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_117",
+        "name": "明代思想",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_118",
+        "name": "清代思想",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_119",
+        "name": "現代思想",
+        "parentId": "ccl_11",
+        "locked": true
+      },
+      {
+        "id": "ccl_12",
+        "name": "中國哲學",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_120",
+        "name": "中國哲學總論",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_121",
+        "name": "儒家",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_122",
+        "name": "道家",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_123",
+        "name": "法家",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_124",
+        "name": "墨家",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_125",
+        "name": "名家",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_126",
+        "name": "雜家/小說家",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_127",
+        "name": "陰陽五行",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_128",
+        "name": "中國佛教哲學",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_129",
+        "name": "新儒學",
+        "parentId": "ccl_12",
+        "locked": true
+      },
+      {
+        "id": "ccl_13",
+        "name": "東方哲學",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_130",
+        "name": "東方哲學總論",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_131",
+        "name": "日本哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_132",
+        "name": "韓國哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_133",
+        "name": "印度哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_134",
+        "name": "東南亞哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_135",
+        "name": "阿拉伯哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_136",
+        "name": "猶太哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_137",
+        "name": "波斯哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_138",
+        "name": "土耳其哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_139",
+        "name": "其他東方哲學",
+        "parentId": "ccl_13",
+        "locked": true
+      },
+      {
+        "id": "ccl_14",
+        "name": "西方哲學",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_140",
+        "name": "西方哲學總論",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_141",
+        "name": "古希臘哲學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_142",
+        "name": "中世紀哲學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_143",
+        "name": "近代哲學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_144",
+        "name": "英美哲學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_145",
+        "name": "法國哲學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_146",
+        "name": "德國哲學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_147",
+        "name": "存在主義/現象學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_148",
+        "name": "分析哲學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_149",
+        "name": "後現代哲學",
+        "parentId": "ccl_14",
+        "locked": true
+      },
+      {
+        "id": "ccl_15",
+        "name": "邏輯學",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_150",
+        "name": "邏輯學總論",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_151",
+        "name": "演繹邏輯",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_152",
+        "name": "歸納邏輯",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_153",
+        "name": "符號邏輯/數理邏輯",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_154",
+        "name": "辯證法",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_155",
+        "name": "謬誤論",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_156",
+        "name": "方法論",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_157",
+        "name": "科學哲學",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_158",
+        "name": "語言哲學",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_159",
+        "name": "批判思考",
+        "parentId": "ccl_15",
+        "locked": true
+      },
+      {
+        "id": "ccl_16",
+        "name": "形上學",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_160",
+        "name": "形上學總論",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_161",
+        "name": "本體論",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_162",
+        "name": "宇宙論",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_163",
+        "name": "認識論",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_164",
+        "name": "因果論",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_165",
+        "name": "時間/空間哲學",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_166",
+        "name": "心靈哲學",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_167",
+        "name": "自由意志",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_168",
+        "name": "決定論",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_169",
+        "name": "其他形上學",
+        "parentId": "ccl_16",
+        "locked": true
+      },
+      {
+        "id": "ccl_17",
+        "name": "心理學",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_170",
+        "name": "心理學總論",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_171",
+        "name": "生理心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_172",
+        "name": "發展心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_173",
+        "name": "認知心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_174",
+        "name": "社會心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_175",
+        "name": "人格心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_176",
+        "name": "變態心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_177",
+        "name": "臨床心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_178",
+        "name": "應用心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_179",
+        "name": "超心理學",
+        "parentId": "ccl_17",
+        "locked": true
+      },
+      {
+        "id": "ccl_18",
+        "name": "美學",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_180",
+        "name": "美學總論",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_181",
+        "name": "美學史",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_182",
+        "name": "中國美學",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_183",
+        "name": "西方美學",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_184",
+        "name": "藝術哲學",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_185",
+        "name": "審美心理學",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_186",
+        "name": "美學批評",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_187",
+        "name": "環境美學",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_188",
+        "name": "生活美學",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_189",
+        "name": "其他美學",
+        "parentId": "ccl_18",
+        "locked": true
+      },
+      {
+        "id": "ccl_19",
+        "name": "倫理學",
+        "parentId": "ccl_1",
+        "locked": true
+      },
+      {
+        "id": "ccl_190",
+        "name": "倫理學總論",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_191",
+        "name": "中國倫理",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_192",
+        "name": "西方倫理",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_193",
+        "name": "應用倫理學",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_194",
+        "name": "生命倫理",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_195",
+        "name": "環境倫理",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_196",
+        "name": "商業倫理",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_197",
+        "name": "政治倫理",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_198",
+        "name": "科技倫理",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_199",
+        "name": "性別/家庭倫理",
+        "parentId": "ccl_19",
+        "locked": true
+      },
+      {
+        "id": "ccl_2",
+        "name": "宗教類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_20",
+        "name": "宗教總論",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_200",
+        "name": "宗教總論",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_201",
+        "name": "宗教理論",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_202",
+        "name": "宗教史",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_203",
+        "name": "宗教辭典",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_204",
+        "name": "宗教論文集",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_205",
+        "name": "宗教期刊",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_206",
+        "name": "宗教團體/會議",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_207",
+        "name": "宗教教育",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_208",
+        "name": "宗教藝術",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_209",
+        "name": "比較宗教學",
+        "parentId": "ccl_20",
+        "locked": true
+      },
+      {
+        "id": "ccl_21",
+        "name": "宗教學",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_210",
+        "name": "宗教學總論",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_211",
+        "name": "宗教哲學",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_212",
+        "name": "宗教心理學",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_213",
+        "name": "宗教社會學",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_214",
+        "name": "宗教人類學",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_215",
+        "name": "宗教倫理",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_216",
+        "name": "宗教經驗",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_217",
+        "name": "神秘主義",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_218",
+        "name": "宗教與科學",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_219",
+        "name": "無神論",
+        "parentId": "ccl_21",
+        "locked": true
+      },
+      {
+        "id": "ccl_22",
+        "name": "佛教",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_220",
+        "name": "佛教總論",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_221",
+        "name": "佛教經典",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_222",
+        "name": "佛教教義/教理",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_223",
+        "name": "佛教宗派",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_224",
+        "name": "佛教儀軌",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_225",
+        "name": "佛教寺院",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_226",
+        "name": "佛教藝術",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_227",
+        "name": "佛教史",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_228",
+        "name": "佛教傳記",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_229",
+        "name": "各國佛教",
+        "parentId": "ccl_22",
+        "locked": true
+      },
+      {
+        "id": "ccl_23",
+        "name": "道教",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_230",
+        "name": "道教總論",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_231",
+        "name": "道教經典",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_232",
+        "name": "道教教義",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_233",
+        "name": "道教宗派",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_234",
+        "name": "道教儀式",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_235",
+        "name": "道教宮觀",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_236",
+        "name": "道教藝術",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_237",
+        "name": "道教史",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_238",
+        "name": "道教人物",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_239",
+        "name": "民間信仰",
+        "parentId": "ccl_23",
+        "locked": true
+      },
+      {
+        "id": "ccl_24",
+        "name": "基督教",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_240",
+        "name": "基督教總論",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_241",
+        "name": "聖經",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_242",
+        "name": "基督教教義",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_243",
+        "name": "基督教宗派",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_244",
+        "name": "基督教禮儀",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_245",
+        "name": "基督教教會",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_246",
+        "name": "基督教藝術",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_247",
+        "name": "基督教史",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_248",
+        "name": "基督教傳記",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_249",
+        "name": "基督教佈道/傳教",
+        "parentId": "ccl_24",
+        "locked": true
+      },
+      {
+        "id": "ccl_25",
+        "name": "伊斯蘭教",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_250",
+        "name": "伊斯蘭教總論",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_251",
+        "name": "古蘭經",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_252",
+        "name": "伊斯蘭教義",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_253",
+        "name": "伊斯蘭教派",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_254",
+        "name": "伊斯蘭禮儀",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_255",
+        "name": "清真寺",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_256",
+        "name": "伊斯蘭藝術",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_257",
+        "name": "伊斯蘭教史",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_258",
+        "name": "伊斯蘭教人物",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_259",
+        "name": "蘇菲主義",
+        "parentId": "ccl_25",
+        "locked": true
+      },
+      {
+        "id": "ccl_26",
+        "name": "猶太教",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_260",
+        "name": "猶太教總論",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_261",
+        "name": "猶太教經典",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_262",
+        "name": "猶太教教義",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_263",
+        "name": "猶太教宗派",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_264",
+        "name": "猶太教禮儀",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_265",
+        "name": "猶太會堂",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_266",
+        "name": "猶太教藝術",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_267",
+        "name": "猶太教史",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_268",
+        "name": "猶太教人物",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_269",
+        "name": "猶太文化",
+        "parentId": "ccl_26",
+        "locked": true
+      },
+      {
+        "id": "ccl_27",
+        "name": "印度教",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_270",
+        "name": "印度教總論",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_271",
+        "name": "吠陀經典",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_272",
+        "name": "印度教教義",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_273",
+        "name": "印度教宗派",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_274",
+        "name": "印度教儀式",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_275",
+        "name": "印度教寺廟",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_276",
+        "name": "印度教藝術",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_277",
+        "name": "印度教史",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_278",
+        "name": "耆那教",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_279",
+        "name": "錫克教",
+        "parentId": "ccl_27",
+        "locked": true
+      },
+      {
+        "id": "ccl_28",
+        "name": "其他宗教",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_280",
+        "name": "其他宗教總論",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_281",
+        "name": "祆教/拜火教",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_282",
+        "name": "巴哈伊教",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_283",
+        "name": "神道教",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_284",
+        "name": "薩滿教",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_285",
+        "name": "非洲宗教",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_286",
+        "name": "美洲原住民宗教",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_287",
+        "name": "大洋洲宗教",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_288",
+        "name": "新興宗教",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_289",
+        "name": "邪教研究",
+        "parentId": "ccl_28",
+        "locked": true
+      },
+      {
+        "id": "ccl_29",
+        "name": "迷信/術數",
+        "parentId": "ccl_2",
+        "locked": true
+      },
+      {
+        "id": "ccl_290",
+        "name": "迷信/術數總論",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_291",
+        "name": "命理/算命",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_292",
+        "name": "占卜/卦象",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_293",
+        "name": "風水/堪輿",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_294",
+        "name": "星相/占星",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_295",
+        "name": "相術/面相",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_296",
+        "name": "夢占/解夢",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_297",
+        "name": "巫術/魔法",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_298",
+        "name": "靈異/超自然",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_299",
+        "name": "其他術數",
+        "parentId": "ccl_29",
+        "locked": true
+      },
+      {
+        "id": "ccl_3",
+        "name": "自然科學類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_30",
+        "name": "科學總論",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_300",
+        "name": "科學總論",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_301",
+        "name": "科學理論/方法",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_302",
+        "name": "科學史",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_303",
+        "name": "科學辭典",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_304",
+        "name": "科學論文集",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_305",
+        "name": "科學期刊",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_306",
+        "name": "科學機構/會議",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_307",
+        "name": "科學教育/研究",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_308",
+        "name": "科學家傳記",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_309",
+        "name": "科普讀物",
+        "parentId": "ccl_30",
+        "locked": true
+      },
+      {
+        "id": "ccl_31",
+        "name": "數學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_310",
+        "name": "數學總論",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_311",
+        "name": "算術/數論",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_312",
+        "name": "代數",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_313",
+        "name": "幾何",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_314",
+        "name": "三角/解析幾何",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_315",
+        "name": "微積分/分析",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_316",
+        "name": "拓撲學",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_317",
+        "name": "機率/統計",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_318",
+        "name": "應用數學",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_319",
+        "name": "計算數學",
+        "parentId": "ccl_31",
+        "locked": true
+      },
+      {
+        "id": "ccl_32",
+        "name": "天文學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_320",
+        "name": "天文學總論",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_321",
+        "name": "理論天文學",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_322",
+        "name": "太陽系",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_323",
+        "name": "恆星天文學",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_324",
+        "name": "星系/宇宙學",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_325",
+        "name": "天體物理",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_326",
+        "name": "天體力學",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_327",
+        "name": "觀測天文學",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_328",
+        "name": "太空科學",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_329",
+        "name": "曆法/時間",
+        "parentId": "ccl_32",
+        "locked": true
+      },
+      {
+        "id": "ccl_33",
+        "name": "物理學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_330",
+        "name": "物理學總論",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_331",
+        "name": "力學",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_332",
+        "name": "熱學",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_333",
+        "name": "光學",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_334",
+        "name": "聲學",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_335",
+        "name": "電磁學",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_336",
+        "name": "原子/分子物理",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_337",
+        "name": "核物理",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_338",
+        "name": "固態物理",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_339",
+        "name": "應用物理",
+        "parentId": "ccl_33",
+        "locked": true
+      },
+      {
+        "id": "ccl_34",
+        "name": "化學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_340",
+        "name": "化學總論",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_341",
+        "name": "無機化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_342",
+        "name": "有機化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_343",
+        "name": "分析化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_344",
+        "name": "物理化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_345",
+        "name": "高分子化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_346",
+        "name": "生物化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_347",
+        "name": "環境化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_348",
+        "name": "核化學/放射化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_349",
+        "name": "應用化學",
+        "parentId": "ccl_34",
+        "locked": true
+      },
+      {
+        "id": "ccl_35",
+        "name": "地球科學/地質學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_350",
+        "name": "地球科學總論",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_351",
+        "name": "普通地質學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_352",
+        "name": "礦物學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_353",
+        "name": "岩石學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_354",
+        "name": "構造地質學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_355",
+        "name": "地層學/古生物學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_356",
+        "name": "地球物理學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_357",
+        "name": "海洋學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_358",
+        "name": "大氣科學/氣象學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_359",
+        "name": "水文學",
+        "parentId": "ccl_35",
+        "locked": true
+      },
+      {
+        "id": "ccl_36",
+        "name": "生物科學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_360",
+        "name": "生物科學總論",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_361",
+        "name": "普通生物學",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_362",
+        "name": "細胞學",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_363",
+        "name": "遺傳學",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_364",
+        "name": "演化/進化論",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_365",
+        "name": "生態學",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_366",
+        "name": "微生物學",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_367",
+        "name": "分子生物學",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_368",
+        "name": "生物技術",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_369",
+        "name": "保育生物學",
+        "parentId": "ccl_36",
+        "locked": true
+      },
+      {
+        "id": "ccl_37",
+        "name": "植物學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_370",
+        "name": "植物學總論",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_371",
+        "name": "植物形態學",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_372",
+        "name": "植物生理學",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_373",
+        "name": "植物分類學",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_374",
+        "name": "隱花植物",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_375",
+        "name": "顯花植物",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_376",
+        "name": "經濟植物",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_377",
+        "name": "藥用植物",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_378",
+        "name": "園藝植物",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_379",
+        "name": "植物地理學",
+        "parentId": "ccl_37",
+        "locked": true
+      },
+      {
+        "id": "ccl_38",
+        "name": "動物學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_380",
+        "name": "動物學總論",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_381",
+        "name": "動物形態學",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_382",
+        "name": "動物生理學",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_383",
+        "name": "無脊椎動物",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_384",
+        "name": "節肢動物/昆蟲",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_385",
+        "name": "魚類",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_386",
+        "name": "兩棲/爬蟲類",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_387",
+        "name": "鳥類",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_388",
+        "name": "哺乳動物",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_389",
+        "name": "動物地理學",
+        "parentId": "ccl_38",
+        "locked": true
+      },
+      {
+        "id": "ccl_39",
+        "name": "人類學",
+        "parentId": "ccl_3",
+        "locked": true
+      },
+      {
+        "id": "ccl_390",
+        "name": "人類學總論",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_391",
+        "name": "體質人類學",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_392",
+        "name": "考古人類學",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_393",
+        "name": "語言人類學",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_394",
+        "name": "文化人類學",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_395",
+        "name": "民族學",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_396",
+        "name": "史前文化",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_397",
+        "name": "原始文化",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_398",
+        "name": "應用人類學",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_399",
+        "name": "人種學/種族",
+        "parentId": "ccl_39",
+        "locked": true
+      },
+      {
+        "id": "ccl_4",
+        "name": "應用科學類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_40",
+        "name": "應用科學總論",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_400",
+        "name": "應用科學總論",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_401",
+        "name": "技術史",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_402",
+        "name": "發明/專利",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_403",
+        "name": "技術辭典",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_404",
+        "name": "技術標準",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_405",
+        "name": "技術期刊",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_406",
+        "name": "工業展覽",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_407",
+        "name": "技術教育",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_408",
+        "name": "技術管理",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_409",
+        "name": "環境科學/工程",
+        "parentId": "ccl_40",
+        "locked": true
+      },
+      {
+        "id": "ccl_41",
+        "name": "醫藥學",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_410",
+        "name": "醫藥學總論",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_411",
+        "name": "解剖學",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_412",
+        "name": "生理學",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_413",
+        "name": "病理學",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_414",
+        "name": "藥理學/藥學",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_415",
+        "name": "內科學",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_416",
+        "name": "外科學",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_417",
+        "name": "婦產科/小兒科",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_418",
+        "name": "公共衛生/預防醫學",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_419",
+        "name": "中醫學",
+        "parentId": "ccl_41",
+        "locked": true
+      },
+      {
+        "id": "ccl_42",
+        "name": "家政學",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_420",
+        "name": "家政學總論",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_421",
+        "name": "飲食/營養",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_422",
+        "name": "烹飪",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_423",
+        "name": "服飾",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_424",
+        "name": "家庭管理",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_425",
+        "name": "居住/室內設計",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_426",
+        "name": "育兒",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_427",
+        "name": "美容/美髮",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_428",
+        "name": "家庭手工藝",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_429",
+        "name": "寵物飼養",
+        "parentId": "ccl_42",
+        "locked": true
+      },
+      {
+        "id": "ccl_43",
+        "name": "農業",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_430",
+        "name": "農業總論",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_431",
+        "name": "農藝/作物",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_432",
+        "name": "園藝",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_433",
+        "name": "林業",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_434",
+        "name": "畜牧",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_435",
+        "name": "獸醫",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_436",
+        "name": "蠶桑/養蜂",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_437",
+        "name": "漁業/水產",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_438",
+        "name": "農產加工",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_439",
+        "name": "農業工程",
+        "parentId": "ccl_43",
+        "locked": true
+      },
+      {
+        "id": "ccl_44",
+        "name": "工程學",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_440",
+        "name": "工程學總論",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_441",
+        "name": "土木工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_442",
+        "name": "水利工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_443",
+        "name": "建築工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_444",
+        "name": "道路/鐵路工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_445",
+        "name": "橋樑/隧道工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_446",
+        "name": "機械工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_447",
+        "name": "電機工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_448",
+        "name": "電子工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_449",
+        "name": "核子工程",
+        "parentId": "ccl_44",
+        "locked": true
+      },
+      {
+        "id": "ccl_45",
+        "name": "礦冶學",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_450",
+        "name": "礦冶學總論",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_451",
+        "name": "採礦",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_452",
+        "name": "選礦",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_453",
+        "name": "冶金學",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_454",
+        "name": "鋼鐵冶煉",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_455",
+        "name": "有色金屬",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_456",
+        "name": "金屬加工",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_457",
+        "name": "石油/天然氣",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_458",
+        "name": "煤礦",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_459",
+        "name": "非金屬礦物",
+        "parentId": "ccl_45",
+        "locked": true
+      },
+      {
+        "id": "ccl_46",
+        "name": "化學工程",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_460",
+        "name": "化學工程總論",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_461",
+        "name": "化工製程",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_462",
+        "name": "酸鹼/鹽工業",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_463",
+        "name": "陶瓷/玻璃工業",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_464",
+        "name": "塗料/顏料",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_465",
+        "name": "油脂/蠟工業",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_466",
+        "name": "塑膠/橡膠工業",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_467",
+        "name": "造紙/紙漿",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_468",
+        "name": "紡織工業",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_469",
+        "name": "食品工業",
+        "parentId": "ccl_46",
+        "locked": true
+      },
+      {
+        "id": "ccl_47",
+        "name": "製造",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_470",
+        "name": "製造總論",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_471",
+        "name": "印刷/出版",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_472",
+        "name": "攝影/照相",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_473",
+        "name": "木工/家具",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_474",
+        "name": "皮革工業",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_475",
+        "name": "金屬製品",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_476",
+        "name": "精密儀器",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_477",
+        "name": "鐘錶工業",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_478",
+        "name": "玩具/文具",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_479",
+        "name": "其他製造",
+        "parentId": "ccl_47",
+        "locked": true
+      },
+      {
+        "id": "ccl_48",
+        "name": "商業/各種營業",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_480",
+        "name": "商業總論",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_481",
+        "name": "貿易",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_482",
+        "name": "國際貿易",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_483",
+        "name": "運輸/通信",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_484",
+        "name": "航運",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_485",
+        "name": "航空",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_486",
+        "name": "郵政/電信",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_487",
+        "name": "保險",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_488",
+        "name": "銀行/金融",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_489",
+        "name": "會計",
+        "parentId": "ccl_48",
+        "locked": true
+      },
+      {
+        "id": "ccl_49",
+        "name": "商學",
+        "parentId": "ccl_4",
+        "locked": true
+      },
+      {
+        "id": "ccl_490",
+        "name": "商學總論",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_491",
+        "name": "企業管理",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_492",
+        "name": "行銷學",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_493",
+        "name": "廣告",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_494",
+        "name": "人力資源管理",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_495",
+        "name": "生產管理",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_496",
+        "name": "財務管理",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_497",
+        "name": "資訊管理",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_498",
+        "name": "公共關係",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_499",
+        "name": "創業/中小企業",
+        "parentId": "ccl_49",
+        "locked": true
+      },
+      {
+        "id": "ccl_5",
+        "name": "社會科學類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_50",
+        "name": "社會科學總論",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_500",
+        "name": "社會科學總論",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_501",
+        "name": "社會科學理論",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_502",
+        "name": "社會科學史",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_503",
+        "name": "社會科學辭典",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_504",
+        "name": "社會科學論文集",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_505",
+        "name": "社會科學期刊",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_506",
+        "name": "社會科學機構",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_507",
+        "name": "社會科學教育",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_508",
+        "name": "社會科學研究法",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_509",
+        "name": "社會科學與其他",
+        "parentId": "ccl_50",
+        "locked": true
+      },
+      {
+        "id": "ccl_51",
+        "name": "統計學",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_510",
+        "name": "統計學總論",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_511",
+        "name": "統計理論/方法",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_512",
+        "name": "中國統計",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_513",
+        "name": "各國統計",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_514",
+        "name": "人口統計",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_515",
+        "name": "經濟統計",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_516",
+        "name": "社會統計",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_517",
+        "name": "教育統計",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_518",
+        "name": "衛生統計",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_519",
+        "name": "其他統計",
+        "parentId": "ccl_51",
+        "locked": true
+      },
+      {
+        "id": "ccl_52",
+        "name": "教育",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_520",
+        "name": "教育總論",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_521",
+        "name": "教育理論/哲學",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_522",
+        "name": "教育史",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_523",
+        "name": "教育行政",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_524",
+        "name": "初等教育",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_525",
+        "name": "中等教育",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_526",
+        "name": "高等教育",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_527",
+        "name": "特殊教育",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_528",
+        "name": "社會教育/成人教育",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_529",
+        "name": "各國教育",
+        "parentId": "ccl_52",
+        "locked": true
+      },
+      {
+        "id": "ccl_53",
+        "name": "禮俗/民俗學",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_530",
+        "name": "禮俗/民俗總論",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_531",
+        "name": "禮制",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_532",
+        "name": "冠禮/成年禮",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_533",
+        "name": "婚禮",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_534",
+        "name": "喪禮",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_535",
+        "name": "祭禮",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_536",
+        "name": "歲時節令",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_537",
+        "name": "民間傳說",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_538",
+        "name": "民俗藝術",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_539",
+        "name": "各國民俗",
+        "parentId": "ccl_53",
+        "locked": true
+      },
+      {
+        "id": "ccl_54",
+        "name": "政治學",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_540",
+        "name": "政治學總論",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_541",
+        "name": "政治理論",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_542",
+        "name": "比較政治",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_543",
+        "name": "國際關係",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_544",
+        "name": "中國政治",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_545",
+        "name": "各國政治",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_546",
+        "name": "地方政治/自治",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_547",
+        "name": "政黨",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_548",
+        "name": "選舉",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_549",
+        "name": "公共行政",
+        "parentId": "ccl_54",
+        "locked": true
+      },
+      {
+        "id": "ccl_55",
+        "name": "法律學",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_550",
+        "name": "法律學總論",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_551",
+        "name": "法理學",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_552",
+        "name": "憲法",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_553",
+        "name": "行政法",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_554",
+        "name": "民法",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_555",
+        "name": "商事法",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_556",
+        "name": "刑法",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_557",
+        "name": "訴訟法",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_558",
+        "name": "國際法",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_559",
+        "name": "各國法律",
+        "parentId": "ccl_55",
+        "locked": true
+      },
+      {
+        "id": "ccl_56",
+        "name": "經濟學",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_560",
+        "name": "經濟學總論",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_561",
+        "name": "經濟理論",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_562",
+        "name": "經濟史",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_563",
+        "name": "個體經濟學",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_564",
+        "name": "總體經濟學",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_565",
+        "name": "國際經濟學",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_566",
+        "name": "產業經濟學",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_567",
+        "name": "勞動經濟學",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_568",
+        "name": "合作經濟",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_569",
+        "name": "中國經濟",
+        "parentId": "ccl_56",
+        "locked": true
+      },
+      {
+        "id": "ccl_57",
+        "name": "財政學",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_570",
+        "name": "財政學總論",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_571",
+        "name": "財政理論",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_572",
+        "name": "公共財政",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_573",
+        "name": "租稅",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_574",
+        "name": "關稅",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_575",
+        "name": "公債",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_576",
+        "name": "貨幣/銀行",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_577",
+        "name": "證券/投資",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_578",
+        "name": "國際金融",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_579",
+        "name": "各國財政",
+        "parentId": "ccl_57",
+        "locked": true
+      },
+      {
+        "id": "ccl_58",
+        "name": "社會學",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_580",
+        "name": "社會學總論",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_581",
+        "name": "社會理論",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_582",
+        "name": "社會組織",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_583",
+        "name": "社會問題",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_584",
+        "name": "社會工作",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_585",
+        "name": "社會福利",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_586",
+        "name": "犯罪學",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_587",
+        "name": "人口學",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_588",
+        "name": "社區發展",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_589",
+        "name": "社會運動",
+        "parentId": "ccl_58",
+        "locked": true
+      },
+      {
+        "id": "ccl_59",
+        "name": "軍事學",
+        "parentId": "ccl_5",
+        "locked": true
+      },
+      {
+        "id": "ccl_590",
+        "name": "軍事學總論",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_591",
+        "name": "軍事理論/戰略",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_592",
+        "name": "軍事史",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_593",
+        "name": "軍事制度",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_594",
+        "name": "陸軍",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_595",
+        "name": "海軍",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_596",
+        "name": "空軍",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_597",
+        "name": "兵器",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_598",
+        "name": "軍事教育",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_599",
+        "name": "國防",
+        "parentId": "ccl_59",
+        "locked": true
+      },
+      {
+        "id": "ccl_6",
+        "name": "中國史地類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_60",
+        "name": "中國史地總論",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_600",
+        "name": "中國史地總論",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_601",
+        "name": "中國史學理論",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_602",
+        "name": "中國史學史",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_603",
+        "name": "中國史辭典",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_604",
+        "name": "中國史論文集",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_605",
+        "name": "中國史期刊",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_606",
+        "name": "歷史機構/團體",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_607",
+        "name": "歷史教育",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_608",
+        "name": "歷史研究法",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_609",
+        "name": "中國歷史地理",
+        "parentId": "ccl_60",
+        "locked": true
+      },
+      {
+        "id": "ccl_61",
+        "name": "中國通史",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_610",
+        "name": "中國通史總論",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_611",
+        "name": "史前/上古",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_612",
+        "name": "夏商周",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_613",
+        "name": "秦漢",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_614",
+        "name": "魏晉南北朝",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_615",
+        "name": "隋唐五代",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_616",
+        "name": "宋遼金元",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_617",
+        "name": "明代",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_618",
+        "name": "清代",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_619",
+        "name": "民國",
+        "parentId": "ccl_61",
+        "locked": true
+      },
+      {
+        "id": "ccl_62",
+        "name": "中國斷代史",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_620",
+        "name": "中國斷代史總論",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_621",
+        "name": "先秦史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_622",
+        "name": "秦漢史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_623",
+        "name": "三國史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_624",
+        "name": "兩晉史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_625",
+        "name": "南北朝史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_626",
+        "name": "隋唐史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_627",
+        "name": "五代十國史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_628",
+        "name": "宋遼金元史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_629",
+        "name": "明清史",
+        "parentId": "ccl_62",
+        "locked": true
+      },
+      {
+        "id": "ccl_63",
+        "name": "中國文化史",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_630",
+        "name": "中國文化史總論",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_631",
+        "name": "政治制度史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_632",
+        "name": "經濟史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_633",
+        "name": "社會史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_634",
+        "name": "教育史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_635",
+        "name": "科技史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_636",
+        "name": "宗教史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_637",
+        "name": "藝術史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_638",
+        "name": "學術思想史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_639",
+        "name": "生活文化史",
+        "parentId": "ccl_63",
+        "locked": true
+      },
+      {
+        "id": "ccl_64",
+        "name": "中國外交史",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_640",
+        "name": "中國外交史總論",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_641",
+        "name": "古代外交",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_642",
+        "name": "近代外交",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_643",
+        "name": "中日關係",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_644",
+        "name": "中美關係",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_645",
+        "name": "中英關係",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_646",
+        "name": "中俄關係",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_647",
+        "name": "中法關係",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_648",
+        "name": "中韓關係",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_649",
+        "name": "其他外交關係",
+        "parentId": "ccl_64",
+        "locked": true
+      },
+      {
+        "id": "ccl_65",
+        "name": "中國史料",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_650",
+        "name": "中國史料總論",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_651",
+        "name": "正史",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_652",
+        "name": "編年體",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_653",
+        "name": "紀事本末",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_654",
+        "name": "別史/雜史",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_655",
+        "name": "詔令/奏議",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_656",
+        "name": "傳記",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_657",
+        "name": "史評/史鈔",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_658",
+        "name": "金石/考古",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_659",
+        "name": "檔案/文獻",
+        "parentId": "ccl_65",
+        "locked": true
+      },
+      {
+        "id": "ccl_66",
+        "name": "中國地理",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_660",
+        "name": "中國地理總論",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_661",
+        "name": "華北地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_662",
+        "name": "華東地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_663",
+        "name": "華中地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_664",
+        "name": "華南地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_665",
+        "name": "東北地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_666",
+        "name": "西北地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_667",
+        "name": "西南地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_668",
+        "name": "塞北地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_669",
+        "name": "港澳地理",
+        "parentId": "ccl_66",
+        "locked": true
+      },
+      {
+        "id": "ccl_67",
+        "name": "臺灣方志",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_670",
+        "name": "臺灣方志總論",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_671",
+        "name": "臺灣史",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_672",
+        "name": "臺灣文化",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_673",
+        "name": "臺灣社會",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_674",
+        "name": "臺灣經濟",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_675",
+        "name": "臺灣政治",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_676",
+        "name": "臺灣地理",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_677",
+        "name": "臺灣原住民",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_678",
+        "name": "臺灣文學",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_679",
+        "name": "臺灣藝術",
+        "parentId": "ccl_67",
+        "locked": true
+      },
+      {
+        "id": "ccl_68",
+        "name": "中國地方志",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_680",
+        "name": "中國地方志總論",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_681",
+        "name": "北京/天津",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_682",
+        "name": "河北/山西",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_683",
+        "name": "內蒙古",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_684",
+        "name": "東北地方志",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_685",
+        "name": "華東地方志",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_686",
+        "name": "華中地方志",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_687",
+        "name": "華南地方志",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_688",
+        "name": "西南地方志",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_689",
+        "name": "西北地方志",
+        "parentId": "ccl_68",
+        "locked": true
+      },
+      {
+        "id": "ccl_69",
+        "name": "中國遊記",
+        "parentId": "ccl_6",
+        "locked": true
+      },
+      {
+        "id": "ccl_690",
+        "name": "中國遊記總論",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_691",
+        "name": "華北遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_692",
+        "name": "華東遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_693",
+        "name": "華中遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_694",
+        "name": "華南遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_695",
+        "name": "東北遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_696",
+        "name": "西北遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_697",
+        "name": "西南遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_698",
+        "name": "臺灣遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_699",
+        "name": "港澳遊記",
+        "parentId": "ccl_69",
+        "locked": true
+      },
+      {
+        "id": "ccl_7",
+        "name": "世界史地類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_70",
+        "name": "世界史地總論",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_700",
+        "name": "世界史地總論",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_701",
+        "name": "史學理論",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_702",
+        "name": "世界史學史",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_703",
+        "name": "世界史辭典",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_704",
+        "name": "世界史論文集",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_705",
+        "name": "世界史期刊",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_706",
+        "name": "歷史機構",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_707",
+        "name": "歷史教育",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_708",
+        "name": "歷史研究法",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_709",
+        "name": "歷史地理",
+        "parentId": "ccl_70",
+        "locked": true
+      },
+      {
+        "id": "ccl_71",
+        "name": "世界通史",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_710",
+        "name": "世界通史總論",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_711",
+        "name": "古代史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_712",
+        "name": "中世紀史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_713",
+        "name": "近代史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_714",
+        "name": "現代史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_715",
+        "name": "當代史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_716",
+        "name": "世界文化史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_717",
+        "name": "世界外交史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_718",
+        "name": "世界經濟史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_719",
+        "name": "世界社會史",
+        "parentId": "ccl_71",
+        "locked": true
+      },
+      {
+        "id": "ccl_72",
+        "name": "歐洲史地",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_720",
+        "name": "歐洲史地總論",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_721",
+        "name": "英國",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_722",
+        "name": "法國",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_723",
+        "name": "德國",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_724",
+        "name": "義大利",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_725",
+        "name": "西班牙/葡萄牙",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_726",
+        "name": "北歐各國",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_727",
+        "name": "東歐各國",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_728",
+        "name": "俄羅斯",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_729",
+        "name": "其他歐洲國家",
+        "parentId": "ccl_72",
+        "locked": true
+      },
+      {
+        "id": "ccl_73",
+        "name": "亞洲史地",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_730",
+        "name": "亞洲史地總論",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_731",
+        "name": "日本",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_732",
+        "name": "韓國/朝鮮",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_733",
+        "name": "東南亞",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_734",
+        "name": "南亞/印度",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_735",
+        "name": "中亞",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_736",
+        "name": "西亞/中東",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_737",
+        "name": "阿拉伯國家",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_738",
+        "name": "土耳其/伊朗",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_739",
+        "name": "其他亞洲地區",
+        "parentId": "ccl_73",
+        "locked": true
+      },
+      {
+        "id": "ccl_74",
+        "name": "非洲史地",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_740",
+        "name": "非洲史地總論",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_741",
+        "name": "北非",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_742",
+        "name": "埃及",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_743",
+        "name": "西非",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_744",
+        "name": "中非",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_745",
+        "name": "東非",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_746",
+        "name": "南非",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_747",
+        "name": "馬達加斯加",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_748",
+        "name": "非洲殖民史",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_749",
+        "name": "非洲地理",
+        "parentId": "ccl_74",
+        "locked": true
+      },
+      {
+        "id": "ccl_75",
+        "name": "美洲史地",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_750",
+        "name": "美洲史地總論",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_751",
+        "name": "美國",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_752",
+        "name": "加拿大",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_753",
+        "name": "墨西哥",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_754",
+        "name": "中美洲",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_755",
+        "name": "加勒比海",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_756",
+        "name": "南美洲總論",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_757",
+        "name": "巴西",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_758",
+        "name": "阿根廷",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_759",
+        "name": "其他美洲國家",
+        "parentId": "ccl_75",
+        "locked": true
+      },
+      {
+        "id": "ccl_76",
+        "name": "大洋洲史地",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_760",
+        "name": "大洋洲史地總論",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_761",
+        "name": "澳洲",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_762",
+        "name": "紐西蘭",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_763",
+        "name": "密克羅尼西亞",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_764",
+        "name": "美拉尼西亞",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_765",
+        "name": "玻里尼西亞",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_766",
+        "name": "夏威夷",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_767",
+        "name": "南太平洋島嶼",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_768",
+        "name": "南極洲",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_769",
+        "name": "北極地區",
+        "parentId": "ccl_76",
+        "locked": true
+      },
+      {
+        "id": "ccl_77",
+        "name": "傳記",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_770",
+        "name": "傳記總論",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_771",
+        "name": "中國傳記",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_772",
+        "name": "中國傳記集",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_773",
+        "name": "亞洲傳記",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_774",
+        "name": "歐洲傳記",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_775",
+        "name": "美洲傳記",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_776",
+        "name": "非洲傳記",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_777",
+        "name": "大洋洲傳記",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_778",
+        "name": "家譜/族譜",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_779",
+        "name": "自傳/回憶錄",
+        "parentId": "ccl_77",
+        "locked": true
+      },
+      {
+        "id": "ccl_78",
+        "name": "文物考古",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_780",
+        "name": "文物考古總論",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_781",
+        "name": "考古學方法",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_782",
+        "name": "中國考古",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_783",
+        "name": "亞洲考古",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_784",
+        "name": "歐洲考古",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_785",
+        "name": "非洲考古",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_786",
+        "name": "美洲考古",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_787",
+        "name": "文物保存",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_788",
+        "name": "博物館學",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_789",
+        "name": "古蹟維護",
+        "parentId": "ccl_78",
+        "locked": true
+      },
+      {
+        "id": "ccl_79",
+        "name": "地理學/地圖",
+        "parentId": "ccl_7",
+        "locked": true
+      },
+      {
+        "id": "ccl_790",
+        "name": "地理學總論",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_791",
+        "name": "自然地理",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_792",
+        "name": "人文地理",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_793",
+        "name": "經濟地理",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_794",
+        "name": "政治地理",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_795",
+        "name": "都市地理",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_796",
+        "name": "地圖學",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_797",
+        "name": "測量學",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_798",
+        "name": "遙測/GIS",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_799",
+        "name": "各國地理",
+        "parentId": "ccl_79",
+        "locked": true
+      },
+      {
+        "id": "ccl_8",
+        "name": "語文類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_80",
+        "name": "語文總論",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_800",
+        "name": "語文總論",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_801",
+        "name": "語文理論",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_802",
+        "name": "語文史",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_803",
+        "name": "語文辭典",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_804",
+        "name": "語文論文集",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_805",
+        "name": "語文期刊",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_806",
+        "name": "語文機構",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_807",
+        "name": "語文教育",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_808",
+        "name": "寫作/修辭",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_809",
+        "name": "翻譯學",
+        "parentId": "ccl_80",
+        "locked": true
+      },
+      {
+        "id": "ccl_81",
+        "name": "文學總論",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_810",
+        "name": "文學總論",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_811",
+        "name": "文學理論",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_812",
+        "name": "文學批評",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_813",
+        "name": "文學史",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_814",
+        "name": "比較文學",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_815",
+        "name": "文學創作",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_816",
+        "name": "兒童文學",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_817",
+        "name": "通俗文學",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_818",
+        "name": "報導文學",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_819",
+        "name": "其他文類",
+        "parentId": "ccl_81",
+        "locked": true
+      },
+      {
+        "id": "ccl_82",
+        "name": "中國文學",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_820",
+        "name": "中國文學總論",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_821",
+        "name": "中國文學史",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_822",
+        "name": "中國詩",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_823",
+        "name": "中國詞/曲",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_824",
+        "name": "中國散文",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_825",
+        "name": "中國小說",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_826",
+        "name": "中國戲劇文學",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_827",
+        "name": "中國民間文學",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_828",
+        "name": "中國文學批評",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_829",
+        "name": "中國文學集",
+        "parentId": "ccl_82",
+        "locked": true
+      },
+      {
+        "id": "ccl_83",
+        "name": "中國各體文學",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_830",
+        "name": "中國各體文學總論",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_831",
+        "name": "經學",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_832",
+        "name": "賦",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_833",
+        "name": "駢文",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_834",
+        "name": "尺牘/書信",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_835",
+        "name": "日記/筆記",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_836",
+        "name": "楹聯",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_837",
+        "name": "笑話/寓言",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_838",
+        "name": "謎語",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_839",
+        "name": "諺語/格言",
+        "parentId": "ccl_83",
+        "locked": true
+      },
+      {
+        "id": "ccl_84",
+        "name": "中國各地方文學",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_840",
+        "name": "中國各地方文學總論",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_841",
+        "name": "臺灣文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_842",
+        "name": "港澳文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_843",
+        "name": "東北文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_844",
+        "name": "華北文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_845",
+        "name": "華東文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_846",
+        "name": "華中文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_847",
+        "name": "華南文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_848",
+        "name": "西南文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_849",
+        "name": "西北文學",
+        "parentId": "ccl_84",
+        "locked": true
+      },
+      {
+        "id": "ccl_85",
+        "name": "東方文學",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_850",
+        "name": "東方文學總論",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_851",
+        "name": "日本文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_852",
+        "name": "韓國文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_853",
+        "name": "東南亞文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_854",
+        "name": "南亞文學/印度文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_855",
+        "name": "中亞文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_856",
+        "name": "西亞文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_857",
+        "name": "阿拉伯文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_858",
+        "name": "波斯文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_859",
+        "name": "其他東方文學",
+        "parentId": "ccl_85",
+        "locked": true
+      },
+      {
+        "id": "ccl_86",
+        "name": "西洋文學",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_860",
+        "name": "西洋文學總論",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_861",
+        "name": "西洋文學史",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_862",
+        "name": "古典文學",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_863",
+        "name": "中世紀文學",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_864",
+        "name": "文藝復興文學",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_865",
+        "name": "近代文學",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_866",
+        "name": "現代文學",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_867",
+        "name": "當代文學",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_868",
+        "name": "西洋詩",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_869",
+        "name": "西洋小說",
+        "parentId": "ccl_86",
+        "locked": true
+      },
+      {
+        "id": "ccl_87",
+        "name": "西洋各國文學",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_870",
+        "name": "西洋各國文學總論",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_871",
+        "name": "英國文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_872",
+        "name": "美國文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_873",
+        "name": "法國文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_874",
+        "name": "德國文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_875",
+        "name": "義大利文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_876",
+        "name": "西班牙文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_877",
+        "name": "俄國文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_878",
+        "name": "北歐文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_879",
+        "name": "其他國家文學",
+        "parentId": "ccl_87",
+        "locked": true
+      },
+      {
+        "id": "ccl_88",
+        "name": "語言學",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_880",
+        "name": "語言學總論",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_881",
+        "name": "語音學/音韻學",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_882",
+        "name": "語法學/句法",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_883",
+        "name": "語義學",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_884",
+        "name": "語用學",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_885",
+        "name": "社會語言學",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_886",
+        "name": "心理語言學",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_887",
+        "name": "計算語言學",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_888",
+        "name": "應用語言學",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_889",
+        "name": "語言教學",
+        "parentId": "ccl_88",
+        "locked": true
+      },
+      {
+        "id": "ccl_89",
+        "name": "東方語文",
+        "parentId": "ccl_8",
+        "locked": true
+      },
+      {
+        "id": "ccl_890",
+        "name": "東方語文總論",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_891",
+        "name": "中國語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_892",
+        "name": "日本語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_893",
+        "name": "韓國語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_894",
+        "name": "東南亞語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_895",
+        "name": "南亞語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_896",
+        "name": "中亞語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_897",
+        "name": "西亞語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_898",
+        "name": "阿拉伯語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_899",
+        "name": "其他東方語文",
+        "parentId": "ccl_89",
+        "locked": true
+      },
+      {
+        "id": "ccl_9",
+        "name": "美術類",
+        "parentId": null,
+        "locked": true
+      },
+      {
+        "id": "ccl_90",
+        "name": "美術總論",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_900",
+        "name": "美術總論",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_901",
+        "name": "美術理論",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_902",
+        "name": "美術史",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_903",
+        "name": "美術辭典",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_904",
+        "name": "美術論文集",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_905",
+        "name": "美術期刊",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_906",
+        "name": "美術機構/展覽",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_907",
+        "name": "美術教育",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_908",
+        "name": "美術家傳記",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_909",
+        "name": "美術與其他",
+        "parentId": "ccl_90",
+        "locked": true
+      },
+      {
+        "id": "ccl_91",
+        "name": "音樂",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_910",
+        "name": "音樂總論",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_911",
+        "name": "音樂理論",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_912",
+        "name": "音樂史",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_913",
+        "name": "聲樂",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_914",
+        "name": "器樂",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_915",
+        "name": "中國音樂",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_916",
+        "name": "東方音樂",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_917",
+        "name": "西洋音樂",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_918",
+        "name": "流行音樂",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_919",
+        "name": "民間音樂",
+        "parentId": "ccl_91",
+        "locked": true
+      },
+      {
+        "id": "ccl_92",
+        "name": "建築",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_920",
+        "name": "建築總論",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_921",
+        "name": "建築理論/設計",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_922",
+        "name": "建築史",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_923",
+        "name": "中國建築",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_924",
+        "name": "東方建築",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_925",
+        "name": "西洋建築",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_926",
+        "name": "公共建築",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_927",
+        "name": "住宅建築",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_928",
+        "name": "景觀/庭園設計",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_929",
+        "name": "室內設計",
+        "parentId": "ccl_92",
+        "locked": true
+      },
+      {
+        "id": "ccl_93",
+        "name": "雕塑",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_930",
+        "name": "雕塑總論",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_931",
+        "name": "雕塑理論",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_932",
+        "name": "雕塑史",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_933",
+        "name": "中國雕塑",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_934",
+        "name": "東方雕塑",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_935",
+        "name": "西洋雕塑",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_936",
+        "name": "木雕",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_937",
+        "name": "石雕",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_938",
+        "name": "金屬雕塑",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_939",
+        "name": "陶塑/其他材質",
+        "parentId": "ccl_93",
+        "locked": true
+      },
+      {
+        "id": "ccl_94",
+        "name": "繪畫/書法",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_940",
+        "name": "繪畫總論",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_941",
+        "name": "繪畫理論",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_942",
+        "name": "繪畫史",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_943",
+        "name": "中國繪畫",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_944",
+        "name": "書法/篆刻",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_945",
+        "name": "東方繪畫",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_946",
+        "name": "西洋繪畫",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_947",
+        "name": "版畫",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_948",
+        "name": "漫畫/插畫",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_949",
+        "name": "數位藝術",
+        "parentId": "ccl_94",
+        "locked": true
+      },
+      {
+        "id": "ccl_95",
+        "name": "攝影/電腦藝術",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_950",
+        "name": "攝影總論",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_951",
+        "name": "攝影理論/技術",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_952",
+        "name": "攝影史",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_953",
+        "name": "人像攝影",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_954",
+        "name": "風景攝影",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_955",
+        "name": "商業攝影",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_956",
+        "name": "新聞攝影",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_957",
+        "name": "藝術攝影",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_958",
+        "name": "電腦藝術/數位媒體",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_959",
+        "name": "錄影/影像藝術",
+        "parentId": "ccl_95",
+        "locked": true
+      },
+      {
+        "id": "ccl_96",
+        "name": "應用美術",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_960",
+        "name": "應用美術總論",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_961",
+        "name": "工藝設計",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_962",
+        "name": "圖案/紋飾",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_963",
+        "name": "陶瓷/玻璃藝術",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_964",
+        "name": "金工/珠寶",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_965",
+        "name": "紡織/染織藝術",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_966",
+        "name": "漆器",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_967",
+        "name": "木竹藝術",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_968",
+        "name": "紙藝/裝幀",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_969",
+        "name": "其他工藝",
+        "parentId": "ccl_96",
+        "locked": true
+      },
+      {
+        "id": "ccl_97",
+        "name": "技藝",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_970",
+        "name": "技藝總論",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_971",
+        "name": "花藝/插花",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_972",
+        "name": "茶藝",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_973",
+        "name": "香道",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_974",
+        "name": "園藝造景",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_975",
+        "name": "刺繡/編織",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_976",
+        "name": "珠串/飾品",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_977",
+        "name": "摺紙/紙藝",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_978",
+        "name": "模型製作",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_979",
+        "name": "其他技藝",
+        "parentId": "ccl_97",
+        "locked": true
+      },
+      {
+        "id": "ccl_98",
+        "name": "戲劇",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_980",
+        "name": "戲劇總論",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_981",
+        "name": "戲劇理論",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_982",
+        "name": "戲劇史",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_983",
+        "name": "中國戲曲",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_984",
+        "name": "話劇",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_985",
+        "name": "歌劇/音樂劇",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_986",
+        "name": "舞蹈",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_987",
+        "name": "電影",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_988",
+        "name": "電視",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_989",
+        "name": "廣播",
+        "parentId": "ccl_98",
+        "locked": true
+      },
+      {
+        "id": "ccl_99",
+        "name": "遊藝/休閒活動",
+        "parentId": "ccl_9",
+        "locked": true
+      },
+      {
+        "id": "ccl_990",
+        "name": "遊藝總論",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_991",
+        "name": "棋藝",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_992",
+        "name": "牌藝/紙牌",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_993",
+        "name": "魔術/雜技",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_994",
+        "name": "體育/運動",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_995",
+        "name": "球類運動",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_996",
+        "name": "田徑/水上運動",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_997",
+        "name": "武術/格鬥",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_998",
+        "name": "戶外活動/登山",
+        "parentId": "ccl_99",
+        "locked": true
+      },
+      {
+        "id": "ccl_999",
+        "name": "收藏/鑑賞",
+        "parentId": "ccl_99",
+        "locked": true
+      }
+    ],
+    "custom": [
+      {
+        "id": "tag-gift",
+        "name": "tag-gift",
+        "parentId": null
+      },
+      {
+        "id": "tag-friend",
+        "name": "tag-friend",
+        "parentId": null
+      }
+    ]
+  }
+}

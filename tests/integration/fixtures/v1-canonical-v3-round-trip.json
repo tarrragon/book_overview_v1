@@ -1,0 +1,302 @@
+{
+  "format": "book-interchange-v1",
+  "formatVersion": "3.0.0",
+  "metadata": {
+    "exportedAt": "2026-06-18T15:00:00.000Z",
+    "sourceApp": "readmoo-book-extractor",
+    "totalBooks": 6
+  },
+  "books": [
+    {
+      "id": "rt-001",
+      "title": "挪威的森林",
+      "cover": {
+        "original": "https://readmoo.com/cover/rt-001.jpg"
+      },
+      "progress": {
+        "percentage": 45.5
+      },
+      "tags": {
+        "author": [
+          {
+            "id": "a-村上春樹",
+            "name": "村上春樹"
+          },
+          {
+            "id": "a-Haruki Murakami",
+            "name": "Haruki Murakami"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-時報出版",
+            "name": "時報出版"
+          }
+        ],
+        "isbn": [
+          {
+            "id": "isbn-9789571234567",
+            "name": "9789571234567"
+          }
+        ],
+        "custom": [
+          {
+            "id": "tag-gift",
+            "name": "tag-gift"
+          }
+        ],
+        "readingStatus": [
+          {
+            "id": "rs-reading",
+            "name": "reading"
+          }
+        ]
+      },
+      "_passthrough": {},
+      "createdAt": "2026-01-15T08:30:00.000Z",
+      "updatedAt": "2026-03-20T14:22:00.000Z"
+    },
+    {
+      "id": "rt-002",
+      "title": "原子習慣",
+      "cover": {},
+      "progress": {
+        "percentage": 0
+      },
+      "tags": {
+        "author": [
+          {
+            "id": "a-James Clear",
+            "name": "James Clear"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-方智出版社",
+            "name": "方智出版社"
+          }
+        ],
+        "isbn": [
+          {
+            "id": "isbn-9789861755267",
+            "name": "9789861755267"
+          }
+        ],
+        "custom": [],
+        "readingStatus": [
+          {
+            "id": "rs-not_started",
+            "name": "not_started"
+          }
+        ]
+      },
+      "_passthrough": {},
+      "createdAt": "2026-02-01T10:00:00.000Z",
+      "updatedAt": "2026-02-01T10:00:00.000Z"
+    },
+    {
+      "id": "rt-003",
+      "title": "人類大歷史",
+      "cover": {
+        "original": "https://readmoo.com/cover/rt-003.jpg"
+      },
+      "progress": {
+        "percentage": 100
+      },
+      "tags": {
+        "author": [
+          {
+            "id": "a-Yuval Noah Harari",
+            "name": "Yuval Noah Harari"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-天下文化",
+            "name": "天下文化"
+          }
+        ],
+        "isbn": [],
+        "custom": [],
+        "readingStatus": [
+          {
+            "id": "rs-finished",
+            "name": "finished"
+          }
+        ]
+      },
+      "_passthrough": {},
+      "createdAt": "2025-12-01T00:00:00.000Z",
+      "updatedAt": "2026-01-10T00:00:00.000Z"
+    },
+    {
+      "id": "rt-004",
+      "title": "被討厭的勇氣",
+      "cover": {
+        "original": "https://readmoo.com/cover/rt-004.jpg"
+      },
+      "progress": {
+        "percentage": 30
+      },
+      "tags": {
+        "author": [
+          {
+            "id": "a-岸見一郎",
+            "name": "岸見一郎"
+          },
+          {
+            "id": "a-古賀史健",
+            "name": "古賀史健"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-究竟出版",
+            "name": "究竟出版"
+          }
+        ],
+        "isbn": [],
+        "custom": [],
+        "readingStatus": [
+          {
+            "id": "rs-abandoned",
+            "name": "abandoned"
+          }
+        ]
+      },
+      "_passthrough": {},
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-04-15T00:00:00.000Z"
+    },
+    {
+      "id": "rt-005",
+      "title": "刻意練習",
+      "cover": {},
+      "progress": {
+        "percentage": 0
+      },
+      "tags": {
+        "author": [
+          {
+            "id": "a-Anders Ericsson",
+            "name": "Anders Ericsson"
+          },
+          {
+            "id": "a-Robert Pool",
+            "name": "Robert Pool"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-方智出版社",
+            "name": "方智出版社"
+          }
+        ],
+        "isbn": [],
+        "custom": [
+          {
+            "id": "tag-friend",
+            "name": "tag-friend"
+          }
+        ],
+        "readingStatus": [
+          {
+            "id": "rs-queued",
+            "name": "queued"
+          }
+        ]
+      },
+      "_passthrough": {},
+      "createdAt": "2026-05-01T00:00:00.000Z",
+      "updatedAt": "2026-05-01T00:00:00.000Z"
+    },
+    {
+      "id": "rt-006",
+      "title": "Clean Code",
+      "cover": {
+        "original": "https://readmoo.com/cover/rt-006.jpg"
+      },
+      "progress": {
+        "percentage": 65
+      },
+      "tags": {
+        "author": [
+          {
+            "id": "a-Robert C. Martin",
+            "name": "Robert C. Martin"
+          }
+        ],
+        "platform": [
+          {
+            "id": "platform-readmoo",
+            "name": "readmoo"
+          }
+        ],
+        "publisher": [
+          {
+            "id": "publisher-Prentice Hall",
+            "name": "Prentice Hall"
+          }
+        ],
+        "isbn": [],
+        "custom": [],
+        "readingStatus": [
+          {
+            "id": "rs-reference",
+            "name": "reference"
+          }
+        ]
+      },
+      "_passthrough": {},
+      "createdAt": "2025-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    }
+  ],
+  "tagTree": {
+    "ccl": [],
+    "custom": [
+      {
+        "id": "tag-gift",
+        "name": "tag-gift",
+        "parentId": null,
+        "locked": false
+      },
+      {
+        "id": "tag-friend",
+        "name": "tag-friend",
+        "parentId": null,
+        "locked": false
+      }
+    ]
+  }
+}
