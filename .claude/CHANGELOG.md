@@ -1,3 +1,71 @@
+## [1.54.3] - 2026-06-18
+
+### Summary
+fix: dashboard 漏報 NO-CB pending ticket + list --status 逗號語法錯誤
+
+Changes: 1 fix
+
+- fix: dashboard 漏報 NO-CB pending ticket + list --status 逗號語法錯誤
+
+---
+
+## [1.54.2] - 2026-06-17
+
+### Summary
+docs: 新增變體 B（PM append-log 觸發）及預防方案; docs: 新增 ARCH-TUNL-001 local settings hook 註冊幽靈模式; chore: pull .claude 更新（上游 beaca2e2ec36）
+
+Changes: 2 docs, 1 chore
+
+- docs: 新增變體 B（PM append-log 觸發）及預防方案
+- docs: 新增 ARCH-TUNL-001 local settings hook 註冊幽靈模式
+- chore: pull .claude 更新（上游 beaca2e2ec36）
+
+---
+
+## [1.54.1] - 2026-06-17
+
+### Summary
+chore: 傳播刪除 test_monorepo_version_sync.py 孤兒
+
+---
+
+## [1.54.0] - 2026-06-17
+
+### Summary
+feat: cmd_start_version 多專案類型整合（）; feat: schema 擴展 + 專案偵測 + yaml/toml bump（/100/101）; feat: 擴展版本源候選 + resolve_version_source（） (+1 more)
+
+Changes: 3 feat, 1 docs
+
+- feat: cmd_start_version 多專案類型整合（）
+- feat: schema 擴展 + 專案偵測 + yaml/toml bump（/100/101）
+- feat: 擴展版本源候選 + resolve_version_source（）
+- docs: SKILL.md 多專案類型文件更新（）
+
+---
+
+## [1.53.2] - 2026-06-17
+
+### Summary
+fix: 移除 repo 常數 .git 後綴致 gh --repo 解析失敗
+
+Changes: 1 fix
+
+- fix: 移除 repo 常數 .git 後綴致 gh --repo 解析失敗
+
+---
+
+## [1.53.1] - 2026-06-17
+
+### Summary
+docs: 新增 Behavioral Core Principle 行為核心準則; chore: pull .claude 更新（上游 aa4f0038）
+
+Changes: 1 docs, 1 chore
+
+- docs: 新增 Behavioral Core Principle 行為核心準則
+- chore: pull .claude 更新（上游 aa4f0038）
+
+---
+
 ## [1.53.0] - 2026-06-17
 
 ### Summary
