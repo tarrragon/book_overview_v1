@@ -2,6 +2,104 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [1.0.0] - 2026-06-18
+### 內測版本 — v3 canonical 匯出入 + 跨裝置同步 + 框架治理全面強化
+
+**版本目標**：完成 v3 canonical 匯出入接線與跨專案（V1 Chrome Extension ↔ APP Flutter）端到端 round-trip 驗證，確立 book-interchange-v1 spec approved 基線；同時大規模收斂框架品質（自動載入 token 預算、知識載體責任分配、方法論瘦身、confabulation 防護、嵌套派發協議）。
+
+**產品功能——v3 canonical 匯出入與跨專案同步**：
+- [接線] Overview 匯出 UI 接 v3 canonical 入口，移除 v2 JSON 匯出 UI（v3 為唯一匯出入口）（W4-001/W4-007）
+- [新增] v3 canonical 端到端 round-trip 整合測試（W4-002）
+- [對齊] UC-03/04/05 規格對齊 v3 canonical / 跨專案（W4-003）
+- [修正] book-interchange-v1 spec 狀態漂移 + APP canonical 匯出 wire key 對齊 spec（W4-004/W5-004）
+- [修正] 書級進度衝突改 LWW by updatedAt（W4-006）
+- [處理] CrossDeviceSyncService 死碼標 deferred（W4-005）
+- [協調] V1↔APP 跨專案同步：對接 APP + 定義兩端 round-trip 驗證計畫（W5-001）
+- [實證] V1↔APP 兩端 v3 canonical 端到端 round-trip 全綠（W5-002）
+- [定稿] book-interchange-v1 spec 從 draft 升 approved（W5-003）
+
+**產品品質——打包與圖示修復**：
+- [修復] 圖示 SVG 偽裝 PNG 轉真 PNG + validate 補圖示格式檢查（W2-001）
+- [更新] installation-guide 版本對齊 v1.0.0（W2-002）
+- [修正] build:prod worklog 副作用避免打包污染 git（W2-003）
+- [消除] esbuild CJS/ESM 雙模式 warning（Logger.js / MessageDictionary.js）（W2-004）
+- [清理] dist 殘留舊版 ZIP + build 散檔冗餘（W2-005）
+- [重驗] Readmoo DOM 實機 E2E 確認 URL/DOM 未漂移（W3-001）
+- [更新] bookstores/readmoo.md 實作對照表（W3-002）
+
+**框架品質——自動載入 token 收斂（W7 campaign）**：
+- [收斂] 自動載入文件集從 82.5k 降至約 40k tokens（W7-004 系列，17 個子票）
+- [外移] test-assertion-design / decision-trigger-binding / document-writing-style / agent-definition-standard 主文外移 references/，core/ 保留速查 stub
+- [瘦身] bash-tool-usage-rules / ai-communication-rules / quality-baseline 三檔六規則濃縮為速查表
+- [瘦身] CLAUDE.md / pm-role / tool-output-trust 等 6 檔輕量修剪
+- [修剪] MEMORY.md 索引從 120 條目 12.2k 降至約 5k
+- [新增] file-size-guardian auto-load token 預算量測 + CHARS_PER_TOKEN 係數校準（W7-006/W7-004.7）
+- [正規化] auto-load 防膨脹三缺口修復：三明示載入層邊界 + stub 形態規範（W7-007）
+
+**框架品質——知識載體責任分配與方法論瘦身（W8 campaign）**：
+- [撰寫] 知識載體責任分配方法論 + multi-round-review skill 首次框架實戰（W8-008/W8-011/W8-013）
+- [統一] ANA 衍生票關係模型（children vs spawned_tickets / dotted vs sibling）消除反覆修正（W8-025 系列）
+- [盤點] 代理人定義內容合規性 + 批量清理 C1~C6 錯置（W8-009 系列，28 個子票）
+- [整併] TDD/testing 家族方法論 + ticket 家族方法論 + 其餘超標方法論約 20 檔瘦身（W8-018/019/020 系列）
+- [搬移] references/pm-rules/rules 內容參考與流程類共 12 檔重分配（W8-023 系列）
+- [處置] root 過時/重複檔 + templates 同步 + legacy 檔案清理（W8-022/024/048）
+- [建立] broken-link CLI scanner + 139 條 legacy 斷鏈 triage 清理全綠（W8-030/034 系列）
+- [修正] sync-pull 上游刪靜默殘留通報 + 孤兒稽核 + full-overlay 復活防禦（W8-036/037 系列）
+- [回補] 方法論新定義（判準明確非秒數壓縮）對齊 writing-documents + 約 20 個已瘦身方法論回評（W8-039~043）
+
+**框架品質——confabulation 防護與工具輸出信任（W1 系列）**：
+- [分析] PM confabulation 系統性根因（四視角整合）+ timeline 火星追查（W1-023 系列）
+- [撰寫] tool-output-trust-rules 五規則自動載入（記錄平面 vs 世界平面二相性）（W1-023.1/W1-039.2）
+- [升級] bash-rules 規則一（git -C 首選）+ 輸出可疑當下即時協議（W1-023.2）
+- [實作] warn 級裸 cd guard PreToolUse hook（W1-023.4.1/W1-026/W1-035）
+- [分析] ghost branch 鑑識與防護 + PC-166 幻覺工具結果分型修訂（W1-039 系列）
+- [實作] execution lease 互鎖可行性 spike（W1-039.3）
+
+**框架品質——嵌套派發協議與代理人身份（W1 系列）**：
+- [評估] CC 嵌套 sub-agent 機制 + Fable 5 fallbackModel 影響（W1-056/056.1）
+- [實作] 嵌套派發協議完整落地：AGENT_PRELOAD 嵌套章節 + dispatch hook 深度感知 + ticket depth 上限 + parallel-dispatch 整合（W1-056.2~056.12）
+- [實作] ticket CLI --as 身份申報 + identity-guard telemetry 落盤 + per-command 歸因（W1-048/057/082/083）
+- [固化] 唯讀探針派發 SOP + AGENT_PRELOAD 引用非指派邊界 + hook 注入 PM-ONLY 受眾標記（W1-045~047/072~076）
+
+**框架品質——Ticket CLI 強化（W1 系列）**：
+- [實作] ticket create 同窗口高相似度阻擋層（Tier 2 冪等防護）（W1-040/040.1）
+- [實作] ticket create ID 分配 fcntl file lock + auto-seq 衝突修復（W1-042/063）
+- [修復] batch-create/generate 建票路徑繞過 checklist 驗證 + argparse 縮寫歧義治理（W1-027~029）
+- [改善] append-log Context Bundle 派發前摩擦 + PM bookkeeping 寫入路徑（W1-025/058）
+- [實作] ticket body append-log auto-commit 根因解（working-tree 還原防護）（W7-001/002）
+- [修復] append-log body 遺失 bug 調查 + ANA 重現實驗結果空殼偵測（W1-017/W8-007）
+- [修復] ticket 測試基礎設施衛生收斂（conftest DRY + lock 隔離 + stale .lock 清理）（W1-050/054/W8-017）
+
+**框架品質——error-pattern ID 系統跨專案治理（W1 系列）**：
+- [設計] error-pattern 全 category 前綴分配新規 + 專案代碼註冊表 + canonical 升格機制（W1-019 系列，7 個子票）
+- [實作] flat 新增 negative gate hook + V1 remediation + PC 碰撞 detect 腳本（W1-021/022）
+- [修復] 66 處框架資產正文 ticket ID 引用清理 + 規則 8 功能字串子類判準固化（W1-008~015）
+
+**框架品質——跨專案 sync 機制強化**：
+- [分析] sync-pull 全量覆寫與本專案演化分叉（W1-003 系列，6 個子票）
+- [實作] sync-push --clean 清孤兒 + SOP 防復發 + tracked 刪除警告（W1-009/W8-037.2）
+- [實作] sync tagged-release + pin-aware pull（push 打 tag + pull pinned_version/--bump）（W1-092）
+- [實作] sync-push 前框架 import smoke test 閘門 + sync-pull 衝突標準化（W1-087/084）
+- [設計] 框架 issue tracker + /framework-issue SKILL + gh-based 跨 consumer 修復追蹤（W1-090~095）
+- [設計] version-release skill 多專案類型支援（chrome-ext/flutter/go/php/monorepo）+ 實作完整落地（W1-097~104）
+
+**框架品質——Hook 與代理人系統修復**：
+- [實作] SubagentStop hook 自激迴圈斷路器 + agent-commit-verification 路徑截斷修復（W1-055 系列）
+- [修復] 4 個 PostToolUse hook subagent 偵測早期跳過（W1-071）
+- [修復] hook 測試污染 production hook-logs + tool-aware 輸入驗證（W1-033/074）
+- [修復] agent 定義 model 行內註解解析失敗 + 23 個 agent 檔 model 行清理（W1-079~081）
+- [實作] 未 commit ticket md 偵測 hook + auto-commit index.lock retry（W8-005/006）
+- [修復] ticket body 持久化資料層評估 + git subprocess timeout 補齊（W7-003/W8-001~004）
+- [跨平台] file_lock.py POSIX fcntl 改跨平台 filelock 庫 + dead code 清理（W9-001/W1-086）
+
+**框架品質——project-init 與其他修復（W9）**：
+- [修復] detect_python 改多候選命令 + uv fallback（W9-002）
+- [修復] settings.json hook 路徑不存在 WARNING + 跨檔重複註冊偵測（W9-004）
+- [修復] get_tickets_dir 改 hierarchical/flat 共存讀取 + dispatch-active gitignore 字面不一致（W9-006~008）
+- [修復] _has_gitignore_rule 改混合語意消除合法變體 false positive（W9-009/009.1）
+
+**統計**：282 個 ticket 完成，測試 242 suites / 5601 tests passed / 0 failed，全套件回歸通過。
+
 ## [0.20.0] - 2026-06-06
 ### 中文圖書分類法 + Tag 樹狀管理 + background Service Worker 穩定性
 
