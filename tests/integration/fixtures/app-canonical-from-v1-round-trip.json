@@ -2,7 +2,7 @@
   "format": "book-interchange-v1",
   "formatVersion": "3.0.0",
   "metadata": {
-    "exportedAt": "2026-06-18T15:55:23.101108",
+    "exportedAt": "2026-06-18T16:15:21.760774",
     "sourceApp": "book_overview_app",
     "totalBooks": 6
   },
@@ -46,7 +46,7 @@
             "name": "tag-friend"
           }
         ],
-        "reading_status": [
+        "readingStatus": [
           {
             "id": "rs-queued",
             "name": "queued"
@@ -92,7 +92,7 @@
             "name": "究竟出版"
           }
         ],
-        "reading_status": [
+        "readingStatus": [
           {
             "id": "rs-abandoned",
             "name": "abandoned"
@@ -137,7 +137,7 @@
             "name": "9789861755267"
           }
         ],
-        "reading_status": [
+        "readingStatus": [
           {
             "id": "rs-not_started",
             "name": "not_started"
@@ -195,7 +195,7 @@
             "name": "tag-gift"
           }
         ],
-        "reading_status": [
+        "readingStatus": [
           {
             "id": "rs-reading",
             "name": "reading"
@@ -237,7 +237,7 @@
             "name": "天下文化"
           }
         ],
-        "reading_status": [
+        "readingStatus": [
           {
             "id": "rs-finished",
             "name": "finished"
@@ -279,7 +279,7 @@
             "name": "Prentice Hall"
           }
         ],
-        "reading_status": [
+        "readingStatus": [
           {
             "id": "rs-reference",
             "name": "reference"
