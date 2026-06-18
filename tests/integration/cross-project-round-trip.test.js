@@ -112,17 +112,6 @@ const ORIGINAL_BOOKS = [
   }
 ]
 
-// APP canonical 使用 reading_status（snake_case）而非 spec 定義的 readingStatus（camelCase）
-// 本測試記錄此已知不一致，由修復票追蹤
-function normalizeAppTagKeys (tags) {
-  const normalized = { ...tags }
-  if (normalized.reading_status && !normalized.readingStatus) {
-    normalized.readingStatus = normalized.reading_status
-    delete normalized.reading_status
-  }
-  return normalized
-}
-
 describe('V1↔APP 跨專案 round-trip（W5-002）', () => {
   describe('SC-5: formatVersion semver 驗證', () => {
     test('V1 canonical formatVersion = 3.0.0', () => {
@@ -178,24 +167,23 @@ describe('V1↔APP 跨專案 round-trip（W5-002）', () => {
       reference: 'reference'
     }
 
-    test('APP canonical 使用 reading_status（已知不一致，待修復票）', () => {
+    test('APP canonical 使用 readingStatus（camelCase，對齊 spec）', () => {
       for (const book of appCanonical.books) {
-        expect(book.tags).toHaveProperty('reading_status')
-        expect(book.tags).not.toHaveProperty('readingStatus')
+        expect(book.tags).toHaveProperty('readingStatus')
+        expect(book.tags).not.toHaveProperty('reading_status')
       }
     })
 
     test.each(ORIGINAL_BOOKS.map(b => [b.id, b.readingStatus]))(
-      'id=%s V1 status=%s round-trip 還原（normalize 後）',
+      'id=%s V1 status=%s round-trip 還原',
       (id, originalStatus) => {
         const appBook = appCanonical.books.find(b => b.id === id)
         expect(appBook).toBeDefined()
 
-        const normalizedBook = { ...appBook, tags: normalizeAppTagKeys(appBook.tags) }
-        const appStatusTag = normalizedBook.tags?.readingStatus?.[0]?.name
+        const appStatusTag = appBook.tags?.readingStatus?.[0]?.name
         expect(appStatusTag).toBe(RS_V1_TO_CANONICAL[originalStatus])
 
-        const restored = mapCanonicalToV1Book(normalizedBook)
+        const restored = mapCanonicalToV1Book(appBook)
         expect(restored.readingStatus).toBe(originalStatus)
       }
     )
@@ -245,7 +233,7 @@ describe('V1↔APP 跨專案 round-trip（W5-002）', () => {
   })
 
   describe('SC-1 完整 Diff: 原始 V1 books vs round-trip 還原', () => {
-    test('逐本比對關鍵欄位（normalize reading_status 後）', () => {
+    test('逐本比對關鍵欄位', () => {
       const diffs = []
 
       for (const original of ORIGINAL_BOOKS) {
@@ -255,8 +243,7 @@ describe('V1↔APP 跨專案 round-trip（W5-002）', () => {
           continue
         }
 
-        const normalizedBook = { ...appBook, tags: normalizeAppTagKeys(appBook.tags) }
-        const restored = mapCanonicalToV1Book(normalizedBook)
+        const restored = mapCanonicalToV1Book(appBook)
 
         if (restored.title !== original.title) {
           diffs.push({ id: original.id, field: 'title', original: original.title, restored: restored.title })
