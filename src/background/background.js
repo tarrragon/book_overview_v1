@@ -269,6 +269,20 @@ function registerLifecycleListeners () {
           return true
         }
 
+        // GET_STATUS：init 期間提供 baseline 回應，讓 popup 知道 SW 正在初始化
+        // （1.1.0-W1-019 C 方案核心：消除 popup 2 秒 timeout 前無回應的永久離線）
+        if (message && message.type === 'GET_STATUS' && !emergencyMode) {
+          sendResponse({
+            success: true,
+            isEnabled: true,
+            serviceWorkerActive: true,
+            initializing: true,
+            mode: 'initializing',
+            timestamp: Date.now()
+          })
+          return true
+        }
+
         // emergency 模式：無 coordinator 可 flush，業務訊息回受限提示
         if (emergencyMode) {
           sendResponse({

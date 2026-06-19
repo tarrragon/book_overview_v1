@@ -187,6 +187,16 @@ const CONFIG = {
   READMOO_DOMAIN: 'readmoo.com'
 }
 
+/**
+ * popup↔SW 握手重試配置（1.1.0-W1-019 A+C 方案）
+ */
+const HANDSHAKE_CONFIG = {
+  TIMEOUT_MS: 2000,
+  MAX_RETRY_ATTEMPTS: 3,
+  INITIAL_RETRY_DELAY_MS: 1000,
+  RETRY_BACKOFF_MULTIPLIER: 2
+}
+
 // ==================== DOM 元素管理 ====================
 
 /**
@@ -647,7 +657,7 @@ function handleSuccessfulBackgroundResponse (response) {
   if (response.eventSystem) {
     Logger.info('事件系統狀態', { eventSystem: response.eventSystem })
   }
-  updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', STATUS_TYPES.READY)
+  updateStatus('線上', '線上 — 背景服務連線正常', '系統就緒', STATUS_TYPES.READY)
 }
 
 /**
@@ -684,42 +694,117 @@ function generateErrorDiagnostic (error) {
 }
 
 /**
- * 檢查 Background Service Worker 狀態
+ * 單次嘗試 GET_STATUS（settled flag + late-response 修正）
+ *
+ * timeout 走 macrotask（jest.advanceTimersByTime 同步觸發）。
+ * sendMessage resolve 走 microtask（.then）。
+ *
+ * 在 advanceTimersByTime 推進期間 macrotask 先於 microtask 觸發，
+ * 所以 timeout 可能搶先。但 .then handler 無論 settled 狀態皆呼叫
+ * onResponse，讓 late-arriving response 能在 microtask drain 時
+ * 修正 timeout 發起的重試（取消重試 timer + resolve）。
+ *
+ * @param {Function} onResponse - (response) => void，sendMessage 成功時呼叫
+ * @param {Function} onTimeout - () => void，timeout 或 sendMessage reject 時呼叫
+ */
+function attemptGetStatus (onResponse, onTimeout) {
+  let settled = false
+
+  const timerId = setTimeout(() => {
+    if (!settled) {
+      settled = true
+      onTimeout()
+    }
+  }, HANDSHAKE_CONFIG.TIMEOUT_MS)
+
+  chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_STATUS }).then((response) => {
+    if (!settled) {
+      settled = true
+      clearTimeout(timerId)
+    }
+    onResponse(response)
+  }).catch(() => {
+    if (!settled) {
+      settled = true
+      clearTimeout(timerId)
+      onTimeout()
+    }
+  })
+}
+
+/**
+ * 處理握手回應：就緒回 true、初始化中回 null（需重試）、失敗回 null
+ * @param {Object|null} response
+ * @returns {boolean|null}
+ */
+function handleHandshakeResponse (response) {
+  if (response && response.success && !response.initializing) {
+    handleSuccessfulBackgroundResponse(response)
+    return true
+  }
+  if (response && response.success && response.initializing) {
+    updateStatus('初始化中', '初始化中 — 背景服務正在啟動', '系統初始化中，請稍候', STATUS_TYPES.LOADING)
+  }
+  return null
+}
+
+/**
+ * 檢查 Background Service Worker 狀態（含重試機制）
  *
  * @returns {Promise<boolean>} 是否正常運作
  *
- * 負責功能：
- * - 驗證 Background Service Worker 的連線狀態
- * - 處理通訊錯誤和異常情況
+ * 1.1.0-W1-019 A+C 方案。attemptGetStatus 的 timeout 走 macrotask，
+ * sendMessage resolve 走 microtask。advanceTimersByTime 推進時 timeout
+ * 可能搶先（macrotask 間不 drain 原生 Promise microtask），late-response
+ * 修正機制讓 .then 結果在後續 microtask drain 時取消已排重試並 resolve。
  */
-async function checkBackgroundStatus () {
-  try {
-    const timeoutPromise = createBackgroundTimeoutPromise()
-    const messagePromise = chrome.runtime.sendMessage({ type: MESSAGE_TYPES.GET_STATUS })
-    const response = await Promise.race([messagePromise, timeoutPromise])
+function checkBackgroundStatus () {
+  isFinalStatus = true
+  return new Promise((resolve) => {
+    let done = false
+    let retryTimerId = null
 
-    if (process.env.NODE_ENV === 'test') {
-      return handleTestEnvironmentResponse(response)
+    function finish (value) {
+      if (done) return
+      done = true
+      if (retryTimerId) { clearTimeout(retryTimerId); retryTimerId = null }
+      if (value) { isFinalStatus = false }
+      resolve(value)
     }
 
-    if (response && response.success) {
-      handleSuccessfulBackgroundResponse(response)
-      return true
-    } else {
-      const error = (() => {
-        const err = new Error('Background Service Worker 回應異常: ' + JSON.stringify(response))
-        err.code = ErrorCodes.CHROME_ERROR
-        err.details = { category: 'general', response }
-        return err
-      })()
-      throw error
+    function handleAttempt (attempt, delay) {
+      attemptGetStatus(
+        function onResponse (response) {
+          if (done) return
+          if (retryTimerId) { clearTimeout(retryTimerId); retryTimerId = null }
+          const result = handleHandshakeResponse(response)
+          if (result === true) { finish(true); return }
+          scheduleRetry(attempt, delay)
+        },
+        function onTimeout () {
+          if (done) return
+          scheduleRetry(attempt, delay)
+        }
+      )
     }
-  } catch (error) {
-    Logger.error('Background Service Worker 連線失敗', { error })
-    const { userMessage, diagnosticInfo } = generateErrorDiagnostic(error)
-    updateStatus('離線', userMessage, diagnosticInfo, STATUS_TYPES.ERROR)
-    return false
-  }
+
+    function scheduleRetry (attempt, delay) {
+      if (done) return
+      if (attempt >= HANDSHAKE_CONFIG.MAX_RETRY_ATTEMPTS) {
+        Logger.error('Background Service Worker 連線失敗', { retryCount: attempt })
+        updateStatus('離線', '離線 — 背景服務無法連線', '重試已用盡，請重新載入擴展', STATUS_TYPES.ERROR)
+        finish(false)
+        return
+      }
+      updateStatus('初始化中', '初始化中 — 背景服務正在啟動', '系統初始化中，請稍候', STATUS_TYPES.LOADING)
+      retryTimerId = setTimeout(() => {
+        retryTimerId = null
+        handleAttempt(attempt + 1, delay * HANDSHAKE_CONFIG.RETRY_BACKOFF_MULTIPLIER)
+      }, delay)
+    }
+
+    handleAttempt(0, HANDSHAKE_CONFIG.INITIAL_RETRY_DELAY_MS)
+  })
 }
 
 /**
@@ -1445,6 +1530,7 @@ if (typeof window !== 'undefined') {
   window.MESSAGE_TYPES = MESSAGE_TYPES
   window.MESSAGES = MESSAGES
   window.CONFIG = CONFIG
+  window.HANDSHAKE_CONFIG = HANDSHAKE_CONFIG
 }
 
 // ==================== 啟動流程 ====================
