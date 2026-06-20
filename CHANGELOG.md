@@ -4,16 +4,24 @@
 
 ## [1.1.0] - 2026-06-20
 
-**[OK] UC-XX 功能名稱 - TDD 四階段完成**
-
-### Added
-- 新增功能項目
+框架監測與產品 robustness 強化。7 個 ticket 完成（1 IMP / 4 ANA / 1 DOC / 1 INV）。
 
 ### Changed
-- 變更項目
 
-### Fixed
-- 修復項目
+**Product**
+- 強化 popup↔SW cold-start 握手 robustness：單次無重試+固定 2 秒改為重試機制+init 期間即時 baseline，消除極端 I/O 下永久離線（W1-019）
+
+### Internal
+
+**Framework — 監測與評估**
+- PC-072 真根因外部依賴（anthropic/claude-code#46846）修復進度追蹤完成（W1-003）
+- framework-rule-edit-skill-trigger-hook dry-run 延長 2 週重評結論（W1-004）
+- 3b 拆分紀律落地 30 天效果驗證完成（W1-007）
+- PC-111 R5 再發生率 3 個月觀察結論（W1-008）
+- 類別 B medium ROI hook 遷移 effort 感知評估（W1-013）
+
+**Framework — 方法論**
+- 提取 PM stale ticket cleanup session 方法論（W1-017）
 
 ---
 
