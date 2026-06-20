@@ -1,3 +1,45 @@
+## [1.56.7] - 2026-06-20
+
+### Summary
+fix: 新增反向孤兒偵測（上游有本地無）; chore: pull 補齊上游 IMP-V1-002 error-pattern + 清理本地 build artifacts
+
+Changes: 1 fix, 1 chore
+
+- fix: 新增反向孤兒偵測（上游有本地無）
+- chore: pull 補齊上游 IMP-V1-002 error-pattern + 清理本地 build artifacts
+
+---
+
+## [1.56.6] - 2026-06-20
+
+### Summary
+fix: release 後自動推進下一個 planned 版本為 active
+
+Changes: 1 fix
+
+- fix: release 後自動推進下一個 planned 版本為 active
+
+---
+
+## [1.56.5] - 2026-06-19
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.56.4] - 2026-06-19
+
+### Summary
+chore: CC 2.1.173-2.1.183 release impact review; chore: pull .claude 更新（上游 ac320f3501e3）
+
+Changes: 2 chore
+
+- chore: CC 2.1.173-2.1.183 release impact review
+- chore: pull .claude 更新（上游 ac320f3501e3）
+
+---
+
 ## [1.56.3] - 2026-06-19
 
 ### Summary
