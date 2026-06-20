@@ -150,6 +150,34 @@ export function encodeFrameToQR (frameData, options = {}) {
 }
 
 /**
+ * 群組 E：完整管線 — JSON 字串 → gzip 壓縮 → 切塊加 header → 逐幀 QR 編碼。
+ *
+ * 空書庫（books 陣列為空或缺失）阻止流程並拋出 Error，對應 Phase 1 場景 E1。
+ * 壓縮後 <= chunkSize 時 isStatic=true 且僅產出單幀，供渲染器靜態顯示。
+ *
+ * @param {string} jsonString - 同步用 JSON 字串（含 books 陣列）
+ * @param {Object} [options] - { chunkSize: 800, errorCorrectionLevel: 'M' }
+ * @returns {Promise<{frames: Object[], totalSize: number, isStatic: boolean}>}
+ * @throws {Error} 書庫為空、壓縮失敗或 QR 編碼失敗
+ */
+export async function encodeBookDataToQRFrames (jsonString, options = {}) {
+  const parsed = JSON.parse(jsonString)
+  if (!Array.isArray(parsed.books) || parsed.books.length === 0) {
+    logger.error('書庫為空，無法產生 QR', { component: 'QREncoder' })
+    throw new Error('書庫中沒有書籍，請先提取書庫資料')
+  }
+
+  const chunkSize = options.chunkSize || DEFAULT_CHUNK_SIZE
+  const compressed = await compressData(jsonString)
+  const isStatic = compressed.length <= chunkSize
+
+  const rawFrames = createFrames(compressed, chunkSize)
+  const frames = rawFrames.map((frame) => encodeFrameToQR(frame, options))
+
+  return { frames, totalSize: compressed.length, isStatic }
+}
+
+/**
  * 建構 CRC32 查找表（256 entries，IEEE 802.3 多項式 0xEDB88320）。
  *
  * @returns {Uint32Array} 256 entry 查找表
