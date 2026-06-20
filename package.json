@@ -270,5 +270,8 @@
   "bugs": {
     "url": "https://github.com/your-username/readmoo-book-extractor/issues"
   },
-  "homepage": "https://github.com/your-username/readmoo-book-extractor#readme"
+  "homepage": "https://github.com/your-username/readmoo-book-extractor#readme",
+  "dependencies": {
+    "qrcode-generator": "^2.0.4"
+  }
 }
