@@ -4,7 +4,7 @@
  * 職責：書庫 JSON → gzip 壓縮 → CRC32 校驗 → 切塊加 frame header → QR 物件。
  * Canvas 輪播渲染由 src/popup/services/sync-qr-renderer.js 負責，兩者不互相依賴。
  *
- * 本檔涵蓋群組 A（壓縮）、B（CRC32）、D（QR 編碼）。
+ * 本檔涵蓋群組 A（壓縮）、B（CRC32）、C（切塊 + frame header）、D（QR 編碼）。
  */
 
 import { Logger } from '../core/logging/Logger.js'
@@ -20,6 +20,14 @@ const CRC32_TABLE = buildCRC32Table()
 // 對應 Phase 1 場景 E4「frame 超過 QR 容量」。
 const QR_MAX_TYPE_NUMBER = 25
 const QR_DEFAULT_EC_LEVEL = 'M'
+
+// 群組 C：frame header 固定 15 bytes（magic 2 + version 1 + total_frames 2 +
+// frame_index 2 + total_size 4 + crc32 4）；App 端 PROP-014 §3 二進位格式。
+const FRAME_HEADER_SIZE = 15
+const FRAME_MAGIC_0 = 0x51
+const FRAME_MAGIC_1 = 0x52
+const FRAME_VERSION = 0x01
+const DEFAULT_CHUNK_SIZE = 800
 
 /**
  * 群組 A：gzip 壓縮 JSON 字串。
@@ -77,6 +85,43 @@ export function calculateCRC32 (data) {
     crc = CRC32_TABLE[(crc ^ data[i]) & 0xFF] ^ (crc >>> 8)
   }
   return (crc ^ 0xFFFFFFFF) >>> 0
+}
+
+/**
+ * 群組 C：將壓縮資料切塊並加上 15 bytes frame header。
+ *
+ * 每幀 = 15 bytes header + payload（最後一幀允許 < chunkSize）。CRC32 與
+ * total_size 取自整段壓縮資料，所有幀共用，供 App 端組裝後校驗完整性。
+ *
+ * @param {Uint8Array} compressedData - gzip 壓縮後的位元組
+ * @param {number} [chunkSize=800] - 每幀 payload 上限
+ * @returns {Uint8Array[]} 含 header 的 frame 陣列
+ */
+export function createFrames (compressedData, chunkSize = DEFAULT_CHUNK_SIZE) {
+  const totalSize = compressedData.length
+  const crc32 = calculateCRC32(compressedData)
+  const totalFrames = Math.ceil(totalSize / chunkSize)
+  const frames = []
+
+  for (let i = 0; i < totalFrames; i++) {
+    const offset = i * chunkSize
+    const chunk = compressedData.subarray(offset, offset + chunkSize)
+
+    const frame = new Uint8Array(FRAME_HEADER_SIZE + chunk.length)
+    const view = new DataView(frame.buffer)
+    frame[0] = FRAME_MAGIC_0
+    frame[1] = FRAME_MAGIC_1
+    frame[2] = FRAME_VERSION
+    view.setUint16(3, totalFrames, false)
+    view.setUint16(5, i, false)
+    view.setUint32(7, totalSize, false)
+    view.setUint32(11, crc32, false)
+    frame.set(chunk, FRAME_HEADER_SIZE)
+
+    frames.push(frame)
+  }
+
+  return frames
 }
 
 /**
