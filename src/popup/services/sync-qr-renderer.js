@@ -88,25 +88,34 @@ export class SyncQRRenderer {
 
     const interval = 1000 / this.fps
     const elapsed = timestamp - this.lastFrameTime
+    const shouldDraw = this.lastFrameTime === 0 || elapsed >= interval
 
-    if (this.lastFrameTime === 0 || elapsed >= interval) {
-      drawQRToCanvas(this.ctx, this.frames[this.currentFrame], this.canvasSize)
-      this.onProgress(this.currentFrame, this.frames.length)
-      this.lastFrameTime = timestamp
-
-      this.currentFrame++
-      if (this.currentFrame >= this.frames.length) {
-        this.currentFrame = 0
-        this.currentCycle++
-        if (this.currentCycle >= this.maxCycles) {
-          this.state = STATE_COMPLETED
-          this.onComplete()
-          return
-        }
-      }
-    }
+    if (shouldDraw && this._advanceFrame(timestamp)) return
 
     this.animationId = requestAnimationFrame(this.animate)
+  }
+
+  /**
+   * 繪製當前幀並推進輪播；循環到達 maxCycles 時標記完成。
+   *
+   * @param {number} timestamp - DOMHighResTimeStamp
+   * @returns {boolean} true 表示動畫已結束（不再排程下一幀）
+   */
+  _advanceFrame (timestamp) {
+    drawQRToCanvas(this.ctx, this.frames[this.currentFrame], this.canvasSize)
+    this.onProgress(this.currentFrame, this.frames.length)
+    this.lastFrameTime = timestamp
+
+    this.currentFrame++
+    if (this.currentFrame < this.frames.length) return false
+
+    this.currentFrame = 0
+    this.currentCycle++
+    if (this.currentCycle < this.maxCycles) return false
+
+    this.state = STATE_COMPLETED
+    this.onComplete()
+    return true
   }
 
   /** 暫停動畫，保留當前幀位置。 */

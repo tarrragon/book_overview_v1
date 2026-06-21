@@ -46,31 +46,51 @@ export async function compressData (jsonString) {
     const inputBytes = new TextEncoder().encode(jsonString)
     const stream = new CompressionStream('gzip')
     const writer = stream.writable.getWriter()
-    const reader = stream.readable.getReader()
 
     const writeDone = writer.write(inputBytes).then(() => writer.close())
-
-    const chunks = []
-    let totalLength = 0
-    for (;;) {
-      const { value, done } = await reader.read()
-      if (done) break
-      chunks.push(value)
-      totalLength += value.length
-    }
+    const { chunks, totalLength } = await readStreamToBytes(stream.readable.getReader())
     await writeDone
 
-    const result = new Uint8Array(totalLength)
-    let offset = 0
-    for (const chunk of chunks) {
-      result.set(chunk, offset)
-      offset += chunk.length
-    }
-    return result
+    return concatChunks(chunks, totalLength)
   } catch (error) {
     logger.error('資料壓縮失敗：' + error.message, { component: 'QREncoder' })
     throw new Error('資料壓縮失敗')
   }
+}
+
+/**
+ * 讀盡 reader 收集所有 chunk 並累計總長度。
+ *
+ * @param {ReadableStreamDefaultReader<Uint8Array>} reader
+ * @returns {Promise<{chunks: Uint8Array[], totalLength: number}>}
+ */
+async function readStreamToBytes (reader) {
+  const chunks = []
+  let totalLength = 0
+  for (;;) {
+    const { value, done } = await reader.read()
+    if (done) break
+    chunks.push(value)
+    totalLength += value.length
+  }
+  return { chunks, totalLength }
+}
+
+/**
+ * 合併多個 chunk 為單一連續 Uint8Array。
+ *
+ * @param {Uint8Array[]} chunks
+ * @param {number} totalLength
+ * @returns {Uint8Array}
+ */
+function concatChunks (chunks, totalLength) {
+  const result = new Uint8Array(totalLength)
+  let offset = 0
+  for (const chunk of chunks) {
+    result.set(chunk, offset)
+    offset += chunk.length
+  }
+  return result
 }
 
 /**

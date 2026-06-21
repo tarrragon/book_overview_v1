@@ -12,11 +12,11 @@
 
 import { Logger } from '../../core/logging/Logger.js'
 import { encodeBookDataToQRFrames } from '../../sync/qr-encoder.js'
+import { buildSyncJSON } from '../../sync/sync-json-builder.js'
 import { SyncQRRenderer } from '../services/sync-qr-renderer.js'
+import { STORAGE_KEYS } from '../../background/constants/module-constants.js'
 
 const logger = new Logger('SyncPanel')
-
-const STORAGE_KEY = 'readmoo_books'
 
 export class SyncPanel {
   /**
@@ -61,7 +61,7 @@ export class SyncPanel {
         return
       }
 
-      const jsonString = this._buildSyncJSON(books)
+      const jsonString = buildSyncJSON(books)
       const result = await encodeBookDataToQRFrames(jsonString)
 
       this._showCanvas(true)
@@ -98,29 +98,13 @@ export class SyncPanel {
    */
   async _loadBooks () {
     try {
-      const data = await chrome.storage.local.get([STORAGE_KEY])
-      return (data && data[STORAGE_KEY] && data[STORAGE_KEY].books) || []
+      const data = await chrome.storage.local.get([STORAGE_KEYS.READMOO_BOOKS])
+      const stored = data && data[STORAGE_KEYS.READMOO_BOOKS]
+      return (stored && stored.books) || []
     } catch (error) {
       logger.error('讀取書庫失敗：' + error.message, { component: 'SyncPanel' })
       throw new Error('讀取書庫失敗')
     }
-  }
-
-  /**
-   * 包裝 books 為同步用 JSON（format_version 2.0 + sync_meta）。
-   * @param {Array} books
-   * @returns {string}
-   */
-  _buildSyncJSON (books) {
-    return JSON.stringify({
-      format_version: '2.0',
-      books,
-      sync_meta: {
-        exported_at: new Date().toISOString(),
-        source_app: 'chrome-extension',
-        book_count: books.length
-      }
-    })
   }
 
   _setStatus (text) {
