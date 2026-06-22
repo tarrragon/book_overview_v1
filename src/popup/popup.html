@@ -301,17 +301,22 @@
     <!-- 匯入結果展示區域 -->
     <div class="status-card" id="importResultContainer" style="display: none;">
       <div class="results-header">
-        <strong>匯入結果</strong>
+        <strong id="importResultTitle"></strong>
       </div>
-      <div class="info-text">
-        <strong>新增:</strong> <span id="importedCount">0</span> 本<br>
-        <strong>更新:</strong> <span id="updatedCount">0</span> 本<br>
-        <strong>未變更:</strong> <span id="unchangedCount">0</span> 本
-      </div>
+      <div class="info-text" id="importResultSummary"></div>
       <div class="action-buttons">
-        <button class="button secondary small" id="closeImportResultBtn" aria-label="關閉匯入結果">
-          關閉
-        </button>
+        <button class="button secondary small" id="closeImportResultBtn"></button>
+      </div>
+    </div>
+
+    <!-- 匯入錯誤展示區域（獨立於 errorContainer，不含重試/重新載入） -->
+    <div class="status-card error-card" id="importErrorContainer" style="display: none;">
+      <div class="error-header">
+        <strong id="importErrorTitle"></strong>
+      </div>
+      <div class="error-message" id="importErrorMessage"></div>
+      <div class="action-buttons">
+        <button class="button secondary small" id="closeImportErrorBtn"></button>
       </div>
     </div>
 

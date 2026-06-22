@@ -14,14 +14,30 @@ import FileReaderFactory from '../../utils/file-reader-factory.js'
 
 const logger = new Logger('ImportPanel')
 
+const IMPORT_MESSAGES = {
+  BUTTON_LABEL: '匯入書庫',
+  RESULT_TITLE: '匯入結果',
+  ERROR_TITLE: '匯入失敗',
+  CLOSE: '關閉',
+  FALLBACK_ERROR: '匯入失敗',
+  FILE_READ_ERROR: '檔案讀取失敗',
+  STORAGE_ERROR: '儲存失敗，請重試',
+  STALE_CONFIRM: (exportedAt, lastImportedAt) =>
+    '匯入檔案（' + exportedAt + '）較本機上次匯入（' + lastImportedAt + '）舊，確定要覆蓋？',
+  SUMMARY_ADDED: '新增:',
+  SUMMARY_UPDATED: '更新:',
+  SUMMARY_UNCHANGED: '未變更:',
+  SUMMARY_UNIT: '本'
+}
+
 export class ImportPanel {
   /**
-   * @param {Object} elements - { importBtn, fileInput, resultContainer, importedCount, updatedCount, unchangedCount, closeResultBtn }
+   * @param {Object} elements - { importBtn, fileInput, resultContainer, resultTitle, resultSummary, closeResultBtn, errorContainer, errorTitle, errorMessage, closeErrorBtn }
    * @param {Object} [deps] - { onError?: (error) => void, createFileReader?: () => FileReader }
    */
   constructor (elements, deps = {}) {
     this.elements = elements
-    this.onError = deps.onError || (() => {})
+    this.onError = deps.onError || null
     this.createFileReader = deps.createFileReader || (() => FileReaderFactory.createReader())
     this.isProcessing = false
 
@@ -29,12 +45,23 @@ export class ImportPanel {
     this.handleFileSelected = this.handleFileSelected.bind(this)
   }
 
-  /** 綁定匯入按鈕與 file input 事件。 */
+  /** 綁定事件並設定 UI 文字。 */
   initialize () {
     this.elements.importBtn.addEventListener('click', this.triggerFileSelect)
     this.elements.fileInput.addEventListener('change', this.handleFileSelected)
     if (this.elements.closeResultBtn) {
+      this.elements.closeResultBtn.textContent = IMPORT_MESSAGES.CLOSE
       this.elements.closeResultBtn.addEventListener('click', () => this.reset())
+    }
+    if (this.elements.closeErrorBtn) {
+      this.elements.closeErrorBtn.textContent = IMPORT_MESSAGES.CLOSE
+      this.elements.closeErrorBtn.addEventListener('click', () => this._hideError())
+    }
+    if (this.elements.resultTitle) {
+      this.elements.resultTitle.textContent = IMPORT_MESSAGES.RESULT_TITLE
+    }
+    if (this.elements.errorTitle) {
+      this.elements.errorTitle.textContent = IMPORT_MESSAGES.ERROR_TITLE
     }
   }
 
@@ -60,8 +87,8 @@ export class ImportPanel {
     const reader = this.createFileReader()
     reader.onload = (e) => { this._processContent(e.target.result) }
     reader.onerror = () => {
-      logger.error('檔案讀取失敗', { component: 'ImportPanel' })
-      this.onError({ code: IMPORT_ERROR_CODES.FILE_READ_ERROR, message: '檔案讀取失敗' })
+      logger.error(IMPORT_MESSAGES.FILE_READ_ERROR, { component: 'ImportPanel' })
+      this._showError({ code: IMPORT_ERROR_CODES.FILE_READ_ERROR, message: IMPORT_MESSAGES.FILE_READ_ERROR })
       this.isProcessing = false
     }
     reader.readAsText(file)
@@ -78,7 +105,7 @@ export class ImportPanel {
       await this._handleImportResult(result, content)
     } catch (error) {
       logger.error('匯入流程失敗：' + error.message, { component: 'ImportPanel' })
-      this.onError({ code: IMPORT_ERROR_CODES.STORAGE_ERROR, message: '儲存失敗，請重試' })
+      this._showError({ code: IMPORT_ERROR_CODES.STORAGE_ERROR, message: IMPORT_MESSAGES.STORAGE_ERROR })
     } finally {
       this.isProcessing = false
     }
@@ -102,7 +129,7 @@ export class ImportPanel {
       return
     }
 
-    this.onError(error)
+    this._showError(error)
   }
 
   /**
@@ -113,8 +140,7 @@ export class ImportPanel {
    */
   async _handleStaleData (result, content) {
     const staleness = result.staleness || {}
-    const message = '匯入檔案（' + staleness.exportedAt +
-      '）較本機上次匯入（' + staleness.lastImportedAt + '）舊，確定要覆蓋？'
+    const message = IMPORT_MESSAGES.STALE_CONFIRM(staleness.exportedAt, staleness.lastImportedAt)
 
     if (!window.confirm(message)) {
       this.reset()
@@ -125,7 +151,7 @@ export class ImportPanel {
     if (retryResult.success) {
       this._showResult(retryResult.summary)
     } else {
-      this.onError(retryResult.error || {})
+      this._showError(retryResult.error || {})
     }
   }
 
@@ -135,15 +161,47 @@ export class ImportPanel {
    */
   _showResult (summary) {
     const safe = summary || {}
-    this.elements.importedCount.textContent = String(safe.added || 0)
-    this.elements.updatedCount.textContent = String(safe.updated || 0)
-    this.elements.unchangedCount.textContent = String(safe.unchanged || 0)
+    if (this.elements.resultSummary) {
+      const el = this.elements.resultSummary
+      el.textContent = ''
+      const lines = [
+        [IMPORT_MESSAGES.SUMMARY_ADDED, safe.added || 0],
+        [IMPORT_MESSAGES.SUMMARY_UPDATED, safe.updated || 0],
+        [IMPORT_MESSAGES.SUMMARY_UNCHANGED, safe.unchanged || 0]
+      ]
+      lines.forEach(([label, count], i) => {
+        const b = document.createElement('strong')
+        b.textContent = label
+        el.appendChild(b)
+        el.appendChild(document.createTextNode(' ' + count + ' ' + IMPORT_MESSAGES.SUMMARY_UNIT))
+        if (i < lines.length - 1) el.appendChild(document.createElement('br'))
+      })
+    }
     this.elements.resultContainer.style.display = 'block'
   }
 
-  /** 隱藏結果容器並清空 file input，使同一檔案可重新觸發 change。 */
+  /**
+   * 顯示匯入錯誤訊息（使用獨立錯誤卡片，非 popup errorContainer）。
+   * @param {Object} error - { code, message }
+   */
+  _showError (error) {
+    if (this.elements.errorContainer && this.elements.errorMessage) {
+      this.elements.errorMessage.textContent = (error && error.message) || IMPORT_MESSAGES.FALLBACK_ERROR
+      this.elements.errorContainer.style.display = 'block'
+    }
+    if (this.onError) this.onError(error)
+  }
+
+  _hideError () {
+    if (this.elements.errorContainer) {
+      this.elements.errorContainer.style.display = 'none'
+    }
+  }
+
+  /** 隱藏結果容器和錯誤容器，清空 file input。 */
   reset () {
     this.elements.resultContainer.style.display = 'none'
+    this._hideError()
     this.elements.fileInput.value = ''
   }
 }

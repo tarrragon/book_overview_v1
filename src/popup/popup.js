@@ -229,10 +229,13 @@ const elements = {
   importBtn: document.getElementById('importBtn'),
   importFileInput: document.getElementById('importFileInput'),
   importResultContainer: document.getElementById('importResultContainer'),
-  importedCount: document.getElementById('importedCount'),
-  updatedCount: document.getElementById('updatedCount'),
-  unchangedCount: document.getElementById('unchangedCount'),
+  importResultTitle: document.getElementById('importResultTitle'),
+  importResultSummary: document.getElementById('importResultSummary'),
   closeImportResultBtn: document.getElementById('closeImportResultBtn'),
+  importErrorContainer: document.getElementById('importErrorContainer'),
+  importErrorTitle: document.getElementById('importErrorTitle'),
+  importErrorMessage: document.getElementById('importErrorMessage'),
+  closeImportErrorBtn: document.getElementById('closeImportErrorBtn'),
   pageInfo: document.getElementById('pageInfo'),
   bookCount: document.getElementById('bookCount'),
   extensionStatus: document.getElementById('extensionStatus'),
@@ -1121,20 +1124,18 @@ function setupEventListeners () {
 
   // 匯入面板
   if (ImportPanel && elements.importBtn && elements.importFileInput) {
-    const importPanel = new ImportPanel(
-      {
-        importBtn: elements.importBtn,
-        fileInput: elements.importFileInput,
-        resultContainer: elements.importResultContainer,
-        importedCount: elements.importedCount,
-        updatedCount: elements.updatedCount,
-        unchangedCount: elements.unchangedCount,
-        closeResultBtn: elements.closeImportResultBtn
-      },
-      {
-        onError: (error) => handleExtractionError((error && error.message) || '匯入失敗', error)
-      }
-    )
+    const importPanel = new ImportPanel({
+      importBtn: elements.importBtn,
+      fileInput: elements.importFileInput,
+      resultContainer: elements.importResultContainer,
+      resultTitle: elements.importResultTitle,
+      resultSummary: elements.importResultSummary,
+      closeResultBtn: elements.closeImportResultBtn,
+      errorContainer: elements.importErrorContainer,
+      errorTitle: elements.importErrorTitle,
+      errorMessage: elements.importErrorMessage,
+      closeErrorBtn: elements.closeImportErrorBtn
+    })
     importPanel.initialize()
   }
 }

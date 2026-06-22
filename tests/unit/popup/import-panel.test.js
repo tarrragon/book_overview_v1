@@ -49,10 +49,16 @@ function createElements () {
     importBtn: createElement('button'),
     fileInput: createElement('input'),
     resultContainer: createElement(),
-    importedCount: createElement('span'),
-    updatedCount: createElement('span'),
-    unchangedCount: createElement('span'),
-    closeResultBtn: createElement('button')
+    resultTitle: createElement('strong'),
+    resultSummary: Object.assign(createElement(), {
+      appendChild: jest.fn(),
+      childNodes: []
+    }),
+    closeResultBtn: createElement('button'),
+    errorContainer: createElement(),
+    errorTitle: createElement('strong'),
+    errorMessage: createElement('span'),
+    closeErrorBtn: createElement('button')
   }
 }
 
@@ -94,6 +100,7 @@ describe('ImportPanel', () => {
       createFileReader: () => fakeFileReader
     })
     panel.initialize()
+    elements.errorContainer.style.display = 'none'
 
     executeImport.mockReset()
     window.confirm = jest.fn()
@@ -120,10 +127,7 @@ describe('ImportPanel', () => {
       await new Promise(resolve => setTimeout(resolve, 0))
 
       expect(executeImport).toHaveBeenCalledWith(VALID_JSON)
-      expect(elements.resultContainer.style.display).not.toBe('none')
-      expect(elements.importedCount.textContent).toBe('3')
-      expect(elements.updatedCount.textContent).toBe('1')
-      expect(elements.unchangedCount.textContent).toBe('5')
+      expect(elements.resultContainer.style.display).toBe('block')
     })
   })
 
@@ -181,7 +185,7 @@ describe('ImportPanel', () => {
     })
   })
 
-  describe('E1-E4：錯誤處理 — 各錯誤碼呼叫 onError', () => {
+  describe('E1-E4：錯誤處理 — 顯示錯誤卡片', () => {
     const errorCases = [
       { code: IMPORT_ERROR_CODES.PARSE_ERROR, message: '檔案格式錯誤，無法解析 JSON' },
       { code: IMPORT_ERROR_CODES.UNKNOWN_FORMAT, message: '無法識別的檔案格式' },
@@ -189,7 +193,7 @@ describe('ImportPanel', () => {
       { code: IMPORT_ERROR_CODES.STORAGE_ERROR, message: '儲存失敗，請重試' }
     ]
 
-    test.each(errorCases)('$code → 呼叫 onError', async ({ code, message }) => {
+    test.each(errorCases)('$code → 顯示 errorContainer 並設定 errorMessage', async ({ code, message }) => {
       executeImport.mockResolvedValue({
         success: false,
         error: { code, message }
@@ -201,18 +205,22 @@ describe('ImportPanel', () => {
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
+      expect(elements.errorContainer.style.display).toBe('block')
+      expect(elements.errorMessage.textContent).toBe(message)
       expect(onErrorSpy).toHaveBeenCalledWith(expect.objectContaining({ code, message }))
     })
   })
 
   describe('E5：檔案讀取失敗', () => {
-    test('FileReader onerror 呼叫 onError', async () => {
+    test('FileReader onerror 顯示錯誤卡片', async () => {
       const file = new Blob([VALID_JSON], { type: 'application/json' })
       await panel.handleFileSelected({ target: { files: [file] } })
       fakeFileReader._triggerError(new Error('disk error'))
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
+      expect(elements.errorContainer.style.display).toBe('block')
+      expect(elements.errorMessage.textContent).toBe('檔案讀取失敗')
       expect(onErrorSpy).toHaveBeenCalledWith(
         expect.objectContaining({ code: IMPORT_ERROR_CODES.FILE_READ_ERROR })
       )
