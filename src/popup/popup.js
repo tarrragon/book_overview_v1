@@ -112,6 +112,18 @@ if (typeof require !== 'undefined') {
   COLORS = null
 }
 
+// ImportPanel — JSON 匯入 UI 控制器
+let ImportPanel
+if (typeof require !== 'undefined') {
+  try {
+    ({ ImportPanel } = require('src/popup/components/import-panel'))
+  } catch (e) {
+    ImportPanel = (typeof window !== 'undefined' && window.ImportPanel) || null
+  }
+} else {
+  ImportPanel = (typeof window !== 'undefined' && window.ImportPanel) || null
+}
+
 // 初始化 Popup Logger
 const popupMessages = new MessageDictionary({
   POPUP_INTERFACE_LOADED: 'Popup Interface 載入完成',
@@ -214,6 +226,13 @@ const elements = {
   settingsBtn: document.getElementById('settingsBtn'),
   helpBtn: document.getElementById('helpBtn'),
   viewLibraryBtn: document.getElementById('viewLibraryBtn'),
+  importBtn: document.getElementById('importBtn'),
+  importFileInput: document.getElementById('importFileInput'),
+  importResultContainer: document.getElementById('importResultContainer'),
+  importedCount: document.getElementById('importedCount'),
+  updatedCount: document.getElementById('updatedCount'),
+  unchangedCount: document.getElementById('unchangedCount'),
+  closeImportResultBtn: document.getElementById('closeImportResultBtn'),
   pageInfo: document.getElementById('pageInfo'),
   bookCount: document.getElementById('bookCount'),
   extensionStatus: document.getElementById('extensionStatus'),
@@ -1098,6 +1117,25 @@ function setupEventListeners () {
   // 初始化報告按鈕
   if (elements.initReportBtn) {
     elements.initReportBtn.addEventListener('click', showInitializationReport)
+  }
+
+  // 匯入面板
+  if (ImportPanel && elements.importBtn && elements.importFileInput) {
+    const importPanel = new ImportPanel(
+      {
+        importBtn: elements.importBtn,
+        fileInput: elements.importFileInput,
+        resultContainer: elements.importResultContainer,
+        importedCount: elements.importedCount,
+        updatedCount: elements.updatedCount,
+        unchangedCount: elements.unchangedCount,
+        closeResultBtn: elements.closeImportResultBtn
+      },
+      {
+        onError: (error) => handleExtractionError((error && error.message) || '匯入失敗', error)
+      }
+    )
+    importPanel.initialize()
   }
 }
 

@@ -252,6 +252,11 @@
         檢視書庫
       </button>
 
+      <button class="button secondary" id="importBtn" aria-label="從 JSON 檔案匯入書庫資料">
+        匯入書庫
+      </button>
+      <input type="file" id="importFileInput" accept=".json" style="display: none;" aria-hidden="true">
+
       <button class="button secondary" id="diagnosticBtn" style="display: none;">
         診斷模式
       </button>
@@ -292,7 +297,24 @@
         </button>
       </div>
     </div>
-    
+
+    <!-- 匯入結果展示區域 -->
+    <div class="status-card" id="importResultContainer" style="display: none;">
+      <div class="results-header">
+        <strong>匯入結果</strong>
+      </div>
+      <div class="info-text">
+        <strong>新增:</strong> <span id="importedCount">0</span> 本<br>
+        <strong>更新:</strong> <span id="updatedCount">0</span> 本<br>
+        <strong>未變更:</strong> <span id="unchangedCount">0</span> 本
+      </div>
+      <div class="action-buttons">
+        <button class="button secondary small" id="closeImportResultBtn" aria-label="關閉匯入結果">
+          關閉
+        </button>
+      </div>
+    </div>
+
     <!-- 系統初始載入錯誤 -->
     <div class="status-card error-card" id="initErrorContainer" style="display: none;">
       <div class="error-header">
