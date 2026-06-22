@@ -5,8 +5,7 @@
       "args": [
         "-y",
         "chrome-devtools-mcp@latest",
-        "--userDataDir",
-        "/Users/mac-eric/Library/Application Support/Google/Chrome",
+        "--browserUrl=http://127.0.0.1:9222",
         "--categoryExtensions"
       ]
     },
