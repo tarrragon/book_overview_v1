@@ -25,6 +25,9 @@ describe('Popup 版本號顯示', () => {
     // eslint-disable-next-line no-unused-vars
     const popupJsPath = path.join(__dirname, '../../../src/popup/popup.js')
     popupScript = fs.readFileSync(popupJsPath, 'utf8')
+    // eval 環境無法解析 require('./constants')，提供 window fallback
+    // （對應 popup.js popupConstants 的 window.PopupConstants fallback）
+    window.PopupConstants = require('src/popup/constants')
     // 評估腳本到當前 jsdom 的 window 環境
     // 注意：popup.js 會註冊一些事件與計時器，但不會自動執行初始化（需 DOMContentLoaded）
     // 測試中改為直接呼叫 window.updateVersionDisplay()

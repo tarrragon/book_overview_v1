@@ -111,6 +111,10 @@ describe('Popup Interface 整合測試', () => {
       }
     }
 
+    // eval 環境無法解析 require('./constants')，提供 window fallback
+    // （對應 popup.js popupConstants 的 window.PopupConstants fallback）
+    window.PopupConstants = require('src/popup/constants')
+
     return { window, document }
   }
 

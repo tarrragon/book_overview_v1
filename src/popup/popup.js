@@ -157,56 +157,113 @@ popupLogger.info('POPUP_INTERFACE_LOADED')
 
 /* global PopupInitializationTracker, PopupErrorHandler, PopupDiagnosticEnhancer */
 
+// UI 文字 / 佈局常數集中於 src/popup/constants/（見 CLAUDE.md 6.x）。
+// 此處從常數檔引用並映射回既有變數名，保持下游使用點與 window re-export 不變。
+const popupConstants = (() => {
+  if (typeof require !== 'undefined') {
+    try {
+      return require('./constants')
+    } catch (e) {
+      return (typeof window !== 'undefined' && window.PopupConstants) || null
+    }
+  }
+  return (typeof window !== 'undefined' && window.PopupConstants) || null
+})()
+
 /**
  * 狀態類型常數
  */
-const STATUS_TYPES = {
-  LOADING: 'loading',
-  READY: 'ready',
-  ERROR: 'error'
-}
+const STATUS_TYPES = popupConstants.STATUS_TYPES
 
 /**
  * 訊息類型常數
  */
-const MESSAGE_TYPES = {
-  PING: 'PING',
-  GET_STATUS: 'GET_STATUS',
-  START_EXTRACTION: 'START_EXTRACTION'
-}
+const MESSAGE_TYPES = popupConstants.MESSAGE_TYPES
 
 /**
  * 預設訊息常數
+ *
+ * 由 constants/ui-text.js 的功能分類重組為扁平 MESSAGES，維持既有使用點鍵名。
  */
 const MESSAGES = {
-  SETTINGS_PLACEHOLDER: '設定功能將在後續版本實現',
-  HELP_TEXT: '使用說明：\n\n1. 前往 Readmoo 書庫頁面\n2. 點擊「開始提取書庫資料」\n3. 等待提取完成\n\n詳細說明將在後續版本提供',
-  STATUS_CHECKING: '正在檢查狀態...',
-  STATUS_INITIALIZING: '請稍候，正在初始化擴展功能',
-  CONTENT_SCRIPT_LOADING: 'Content Script 載入中',
-  CONTENT_SCRIPT_RELOAD_HINT: '請稍候或重新整理頁面',
-  NON_READMOO_PAGE: '請前往 Readmoo 網站',
-  NON_READMOO_HINT: '需要在 Readmoo 書庫頁面使用此功能',
-  EXTRACTION_IN_PROGRESS: '正在提取書庫資料',
-  EXTRACTION_HINT: '請保持頁面開啟，不要關閉瀏覽器'
+  SETTINGS_PLACEHOLDER: popupConstants.DIALOG_TEXT.SETTINGS_PLACEHOLDER,
+  HELP_TEXT: popupConstants.DIALOG_TEXT.HELP_TEXT,
+  STATUS_CHECKING: popupConstants.STATUS_TEXT.CHECKING,
+  STATUS_INITIALIZING: popupConstants.STATUS_TEXT.INITIALIZING,
+  CONTENT_SCRIPT_LOADING: popupConstants.STATUS_TEXT.CONTENT_SCRIPT_LOADING,
+  CONTENT_SCRIPT_RELOAD_HINT: popupConstants.STATUS_TEXT.CONTENT_SCRIPT_RELOAD_HINT,
+  NON_READMOO_PAGE: popupConstants.STATUS_TEXT.NON_READMOO_PAGE,
+  NON_READMOO_HINT: popupConstants.STATUS_TEXT.NON_READMOO_HINT,
+  EXTRACTION_IN_PROGRESS: popupConstants.EXTRACTION_TEXT.IN_PROGRESS,
+  EXTRACTION_HINT: popupConstants.EXTRACTION_TEXT.HINT
 }
 
 /**
  * 配置常數
  */
 const CONFIG = {
-  STATUS_UPDATE_INTERVAL: 3000, // 3 秒
-  READMOO_DOMAIN: 'readmoo.com'
+  STATUS_UPDATE_INTERVAL: popupConstants.STATUS_CONFIG.STATUS_UPDATE_INTERVAL_MS,
+  READMOO_DOMAIN: popupConstants.STATUS_CONFIG.READMOO_DOMAIN
 }
 
 /**
  * popup↔SW 握手重試配置（1.1.0-W1-019 A+C 方案）
  */
-const HANDSHAKE_CONFIG = {
-  TIMEOUT_MS: 2000,
-  MAX_RETRY_ATTEMPTS: 3,
-  INITIAL_RETRY_DELAY_MS: 1000,
-  RETRY_BACKOFF_MULTIPLIER: 2
+const HANDSHAKE_CONFIG = popupConstants.HANDSHAKE_CONFIG
+
+/**
+ * 以集中常數注入 popup.html 的靜態 UI 文字
+ *
+ * constants/ui-text.js 為文字的單一事實來源；popup.html 中保留同值文字僅作為
+ * 無 JS fallback。缺對應 DOM 元素時逐項 guard 跳過，不阻斷初始化。
+ */
+function applyStaticUIText () {
+  const { HEADER_TEXT, ACTION_TEXT, EXTRACTION_TEXT, RESULTS_TEXT, ERROR_TEXT } = popupConstants
+
+  const setText = (id, text) => {
+    const el = document.getElementById(id)
+    if (el) el.textContent = text
+  }
+  const setAria = (id, label) => {
+    const el = document.getElementById(id)
+    if (el) el.setAttribute('aria-label', label)
+  }
+
+  // 操作按鈕
+  setText('settingsBtn', ACTION_TEXT.SETTINGS)
+  setText('helpBtn', ACTION_TEXT.HELP)
+  setText('viewLibraryBtn', ACTION_TEXT.VIEW_LIBRARY)
+  setAria('viewLibraryBtn', ACTION_TEXT.VIEW_LIBRARY_ARIA)
+  setText('importBtn', ACTION_TEXT.IMPORT)
+  setAria('importBtn', ACTION_TEXT.IMPORT_ARIA)
+  setText('diagnosticBtn', ACTION_TEXT.DIAGNOSTIC)
+  setAria('viewResultsBtn', RESULTS_TEXT.VIEW_RESULTS_ARIA)
+
+  // extractBtn 文字由狀態管理動態控制，初始值對齊常數
+  const extractBtn = document.getElementById('extractBtn')
+  if (extractBtn) extractBtn.textContent = ACTION_TEXT.EXTRACT
+
+  // 標頭（header 內 h1 / p 無 id，以 querySelector 定位）
+  const headerTitle = document.querySelector('.header h1')
+  if (headerTitle) headerTitle.textContent = HEADER_TEXT.TITLE
+  const headerSubtitle = document.querySelector('.header p')
+  if (headerSubtitle) headerSubtitle.textContent = HEADER_TEXT.SUBTITLE
+
+  // 區段標題 / 錯誤標題（無 id，querySelector 定位確保常數生效）
+  const progressHeader = document.querySelector('#progressContainer .progress-header strong')
+  if (progressHeader) progressHeader.textContent = EXTRACTION_TEXT.PROGRESS_HEADER
+  const resultsHeader = document.querySelector('#resultsContainer .results-header strong')
+  if (resultsHeader) resultsHeader.textContent = RESULTS_TEXT.HEADER
+  const errorHeader = document.querySelector('#errorContainer .error-header strong')
+  if (errorHeader) errorHeader.textContent = ERROR_TEXT.HEADER
+
+  // 錯誤區按鈕
+  setText('retryBtn', ERROR_TEXT.RETRY)
+  setText('reloadExtensionBtn', ERROR_TEXT.RELOAD_EXTENSION)
+  setText('forceReloadBtn', ERROR_TEXT.FORCE_RELOAD)
+  setText('openExtensionPageBtn', ERROR_TEXT.OPEN_EXTENSION_PAGE)
+  setText('exportBtn', RESULTS_TEXT.EXPORT)
+  setText('viewResultsBtn', RESULTS_TEXT.VIEW_RESULTS)
 }
 
 // ==================== DOM 元素管理 ====================
@@ -1180,6 +1237,9 @@ async function initialize () {
     if (initializationTracker) {
       initializationTracker.completeStep('dom_ready', 'DOM 元素已就緒')
     }
+
+    // 以集中常數覆寫 HTML 靜態 UI 文字，使 constants/ui-text.js 成為運行時來源
+    applyStaticUIText()
 
     // 步驟2: 更新版本顯示
     if (initializationTracker) {
