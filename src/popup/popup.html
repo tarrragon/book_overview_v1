@@ -304,27 +304,13 @@
       </div>
     </div>
 
-    <!-- 匯入結果展示區域 -->
-    <div class="status-card" id="importResultContainer" style="display: none;">
-      <div class="results-header">
-        <strong id="importResultTitle"></strong>
-      </div>
-      <div class="info-text" id="importResultSummary"></div>
-      <div class="action-buttons">
-        <button class="button secondary small" id="closeImportResultBtn">關閉</button>
-      </div>
-    </div>
-
-    <!-- 匯入錯誤展示區域（獨立於 errorContainer，不含重試/重新載入） -->
-    <div class="status-card error-card" id="importErrorContainer" style="display: none;">
-      <div class="error-header">
-        <strong id="importErrorTitle"></strong>
-      </div>
-      <div class="error-message" id="importErrorMessage"></div>
-      <div class="action-buttons">
-        <button class="button secondary small" id="closeImportErrorBtn">關閉</button>
-      </div>
-    </div>
+    <!--
+      匯入結果 / 匯入錯誤卡片掛載點。
+      原本兩張卡片（importResultContainer / importErrorContainer）的硬編碼
+      HTML 已移除，改由 popup.js 於初始化時以 src/popup/components/ui-factory.js
+      的 createCard / createButton 動態建立並掛載於此（ticket 1.2.0-W2-003.2）。
+    -->
+    <div id="importPanelMount"></div>
 
     <!-- 系統初始載入錯誤 -->
     <div class="status-card error-card" id="initErrorContainer" style="display: none;">

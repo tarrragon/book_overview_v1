@@ -124,6 +124,18 @@ if (typeof require !== 'undefined') {
   ImportPanel = (typeof window !== 'undefined' && window.ImportPanel) || null
 }
 
+// ui-factory — 匯入結果 / 匯入錯誤卡片以工廠函式動態建立（ticket 1.2.0-W2-003.2）
+let uiFactory
+if (typeof require !== 'undefined') {
+  try {
+    uiFactory = require('src/popup/components/ui-factory')
+  } catch (e) {
+    uiFactory = (typeof window !== 'undefined' && window.PopupUIFactory) || null
+  }
+} else {
+  uiFactory = (typeof window !== 'undefined' && window.PopupUIFactory) || null
+}
+
 // 初始化 Popup Logger
 const popupMessages = new MessageDictionary({
   POPUP_INTERFACE_LOADED: 'Popup Interface 載入完成',
@@ -146,7 +158,8 @@ const popupMessages = new MessageDictionary({
   DIAGNOSTIC_INIT_FAILED: '[WARN] 診斷增強器初始化失敗',
   DIAGNOSTIC_INIT_SUCCESS: '[OK] 診斷增強器初始化成功',
   HEALTH_CHECK_ERROR: '健康檢查錯誤',
-  POPUP_GLOBAL_ERROR: '[FAIL] Popup Interface 錯誤'
+  POPUP_GLOBAL_ERROR: '[FAIL] Popup Interface 錯誤',
+  IMPORT_PANEL_MOUNT_FAILED: '[WARN] 匯入卡片掛載失敗（跨 realm 測試環境降級）'
 })
 
 const popupLogger = new Logger('PopupInterface', 'INFO', popupMessages)
@@ -285,14 +298,8 @@ const elements = {
   viewLibraryBtn: document.getElementById('viewLibraryBtn'),
   importBtn: document.getElementById('importBtn'),
   importFileInput: document.getElementById('importFileInput'),
-  importResultContainer: document.getElementById('importResultContainer'),
-  importResultTitle: document.getElementById('importResultTitle'),
-  importResultSummary: document.getElementById('importResultSummary'),
-  closeImportResultBtn: document.getElementById('closeImportResultBtn'),
-  importErrorContainer: document.getElementById('importErrorContainer'),
-  importErrorTitle: document.getElementById('importErrorTitle'),
-  importErrorMessage: document.getElementById('importErrorMessage'),
-  closeImportErrorBtn: document.getElementById('closeImportErrorBtn'),
+  // 匯入結果 / 匯入錯誤卡片改由 buildImportPanelElements() 以 ui-factory 動態建立
+  // 並掛載於 importPanelMount，不再經 getElementById（ticket 1.2.0-W2-003.2）。
   pageInfo: document.getElementById('pageInfo'),
   bookCount: document.getElementById('bookCount'),
   extensionStatus: document.getElementById('extensionStatus'),
@@ -1181,19 +1188,85 @@ function setupEventListeners () {
 
   // 匯入面板
   if (ImportPanel && elements.importBtn && elements.importFileInput) {
+    const importElements = buildImportPanelElements()
     const importPanel = new ImportPanel({
       importBtn: elements.importBtn,
       fileInput: elements.importFileInput,
-      resultContainer: elements.importResultContainer,
-      resultTitle: elements.importResultTitle,
-      resultSummary: elements.importResultSummary,
-      closeResultBtn: elements.closeImportResultBtn,
-      errorContainer: elements.importErrorContainer,
-      errorTitle: elements.importErrorTitle,
-      errorMessage: elements.importErrorMessage,
-      closeErrorBtn: elements.closeImportErrorBtn
+      ...importElements
     })
     importPanel.initialize()
+  }
+}
+
+/**
+ * 以 ui-factory 建立匯入結果 / 匯入錯誤兩張卡片並掛載到 importPanelMount，
+ * 回傳 ImportPanel 需要的子元素引用（ticket 1.2.0-W2-003.2）。
+ *
+ * 匯入結果與匯入錯誤共用 createCard（AC-1）；關閉按鈕由 createButton 動態
+ * 產生（AC-2）。ImportPanel 直接寫入這些工廠產生的元素 textContent / display，
+ * 取代原本 popup.html 硬編碼 + getElementById 的取得方式（AC-5）。
+ *
+ * @returns {Object} { resultContainer, resultTitle, resultSummary, closeResultBtn,
+ *                      errorContainer, errorTitle, errorMessage, closeErrorBtn }
+ */
+function buildImportPanelElements () {
+  const { createCard, createButton } = uiFactory
+
+  // 卡片完全由 ui-factory 在其自身 realm 建立（title / content / actions 皆走工廠
+  // 參數），避免跨 realm appendChild（eval 環境下 popup.js 與工廠 document 可能不同）。
+  // 子元素引用一律以 querySelector 從工廠產物取回，交由 ImportPanel 寫入。
+  const closeResultBtn = createButton({ variant: 'secondary', size: 'small' })
+  const resultContainer = createCard({
+    variant: 'default',
+    id: 'importResultContainer',
+    title: '',
+    content: '',
+    actions: [closeResultBtn]
+  })
+  resultContainer.style.display = 'none'
+  const resultTitle = resultContainer.querySelector('.results-header strong')
+  const resultSummary = resultContainer.querySelector('.info-text')
+
+  const closeErrorBtn = createButton({ variant: 'secondary', size: 'small' })
+  const errorContainer = createCard({
+    variant: 'error',
+    id: 'importErrorContainer',
+    title: '',
+    content: '',
+    actions: [closeErrorBtn]
+  })
+  errorContainer.style.display = 'none'
+  const errorTitle = errorContainer.querySelector('.error-header strong')
+  // createCard 對 error variant 的字串 content 仍包進 info-text；ImportPanel 寫入
+  // 此元素的 textContent 作為錯誤訊息文字。
+  const errorMessage = errorContainer.querySelector('.info-text')
+
+  const mount = document.getElementById('importPanelMount')
+  if (mount) {
+    try {
+      mount.appendChild(resultContainer)
+      mount.appendChild(errorContainer)
+    } catch (error) {
+      // 生產 bundle 為單一 realm，appendChild 永遠成功。此 catch 僅在 eval 型測試
+      // harness 觸發：popup.js 在 eval realm、ui-factory 經 require 載入於另一 jsdom
+      // realm，跨 realm node 無法 append（jsdom 不識別、adoptNode 亦拒）。記 warn
+      // 供觀測（observability 規則 4），不阻斷其餘初始化。
+      popupLogger.warn('IMPORT_PANEL_MOUNT_FAILED', {
+        component: 'PopupInterface',
+        error: error && error.message
+      })
+    }
+  }
+
+  return {
+    resultContainer,
+    resultTitle,
+    resultSummary,
+    closeResultBtn,
+    errorContainer,
+    errorTitle,
+    errorMessage,
+    closeErrorBtn
   }
 }
 

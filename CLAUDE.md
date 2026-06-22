@@ -135,8 +135,9 @@ another agent. Therefore:
 | `src/core/design-system/` | 通用 UI token（COLORS / SPACING / FONT_SIZES / SHADOWS） |
 | `src/popup/constants/ui-text.js` | Popup UI 文字常數（按功能分類：status / extraction / import / diagnostic / navigation） |
 | `src/popup/constants/layout.js` | Popup 佈局與時序常數（POPUP_DIMENSIONS / STATUS_CONFIG / HANDSHAKE_CONFIG） |
+| `src/popup/components/ui-factory.js` | Popup UI 元件工廠（無狀態純函式 createButton / createCard / createStatusIndicator / createProgressSection / createResultsSection / createErrorSection；class 名稱對齊 popup.html `<style>`，不新增 CSS） |
 
-新增 popup 文字或佈局常數時，寫入對應的 constants 檔案，禁止在 JS/HTML 中硬編碼。通用 spacing/typography 使用 design-system token。
+新增 popup 文字或佈局常數時，寫入對應的 constants 檔案，禁止在 JS/HTML 中硬編碼。通用 spacing/typography 使用 design-system token。新增 popup UI 元件時優先以 `ui-factory.js` 工廠函式動態建立，避免在 popup.html 硬編碼結構。
 
 ---
 
