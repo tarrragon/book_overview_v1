@@ -2,6 +2,21 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [1.2.0] - 2026-06-22
+
+**[OK] UC-XX 功能名稱 - TDD 四階段完成**
+
+### Added
+- 新增功能項目
+
+### Changed
+- 變更項目
+
+### Fixed
+- 修復項目
+
+---
+
 ## [1.1.0] - 2026-06-20
 
 框架監測與產品 robustness 強化。7 個 ticket 完成（1 IMP / 4 ANA / 1 DOC / 1 INV）。
