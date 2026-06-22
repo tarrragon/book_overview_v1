@@ -17,93 +17,28 @@
  * @jest-environment jsdom
  */
 
-const { JSDOM } = require('jsdom')
-
 describe('Popup UI 組件測試 (TDD循環 #25)', () => {
-  let dom
-  let document
+  // 使用 Jest jsdom 環境提供的全域 document：ui-factory 以全域 document 建立元素，
+  // PopupUIComponents 以建構子傳入的 document 掛載，兩者須同一 realm 才能 appendChild，
+  // 因此不再另建獨立 JSDOM 實例（ticket 1.2.0-W2-006）。
+  const document = global.document
+
   // eslint-disable-next-line no-unused-vars
   let PopupUIComponents
 
   beforeEach(() => {
-    // 創建基本的 DOM 環境
-    dom = new JSDOM(`
-      <!DOCTYPE html>
-      <html lang="zh-TW">
-      <head>
-        <meta charset="UTF-8">
-        <title>Readmoo 書庫提取器</title>
-      </head>
-      <body>
-        <!-- 狀態顯示區域 -->
-        <div class="status-card">
-          <div class="status-indicator">
-            <div class="status-dot" id="statusDot"></div>
-            <span id="statusText">檢查狀態中...</span>
-          </div>
-          <div class="info-text" id="statusInfo">初始化中</div>
-        </div>
-        
-        <!-- 進度顯示區域 -->
-        <div class="status-card" id="progressContainer" style="display: none;">
-          <div class="progress-header">
-            <strong>[STATS] 提取進度</strong>
-            <span id="progressPercentage">0%</span>
-          </div>
-          <div class="progress-bar-container">
-            <div class="progress-bar" id="progressBar">
-              <div class="progress-fill"></div>
-            </div>
-          </div>
-          <div class="info-text" id="progressText">準備開始提取...</div>
-        </div>
-        
-        <!-- 結果顯示區域 -->
-        <div class="status-card" id="resultsContainer" style="display: none;">
-          <div class="results-header">
-            <strong>提取結果</strong>
-          </div>
-          <div class="info-text">
-            <strong>已提取書籍:</strong> <span id="extractedBookCount">0</span> 本<br>
-            <strong>提取時間:</strong> <span id="extractionTime">-</span><br>
-            <strong>成功率:</strong> <span id="successRate">-</span>
-          </div>
-          <div class="action-buttons">
-            <button class="button secondary small" id="exportBtn" disabled>[SAVE] 匯出資料</button>
-            <button class="button secondary small" id="viewResultsBtn" disabled>查看詳情</button>
-          </div>
-        </div>
-        
-        <!-- 錯誤顯示區域 -->
-        <div class="status-card error-card" id="errorContainer" style="display: none;">
-          <div class="error-header">
-            <strong>[WARN] 錯誤訊息</strong>
-          </div>
-          <div class="error-message" id="errorMessage">發生未知錯誤</div>
-          <div class="action-buttons">
-            <button class="button secondary small" id="retryBtn">[RETRY] 重試</button>
-            <button class="button secondary small" id="reportBtn">[LOG] 回報問題</button>
-          </div>
-        </div>
-      </body>
-      </html>
-    `, {
-      runScripts: 'outside-only',
-      pretendToBeVisual: true
-    })
-
-    document = dom.window.document
-    global.document = document
-    global.window = dom.window
+    // 空 body：不再提供靜態 HTML 契約。PopupUIComponents 改由 ui-factory 動態建立
+    // 狀態 / 進度 / 結果 / 錯誤四區塊並掛載到 body，建立後為內部元素補上既有契約 id，
+    // 使下方以 getElementById 取得的斷言維持有效。
+    document.body.innerHTML = ''
 
     // 重置 PopupUIComponents 類別
     PopupUIComponents = null
   })
 
   afterEach(() => {
-    if (dom) {
-      dom.window.close()
-    }
+    document.body.innerHTML = ''
+    jest.resetModules()
     jest.clearAllMocks()
   })
 

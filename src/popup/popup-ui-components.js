@@ -22,6 +22,14 @@ console.log('[POPUP DEBUG] popup-ui-components.js 已載入')
  * - 提供統一的視覺回饋體驗
  */
 
+// ui-factory（CommonJS 匯出；jsdom 測試與 esbuild bundle 共用同一份）
+const {
+  createStatusIndicator,
+  createProgressSection,
+  createResultsSection,
+  createErrorSection
+} = require('src/popup/components/ui-factory')
+
 // 常數定義
 const STATUS_TYPES = {
   LOADING: 'loading',
@@ -69,39 +77,10 @@ class PopupUIComponents {
    * - 分類組織元素引用
    */
   initializeElements () {
-    // 狀態相關元素
-    this.statusElements = {
-      dot: this.document.getElementById('statusDot'),
-      text: this.document.getElementById('statusText'),
-      info: this.document.getElementById('statusInfo')
-    }
-
-    // 進度相關元素
-    this.progressElements = {
-      container: this.document.getElementById('progressContainer'),
-      percentage: this.document.getElementById('progressPercentage'),
-      text: this.document.getElementById('progressText'),
-      bar: this.document.getElementById('progressBar'),
-      fill: this.document.querySelector('.progress-fill')
-    }
-
-    // 結果相關元素
-    this.resultsElements = {
-      container: this.document.getElementById('resultsContainer'),
-      bookCount: this.document.getElementById('extractedBookCount'),
-      time: this.document.getElementById('extractionTime'),
-      successRate: this.document.getElementById('successRate'),
-      exportBtn: this.document.getElementById('exportBtn'),
-      viewBtn: this.document.getElementById('viewResultsBtn')
-    }
-
-    // 錯誤相關元素
-    this.errorElements = {
-      container: this.document.getElementById('errorContainer'),
-      message: this.document.getElementById('errorMessage'),
-      retryBtn: this.document.getElementById('retryBtn'),
-      reportBtn: this.document.getElementById('reportBtn')
-    }
+    this.statusElements = this._resolveStatusElements()
+    this.progressElements = this._resolveProgressElements()
+    this.resultsElements = this._resolveResultsElements()
+    this.errorElements = this._resolveErrorElements()
 
     // 保持向後相容性
     this.statusDot = this.statusElements.dot
@@ -122,6 +101,148 @@ class PopupUIComponents {
     this.errorMessage = this.errorElements.message
     this.retryBtn = this.errorElements.retryBtn
     this.reportBtn = this.errorElements.reportBtn
+  }
+
+  /**
+   * 取得 DOM 元素的掛載容器。
+   *
+   * @returns {HTMLElement} document.body（不存在時退回 documentElement）
+   * @private
+   */
+  _getMountTarget () {
+    return this.document.body || this.document.documentElement
+  }
+
+  /**
+   * 解析狀態指示器元素：靜態 HTML 已存在時沿用，否則以 ui-factory 動態建立並掛載。
+   *
+   * 動態建立時為 dot / text / info 補上既有契約 id，使 setAccessibilityLabels 等
+   * 既有邏輯與向後相容引用維持有效。
+   *
+   * @returns {{dot: HTMLElement, text: HTMLElement, info: HTMLElement}}
+   * @private
+   */
+  _resolveStatusElements () {
+    const existingDot = this.document.getElementById('statusDot')
+    if (existingDot) {
+      return {
+        dot: existingDot,
+        text: this.document.getElementById('statusText'),
+        info: this.document.getElementById('statusInfo')
+      }
+    }
+
+    const card = createStatusIndicator({ type: 'loading' })
+    const dot = card.querySelector('.status-dot')
+    const text = card.querySelector('.status-indicator span')
+    const info = card.querySelector('.info-text')
+    dot.id = 'statusDot'
+    text.id = 'statusText'
+    info.id = 'statusInfo'
+    this._getMountTarget().appendChild(card)
+
+    return { dot, text, info }
+  }
+
+  /**
+   * 解析進度區塊元素：靜態 HTML 已存在時沿用，否則以 ui-factory 動態建立並掛載。
+   *
+   * @returns {{container, percentage, text, bar, fill}}
+   * @private
+   */
+  _resolveProgressElements () {
+    const existingContainer = this.document.getElementById('progressContainer')
+    if (existingContainer) {
+      return {
+        container: existingContainer,
+        percentage: this.document.getElementById('progressPercentage'),
+        text: this.document.getElementById('progressText'),
+        bar: this.document.getElementById('progressBar'),
+        fill: this.document.querySelector('.progress-fill')
+      }
+    }
+
+    const container = createProgressSection({ percentage: 0 })
+    container.id = 'progressContainer'
+    container.style.display = UI_VISIBILITY.HIDDEN
+    const percentage = container.querySelector('.progress-header span')
+    const text = container.querySelector('.info-text')
+    const bar = container.querySelector('.progress-bar')
+    const fill = container.querySelector('.progress-fill')
+    percentage.id = 'progressPercentage'
+    text.id = 'progressText'
+    bar.id = 'progressBar'
+    this._getMountTarget().appendChild(container)
+
+    return { container, percentage, text, bar, fill }
+  }
+
+  /**
+   * 解析結果區塊元素：靜態 HTML 已存在時沿用，否則以 ui-factory 動態建立並掛載。
+   *
+   * ui-factory 的 createResultsSection 以「標籤: 值」純文字節點呈現，不含可被
+   * getElementById 取得的數值 span；動態建立時改以 querySelector 取得對應 span。
+   *
+   * @returns {{container, bookCount, time, successRate, exportBtn, viewBtn}}
+   * @private
+   */
+  _resolveResultsElements () {
+    const existingContainer = this.document.getElementById('resultsContainer')
+    if (existingContainer) {
+      return {
+        container: existingContainer,
+        bookCount: this.document.getElementById('extractedBookCount'),
+        time: this.document.getElementById('extractionTime'),
+        successRate: this.document.getElementById('successRate'),
+        exportBtn: this.document.getElementById('exportBtn'),
+        viewBtn: this.document.getElementById('viewResultsBtn')
+      }
+    }
+
+    const container = createResultsSection({ bookCount: 0, time: '-', successRate: '-' })
+    container.id = 'resultsContainer'
+    container.style.display = UI_VISIBILITY.HIDDEN
+    const valueSpans = container.querySelectorAll('.info-text span')
+    const [bookCount, time, successRate] = valueSpans
+    bookCount.id = 'extractedBookCount'
+    time.id = 'extractionTime'
+    successRate.id = 'successRate'
+    const [exportBtn, viewBtn] = container.querySelectorAll('.action-buttons button')
+    exportBtn.id = 'exportBtn'
+    viewBtn.id = 'viewResultsBtn'
+    this._getMountTarget().appendChild(container)
+
+    return { container, bookCount, time, successRate, exportBtn, viewBtn }
+  }
+
+  /**
+   * 解析錯誤區塊元素：靜態 HTML 已存在時沿用，否則以 ui-factory 動態建立並掛載。
+   *
+   * @returns {{container, message, retryBtn, reportBtn}}
+   * @private
+   */
+  _resolveErrorElements () {
+    const existingContainer = this.document.getElementById('errorContainer')
+    if (existingContainer) {
+      return {
+        container: existingContainer,
+        message: this.document.getElementById('errorMessage'),
+        retryBtn: this.document.getElementById('retryBtn'),
+        reportBtn: this.document.getElementById('reportBtn')
+      }
+    }
+
+    const container = createErrorSection({ message: '' })
+    container.id = 'errorContainer'
+    container.style.display = UI_VISIBILITY.HIDDEN
+    const message = container.querySelector('.error-message')
+    message.id = 'errorMessage'
+    const [retryBtn, reportBtn] = container.querySelectorAll('.action-buttons button')
+    retryBtn.id = 'retryBtn'
+    reportBtn.id = 'reportBtn'
+    this._getMountTarget().appendChild(container)
+
+    return { container, message, retryBtn, reportBtn }
   }
 
   /**
