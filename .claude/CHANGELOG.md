@@ -1,3 +1,41 @@
+## [1.58.0] - 2026-06-22
+
+### Summary
+feat: SaaS skill state-storage 維度補 ID/主鍵選型訪談; chore: pull .claude 更新（上游 4012a25）
+
+Changes: 1 feat, 1 chore
+
+- feat: SaaS skill state-storage 維度補 ID/主鍵選型訪談
+- chore: pull .claude 更新（上游 4012a25）
+
+---
+
+## [1.57.1] - 2026-06-22
+
+### Summary
+fix: detect_version reads todolist active + decouple activate from git (/004); chore: add ARCH-APP-001 version detection desync error pattern; chore: pull .claude 更新（上游 627ed412d54b）
+
+Changes: 1 fix, 2 chore
+
+- fix: detect_version reads todolist active + decouple activate from git (/004)
+- chore: add ARCH-APP-001 version detection desync error pattern
+- chore: pull .claude 更新（上游 627ed412d54b）
+
+---
+
+## [1.57.0] - 2026-06-22
+
+### Summary
+feat: teaching-sync skill v2.0 + CLAUDE.md 教學互補流程; docs: Spec/UC review — 對齊教學設計 + SaaS skill 推導標記機制; chore: pull .claude 更新（上游 7f24696）
+
+Changes: 1 feat, 1 docs, 1 chore
+
+- feat: teaching-sync skill v2.0 + CLAUDE.md 教學互補流程
+- docs: Spec/UC review — 對齊教學設計 + SaaS skill 推導標記機制
+- chore: pull .claude 更新（上游 7f24696）
+
+---
+
 ## [1.56.7] - 2026-06-20
 
 ### Summary
