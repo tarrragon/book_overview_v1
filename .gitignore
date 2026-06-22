@@ -147,3 +147,20 @@ tests/e2e/screenshots/
 *.backup-*
 *.bak
 *.tmp
+
+# Coverage report directories (generated artifacts, only coverage/ was gitignored)
+coverage-*/
+
+# One-off lint/fix scripts and reports (1.2.0-W2-004 cleanup)
+check-*.js
+run-*.js
+*-fix-report*.md
+*-fix-summary*.md
+*-fix-progress*.md
+
+# Stale AI tool configs
+.codex/
+.kiro/
+.cursorrules
+cursorrule
+AGENTS.md
