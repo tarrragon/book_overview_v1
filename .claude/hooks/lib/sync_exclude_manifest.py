@@ -51,6 +51,11 @@ from pathlib import Path
 #   特徵：只對本機 session 有意義，無跨專案共用價值
 #   範例：hook-logs/、handoff/、PM_INTERVENTION_REQUIRED、ARCHITECTURE_REVIEW_REQUIRED
 #
+# 類型 E - Push-only exclude（git tracked 但不跨專案同步的內容）
+#   特徵：在專案 git 中 track，但 sync-push 時不推到框架/skills repo
+#   與類型 A/B/C 差異：A/B/C 不 git track（在 .gitignore 中）；E 要 git track
+#   範例：skills/*/references/project-integration/（per-project 落地層）
+#
 # 新增機制時的 checklist 與決策流程見 .claude/references/sync-exclusion-guide.md
 
 # 本地專有名稱（類型 A/B/C + 工具產物）：sync 時不推送、不覆蓋、不納入 hash
@@ -132,6 +137,13 @@ CREDENTIAL_PATTERNS = frozenset({
     ".keys",
 })
 
+# 類型 E - Push-only exclude（git tracked 但不跨專案同步）
+# 這些名稱在 sync push/pull 時排除，但不加入 .gitignore（專案要 git track）。
+# 與 LOCAL_ONLY_PATTERNS 差異：LOCAL_ONLY 同時要求 .gitignore 涵蓋；本集合不要求。
+PUSH_ONLY_EXCLUDE_PATTERNS = frozenset({
+    "project-integration",  # 各 skill 的專案落地層（per-project 案例/Hook 對齊/CLI 接線）
+})
+
 # 副檔名排除（含憑證副檔名 .pem/.key/.p12/.pfx/.jks，類型 D 最高風險維度）
 EXCLUDE_SUFFIXES = frozenset({".pyc", ".pem", ".key", ".p12", ".pfx", ".jks"})
 
@@ -145,8 +157,8 @@ EXCLUDE_NAME_PREFIXES = frozenset({
 # 組合集合（具名常數 + 單行理由，組合語意顯性化）
 # ============================================================================
 
-# push / status 端的名稱黑名單：local-only 與敏感憑證皆須排除（避免外洩至公開 repo）
-PUSH_EXCLUDE = LOCAL_ONLY_PATTERNS | CREDENTIAL_PATTERNS
+# push / status 端的名稱黑名單：local-only + 敏感憑證 + push-only 皆須排除
+PUSH_EXCLUDE = LOCAL_ONLY_PATTERNS | CREDENTIAL_PATTERNS | PUSH_ONLY_EXCLUDE_PATTERNS
 
 # content hash 與 copy 共用的完整名稱黑名單（與 PUSH_EXCLUDE 同義，供語意檢索）
 SYNC_EXCLUDE_ALL = PUSH_EXCLUDE
