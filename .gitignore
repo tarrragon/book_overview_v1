@@ -83,6 +83,7 @@ __pycache__/
 .claude/.zhtw-mcp-skip
 .claude/.version-release.yaml
 .claude/sync-preserve.yaml
+.claude/sync-skills.yaml
 .claude/settings.local.json
 .claude/.venv/
 .claude/.pytest_cache/
