@@ -97,3 +97,7 @@ versions:
   - version: "0.15.0"
     status: completed
     description: "專案重啟、測試修復、版本推進"
+
+  - version: "1.3.1"
+    status: active
+    description: "sync scripts import 路徑修復（W1-058 遺漏）"
