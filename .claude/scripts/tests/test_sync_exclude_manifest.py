@@ -48,8 +48,11 @@ def test_raw_classifications_are_frozensets():
 
 
 def test_push_exclude_is_union():
+    # PUSH_EXCLUDE 為三維度聯集：local-only + 憑證 + push-only（含 project-integration）
     assert manifest.PUSH_EXCLUDE == (
-        manifest.LOCAL_ONLY_PATTERNS | manifest.CREDENTIAL_PATTERNS
+        manifest.LOCAL_ONLY_PATTERNS
+        | manifest.CREDENTIAL_PATTERNS
+        | manifest.PUSH_ONLY_EXCLUDE_PATTERNS
     )
 
 
