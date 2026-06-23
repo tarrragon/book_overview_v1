@@ -7,7 +7,7 @@
 preserve:
   - hooks/main-thread-edit-restriction-hook.py
   - hooks/handoff-prompt-reminder-hook.py
-  - hooks/lib/hook_messages.py
+  - lib/hook_messages.py
   - error-patterns/architecture/ARCH-021-module-assembly-omission.md
   - error-patterns/process-compliance/PC-177-malformed-tool-call-rendered-as-text.md
   - hooks/malformed-tool-call-detector-hook.py
