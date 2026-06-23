@@ -67,6 +67,9 @@ temp/
 # Python bytecode cache
 __pycache__/
 
+# Python build artifacts（uv tool install skill 產生的 egg-info 目錄）
+*.egg-info/
+
 # Claude Hook System logs (auto-generated)
 # 覆蓋根目錄 .claude/hook-logs/ 與嵌套 skill 目錄（如 .claude/skills/ticket/.claude/hook-logs/）
 **/hook-logs/
