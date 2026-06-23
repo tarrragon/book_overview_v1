@@ -24,7 +24,7 @@ from pathlib import Path
 # 漏列 dispatch-active.json/hook-state/settings.local.json/.zhtw-mcp-skip 導致與 push
 # 指紋不一致）。manifest 位於 .claude/hooks/lib/。
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from sync_exclude_manifest import should_exclude, compute_content_hash  # noqa: E402, F401
+from lib.sync_exclude_manifest import should_exclude, compute_content_hash  # noqa: E402, F401
 
 REPO_URL = "https://github.com/tarrragon/claude.git"
 
