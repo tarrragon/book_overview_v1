@@ -19,7 +19,7 @@ from unittest.mock import MagicMock, patch
 from datetime import datetime
 
 # 動態載入 hook 模組
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import importlib.util
 
 spec = importlib.util.spec_from_file_location(
