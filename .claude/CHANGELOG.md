@@ -1,3 +1,38 @@
+## [1.59.1] - 2026-06-23
+
+### Summary
+sync .claude configuration
+
+---
+
+## [1.59.0] - 2026-06-23
+
+### Summary
+feat: 整合 blog 測試知識至 TDD skill（4 新 reference + 路由更新）; feat: 建立 doc→TDD 銜接機制（WRAP 評估：銜接放 TDD 端）; refactor: doc→TDD 銜接文件多輪審查修正（3 輪 33 項） (+3 more)
+
+Changes: 2 feat, 1 refactor, 1 fix, 2 chore
+
+- feat: 整合 blog 測試知識至 TDD skill（4 新 reference + 路由更新）
+- feat: 建立 doc→TDD 銜接機制（WRAP 評估：銜接放 TDD 端）
+- refactor: doc→TDD 銜接文件多輪審查修正（3 輪 33 項）
+- fix: app_tunnel 測試教訓回饋至 TDD skill（畫面狀態機 + 操作覆蓋深度）
+- chore: 移除已 DEPRECATED 的 tdd-phase1-split skill
+- chore: pull .claude 更新（上游 36ab0f7）
+
+---
+
+## [1.58.1] - 2026-06-22
+
+### Summary
+chore: add PC-V1-011 error pattern + complete ANA; chore: pull .claude 更新（上游 b3aadb8ff140）
+
+Changes: 2 chore
+
+- chore: add PC-V1-011 error pattern + complete ANA
+- chore: pull .claude 更新（上游 b3aadb8ff140）
+
+---
+
 ## [1.58.0] - 2026-06-22
 
 ### Summary
