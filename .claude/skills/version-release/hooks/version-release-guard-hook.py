@@ -31,9 +31,10 @@ import re
 import sys
 from pathlib import Path
 
-_FRAMEWORK_HOOKS = str(Path(__file__).resolve().parents[3] / "hooks")
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "hooks" / "lib"))
-sys.path.insert(0, _FRAMEWORK_HOOKS)
+_CLAUDE_DIR = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(_CLAUDE_DIR / "lib"))
+sys.path.insert(0, str(_CLAUDE_DIR / "hooks"))
+sys.path.insert(0, str(_CLAUDE_DIR / "hooks" / "lib"))
 
 from hook_io import (
     read_hook_input,
