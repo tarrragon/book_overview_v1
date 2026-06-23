@@ -31,9 +31,9 @@ import re
 import sys
 from pathlib import Path
 
-# 添加 lib 目錄到路徑
-sys.path.insert(0, str(Path(__file__).parent.parent / "lib"))
-sys.path.insert(0, str(Path(__file__).parent))
+_FRAMEWORK_HOOKS = str(Path(__file__).resolve().parents[3] / "hooks")
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "hooks" / "lib"))
+sys.path.insert(0, _FRAMEWORK_HOOKS)
 
 from hook_io import (
     read_hook_input,
