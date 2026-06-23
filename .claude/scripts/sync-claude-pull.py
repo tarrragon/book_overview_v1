@@ -2420,6 +2420,39 @@ def verify_hook_imports(project_root: Path) -> int:
     return result.returncode
 
 
+def verify_local_settings_no_hooks(project_root: Path) -> None:
+    """Post-sync 告警：settings.local.json 不該含 hook 註冊（framework issue #11）。
+
+    框架 hook 一律註冊於 settings.json；settings.local.json 為 sync 排除檔
+    （local-only），框架版本遷移 / relocate 無法觸及，殘留註冊 relocate 後成幽靈
+    （ARCH-TUNL-001、PC-148 單一註冊來源原則）。本檢查於 sync-pull 完成後告警，
+    warn-only 不阻擋同步——同步本體已完成，此為後置安全網，對齊 SessionStart
+    find_local_hook_registrations 的偵測，補上「sync 端」的告警時機。
+
+    讀檔 / 解析失敗時靜默跳過（後置安全網不應因 local 檔異常中斷同步收尾）。
+    """
+    local_path = project_root / ".claude" / "settings.local.json"
+    if not local_path.is_file():
+        return
+    try:
+        data = json.loads(local_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    hooks = data.get("hooks") if isinstance(data, dict) else None
+    if not isinstance(hooks, dict) or not hooks:
+        return
+    events = ", ".join(sorted(hooks.keys()))
+    sys.stderr.write(
+        f"\n[sync-pull] 警告：settings.local.json 含 hook 註冊（事件: {events}）。\n"  # i18n-exempt
+    )
+    advice = (
+        "   框架 hook 應只註冊於 settings.json（PC-148 單一註冊來源）；"  # i18n-exempt
+        "settings.local.json 為 sync 排除檔，殘留註冊 relocate 後會成幽靈。"  # i18n-exempt
+        "修復：移至 settings.json，或執行 hook-completeness-check.py --fix 清理幽靈。"  # i18n-exempt
+    )
+    print_color(advice, "yellow")
+
+
 def main() -> None:
     """同步 .claude 配置從獨立 repo。
 
@@ -2469,6 +2502,9 @@ def main() -> None:
     except subprocess.TimeoutExpired:
         print_color(f"git clone 超時（{GIT_CLONE_TIMEOUT_SECONDS} 秒），請檢查網路連線", "red")  # i18n-exempt
         sys.exit(1)
+
+    # post-sync 安全網：settings.local.json 不該含 hook（issue #11，warn-only）
+    verify_local_settings_no_hooks(project_root)
 
     # post-sync runtime 驗證：偵測 py_compile 無法捕捉的 import 斷裂（issue #10）
     import_rc = verify_hook_imports(project_root)
