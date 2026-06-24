@@ -47,6 +47,9 @@ const LEVEL_PRIORITIES = {
   ERROR: 3
 }
 
+// eslint-disable-next-line no-undef
+const DEFAULT_LOG_LEVEL = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production') ? 'WARN' : 'INFO'
+
 class Logger {
   /**
    * 建立 Logger 實例
@@ -62,7 +65,7 @@ class Logger {
    * @param {string} level - 日誌等級（預設: 'INFO'）
    * @param {Object} messages - 訊息字典（預設: GlobalMessages，可注入 local dict）
    */
-  constructor (name = 'App', level = 'INFO', messages = GlobalMessages) {
+  constructor (name = 'App', level = DEFAULT_LOG_LEVEL, messages = GlobalMessages) {
     this.name = name
     this.level = level
     this.messages = messages
