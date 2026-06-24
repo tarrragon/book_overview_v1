@@ -295,33 +295,36 @@ proposals:
       verified_by: null
   PROP-011:
     title: 自動導航書庫頁 + 自動滾動蒐集完整書目
-    status: discussing
+    status: partial
     proposed: '2026-04-20'
-    confirmed: null
-    target_version: v2.0+
+    confirmed: '2026-04-20'
+    target_version: v1.0.0（Phase 1 核心）/ v2.0+（Phase 1.5 進階）
     source: development
     reference: /Users/mac-eric/project/readmoo-tracker_20260418（同類擴充功能 v1.5 content.js:128-166
       核心演算法借鑑）
-    note: 原 target v1.1 已過，延後至 v2.0+。核心功能（auto-scroll 蒐集完整書目）尚未實作。狀態從 confirmed 回退為 discussing（無對應 ticket_refs，規則 4）。
+    note: Phase 1 核心已於 v1.0.0 W1-030 實作（loadAllBooksLazy 捲動載入 + findScrollContainer 多層 fallback）。自動導航（popup 直接開書庫頁）未實作，用戶仍需手動前往。Phase 1.5 進階功能延後。
     spec_refs: []
     usecase_refs:
     - UC-09
     - UC-01
     - UC-02
-    ticket_refs: []
+    ticket_refs:
+    - 1.0.0-W1-030
     checklist:
     - item: Phase 1 MVP - ANA-A Readmoo 書庫頁 DOM 勘查 + manifest 權限核對
-      status: pending
-      verified_by: null
+      status: done
+      verified_by: readmoo-adapter.js DOM 選擇器 + scrollContainerCandidates 實機取證
     - item: Phase 1 MVP - IMP-A popup 一鍵導航 + autoStart 雙通道（flag + message）
-      status: pending
+      status: partial
       verified_by: null
+      note: popup 有一鍵提取（startExtraction），但無自動導航到書庫頁
     - item: Phase 1 MVP - IMP-B scrollUntilStable 核心演算法（連續 2 次穩定 + safetyBreak）
-      status: pending
-      verified_by: null
+      status: done
+      verified_by: loadAllBooksLazy() + readmoo-adapter-scroll-load.test.js
     - item: Phase 1 MVP - IMP-F1 E2E 測試（正常路徑，50/500 本模擬）
       status: pending
       verified_by: null
+      note: 有單元測試（scroll-load/scroll-container），E2E 模擬未建
     - item: Phase 1.5 - IMP-C AbortController 中斷 + partial status 持久化
       status: pending
       verified_by: null
