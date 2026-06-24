@@ -196,6 +196,11 @@ const popupConstants = (() => {
 })()
 
 /**
+ * 狀態 badge 顯示文字常數
+ */
+const STATUS_BADGE = popupConstants.STATUS_BADGE
+
+/**
  * 狀態類型常數
  */
 const STATUS_TYPES = popupConstants.STATUS_TYPES
@@ -689,7 +694,7 @@ function cleanupExtractionState () {
  */
 function showCancellationRecovery () {
   setTimeout(() => {
-    updateStatus('擴充功能就緒', '準備開始提取', '請前往 Readmoo 書庫頁面', STATUS_TYPES.READY)
+    updateStatus(STATUS_BADGE.READY, '準備開始提取', '請前往 Readmoo 書庫頁面', STATUS_TYPES.READY)
   }, 3000)
 }
 
@@ -755,7 +760,7 @@ function handleSuccessfulBackgroundResponse (response) {
   if (response.eventSystem) {
     Logger.info('事件系統狀態', { eventSystem: response.eventSystem })
   }
-  updateStatus('線上', '擴充功能已就緒', '系統就緒', STATUS_TYPES.READY)
+  updateStatus(STATUS_BADGE.READY, '擴充功能已就緒', '系統就緒', STATUS_TYPES.READY)
 }
 
 /**
@@ -890,7 +895,7 @@ function checkBackgroundStatus () {
       if (done) return
       if (attempt >= HANDSHAKE_CONFIG.MAX_RETRY_ATTEMPTS) {
         Logger.error('Background Service Worker 連線失敗', { retryCount: attempt })
-        updateStatus('離線', '擴充功能未連線', '重試已用盡，請重新載入擴充功能', STATUS_TYPES.ERROR)
+        updateStatus(STATUS_BADGE.DISCONNECTED, '擴充功能未連線', '重試已用盡，請重新載入擴充功能', STATUS_TYPES.ERROR)
         finish(false)
         return
       }

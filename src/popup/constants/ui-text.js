@@ -83,6 +83,18 @@ const DIALOG_TEXT = Object.freeze({
 })
 
 /**
+ * 狀態 badge 顯示文字（updateStatus 第 1 參數）
+ *
+ * 統一狀態詞彙體系：以使用者視角的「就緒/未連線」取代技術簡語「線上/離線」，
+ * 避免同一狀態欄混用兩套詞彙造成認知負擔（W1-005 詞彙表）。
+ */
+const STATUS_BADGE = Object.freeze({
+  READY: '就緒',
+  LOADING: '載入中',
+  DISCONNECTED: '未連線'
+})
+
+/**
  * 狀態類型枚舉（語意常數，非顯示文字）
  */
 const STATUS_TYPES = Object.freeze({
@@ -116,6 +128,7 @@ module.exports = {
   PAGE_INFO_TEXT,
   VERSION_TEXT,
   DIALOG_TEXT,
+  STATUS_BADGE,
   STATUS_TYPES,
   MESSAGE_TYPES,
   NAVIGATION_TEXT
