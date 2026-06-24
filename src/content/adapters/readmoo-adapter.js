@@ -87,6 +87,7 @@ const readmooAdapterMessages = new MessageDictionary({
   BOOK_PARSE_ELEMENT_FAILED: '書籍元素解析失敗 (element: {elementTag}.{elementClass})',
   COVERAGE_INCOMPLETE: '書庫提取涵蓋不完整 (missingCount: {missingCount}, reason: {reason})',
   COVER_SCROLL_FAILED: '封面整頁捲動觸發失敗 (segments: {segments})',
+  COVER_SCROLL_COMPLETED: '封面整頁捲動完成 (segments: {segments}, reason: {reason}, converged: {converged}, finalPlaceholderCount: {finalPlaceholderCount})',
   DOCUMENT_UNAVAILABLE: 'document 物件無法取得 (非瀏覽器環境或 SW context)',
   DOM_QUERY_FAILED: 'DOM 查詢失敗',
   FIND_SCROLL_CONTAINER_FAILED: '捲動容器辨識失敗',
@@ -202,8 +203,18 @@ function createReadmooAdapter (options = {}) {
   // 採整頁 window.scrollTo（document.scrollingElement）——實驗 3 證 #react-container
   // 不可捲（scrollHeight==clientHeight），真正可捲者為整頁。
   const COVER_SCROLL_SEGMENT_RATIO = 0.8 // 每段捲動量為 viewport 高度的比例（保留重疊）
-  const COVER_SCROLL_SEGMENT_WAIT_MS = 300 // 每段捲動後等待封面真圖載入的毫秒數
   const COVER_SCROLL_MAX_SEGMENTS = 200 // 分段數硬上限（防無限迴圈）
+
+  // W2-005.1 收斂等待參數（PM 實機驗證後修正）：
+  // 根因——window.scrollTo 瞬間到底，但 React 把 placeholder 換真實 CDN src 是
+  // 異步 render。原每段固定等 300ms 且捲完無收斂條件，提取緊接讀取時真圖尚未
+  // render 完成（讀到 656 placeholder，稍後才變真圖）。改為「輪詢 placeholder
+  // 數歸零」收斂等待，而非固定延遲。
+  const COVER_POLL_INTERVAL_MS = 150 // 收斂輪詢間隔
+  const COVER_SEGMENT_SETTLE_MS = 600 // 每段捲動後等待該段封面 render 的上限
+  const COVER_CONVERGENCE_TIMEOUT_MS = 20000 // 捲完後等 placeholder 歸零的整體上限
+  // placeholder 封面 URL 偵測：/images/openbook.png（含其他 UNSTABLE_COVER_IDS 字樣）
+  const PLACEHOLDER_COVER_PATTERN = /openbook|\/images\/(undefined|placeholder|default)/i
 
   const adapter = {
     // 適配器標準屬性
@@ -714,92 +725,200 @@ function createReadmooAdapter (options = {}) {
     },
 
     /**
-     * 提取前漸進整頁捲過全部書籍，觸發封面真圖替換（W2-005.1）
+     * 計算當下 DOM 內封面為 placeholder 的書籍數（W2-005.1，可注入私有方法）
      *
-     * 根因（實機取證 2026-06-24）：Readmoo 書庫封面是「viewport 可見性驅動
-     * 替換」而非標準 lazy-load——viewport 外的 .library-item 其 cover-img src
-     * 為 placeholder（/images/openbook.png），進入過 viewport 後 React 才換成
-     * 真實 CDN URL（實驗 2 證 window.scrollTo 捲到底後 placeholder 歸零、
-     * 真圖載入後不回收）。即使全部 965 本 item 已載入，提取當下停在某 scroll
-     * 位置，viewport 外的最後約 90 本封面仍是 placeholder（實驗 5）。
+     * placeholder = cover-img src 命中 PLACEHOLDER_COVER_PATTERN（/images/openbook.png
+     * 等）。此為「封面真圖是否 render 完成」的收斂判據——React 異步把 placeholder
+     * 換成真實 CDN src，提取前需等此計數歸零。抽為獨立方法以支援測試注入序列。
      *
-     * 演算法：以整頁 window.scrollTo 從頂（0）漸進捲到底，每段捲動量為
-     * viewport 高度的 COVER_SCROLL_SEGMENT_RATIO 倍（保留重疊避免遺漏），
-     * 每段後等待 COVER_SCROLL_SEGMENT_WAIT_MS 讓進入 viewport 的封面載入真圖。
-     * 捲到底（scrollY 不再增加或達 scrollHeight）即停止。COVER_SCROLL_MAX_SEGMENTS
-     * 為分段數硬上限，防 scrollY 異常不增時無限迴圈。
+     * @returns {number} 當下 DOM 內 placeholder 封面數
+     */
+    _countPlaceholderCovers () {
+      const document = getDocument()
+      if (!document) return 0
+
+      const items = document.querySelectorAll(SELECTORS.bookContainer)
+      let count = 0
+      for (const item of items) {
+        const img = item.querySelector(SELECTORS.bookImage) || item.querySelector('img')
+        if (!img) continue
+        const src = img.getAttribute('src') || ''
+        if (src && PLACEHOLDER_COVER_PATTERN.test(src)) {
+          count++
+        }
+      }
+      return count
+    },
+
+    /**
+     * 輪詢等待 placeholder 封面數歸零或穩定（W2-005.1，可注入私有方法）
      *
-     * 採整頁捲動而非容器 scrollTop：實驗 3 證 #react-container 不可捲
-     * （scrollHeight==clientHeight），真正可捲者為整頁 document.scrollingElement。
+     * 收斂等待取代固定延遲（PM 實機驗證根因）：window.scrollTo 瞬間到底，但
+     * React 把 placeholder 換真實 CDN src 是異步 render，固定短延遲返回時真圖
+     * 尚未 render 完成（讀到 656 placeholder）。本方法每 COVER_POLL_INTERVAL_MS
+     * 輪詢 _countPlaceholderCovers，直到：
+     * (a) converged：placeholder 數歸零（理想終態，真圖全部 render 完成）
+     * (b) stable：連續數輪 placeholder 數不再下降（Readmoo 端本身無封面者，
+     *     永遠不會歸零，靠穩定條件退出避免等滿 timeout）
+     * (c) timeout：達 timeoutMs 上限（防 render 永不完成時 hang）
      *
-     * 此方法永遠 resolve（不 reject）：window 不可用、scrollTo 例外或量測例外時
-     * 降級提早結束，不讓提取流程整體失敗。捲動結束後不還原位置——後續
-     * loadAllBooksLazy finalize 會統一還原容器位置。
+     * @param {Object} [waitOptions={}] - 等待選項
+     * @param {number} [waitOptions.timeoutMs] - 整體上限毫秒（預設 COVER_CONVERGENCE_TIMEOUT_MS）
+     * @param {number} [waitOptions.pollIntervalMs] - 輪詢間隔（預設 COVER_POLL_INTERVAL_MS）
+     * @param {number} [waitOptions.stableRounds] - 連續無下降即視為穩定的輪數（預設 4）
+     * @returns {Promise<{ converged: boolean, finalPlaceholderCount: number, reason: string }>}
+     *   reason 枚舉：converged / stable / timeout
+     */
+    async _waitForPlaceholderConvergence (waitOptions = {}) {
+      const timeoutMs = waitOptions.timeoutMs ?? COVER_CONVERGENCE_TIMEOUT_MS
+      const pollIntervalMs = waitOptions.pollIntervalMs ?? COVER_POLL_INTERVAL_MS
+      const stableRounds = waitOptions.stableRounds ?? 4
+      const startTime = Date.now()
+
+      let prevCount = this._countPlaceholderCovers()
+      // 一開始即無 placeholder：直接收斂
+      if (prevCount === 0) {
+        return { converged: true, finalPlaceholderCount: 0, reason: 'converged' }
+      }
+
+      let noDecreaseRounds = 0
+      while (Date.now() - startTime < timeoutMs) {
+        await this._waitMs(pollIntervalMs)
+        const currentCount = this._countPlaceholderCovers()
+
+        // (a) 歸零即收斂
+        if (currentCount === 0) {
+          return { converged: true, finalPlaceholderCount: 0, reason: 'converged' }
+        }
+
+        // (b) 連續無下降：placeholder 不再減少（含 Readmoo 端本身無封面者）
+        if (currentCount >= prevCount) {
+          noDecreaseRounds++
+          if (noDecreaseRounds >= stableRounds) {
+            return { converged: false, finalPlaceholderCount: currentCount, reason: 'stable' }
+          }
+        } else {
+          noDecreaseRounds = 0
+        }
+        prevCount = currentCount
+      }
+
+      // (c) 逾時
+      return {
+        converged: false,
+        finalPlaceholderCount: this._countPlaceholderCovers(),
+        reason: 'timeout'
+      }
+    },
+
+    /**
+     * 提取前漸進整頁捲過全部書籍並等真圖 render 完成（W2-005.1）
      *
-     * @param {Object} [coverScrollOptions={}] - 覆寫捲動參數（測試用）
-     * @param {number} [coverScrollOptions.segmentWaitMs] - 每段等待毫秒（預設 COVER_SCROLL_SEGMENT_WAIT_MS）
+     * 根因（實機取證 + PM 三次量測 2026-06-24）：Readmoo 書庫封面是「viewport
+     * 可見性驅動替換」而非標準 lazy-load——viewport 外 .library-item 的 cover-img
+     * src 為 placeholder（/images/openbook.png），進入過 viewport 後 React 才以
+     * 異步 render 換成真實 CDN URL（實驗 2 證捲到底後 placeholder 歸零、真圖不回收）。
+     *
+     * 第一版缺陷（PM 驗證鎖定）：window.scrollTo 瞬間設 scrollY 到底，每段僅固定
+     * 等 300ms 且捲完無收斂條件，提取緊接讀取時真圖尚未 render → 讀到 656
+     * placeholder（稍後 render 完成 DOM 才變真圖，事後查 DOM 為 0）。
+     *
+     * 修復演算法（收斂等待取代固定延遲）：
+     * 1. 整頁 window.scrollTo 從頂漸進捲到底，每段捲動量為 viewport 高度的
+     *    COVER_SCROLL_SEGMENT_RATIO 倍（保留重疊）。
+     * 2. 每段後以 _waitForPlaceholderConvergence 等該段新進 viewport 的封面 render，
+     *    上限 COVER_SEGMENT_SETTLE_MS（不等滿，render 完即提早返回推進下一段）。
+     * 3. 捲到底後做整體收斂等待（上限 COVER_CONVERGENCE_TIMEOUT_MS），確保返回前
+     *    全頁 placeholder 數歸零（或穩定/逾時）——此為提取讀到真圖的關鍵保證。
+     *
+     * 採整頁捲動而非容器 scrollTop：實驗 3 證 #react-container 不可捲。
+     * 永遠 resolve（不 reject）：window 不可用 / scrollTo 例外時降級，不阻斷提取。
+     *
+     * @param {Object} [coverScrollOptions={}] - 覆寫參數（測試用）
      * @param {number} [coverScrollOptions.maxSegments] - 分段數上限（預設 COVER_SCROLL_MAX_SEGMENTS）
-     * @returns {Promise<{ segments: number, reason: string }>}
-     *   segments 為實際捲動段數；reason 枚舉：
-     *   reached_bottom / max_segments / no_window / no_scroll_needed / error
+     * @param {number} [coverScrollOptions.segmentSettleMs] - 每段收斂等待上限（預設 COVER_SEGMENT_SETTLE_MS）
+     * @param {number} [coverScrollOptions.convergenceTimeoutMs] - 整體收斂上限（預設 COVER_CONVERGENCE_TIMEOUT_MS）
+     * @returns {Promise<{ segments: number, reason: string, finalPlaceholderCount: number, converged: boolean }>}
+     *   reason 枚舉：reached_bottom / max_segments / no_window / no_scroll_needed / error
      */
     async _scrollThroughAllItemsForCovers (coverScrollOptions = {}) {
-      const segmentWaitMs = coverScrollOptions.segmentWaitMs ?? COVER_SCROLL_SEGMENT_WAIT_MS
       const maxSegments = coverScrollOptions.maxSegments ?? COVER_SCROLL_MAX_SEGMENTS
+      const segmentSettleMs = coverScrollOptions.segmentSettleMs ?? COVER_SEGMENT_SETTLE_MS
+      const convergenceTimeoutMs = coverScrollOptions.convergenceTimeoutMs ?? COVER_CONVERGENCE_TIMEOUT_MS
       let segments = 0
 
       try {
         const win = getWindow()
         const document = getDocument()
         if (!win || typeof win.scrollTo !== 'function' || !document) {
-          return { segments, reason: 'no_window' }
+          return { segments, reason: 'no_window', finalPlaceholderCount: 0, converged: false }
         }
 
         // 整頁可捲總高與 viewport 高（document.scrollingElement 為整頁捲動主體）
         const scrollingEl = document.scrollingElement || document.documentElement
         if (!scrollingEl) {
-          return { segments, reason: 'no_window' }
+          return { segments, reason: 'no_window', finalPlaceholderCount: 0, converged: false }
         }
 
         const viewportHeight = win.innerHeight || scrollingEl.clientHeight || 0
         const totalHeight = scrollingEl.scrollHeight || 0
-        // 整頁不可捲（內容未超出 viewport）：無 placeholder 需觸發，提早結束
+        // 整頁不可捲（內容未超出 viewport）：仍做一次整體收斂等待，確保
+        // 當前 viewport 內封面真圖已 render（小書庫亦可能有未 render 的 placeholder）。
         if (viewportHeight <= 0 || totalHeight <= viewportHeight) {
-          return { segments, reason: 'no_scroll_needed' }
+          const converge = await this._waitForPlaceholderConvergence({ timeoutMs: convergenceTimeoutMs })
+          return {
+            segments,
+            reason: 'no_scroll_needed',
+            finalPlaceholderCount: converge.finalPlaceholderCount,
+            converged: converge.converged
+          }
         }
 
         const segmentStep = Math.max(1, Math.floor(viewportHeight * COVER_SCROLL_SEGMENT_RATIO))
         let targetY = 0
         let prevScrollY = -1
+        let stopReason = 'max_segments'
 
-        // 從頂漸進捲到底：每段 scrollTo + 等待封面載入
+        // 從頂漸進捲到底：每段 scrollTo + 等該段封面 render 收斂
         while (segments < maxSegments) {
           win.scrollTo(0, targetY)
           segments++
 
-          // 等待進入 viewport 的封面真圖載入（可 fake timer 推進）
-          await this._waitMs(segmentWaitMs)
+          // 每段收斂等待（render 完即提早返回，不等滿 segmentSettleMs）
+          await this._waitForPlaceholderConvergence({ timeoutMs: segmentSettleMs })
 
           const currentScrollY = this._readScrollY(win, scrollingEl)
 
-          // 已捲到底：scrollY 達可捲底部（totalHeight - viewportHeight）即停止
+          // 已捲到底：scrollY 達可捲底部即停止
           if (currentScrollY >= totalHeight - viewportHeight) {
-            return { segments, reason: 'reached_bottom' }
+            stopReason = 'reached_bottom'
+            break
           }
 
-          // 防護：scrollY 連兩段不再增加（容器拒絕捲動）即停止，避免空轉
+          // 防護：scrollY 不再增加（容器拒絕捲動）即停止，避免空轉
           if (currentScrollY <= prevScrollY) {
-            return { segments, reason: 'reached_bottom' }
+            stopReason = 'reached_bottom'
+            break
           }
           prevScrollY = currentScrollY
 
           targetY += segmentStep
         }
 
-        return { segments, reason: 'max_segments' }
+        // 捲完整體收斂等待：返回前確保全頁 placeholder 歸零（或穩定/逾時）。
+        // 此為提取讀到真圖的關鍵保證——每段收斂上限短，最後一段及尾端
+        // viewport 的 render 可能尚未完成，整體等待補齊。
+        const finalConverge = await this._waitForPlaceholderConvergence({ timeoutMs: convergenceTimeoutMs })
+
+        return {
+          segments,
+          reason: stopReason,
+          finalPlaceholderCount: finalConverge.finalPlaceholderCount,
+          converged: finalConverge.converged
+        }
       } catch (error) {
         logger.warn('COVER_SCROLL_FAILED', { error: error.message, segments })
-        return { segments, reason: 'error' }
+        return { segments, reason: 'error', finalPlaceholderCount: 0, converged: false }
       }
     },
 
@@ -976,7 +1095,8 @@ function createReadmooAdapter (options = {}) {
         if (expectedTotal !== null && bookIdSet.size >= expectedTotal) {
           // W2-005.1：即使首批即完整（item 全載入），viewport 外封面仍是
           // placeholder，需整頁捲過全部書籍觸發封面真圖替換後再提取。
-          await this._scrollThroughAllItemsForCovers()
+          const coverResult = await this._scrollThroughAllItemsForCovers()
+          logger.info('COVER_SCROLL_COMPLETED', coverResult)
           // 捲過後重新量測（unique Set 天然去重，僅補入捲動中新渲染的 item）
           this._measureBooks().forEach(id => bookIdSet.add(id))
           return finalize('already_complete', container, originalScrollTop)
@@ -1039,7 +1159,8 @@ function createReadmooAdapter (options = {}) {
         // 觸發封面真圖替換——viewport 外 .library-item 封面為 placeholder
         // （/images/openbook.png），需進過 viewport 後 React 才換真實 CDN URL。
         // 此步驟為封面完整性的必要條件（實驗 5 證僅「載入 item」不足）。
-        await this._scrollThroughAllItemsForCovers()
+        const coverResult = await this._scrollThroughAllItemsForCovers()
+        logger.info('COVER_SCROLL_COMPLETED', coverResult)
         // 捲過後重新量測（unique Set 天然去重，僅補入捲動中新渲染的 item）
         this._measureBooks().forEach(id => bookIdSet.add(id))
 
