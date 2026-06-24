@@ -45,6 +45,10 @@ coverage/
 # 打包產物（npm run package 產出的可分發 ZIP）
 dist/
 
+# 測試者發布包（npm run package:release）：ZIP 為建置產物不入版控，
+# README.md 為安裝說明可入版控（故只忽略 *.zip 而非整個 release/）
+release/*.zip
+
 # IDEs and editors
 .vscode/
 .idea/
