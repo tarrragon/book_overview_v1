@@ -246,6 +246,71 @@ body {
   background-color: var(--color-primary-light);
 }
 
+/* 作者欄拓寬（1.4.2-W2-004） */
+.book-author-cell {
+  min-width: 100px;
+}
+
+/* 展開欄位（1.4.2-W2-004）*/
+#booksTable th.expand-col,
+#booksTable td.expand-col {
+  width: 36px;
+  text-align: center;
+  padding: var(--spacing-xs);
+}
+
+.expand-toggle-btn {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+
+.expand-toggle-btn::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  transition: transform 0.2s;
+}
+
+.expand-toggle-btn--collapsed::after {
+  border-width: 4px 0 4px 6px;
+  border-color: transparent transparent transparent var(--color-on-surface-muted);
+}
+
+.expand-toggle-btn--expanded::after {
+  border-width: 6px 4px 0 4px;
+  border-color: var(--color-primary) transparent transparent transparent;
+}
+
+.expand-toggle-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.expand-toggle-btn--collapsed:hover::after {
+  border-color: transparent transparent transparent var(--color-primary);
+}
+
+/* 標籤展開行（1.4.2-W2-004） */
+.tag-expand-row td {
+  background-color: var(--color-panel);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tag-expand-row:hover {
+  background-color: var(--color-panel);
+}
+
 /* 書籍封面圖片 */
 .book-cover {
   width: 40px;

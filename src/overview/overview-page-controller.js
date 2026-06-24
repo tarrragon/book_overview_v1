@@ -852,11 +852,59 @@ class OverviewPageController extends EventHandlerClass {
     statusCell.innerHTML = rowData.status
     row.appendChild(statusCell)
 
-    // tag 欄位：由 tagCellRenderer 以 DOM API 建立，安全
-    const tagCell = this.tagCellRenderer.createTagCell(book.tagIds || [])
-    row.appendChild(tagCell)
+    // 展開按鈕欄位：點擊切換標籤展開行
+    const expandCell = this.document.createElement('td')
+    expandCell.className = 'expand-col'
+    const expandBtn = this.document.createElement('button')
+    expandBtn.className = 'expand-toggle-btn'
+    expandBtn.setAttribute('aria-label', '展開標籤')
+    expandBtn.textContent = ''
+    expandBtn.classList.add('expand-toggle-btn--collapsed')
+    expandBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      this._toggleTagExpandRow(row, book, expandBtn)
+    })
+    expandCell.appendChild(expandBtn)
+    row.appendChild(expandCell)
+
+    row.dataset.expanded = 'false'
 
     return row
+  }
+
+  /**
+   * @private
+   */
+  _toggleTagExpandRow (row, book, toggleBtn) {
+    const isExpanded = row.dataset.expanded === 'true'
+
+    if (isExpanded) {
+      const expandRow = row.nextElementSibling
+      if (expandRow && expandRow.classList.contains('tag-expand-row')) {
+        expandRow.remove()
+      }
+      row.dataset.expanded = 'false'
+      toggleBtn.textContent = ''
+      toggleBtn.classList.remove('expand-toggle-btn--expanded')
+      toggleBtn.classList.add('expand-toggle-btn--collapsed')
+      toggleBtn.setAttribute('aria-label', '展開標籤')
+    } else {
+      const expandRow = this.document.createElement('tr')
+      expandRow.className = 'tag-expand-row'
+      const expandTd = this.document.createElement('td')
+      expandTd.setAttribute('colspan', CONSTANTS.TABLE.COLUMNS)
+      const tagCell = this.tagCellRenderer.createTagCell(book.tagIds || [])
+      while (tagCell.firstChild) {
+        expandTd.appendChild(tagCell.firstChild)
+      }
+      expandRow.appendChild(expandTd)
+      row.parentNode.insertBefore(expandRow, row.nextSibling)
+      row.dataset.expanded = 'true'
+      toggleBtn.textContent = ''
+      toggleBtn.classList.remove('expand-toggle-btn--collapsed')
+      toggleBtn.classList.add('expand-toggle-btn--expanded')
+      toggleBtn.setAttribute('aria-label', '收合標籤')
+    }
   }
 
   // ========== 狀態管理方法 ==========
