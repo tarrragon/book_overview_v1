@@ -1,10 +1,10 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-06-23"
+last_updated: "2026-06-24"
 
 versions:
   - version: "1.4.0"
-    status: active
+    status: completed
     description: "監測任務集中版本 + framework 觀察項收尾"
     worklog: "docs/work-logs/v1/v1.4/v1.4.0/"
 
@@ -13,6 +13,10 @@ versions:
     description: "sync scripts import 路徑修復（W1-058 遺漏）"
     worklog: "docs/work-logs/v1/v1.3/v1.3.1/"
 
+
+  - version: "1.4.1"
+    status: active
+    description: "根目錄清理與框架維護"
   - version: "1.3.0"
     status: completed
     description: "Skill 獨立上架規範 + 框架外移 + 觀察型任務收斂"
