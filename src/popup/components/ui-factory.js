@@ -284,6 +284,49 @@ function createErrorSection ({ message, onRetry, onReload, suggestions } = {}) {
   return card
 }
 
+/**
+ * 建立書庫導航區塊。
+ *
+ * @param {Object} options
+ * @param {Array<{id: string, name: string, url: string, enabled: boolean}>} options.bookstores
+ * @param {string} [options.sectionTitle] - 區塊標題
+ * @param {string} [options.ariaPrefix] - aria-label 前綴（+ bookstore name）
+ * @param {Function} [options.onNavigate] - (bookstore) => void
+ * @returns {HTMLDivElement}
+ */
+function createBookstoreNavSection ({ bookstores = [], sectionTitle, ariaPrefix = '', onNavigate } = {}) {
+  const container = document.createElement('div')
+  container.classList.add('status-card')
+  container.id = 'bookstoreNavSection'
+
+  if (sectionTitle) {
+    const header = document.createElement('div')
+    header.classList.add('results-header')
+    const strong = document.createElement('strong')
+    strong.textContent = sectionTitle
+    header.appendChild(strong)
+    container.appendChild(header)
+  }
+
+  const buttonContainer = document.createElement('div')
+  buttonContainer.classList.add('action-buttons')
+
+  const enabledStores = bookstores.filter(b => b.enabled)
+  enabledStores.forEach(store => {
+    const btn = createButton({
+      variant: 'secondary',
+      text: store.name,
+      ariaLabel: ariaPrefix + store.name,
+      onClick: typeof onNavigate === 'function' ? () => onNavigate(store) : undefined
+    })
+    btn.dataset.bookstoreId = store.id
+    buttonContainer.appendChild(btn)
+  })
+
+  container.appendChild(buttonContainer)
+  return container
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     createButton,
@@ -291,6 +334,7 @@ if (typeof module !== 'undefined' && module.exports) {
     createStatusIndicator,
     createProgressSection,
     createResultsSection,
-    createErrorSection
+    createErrorSection,
+    createBookstoreNavSection
   }
 }

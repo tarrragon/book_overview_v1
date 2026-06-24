@@ -136,6 +136,18 @@ if (typeof require !== 'undefined') {
   uiFactory = (typeof window !== 'undefined' && window.PopupUIFactory) || null
 }
 
+// bookstore-config — 書城清單 SSOT（1.4.2-W1-001）
+let BOOKSTORE_LIST
+if (typeof require !== 'undefined') {
+  try {
+    ({ BOOKSTORE_LIST } = require('./constants/bookstore-config'))
+  } catch (e) {
+    BOOKSTORE_LIST = []
+  }
+} else {
+  BOOKSTORE_LIST = []
+}
+
 // 初始化 Popup Logger
 const popupMessages = new MessageDictionary({
   POPUP_INTERFACE_LOADED: 'Popup Interface 載入完成',
@@ -1270,6 +1282,28 @@ function buildImportPanelElements () {
   }
 }
 
+/**
+ * 建立書庫導航選單並掛載到 bookstoreNavMount（1.4.2-W1-001）。
+ */
+function mountBookstoreNav () {
+  const mount = document.getElementById('bookstoreNavMount')
+  if (!mount || !uiFactory || !uiFactory.createBookstoreNavSection) return
+  if (!BOOKSTORE_LIST || BOOKSTORE_LIST.length === 0) return
+
+  const { NAVIGATION_TEXT } = popupConstants
+
+  const section = uiFactory.createBookstoreNavSection({
+    bookstores: BOOKSTORE_LIST,
+    sectionTitle: NAVIGATION_TEXT.SECTION_TITLE,
+    ariaPrefix: NAVIGATION_TEXT.GO_BUTTON_ARIA_PREFIX,
+    onNavigate: (store) => {
+      chrome.tabs.create({ url: store.url })
+    }
+  })
+
+  mount.appendChild(section)
+}
+
 // ==================== 初始化和生命週期管理 ====================
 
 /**
@@ -1313,6 +1347,9 @@ async function initialize () {
 
     // 以集中常數覆寫 HTML 靜態 UI 文字，使 constants/ui-text.js 成為運行時來源
     applyStaticUIText()
+
+    // 書庫導航選單掛載（1.4.2-W1-001）
+    mountBookstoreNav()
 
     // 步驟2: 更新版本顯示
     if (initializationTracker) {
@@ -1696,6 +1733,9 @@ if (typeof window !== 'undefined') {
   window.handleTestEnvironmentResponse = handleTestEnvironmentResponse
   window.handleSuccessfulBackgroundResponse = handleSuccessfulBackgroundResponse
   window.generateErrorDiagnostic = generateErrorDiagnostic
+
+  // 書庫導航
+  window.mountBookstoreNav = mountBookstoreNav
 
   // 暴露常數供測試驗證
   window.STATUS_TYPES = STATUS_TYPES

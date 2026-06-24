@@ -7,8 +7,10 @@
 
 const uiText = require('./ui-text')
 const layout = require('./layout')
+const bookstoreConfig = require('./bookstore-config')
 
 module.exports = {
   ...uiText,
-  ...layout
+  ...layout,
+  ...bookstoreConfig
 }

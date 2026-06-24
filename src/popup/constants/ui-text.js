@@ -101,6 +101,11 @@ const MESSAGE_TYPES = Object.freeze({
   START_EXTRACTION: 'START_EXTRACTION'
 })
 
+const NAVIGATION_TEXT = Object.freeze({
+  SECTION_TITLE: '前往書庫',
+  GO_BUTTON_ARIA_PREFIX: '前往 '
+})
+
 module.exports = {
   HEADER_TEXT,
   STATUS_TEXT,
@@ -112,5 +117,6 @@ module.exports = {
   VERSION_TEXT,
   DIALOG_TEXT,
   STATUS_TYPES,
-  MESSAGE_TYPES
+  MESSAGE_TYPES,
+  NAVIGATION_TEXT
 }
