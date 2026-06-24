@@ -1,0 +1,53 @@
+name: Release
+
+# 版本發布把關：推送 v* tag 時自動跑完整測試 + 重新打包生產版 release zip，
+# 並以 asset 發佈到對應 tag 的 GitHub Release，供測試者下載。
+# 測試失敗則中止發布，避免未測試版本流出（對應 ticket 1.4.2-W1-007）。
+# 與 .github/workflows/lint.yml 並存：lint 攔截 ESLint 違規，本 workflow 把關發布。
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# 同 tag 的新 push 取消舊的進行中 run，避免重複發布同一版本。
+# group 前綴 release- 與 lint.yml 的 lint- 不衝突。
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+# 發佈 GitHub Release 需寫入 repo contents 權限。
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Test and Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # 專案無 .nvmrc / package.json engines，採用 Node LTS（對齊 lint.yml）
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      # 測試失敗則此步驟非零退出，後續打包與發佈步驟不執行 → 中止發布
+      - name: Run tests
+        run: npm test
+
+      # package:release 內部會先跑 build:prod，再壓出 release/readmoo-book-extractor-v<version>.zip
+      - name: Package production release
+        run: npm run package:release
+
+      # 以 glob 上傳避免硬編版本號；GITHUB_TOKEN 由 action 自動帶入，配合 permissions contents:write
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.zip
