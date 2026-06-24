@@ -250,12 +250,14 @@ function createBookDataExtractor () {
         // 提取所有書籍（內部含捲動載入全部書籍）
         const booksData = await readmooAdapter.extractAllBooks()
 
-        // 診斷日誌：確認資料傳遞
-        // eslint-disable-next-line no-console
-        console.info('[DIAG] performActualExtraction 收到資料:', {
-          count: booksData.length,
-          firstBook: booksData[0] ? { id: booksData[0].id, title: booksData[0].title } : null
-        })
+        // eslint-disable-next-line no-undef
+        if (process.env.NODE_ENV !== 'production') {
+          // eslint-disable-next-line no-console
+          console.info('[DIAG] performActualExtraction 收到資料:', {
+            count: booksData.length,
+            firstBook: booksData[0] ? { id: booksData[0].id, title: booksData[0].title } : null
+          })
+        }
 
         // 提取結果為空時輸出 error 日誌
         if (booksData.length === 0) {

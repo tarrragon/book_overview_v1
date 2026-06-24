@@ -55,12 +55,10 @@ function createPageDetector () {
       isReadmooPage = location.hostname && location.hostname.includes('readmoo.com')
       pageType = isReadmooPage ? this.detectPageType() : 'unknown'
 
-      // Logger 後備方案: Content Script 頁面檢測記錄
-      // 設計理念: Content Script 運行在網頁環境，Logger 服務可能不可用
-      // 後備機制: console.log 提供頁面檢測結果的直接可見性
-      // 使用場景: Readmoo 頁面檢測結果記錄，便於開發者除錯和確認
-      // eslint-disable-next-line no-console
-      console.log(`[DETECT] 頁面檢測: ${isReadmooPage ? 'Readmoo' : '非Readmoo'} 頁面 (${pageType})`)
+      // eslint-disable-next-line no-undef
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[DETECT] 頁面檢測: ${isReadmooPage ? 'Readmoo' : '非Readmoo'} 頁面 (${pageType})`) // eslint-disable-line no-console
+      }
 
       return { isReadmooPage, pageType }
     },
@@ -169,11 +167,8 @@ function createPageDetector () {
           const newStatus = this.getPageStatus()
 
           // Logger 後備方案: Content Script URL 變更除錯記錄
-          // 設計理念: URL 變更檢測需要詳細除錯資訊，但不應影響效能
-          // 後備機制: 僅在 console.debug 可用時記錄，避免生產環境影響
-          // 使用場景: SPA 頁面導航檢測的除錯追蹤，提供狀態變更詳細資訊
-          // eslint-disable-next-line no-console
-          if (typeof console !== 'undefined' && console.debug) {
+          // eslint-disable-next-line no-undef, no-console
+          if (process.env.NODE_ENV !== 'production' && typeof console !== 'undefined' && console.debug) {
             // eslint-disable-next-line no-console
             console.debug('URL 變更檢測:', {
               from: oldUrl,
