@@ -86,6 +86,7 @@ const readmooAdapterMessages = new MessageDictionary({
   BOOK_INSUFFICIENT_DATA: '書籍資料不足 (title / id / cover 全部缺失)',
   BOOK_PARSE_ELEMENT_FAILED: '書籍元素解析失敗 (element: {elementTag}.{elementClass})',
   COVERAGE_INCOMPLETE: '書庫提取涵蓋不完整 (missingCount: {missingCount}, reason: {reason})',
+  COVER_SCROLL_FAILED: '封面整頁捲動觸發失敗 (segments: {segments})',
   DOCUMENT_UNAVAILABLE: 'document 物件無法取得 (非瀏覽器環境或 SW context)',
   DOM_QUERY_FAILED: 'DOM 查詢失敗',
   FIND_SCROLL_CONTAINER_FAILED: '捲動容器辨識失敗',
@@ -130,6 +131,8 @@ function createReadmooAdapter (options = {}) {
   // 動態取得環境物件的輔助函數
   const getDocument = () => options.document || globalThis.document || window?.document
   const getLocation = () => globalThis.location || window?.location || {}
+  // 取得 window 物件（整頁捲動用）；Service Worker 無 window，退回 globalThis
+  const getWindow = () => options.window || globalThis.window || globalThis
 
   // DOM 選擇器配置 (與 ReadmooAdapter 保持一致)
   const SELECTORS = {
@@ -190,6 +193,17 @@ function createReadmooAdapter (options = {}) {
   // findScrollableAncestor 原各自 local 定義且值不一致＝10 vs 12，提為單一共用常數）。
   // 取較大者 12 為共用上界，涵蓋 Readmoo .library-item 到捲動容器的祖先深度。
   const MAX_ANCESTOR_DEPTH = 12
+
+  // W2-005.1：封面真圖替換的整頁捲動參數（實機取證 2026-06-24）
+  // 根因——Readmoo 封面是 viewport 可見性驅動替換：viewport 外 .library-item
+  // 的 cover-img src 維持 placeholder（/images/openbook.png），進入 viewport
+  // 後 React 才換成真實 CDN URL。全部 item 載入後需「漸進整頁從頂捲到底」
+  // 讓每本書進過 viewport，再進行提取，否則 68% 封面為 placeholder。
+  // 採整頁 window.scrollTo（document.scrollingElement）——實驗 3 證 #react-container
+  // 不可捲（scrollHeight==clientHeight），真正可捲者為整頁。
+  const COVER_SCROLL_SEGMENT_RATIO = 0.8 // 每段捲動量為 viewport 高度的比例（保留重疊）
+  const COVER_SCROLL_SEGMENT_WAIT_MS = 300 // 每段捲動後等待封面真圖載入的毫秒數
+  const COVER_SCROLL_MAX_SEGMENTS = 200 // 分段數硬上限（防無限迴圈）
 
   const adapter = {
     // 適配器標準屬性
@@ -632,11 +646,37 @@ function createReadmooAdapter (options = {}) {
         }
       }
 
+      // 動作 1.5（W2-005.1 F3 防禦）：整頁捲到底。findScrollContainer 在實機
+      // 恆先命中 #react-container（不可捲，scrollHeight==clientHeight），僅靠
+      // container.scrollTop 無效（實驗 3）。額外整頁 window.scrollTo 確保不依賴
+      // 不可捲容器，使虛擬捲動觸發路徑對任一策略皆有效。
+      this._scrollWindowToBottom()
+
       // 動作 2：點擊底部「更多...」按鈕觸發官方分頁載入。
       // 與動作 1 並行而非二擇一——實機 selector 策略恆優先命中容器，
       // 若僅靠 strategy 分支則按鈕永不被點擊，首批 96 無法展開（W1-040 根因）。
       // 按鈕在全部載入完成後消失，findLoadMoreButton 回傳 null 時略過。
       this._clickLoadMoreButton()
+    },
+
+    /**
+     * 整頁捲動至底部（W2-005.1 F3，可注入私有方法）
+     *
+     * 由 _scrollStep 每輪呼叫，作為容器 scrollTop 的防禦性補強：findScrollContainer
+     * 命中的 #react-container 不可捲時，整頁 window.scrollTo 仍能觸發虛擬捲動。
+     * window 不可用（SW context）或 scrollTo 例外時靜默略過，不中斷捲動流程。
+     */
+    _scrollWindowToBottom () {
+      try {
+        const win = getWindow()
+        const document = getDocument()
+        if (!win || typeof win.scrollTo !== 'function' || !document) return
+        const scrollingEl = document.scrollingElement || document.documentElement
+        const bottom = scrollingEl?.scrollHeight ?? 0
+        win.scrollTo(0, bottom)
+      } catch (scrollError) {
+        // 整頁捲動 best-effort：失敗不影響容器捲動與按鈕點擊路徑
+      }
     },
 
     /**
@@ -657,6 +697,130 @@ function createReadmooAdapter (options = {}) {
       }
       if (typeof loadMoreBtn.click === 'function') {
         loadMoreBtn.click()
+      }
+    },
+
+    /**
+     * 等待指定毫秒（W2-005.1，可注入私有方法）
+     *
+     * 抽為獨立方法使整頁捲動的「每段等待封面載入」可被 fake timer 推進，
+     * 並可在測試中以 jest.spyOn 注入即時 resolve 以驗證捲動分段邏輯本身。
+     *
+     * @param {number} ms - 等待毫秒數
+     * @returns {Promise<void>}
+     */
+    _waitMs (ms) {
+      return new Promise(resolve => setTimeout(resolve, ms))
+    },
+
+    /**
+     * 提取前漸進整頁捲過全部書籍，觸發封面真圖替換（W2-005.1）
+     *
+     * 根因（實機取證 2026-06-24）：Readmoo 書庫封面是「viewport 可見性驅動
+     * 替換」而非標準 lazy-load——viewport 外的 .library-item 其 cover-img src
+     * 為 placeholder（/images/openbook.png），進入過 viewport 後 React 才換成
+     * 真實 CDN URL（實驗 2 證 window.scrollTo 捲到底後 placeholder 歸零、
+     * 真圖載入後不回收）。即使全部 965 本 item 已載入，提取當下停在某 scroll
+     * 位置，viewport 外的最後約 90 本封面仍是 placeholder（實驗 5）。
+     *
+     * 演算法：以整頁 window.scrollTo 從頂（0）漸進捲到底，每段捲動量為
+     * viewport 高度的 COVER_SCROLL_SEGMENT_RATIO 倍（保留重疊避免遺漏），
+     * 每段後等待 COVER_SCROLL_SEGMENT_WAIT_MS 讓進入 viewport 的封面載入真圖。
+     * 捲到底（scrollY 不再增加或達 scrollHeight）即停止。COVER_SCROLL_MAX_SEGMENTS
+     * 為分段數硬上限，防 scrollY 異常不增時無限迴圈。
+     *
+     * 採整頁捲動而非容器 scrollTop：實驗 3 證 #react-container 不可捲
+     * （scrollHeight==clientHeight），真正可捲者為整頁 document.scrollingElement。
+     *
+     * 此方法永遠 resolve（不 reject）：window 不可用、scrollTo 例外或量測例外時
+     * 降級提早結束，不讓提取流程整體失敗。捲動結束後不還原位置——後續
+     * loadAllBooksLazy finalize 會統一還原容器位置。
+     *
+     * @param {Object} [coverScrollOptions={}] - 覆寫捲動參數（測試用）
+     * @param {number} [coverScrollOptions.segmentWaitMs] - 每段等待毫秒（預設 COVER_SCROLL_SEGMENT_WAIT_MS）
+     * @param {number} [coverScrollOptions.maxSegments] - 分段數上限（預設 COVER_SCROLL_MAX_SEGMENTS）
+     * @returns {Promise<{ segments: number, reason: string }>}
+     *   segments 為實際捲動段數；reason 枚舉：
+     *   reached_bottom / max_segments / no_window / no_scroll_needed / error
+     */
+    async _scrollThroughAllItemsForCovers (coverScrollOptions = {}) {
+      const segmentWaitMs = coverScrollOptions.segmentWaitMs ?? COVER_SCROLL_SEGMENT_WAIT_MS
+      const maxSegments = coverScrollOptions.maxSegments ?? COVER_SCROLL_MAX_SEGMENTS
+      let segments = 0
+
+      try {
+        const win = getWindow()
+        const document = getDocument()
+        if (!win || typeof win.scrollTo !== 'function' || !document) {
+          return { segments, reason: 'no_window' }
+        }
+
+        // 整頁可捲總高與 viewport 高（document.scrollingElement 為整頁捲動主體）
+        const scrollingEl = document.scrollingElement || document.documentElement
+        if (!scrollingEl) {
+          return { segments, reason: 'no_window' }
+        }
+
+        const viewportHeight = win.innerHeight || scrollingEl.clientHeight || 0
+        const totalHeight = scrollingEl.scrollHeight || 0
+        // 整頁不可捲（內容未超出 viewport）：無 placeholder 需觸發，提早結束
+        if (viewportHeight <= 0 || totalHeight <= viewportHeight) {
+          return { segments, reason: 'no_scroll_needed' }
+        }
+
+        const segmentStep = Math.max(1, Math.floor(viewportHeight * COVER_SCROLL_SEGMENT_RATIO))
+        let targetY = 0
+        let prevScrollY = -1
+
+        // 從頂漸進捲到底：每段 scrollTo + 等待封面載入
+        while (segments < maxSegments) {
+          win.scrollTo(0, targetY)
+          segments++
+
+          // 等待進入 viewport 的封面真圖載入（可 fake timer 推進）
+          await this._waitMs(segmentWaitMs)
+
+          const currentScrollY = this._readScrollY(win, scrollingEl)
+
+          // 已捲到底：scrollY 達可捲底部（totalHeight - viewportHeight）即停止
+          if (currentScrollY >= totalHeight - viewportHeight) {
+            return { segments, reason: 'reached_bottom' }
+          }
+
+          // 防護：scrollY 連兩段不再增加（容器拒絕捲動）即停止，避免空轉
+          if (currentScrollY <= prevScrollY) {
+            return { segments, reason: 'reached_bottom' }
+          }
+          prevScrollY = currentScrollY
+
+          targetY += segmentStep
+        }
+
+        return { segments, reason: 'max_segments' }
+      } catch (error) {
+        logger.warn('COVER_SCROLL_FAILED', { error: error.message, segments })
+        return { segments, reason: 'error' }
+      }
+    },
+
+    /**
+     * 讀取整頁當前捲動位置（W2-005.1，容錯 helper）
+     *
+     * 優先 window.scrollY（整頁捲動標準屬性），退回 scrollingElement.scrollTop。
+     * 讀取例外時回傳 0，不中斷捲動流程。
+     *
+     * @param {Window} win - window 物件
+     * @param {HTMLElement} scrollingEl - document.scrollingElement
+     * @returns {number} 當前捲動 Y 位置
+     */
+    _readScrollY (win, scrollingEl) {
+      try {
+        if (typeof win.scrollY === 'number') {
+          return win.scrollY
+        }
+        return scrollingEl?.scrollTop ?? 0
+      } catch (readError) {
+        return 0
       }
     },
 
@@ -810,6 +974,11 @@ function createReadmooAdapter (options = {}) {
         const firstIds = this._measureBooks()
         firstIds.forEach(id => bookIdSet.add(id))
         if (expectedTotal !== null && bookIdSet.size >= expectedTotal) {
+          // W2-005.1：即使首批即完整（item 全載入），viewport 外封面仍是
+          // placeholder，需整頁捲過全部書籍觸發封面真圖替換後再提取。
+          await this._scrollThroughAllItemsForCovers()
+          // 捲過後重新量測（unique Set 天然去重，僅補入捲動中新渲染的 item）
+          this._measureBooks().forEach(id => bookIdSet.add(id))
           return finalize('already_complete', container, originalScrollTop)
         }
 
@@ -865,6 +1034,14 @@ function createReadmooAdapter (options = {}) {
             break
           }
         }
+
+        // W2-005.1：全部 item 載入後（主迴圈結束），整頁漸進捲過全部書籍
+        // 觸發封面真圖替換——viewport 外 .library-item 封面為 placeholder
+        // （/images/openbook.png），需進過 viewport 後 React 才換真實 CDN URL。
+        // 此步驟為封面完整性的必要條件（實驗 5 證僅「載入 item」不足）。
+        await this._scrollThroughAllItemsForCovers()
+        // 捲過後重新量測（unique Set 天然去重，僅補入捲動中新渲染的 item）
+        this._measureBooks().forEach(id => bookIdSet.add(id))
 
         return finalize(stopReason, container, originalScrollTop)
       } catch (error) {
