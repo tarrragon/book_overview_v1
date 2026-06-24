@@ -871,7 +871,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       })
     })
 
-    test('renderBooksTable 應為每本書渲染 tag chips（含 category 色彩）', () => {
+    test('展開按鈕點擊後應渲染 tag chips（含 category 色彩）', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
       controller.tagMap = mockTags
@@ -884,14 +884,20 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       controller.renderBooksTable(books)
 
       const tableBody = document.getElementById('tableBody')
-      const tagChips = tableBody.querySelectorAll('.tag-chip')
+      const expandBtn = tableBody.querySelector('.expand-toggle-btn')
+      expect(expandBtn).not.toBeNull()
+      expandBtn.click()
+
+      const expandRow = tableBody.querySelector('.tag-expand-row')
+      expect(expandRow).not.toBeNull()
+      const tagChips = expandRow.querySelectorAll('.tag-chip')
       expect(tagChips.length).toBe(2)
       expect(tagChips[0].textContent).toContain('小說')
       expect(tagChips[0].style.color).toBe('rgb(233, 30, 99)')
       expect(tagChips[1].textContent).toContain('AI')
     })
 
-    test('tag 超過 3 個時應顯示前 3 個 + +N 摺疊指示器', () => {
+    test('展開後 tag 超過 3 個時應顯示前 3 個 + +N 摺疊指示器', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
       controller.tagMap = mockTags
@@ -904,15 +910,19 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       controller.renderBooksTable(books)
 
       const tableBody = document.getElementById('tableBody')
-      const tagChips = tableBody.querySelectorAll('.tag-chip:not(.tag-chip--more)')
-      const moreChip = tableBody.querySelector('.tag-chip--more')
+      const expandBtn = tableBody.querySelector('.expand-toggle-btn')
+      expandBtn.click()
+
+      const expandRow = tableBody.querySelector('.tag-expand-row')
+      const tagChips = expandRow.querySelectorAll('.tag-chip:not(.tag-chip--more)')
+      const moreChip = expandRow.querySelector('.tag-chip--more')
 
       expect(tagChips.length).toBe(3)
       expect(moreChip).not.toBeNull()
       expect(moreChip.textContent).toContain('+2')
     })
 
-    test('無 tag 書籍應顯示灰色「未分類」', () => {
+    test('展開後無 tag 書籍應顯示「未分類」', () => {
       const { OverviewPageController } = require('src/overview/overview-page-controller')
       const controller = new OverviewPageController(mockEventBus, document)
       controller.tagMap = mockTags
@@ -925,9 +935,12 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       controller.renderBooksTable(books)
 
       const tableBody = document.getElementById('tableBody')
-      const bookTags = tableBody.querySelector('.book-tags')
-      expect(bookTags).not.toBeNull()
-      expect(bookTags.textContent).toContain('未分類')
+      const expandBtn = tableBody.querySelector('.expand-toggle-btn')
+      expandBtn.click()
+
+      const expandRow = tableBody.querySelector('.tag-expand-row')
+      expect(expandRow).not.toBeNull()
+      expect(expandRow.textContent).toContain('未分類')
     })
 
     test('resolveTagsForDisplay 應跳過無效的 tagIds', () => {
