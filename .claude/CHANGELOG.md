@@ -1,3 +1,132 @@
+## [2.1.4] - 2026-06-24
+
+### Summary
+fix(tests): 追蹤 dispatch stats 測試 fixture sample_events.jsonl（修正 *.jsonl 規則誤殺）
+
+---
+
+## [2.1.3] - 2026-06-24
+
+### Summary
+fix(hooks): main hook sys.path 對齊 W2010 正規化範本 + 落地 Phase 2 條件式判斷/FR↔Ticket 覆蓋矩陣/spec 維度 3a3b 框架增強
+
+---
+
+## [2.1.2] - 2026-06-24
+
+### Summary
+fix: 修復 version.py 衝突解決遺漏的 docstring 和 import; chore: pull .claude 更新（上游 3c0445ab77b4）
+
+Changes: 1 fix, 1 chore
+
+- fix: 修復 version.py 衝突解決遺漏的 docstring 和 import
+- chore: pull .claude 更新（上游 3c0445ab77b4）
+
+---
+
+## [2.1.1] - 2026-06-24
+
+### Summary
+sync .claude configuration
+
+---
+
+## [2.1.0] - 2026-06-24
+
+### Summary
+feat: sync-pull post-sync 告警 settings.local.json 含 hook; feat: hook-completeness --fix opt-in prune 幽靈 local hook; feat: sync-pull post-sync hook import 驗證 (+15 more)
+
+Changes: 4 feat, 2 refactor, 7 fix, 5 docs
+
+- feat: sync-pull post-sync 告警 settings.local.json 含 hook
+- feat: hook-completeness --fix opt-in prune 幽靈 local hook
+- feat: sync-pull post-sync hook import 驗證
+- feat: test-hook-imports.sh 一鍵 hook import 煙霧測試
+- refactor: lib/ 內 from hook_utils import 正規化
+- refactor: 清理 hooks/lib 文字殘留 + 刪殘留目錄
+- fix: dashboard 重用已載入 tickets 消除冗餘 subprocess
+- fix: staleness 警告排除 trigger_bound ticket
+- fix: 修 lib/tests 16 個 stale patch 目標
+- fix: 修 scripts/tests 2 個 stale 測試
+- fix: 修 test_dispatch_stats.py 38 errors（雙根因）
+- fix: .gitignore 補齊 sync-skills.yaml + git rm --cached untrack
+- fix: skill-sync SKILL.md 補齊 YAML frontmatter + 建立 issue #10 追蹤 tickets
+- docs: cbm MCP namespace 已曝光於 ToolSearch，更新工具參考
+- docs: 固化框架 hook 單一註冊來源原則於 PC-148
+- docs: 新增 PC-V1-012 防護置於便利攔截介面而非變異源頭
+- docs: hook sys.path 標準模板文件
+- docs: sync-pull breaking change consumer checklist
+
+---
+
+## [2.0.1] - 2026-06-23
+
+### Summary
+chore: VERSION bump to 2.0.0 (align with framework breaking change)
+
+Changes: 1 chore
+
+- chore: VERSION bump to 2.0.0 (align with framework breaking change)
+
+---
+
+## [1.62.0] - 2026-06-23
+
+### Summary
+feat: sync-push/pull 新增 skill 版本 diff 摘要
+
+Changes: 1 feat
+
+- feat: sync-push/pull 新增 skill 版本 diff 摘要
+
+---
+
+## [1.61.2] - 2026-06-23
+
+### Summary
+chore: 補齊 8 個 skill 版本號
+
+Changes: 1 chore
+
+- chore: 補齊 8 個 skill 版本號
+
+---
+
+## [1.61.1] - 2026-06-23
+
+### Summary
+docs: IMP-V1-003 補充 復發案例——scripts/ 遺漏 + 擴充預防措施
+
+Changes: 1 docs
+
+- docs: IMP-V1-003 補充 復發案例——scripts/ 遺漏 + 擴充預防措施
+
+---
+
+## [1.61.0] - 2026-06-23
+
+### Summary
+feat: ticket CLI 全完成版本偵測 warning; feat: TDD 紅綠燈計數改用結構化 JSON 輸出; feat: identity-guard telemetry 新增 caller_type 欄位 (+11 more)
+
+Changes: 3 feat, 2 refactor, 5 fix, 3 docs, 1 chore
+
+- feat: ticket CLI 全完成版本偵測 warning
+- feat: TDD 紅綠燈計數改用結構化 JSON 輸出
+- feat: identity-guard telemetry 新增 caller_type 欄位
+- refactor: merge hooks/lib/ into lib/
+- refactor: migrate 8 hooks to skill directories
+- fix: sync scripts import 路徑對齊 lib 合併（ 遺漏）
+- fix: update_todolist 支援不帶引號的 YAML status 格式
+- fix: 修正搬移回歸——test import 路徑 sync_exclude_manifest → lib.sync_exclude_manifest
+- fix: 修正 version-release-guard-hook sys.path（搬移後 hook_io import 失敗）
+- fix: update sys.path and test imports for migrated hooks
+- docs: --as 轉強制重評裁決——維持 warn-only（使用率 49.3% 未達 80%）
+- docs: IMP-V1-003 hook 搬移後 sys.path 指向錯誤 lib 目錄
+- docs: 更新 sync-exclusion-guide — 新增類型 E + sync-skills.yaml 說明
+- chore: pull .claude 更新（上游 36b86cc）
+
+---
+
 ## [1.60.2] - 2026-06-23
 
 ### Summary
