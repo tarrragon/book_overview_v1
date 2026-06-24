@@ -841,7 +841,7 @@ function handleHandshakeResponse (response) {
     return true
   }
   if (response && response.success && response.initializing) {
-    updateStatus('初始化中', '初始化中 — 背景服務正在啟動', '系統初始化中，請稍候', STATUS_TYPES.LOADING)
+    updateStatus('初始化中', '擴充功能正在啟動', '系統初始化中，請稍候', STATUS_TYPES.LOADING)
   }
   return null
 }
