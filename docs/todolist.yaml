@@ -17,6 +17,44 @@ versions:
   - version: "1.4.1"
     status: active
     description: "根目錄清理與框架維護"
+
+  - version: "1.5.0"
+    status: planned
+    description: "多書城支援 — 博客來 DOM 觀察 + 適配器"
+    notes: |
+      PROP-001 第一站。博客來書庫頁 DOM 勘查、自動載入機制分析、
+      platform adapter 實作。含多書城共用架構（PlatformIsolationService 骨架）。
+
+  - version: "1.6.0"
+    status: planned
+    description: "多書城支援 — Kobo DOM 觀察 + 適配器"
+
+  - version: "1.7.0"
+    status: planned
+    description: "多書城支援 — BookWalker DOM 觀察 + 適配器"
+
+  - version: "1.8.0"
+    status: planned
+    description: "多書城支援 — Kindle Amazon.co.jp DOM 觀察 + 適配器"
+
+  - version: "1.9.0"
+    status: planned
+    description: "多書城支援 — Kindle Amazon.com DOM 觀察 + 適配器"
+
+  - version: "1.10.0"
+    status: planned
+    description: "多書城支援 — Google Play Books DOM 觀察 + 適配器"
+
+  - version: "1.11.0"
+    status: planned
+    description: "多書城支援 — Audible 有聲書 DOM 觀察 + 適配器"
+
+  - version: "2.0.0"
+    status: planned
+    description: "多書城統一管理 + Chrome Web Store 上架"
+    notes: |
+      整合所有書城適配器、多書城資料隔離、統一匯出入、
+      Chrome Web Store 上架準備。對應 PROP-001 完整落地。
   - version: "1.3.0"
     status: completed
     description: "Skill 獨立上架規範 + 框架外移 + 觀察型任務收斂"
