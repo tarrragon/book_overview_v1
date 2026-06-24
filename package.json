@@ -31,6 +31,7 @@
     "build:prod": "node scripts/build.js --prod",
     "package": "npm run build:prod && node scripts/package.js",
     "package:zip": "node scripts/package.js",
+    "package:release": "node scripts/package-release.js",
     "validate:build": "node scripts/validate-build.js",
     "validate:build:prod": "node scripts/validate-build.js --prod",
     "validate:manifest": "node scripts/validate-manifest.js",
