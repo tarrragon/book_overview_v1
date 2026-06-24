@@ -47,8 +47,11 @@ const LEVEL_PRIORITIES = {
   ERROR: 3
 }
 
+// esbuild define 在 bundle 時將 process.env.NODE_ENV 替換為字串常量，
+// 整個三元在 bundle 後靜態求值為 LEVEL_PRIORITIES.WARN 或 .DEBUG。
+// 不加 typeof process 防護——esbuild 已消除 process 引用。
 // eslint-disable-next-line no-undef
-const PROD_LOG_FLOOR = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production') ? LEVEL_PRIORITIES.WARN : LEVEL_PRIORITIES.DEBUG
+const PROD_LOG_FLOOR = (process.env.NODE_ENV === 'production') ? LEVEL_PRIORITIES.WARN : LEVEL_PRIORITIES.DEBUG
 
 class Logger {
   /**
