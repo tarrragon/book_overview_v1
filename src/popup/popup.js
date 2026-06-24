@@ -948,7 +948,11 @@ async function checkCurrentTab () {
         const response = await chrome.tabs.sendMessage(tab.id, { type: MESSAGE_TYPES.PING })
 
         if (response && response.success) {
-          elements.bookCount.textContent = '檢測中...'
+          if (response.bookCount !== undefined) {
+            elements.bookCount.textContent = String(response.bookCount)
+          } else {
+            elements.bookCount.textContent = '0'
+          }
           updateStatus('就緒', 'Content Script 連線正常', '可以開始提取書庫資料', STATUS_TYPES.READY)
           updateButtonState(false)
           return tab
