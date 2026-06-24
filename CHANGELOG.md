@@ -2,6 +2,19 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [1.4.3] - 2026-06-25
+
+### Added
+- Popup 書庫跳轉選單（W1-001）
+- prod 打包腳本 package:release 與 release/ 分發包（W1-006）
+- CI 發布工作流 release.yml：tag 觸發測試、打包、發佈 GitHub Releases（W1-007）
+
+### Changed
+- popup 狀態 badge 詞彙統一：線上/離線 改為 就緒/未連線（W1-005.1）
+- CI actions 升級：Node 24、checkout@v5、setup-node@v5、action-gh-release@v3（W1-009）
+
+---
+
 ## [1.4.1] - 2026-06-24
 
 **[OK] UC-XX 功能名稱 - TDD 四階段完成**
