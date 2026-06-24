@@ -41,6 +41,7 @@ class ContentMessageHandler extends BaseModule {
       'CONTENT.TO.BACKGROUND',
       'CONTENT.EVENT.FORWARD',
       'CONTENT.STATUS.UPDATE',
+      'CONTENT.STATUS.READY',
       'CONTENT.SCRIPT.READY',
       'CONTENT.SCRIPT.ERROR'
     ])
@@ -212,6 +213,7 @@ class ContentMessageHandler extends BaseModule {
       case 'CONTENT.STATUS.UPDATE':
         return await this.handleContentStatusUpdate(message, sender, sendResponse)
 
+      case 'CONTENT.STATUS.READY':
       case 'CONTENT.SCRIPT.READY':
         return await this.handleContentScriptReady(message, sender, sendResponse)
 
