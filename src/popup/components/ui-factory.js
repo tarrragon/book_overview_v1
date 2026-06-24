@@ -338,3 +338,15 @@ if (typeof module !== 'undefined' && module.exports) {
     createBookstoreNavSection
   }
 }
+
+if (typeof window !== 'undefined') {
+  window.PopupUIFactory = {
+    createButton,
+    createCard,
+    createStatusIndicator,
+    createProgressSection,
+    createResultsSection,
+    createErrorSection,
+    createBookstoreNavSection
+  }
+}

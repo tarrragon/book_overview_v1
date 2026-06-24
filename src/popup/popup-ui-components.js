@@ -23,12 +23,15 @@ console.log('[POPUP DEBUG] popup-ui-components.js 已載入')
  */
 
 // ui-factory（CommonJS 匯出；jsdom 測試與 esbuild bundle 共用同一份）
-const {
-  createStatusIndicator,
-  createProgressSection,
-  createResultsSection,
-  createErrorSection
-} = require('src/popup/components/ui-factory')
+// Chrome runtime 以獨立 <script> tag 載入，require 不存在；fallback 到 window.PopupUIFactory
+let uiFactoryExports
+if (typeof require !== 'undefined') {
+  try { uiFactoryExports = require('src/popup/components/ui-factory') } catch (_e) { /* bundle 外 */ }
+}
+if (!uiFactoryExports && typeof window !== 'undefined' && window.PopupUIFactory) {
+  uiFactoryExports = window.PopupUIFactory
+}
+const { createStatusIndicator, createProgressSection, createResultsSection, createErrorSection } = uiFactoryExports || {}
 
 // 常數定義
 const STATUS_TYPES = {

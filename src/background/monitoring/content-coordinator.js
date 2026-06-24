@@ -575,6 +575,12 @@ class ContentCoordinator extends BaseModule {
 
       this.logger.log(`[RETRY] 嘗試重新連接 Content Script: Tab ${tabId} (${contentScript.retryCount}/${this.config.maxRetries})`)
 
+      if (typeof chrome === 'undefined' || !chrome.scripting) {
+        this.logger.warn('[SKIP] chrome.scripting 不可用，跳過重連')
+        contentScript.status = CONTENT_SCRIPT_STATES.ERROR
+        return
+      }
+
       // 嘗試重新注入 Content Script
       await chrome.scripting.executeScript({
         target: { tabId },
