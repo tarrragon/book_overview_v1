@@ -369,8 +369,14 @@ async function getPageStatus () {
 function getHealthStatus () {
   const pageStatus = pageDetector ? pageDetector.getPageStatus() : {}
 
+  let bookCount = 0
+  if (readmooAdapter && pageStatus.isReadmooPage) {
+    bookCount = readmooAdapter.getBookElements().length
+  }
+
   return {
     ...pageStatus,
+    bookCount,
     modules: {
       pageDetector: !!pageDetector,
       contentEventBus: !!contentEventBus,

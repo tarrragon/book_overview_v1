@@ -142,7 +142,7 @@ describe('Popup 終態 sticky 機制 (W1-062.1)', () => {
       })
       // sendMessage 回傳 success
       chrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
-        const response = { success: true }
+        const response = { success: true, bookCount: 5 }
         if (callback) callback(response)
         return Promise.resolve(response)
       })
@@ -246,8 +246,7 @@ describe('Popup 終態 sticky 機制 (W1-062.1)', () => {
       })
       chrome.tabs.sendMessage.mockImplementation((tabId, message) => {
         if (message && message.type === 'PING') {
-          // checkCurrentTab 內的 PING 回 success
-          return Promise.resolve({ success: true })
+          return Promise.resolve({ success: true, bookCount: 5 })
         }
         // START_EXTRACTION 拋例外觸發 catch
         return Promise.reject(new Error('Content Script 通訊失敗'))
