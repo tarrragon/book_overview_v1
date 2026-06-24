@@ -47,6 +47,9 @@ const LEVEL_PRIORITIES = {
   ERROR: 3
 }
 
+// eslint-disable-next-line no-undef
+const PROD_LOG_FLOOR = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'production') ? LEVEL_PRIORITIES.WARN : LEVEL_PRIORITIES.DEBUG
+
 class Logger {
   /**
    * 建立 Logger 實例
@@ -123,7 +126,7 @@ class Logger {
   _shouldLog (level) {
     const currentPriority = LEVEL_PRIORITIES[this.level] || LEVEL_PRIORITIES.INFO
     const targetPriority = LEVEL_PRIORITIES[level] || LEVEL_PRIORITIES.INFO
-    return targetPriority >= currentPriority
+    return targetPriority >= currentPriority && targetPriority >= PROD_LOG_FLOOR
   }
 
   /**
