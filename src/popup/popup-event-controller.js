@@ -30,6 +30,7 @@
 const EventHandler = require('src/core/event-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const { Logger } = require('src/core/logging/Logger')
+const { STATUS_BADGE } = require('src/popup/constants/ui-text')
 
 class PopupEventController extends EventHandler {
   /**
@@ -330,7 +331,7 @@ class PopupEventController extends EventHandler {
       })
 
       if (response && response.success) {
-        this.updateStatus('線上', '擴充功能已就緒', '系統就緒', this.STATUS_TYPES.READY)
+        this.updateStatus(STATUS_BADGE.READY, '擴充功能已就緒', '系統就緒', this.STATUS_TYPES.READY)
         return true
       } else {
         const error = (() => {
@@ -342,7 +343,7 @@ class PopupEventController extends EventHandler {
         throw error
       }
     } catch (error) {
-      this.updateStatus('離線', '擴充功能未連線', '請重新載入擴充功能', this.STATUS_TYPES.ERROR)
+      this.updateStatus(STATUS_BADGE.DISCONNECTED, '擴充功能未連線', '請重新載入擴充功能', this.STATUS_TYPES.ERROR)
       return false
     }
   }
