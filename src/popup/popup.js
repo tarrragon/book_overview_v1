@@ -1139,18 +1139,37 @@ function showHelp () {
  * - 支援無障礙功能
  *
  * 設計考量：
- * - 使用標準的 chrome.runtime.openOptionsPage() API
+ * - 已開啟時聚焦既有 overview 分頁並刷新內容，避免重複開啟與顯示舊資料
+ *   （openOptionsPage 在多視窗或特定狀態下去重失效，且聚焦既有頁不刷新）
+ * - 以 chrome.tabs.query 查詢所有分頁，再用 overview.html URL 前綴比對既有頁，
+ *   涵蓋 hash 路由（chrome-extension://<id>/.../overview.html#/library）
  * - 適當的錯誤處理避免使用者困惑
- * - 保持一致的使用者體驗
  *
  * 使用情境：
  * - 使用者點擊「檢視書庫」按鈕時
  * - 提取完成後點擊「查看結果」時
  */
-function openLibraryOverview () {
+async function openLibraryOverview () {
+  const overviewUrl = chrome.runtime.getURL('src/overview/overview.html')
   try {
     Logger.info('開啟書庫總覽頁面...')
-    chrome.runtime.openOptionsPage()
+    // 查詢所有分頁後以 URL 前綴比對既有 overview，涵蓋 hash 路由
+    const tabs = await chrome.tabs.query({})
+    const existingTab = (tabs || []).find(
+      (tab) => typeof tab.url === 'string' && tab.url.startsWith(overviewUrl)
+    )
+
+    if (existingTab) {
+      // 既有頁：聚焦該分頁與其視窗，並刷新內容以顯示最新資料
+      await chrome.tabs.update(existingTab.id, { active: true })
+      if (existingTab.windowId !== undefined) {
+        await chrome.windows.update(existingTab.windowId, { focused: true })
+      }
+      await chrome.tabs.reload(existingTab.id)
+    } else {
+      // 無既有頁：開新分頁
+      await chrome.tabs.create({ url: overviewUrl })
+    }
   } catch (error) {
     Logger.error('無法開啟書庫頁面', { error })
     window.alert('無法開啟書庫頁面，請稍後再試')
@@ -1712,6 +1731,7 @@ if (typeof window !== 'undefined') {
   window.startExtraction = startExtraction
   window.setupExtractionCompletionListener = setupExtractionCompletionListener
   window.setupEventListeners = setupEventListeners
+  window.openLibraryOverview = openLibraryOverview
   window.initialize = initialize
   // W1-062.1：暴露 periodicStatusUpdate 與 isFinalStatus 旗標讀寫供測試使用
   window.periodicStatusUpdate = periodicStatusUpdate

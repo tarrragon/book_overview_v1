@@ -69,6 +69,7 @@ function createRuntimeMock () {
     })),
     sendMessage: jest.fn(),
     getURL: jest.fn((path) => `chrome-extension://test-extension-id/${path}`),
+    openOptionsPage: jest.fn(() => Promise.resolve()),
     reload: jest.fn(),
     onMessage: createEventInterface(),
     onInstalled: createEventInterface(),
@@ -169,6 +170,14 @@ function createTabsMock () {
     update: jest.fn((tabId, updateProperties, callback) => {
       if (callback) callback({ id: tabId, ...updateProperties })
     }),
+    reload: jest.fn((tabId, reloadProperties, callback) => {
+      if (typeof reloadProperties === 'function') {
+        reloadProperties()
+      } else if (callback) {
+        callback()
+      }
+      return Promise.resolve()
+    }),
     remove: jest.fn((tabIds, callback) => {
       if (callback) callback()
     }),
@@ -176,6 +185,30 @@ function createTabsMock () {
     onUpdated: createEventInterface(),
     onCreated: createEventInterface(),
     onRemoved: createEventInterface()
+  }
+}
+
+/**
+ * 建立 chrome.windows mock
+ */
+function createWindowsMock () {
+  return {
+    update: jest.fn((windowId, updateInfo, callback) => {
+      const win = { id: windowId, ...updateInfo }
+      if (callback) callback(win)
+      return Promise.resolve(win)
+    }),
+    get: jest.fn((windowId, getInfo, callback) => {
+      const cb = typeof getInfo === 'function' ? getInfo : callback
+      const win = { id: windowId }
+      if (cb) cb(win)
+      return Promise.resolve(win)
+    }),
+    create: jest.fn((createData, callback) => {
+      const win = { id: 1, ...createData }
+      if (callback) callback(win)
+      return Promise.resolve(win)
+    })
   }
 }
 
@@ -271,6 +304,7 @@ function createCompleteChromeAPIMock (overrides = {}) {
     runtime: createRuntimeMock(),
     storage: createStorageMock(),
     tabs: createTabsMock(),
+    windows: createWindowsMock(),
     action: createActionMock(),
     permissions: createPermissionsMock(),
     scripting: createScriptingMock(),
@@ -361,6 +395,7 @@ module.exports = {
   createStorageLocalMock,
   createStorageSyncMock,
   createTabsMock,
+  createWindowsMock,
   createActionMock,
   createPermissionsMock,
   createScriptingMock,

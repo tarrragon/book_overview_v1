@@ -131,6 +131,9 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
       // 檢查事件系統必要權限
       expect(manifest.permissions).toContain('storage')
       expect(manifest.permissions).toContain('activeTab')
+      // 1.4.2-W2-007：openLibraryOverview 需 tabs.query 跨視窗比對 overview URL
+      // 以聚焦既有頁並刷新，故需要 tabs 權限
+      expect(manifest.permissions).toContain('tabs')
     })
 
     test('應該配置 Readmoo 網站的 host permissions', () => {
@@ -147,9 +150,11 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
 
     test('不應該請求過多的權限', () => {
       // 權限最小化原則 - 不應該有不必要的危險權限
+      // 註：tabs 為 1.4.2-W2-007 openLibraryOverview 聚焦既有 overview 頁所必需，
+      // 不列入危險權限清單（已於上方基本權限測試斷言其存在）
       // eslint-disable-next-line no-unused-vars
       const dangerousPermissions = [
-        'bookmarks', 'history', 'topSites', 'tabs', 'management'
+        'bookmarks', 'history', 'topSites', 'management'
       ]
 
       dangerousPermissions.forEach(permission => {
