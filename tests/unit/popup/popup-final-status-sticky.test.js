@@ -4,7 +4,7 @@
  * 業務情境：
  * - W1-062 修復 storage onChanged 後正確顯示「提取成功 N 本書籍」終態
  * - W1-062 實機驗證發現 popup.js:1363 setInterval(periodicStatusUpdate, 3000)
- *   每 3 秒呼叫 checkCurrentTab() 將 status 覆寫回「就緒/Content Script 連線正常」，
+ *   每 3 秒呼叫 checkCurrentTab() 將 status 覆寫回「就緒/已連線到書庫頁面」，
  *   使終態僅顯示不到 3 秒
  *
  * 測試範疇：

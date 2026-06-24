@@ -191,7 +191,7 @@ describe('Popup Event Integration', () => {
       const result = await controller.checkBackgroundStatus()
 
       expect(result).toBe(false)
-      expect(controller.elements.statusText.textContent).toContain('Service Worker 離線')
+      expect(controller.elements.statusText.textContent).toContain('擴充功能未連線')
     })
   })
 
@@ -551,7 +551,7 @@ describe('Popup Event Integration', () => {
         1,
         { type: controller.MESSAGE_TYPES.PING }
       )
-      expect(controller.elements.statusText.textContent).toBe('Content Script 連線正常')
+      expect(controller.elements.statusText.textContent).toBe('已連線到書庫頁面')
     })
 
     test('應該能處理 Content Script 未就緒', async () => {
@@ -559,7 +559,7 @@ describe('Popup Event Integration', () => {
 
       await controller.checkCurrentTab()
 
-      expect(controller.elements.statusText.textContent).toContain('載入中')
+      expect(controller.elements.statusText.textContent).toContain('正在連線書庫頁面')
     })
   })
 

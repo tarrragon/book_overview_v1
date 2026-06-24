@@ -15,8 +15,8 @@ const HEADER_TEXT = Object.freeze({
 
 const STATUS_TEXT = Object.freeze({
   CHECKING: '正在檢查狀態...',
-  INITIALIZING: '請稍候，正在初始化擴展功能',
-  CONTENT_SCRIPT_LOADING: 'Content Script 載入中',
+  INITIALIZING: '請稍候，正在初始化擴充功能',
+  CONTENT_SCRIPT_LOADING: '正在連線書庫頁面',
   CONTENT_SCRIPT_RELOAD_HINT: '請稍候或重新整理頁面',
   NON_READMOO_PAGE: '請前往 Readmoo 網站',
   NON_READMOO_HINT: '需要在 Readmoo 書庫頁面使用此功能'
@@ -24,7 +24,7 @@ const STATUS_TEXT = Object.freeze({
 
 const ACTION_TEXT = Object.freeze({
   EXTRACT: '開始提取書庫資料',
-  SETTINGS: '擴展設定',
+  SETTINGS: '擴充功能設定',
   HELP: '使用說明',
   VIEW_LIBRARY: '檢視書庫',
   VIEW_LIBRARY_ARIA: '開啟書庫總覽頁面檢視所有書籍',
@@ -55,19 +55,19 @@ const ERROR_TEXT = Object.freeze({
   HEADER: '錯誤訊息',
   DEFAULT_MESSAGE: '發生未知錯誤',
   RETRY: '重試',
-  RELOAD_EXTENSION: '重新載入擴展',
+  RELOAD_EXTENSION: '重新載入擴充功能',
   SUGGESTIONS_LABEL: '建議解決步驟：',
   INIT_HEADER: '系統初始化失敗',
-  INIT_DEFAULT_MESSAGE: '擴展初始化過程中發生錯誤',
-  FORCE_RELOAD: '強制重新載入擴展',
-  OPEN_EXTENSION_PAGE: '開啟擴展管理頁面'
+  INIT_DEFAULT_MESSAGE: '擴充功能初始化過程中發生錯誤',
+  FORCE_RELOAD: '強制重新載入擴充功能',
+  OPEN_EXTENSION_PAGE: '開啟擴充功能管理頁面'
 })
 
 const PAGE_INFO_TEXT = Object.freeze({
   CURRENT_PAGE_LABEL: '當前頁面:',
   CURRENT_PAGE_PLACEHOLDER: '檢測中...',
   DETECTED_BOOKS_LABEL: '檢測到書籍:',
-  EXTENSION_STATUS_LABEL: '擴展狀態:'
+  EXTENSION_STATUS_LABEL: '擴充功能狀態:'
 })
 
 const VERSION_TEXT = Object.freeze({

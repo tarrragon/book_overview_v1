@@ -164,9 +164,9 @@ describe('popup↔SW 握手重試機制 (1.1.0-W1-019)', () => {
       await Promise.resolve()
       await Promise.resolve()
 
-      // Then: 過渡態期間 statusText 應顯示「初始化中」
+      // Then: 過渡態期間 statusText 應顯示「擴充功能正在啟動」（使用者友善用語）
       const statusText = document.getElementById('statusText')
-      expect(statusText.textContent).toContain('初始化中')
+      expect(statusText.textContent).toContain('擴充功能正在啟動')
 
       // 清理：推進時間完成重試
       jest.advanceTimersByTime(3000)
@@ -265,10 +265,10 @@ describe('popup↔SW 握手重試機制 (1.1.0-W1-019)', () => {
       await Promise.resolve()
       const result = await resultPromise
 
-      // Then: 最終狀態為「線上」
+      // Then: 最終狀態 statusText 顯示「擴充功能已就緒」（使用者友善用語）
       expect(result).toBe(true)
       const statusText = document.getElementById('statusText')
-      expect(statusText.textContent).toContain('線上')
+      expect(statusText.textContent).toContain('擴充功能已就緒')
     })
   })
 
@@ -339,9 +339,9 @@ describe('popup↔SW 握手重試機制 (1.1.0-W1-019)', () => {
       await Promise.resolve()
       await resultPromise
 
-      // Then
+      // Then: statusText 顯示「擴充功能未連線」（使用者友善用語）
       const statusText = document.getElementById('statusText')
-      expect(statusText.textContent).toContain('離線')
+      expect(statusText.textContent).toContain('擴充功能未連線')
     })
   })
 

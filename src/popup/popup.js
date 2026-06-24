@@ -689,7 +689,7 @@ function cleanupExtractionState () {
  */
 function showCancellationRecovery () {
   setTimeout(() => {
-    updateStatus('擴展就緒', '準備開始提取', '請前往 Readmoo 書庫頁面', STATUS_TYPES.READY)
+    updateStatus('擴充功能就緒', '準備開始提取', '請前往 Readmoo 書庫頁面', STATUS_TYPES.READY)
   }, 3000)
 }
 
@@ -755,7 +755,7 @@ function handleSuccessfulBackgroundResponse (response) {
   if (response.eventSystem) {
     Logger.info('事件系統狀態', { eventSystem: response.eventSystem })
   }
-  updateStatus('線上', '線上 — 背景服務連線正常', '系統就緒', STATUS_TYPES.READY)
+  updateStatus('線上', '擴充功能已就緒', '系統就緒', STATUS_TYPES.READY)
 }
 
 /**
@@ -890,11 +890,11 @@ function checkBackgroundStatus () {
       if (done) return
       if (attempt >= HANDSHAKE_CONFIG.MAX_RETRY_ATTEMPTS) {
         Logger.error('Background Service Worker 連線失敗', { retryCount: attempt })
-        updateStatus('離線', '離線 — 背景服務無法連線', '重試已用盡，請重新載入擴展', STATUS_TYPES.ERROR)
+        updateStatus('離線', '擴充功能未連線', '重試已用盡，請重新載入擴充功能', STATUS_TYPES.ERROR)
         finish(false)
         return
       }
-      updateStatus('初始化中', '初始化中 — 背景服務正在啟動', '系統初始化中，請稍候', STATUS_TYPES.LOADING)
+      updateStatus('初始化中', '擴充功能正在啟動', '系統初始化中，請稍候', STATUS_TYPES.LOADING)
       retryTimerId = setTimeout(() => {
         retryTimerId = null
         handleAttempt(attempt + 1, delay * HANDSHAKE_CONFIG.RETRY_BACKOFF_MULTIPLIER)
@@ -953,7 +953,7 @@ async function checkCurrentTab () {
           } else {
             elements.bookCount.textContent = '0'
           }
-          updateStatus('就緒', 'Content Script 連線正常', '可以開始提取書庫資料', STATUS_TYPES.READY)
+          updateStatus('就緒', '已連線到書庫頁面', '可以開始提取書庫資料', STATUS_TYPES.READY)
           updateButtonState(false)
           return tab
         }

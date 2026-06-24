@@ -330,7 +330,7 @@ class PopupEventController extends EventHandler {
       })
 
       if (response && response.success) {
-        this.updateStatus('線上', 'Background Service Worker 連線正常', '系統就緒', this.STATUS_TYPES.READY)
+        this.updateStatus('線上', '擴充功能已就緒', '系統就緒', this.STATUS_TYPES.READY)
         return true
       } else {
         const error = (() => {
@@ -342,7 +342,7 @@ class PopupEventController extends EventHandler {
         throw error
       }
     } catch (error) {
-      this.updateStatus('離線', 'Service Worker 離線', '請重新載入擴展', this.STATUS_TYPES.ERROR)
+      this.updateStatus('離線', '擴充功能未連線', '請重新載入擴充功能', this.STATUS_TYPES.ERROR)
       return false
     }
   }
@@ -396,13 +396,13 @@ class PopupEventController extends EventHandler {
 
           if (response && response.success) {
             this.contentScriptReady = true
-            this.updateStatus('就緒', 'Content Script 連線正常', '可以開始提取書庫資料', this.STATUS_TYPES.READY)
+            this.updateStatus('就緒', '已連線到書庫頁面', '可以開始提取書庫資料', this.STATUS_TYPES.READY)
             this.updateButtonState(false)
             return tab
           }
         } catch (error) {
           this.contentScriptReady = false
-          this.updateStatus('載入中', 'Content Script 載入中', '請稍候或重新整理頁面', this.STATUS_TYPES.LOADING)
+          this.updateStatus('載入中', '正在連線書庫頁面', '請稍候或重新整理頁面', this.STATUS_TYPES.LOADING)
         }
       } else {
         this.updateStatus('待機', '請前往 Readmoo 網站', '需要在 Readmoo 書庫頁面使用此功能', this.STATUS_TYPES.READY)
