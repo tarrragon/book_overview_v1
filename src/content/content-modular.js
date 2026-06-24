@@ -321,6 +321,12 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
         break
       }
 
+      case 'HEALTH_CHECK': {
+        const healthStatus = getHealthStatus()
+        sendResponse({ success: true, ...healthStatus })
+        break
+      }
+
       default:
         // eslint-disable-next-line no-console
         Logger.warn('Content Script 收到未知訊息類型', { messageType: message.type })
