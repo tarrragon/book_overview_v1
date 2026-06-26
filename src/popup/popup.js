@@ -142,10 +142,10 @@ if (typeof require !== 'undefined') {
   try {
     ({ BOOKSTORE_LIST } = require('./constants/bookstore-config'))
   } catch (e) {
-    BOOKSTORE_LIST = []
+    BOOKSTORE_LIST = (typeof window !== 'undefined' && window.BOOKSTORE_LIST) || []
   }
 } else {
-  BOOKSTORE_LIST = []
+  BOOKSTORE_LIST = (typeof window !== 'undefined' && window.BOOKSTORE_LIST) || []
 }
 
 // 初始化 Popup Logger
@@ -940,14 +940,26 @@ async function checkCurrentTab () {
       return null
     }
 
-    // 檢查是否為 Readmoo 頁面
-    const isReadmoo = tab.url && tab.url.includes(CONFIG.READMOO_DOMAIN)
+    // 檢查是否為任何書城的書庫頁面（比對域名，含子域名匹配）
+    const matchedStore = BOOKSTORE_LIST.find(
+      store => {
+        if (!store.enabled || !tab.url) return false
+        const storeHost = new URL(store.url).hostname
+        const tabHost = new URL(tab.url).hostname
+        return tabHost === storeHost ||
+          tabHost.endsWith('.' + storeHost) ||
+          storeHost.endsWith('.' + tabHost)
+      }
+    )
+    const isBookstorePage = Boolean(matchedStore)
 
-    elements.pageInfo.textContent = isReadmoo
-      ? `Readmoo (${new URL(tab.url).pathname}${new URL(tab.url).hash})`
-      : '非 Readmoo 頁面'
+    elements.pageInfo.textContent = isBookstorePage
+      ? `${matchedStore.name} (${new URL(tab.url).pathname}${new URL(tab.url).hash})`
+      : '非書庫頁面'
 
-    if (isReadmoo) {
+    elements.extractBtn.style.display = isBookstorePage ? '' : 'none'
+
+    if (isBookstorePage) {
       // 嘗試與 Content Script 通訊
       try {
         const response = await chrome.tabs.sendMessage(tab.id, { type: MESSAGE_TYPES.PING })

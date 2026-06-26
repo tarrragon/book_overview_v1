@@ -114,6 +114,7 @@ describe('Popup Interface 整合測試', () => {
     // eval 環境無法解析 require('./constants')，提供 window fallback
     // （對應 popup.js popupConstants 的 window.PopupConstants fallback）
     window.PopupConstants = require('src/popup/constants')
+    window.BOOKSTORE_LIST = require('src/popup/constants/bookstore-config').BOOKSTORE_LIST
 
     return { window, document }
   }
@@ -348,8 +349,8 @@ describe('Popup Interface 整合測試', () => {
         // eslint-disable-next-line no-unused-vars
         const extractBtn = document.getElementById('extractBtn')
 
-        expect(pageInfo.textContent).toContain('非 Readmoo 頁面')
-        expect(extractBtn.disabled).toBe(true)
+        expect(pageInfo.textContent).toContain('非書庫頁面')
+        expect(extractBtn.style.display).toBe('none')
       }
     })
   })
