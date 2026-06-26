@@ -1,7 +1,7 @@
-# Readmoo 書庫管理器 - 測試者安裝說明
+# 電子書庫總覽管理器 - 測試者安裝說明
 
 **版本**：v1.5.0
-**分發包**：`readmoo-book-extractor-v1.5.0.zip`
+**分發包**：`book-overview-v1.5.0.zip`
 
 ## 下載
 
@@ -17,13 +17,13 @@
 
 ## 安裝步驟（Chrome 開發者模式）
 
-1. 從上方連結下載 `readmoo-book-extractor-v1.5.0.zip` 並解壓，得到一個資料夾（內含 `manifest.json` 於根層）。
+1. 從上方連結下載 `book-overview-v1.5.0.zip` 並解壓，得到一個資料夾（內含 `manifest.json` 於根層）。
 2. 開啟 Chrome，於網址列輸入 `chrome://extensions` 並前往。
 3. 開啟右上角的「開發人員模式 / Developer mode」開關。
 4. 點選左上角「載入未封裝項目 / Load unpacked」。
 5. 選擇步驟 1 解壓出的資料夾（包含 `manifest.json` 的那一層）。
 6. 安裝完成後，工具列會出現本擴充功能圖示。
-7. 點選工具列右側的「拼圖」圖示（擴充功能管理），找到「Readmoo 書庫提取器」，
+7. 點選工具列右側的「拼圖」圖示（擴充功能管理），找到「Book Overview」，
    點選「釘選」將圖示固定在工具列上，方便日後使用。
 
 ---

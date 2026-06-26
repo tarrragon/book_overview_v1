@@ -1,5 +1,5 @@
 /**
- * Readmoo 書庫數據提取器 - Background Service Worker 啟動入口
+ * Book Overview - Background Service Worker 啟動入口
  *
  * 負責功能：
  * - 作為 Chrome Extension Background Service Worker 的主要入口點
@@ -47,7 +47,7 @@ import { ErrorCodes } from '../core/errors/ErrorCodes.js'
  * dict，此處過渡註解已更新，不再依賴 GlobalMessages 動態註冊機制。
  */
 const backgroundMessages = new MessageDictionary({
-  BACKGROUND_STARTUP: '[START] Readmoo 書庫提取器 Background Service Worker 啟動',
+  BACKGROUND_STARTUP: '[START] Book Overview Background Service Worker 啟動',
   SKIP_DUPLICATE_INIT: '[SKIP] 系統已初始化,跳過重複初始化',
   INIT_ATTEMPT: '[FIX] 開始初始化 Background 系統 (嘗試 {attempt}/{max})',
   INIT_COORDINATOR: '[FIX] 初始化模組協調器...',

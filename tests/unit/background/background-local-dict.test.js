@@ -125,7 +125,7 @@ describe('Background Service Worker Local MessageDictionary', () => {
       require('src/background/background')
 
       const output = collectAllConsoleOutput()
-      expectKeyRendered(output, 'BACKGROUND_STARTUP', 'Readmoo 書庫提取器 Background Service Worker 啟動')
+      expectKeyRendered(output, 'BACKGROUND_STARTUP', 'Book Overview Background Service Worker 啟動')
     })
 
     test('background.js 載入時應渲染 INIT_ATTEMPT 含 placeholder（嘗試 1/3）', () => {

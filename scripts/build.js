@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Readmoo 書庫提取器 - 編譯腳本
+ * Book Overview - 編譯腳本
  * 負責建立生產和開發版本的 Chrome Extension
  */
 

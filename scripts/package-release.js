@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Readmoo 書庫提取器 - 測試者發布打包腳本
+ * Book Overview - 測試者發布打包腳本
  *
  * 業務情境：正式上架 Chrome Web Store 前，需提供測試者一個可安裝的生產版分發包。
  * 本腳本將生產版建置（build/production/）打包為含版本號的 ZIP，連同安裝說明
@@ -38,7 +38,7 @@ const RELEASE_DIR = path.join(PROJECT_ROOT, 'release')
 const MANIFEST_PATH = path.join(BUILD_DIR, 'manifest.json')
 const README_PATH = path.join(RELEASE_DIR, 'README.md')
 const ZIP_SIZE_LIMIT_BYTES = 5 * 1024 * 1024 // 5 MB，分發包合理上限（與 package.js 一致）
-const ZIP_NAME_PATTERN = /^readmoo-book-extractor-v.+\.zip$/
+const ZIP_NAME_PATTERN = /^book-overview-v.+\.zip$/
 
 /**
  * 執行生產版建置（build:prod）
@@ -107,16 +107,16 @@ function verifyZipAvailable () {
 /**
  * 清理 release/ 內舊版本的 ZIP，只保留當前版本（交由 createZip 重壓）
  *
- * Why: 版本 bump 後舊版 ZIP（如 readmoo-book-extractor-v1.4.1.zip）會持續累積於
+ * Why: 版本 bump 後舊版 ZIP（如 book-overview-v1.4.1.zip）會持續累積於
  * release/，分發時可能誤拿舊檔。
  * Consequence: 不清理會讓 release/ 同時存在多版本 ZIP，分發者需自行辨識最新版。
- * Action: 刪除所有符合 readmoo-book-extractor-v*.zip 命名但版本不等於當前版本的檔案；
+ * Action: 刪除所有符合 book-overview-v*.zip 命名但版本不等於當前版本的檔案；
  * 其他命名的檔案（如 README.md）不動，避免誤刪非本工具產物。
  *
  * @param {string} currentVersion 當前打包版本
  */
 function cleanStaleZips (currentVersion) {
-  const currentZipName = `readmoo-book-extractor-v${currentVersion}.zip`
+  const currentZipName = `book-overview-v${currentVersion}.zip`
   const entries = fs.readdirSync(RELEASE_DIR)
 
   for (const entry of entries) {
@@ -195,7 +195,7 @@ function verifyZip (zipPath) {
  * @param {string} zipName ZIP 檔名
  */
 function writeReadme (version, zipName) {
-  const content = `# Readmoo 書庫管理器 - 測試者安裝說明
+  const content = `# 電子書庫總覽管理器 - 測試者安裝說明
 
 **版本**：v${version}
 **分發包**：\`${zipName}\`
@@ -220,7 +220,7 @@ function writeReadme (version, zipName) {
 4. 點選左上角「載入未封裝項目 / Load unpacked」。
 5. 選擇步驟 1 解壓出的資料夾（包含 \`manifest.json\` 的那一層）。
 6. 安裝完成後，工具列會出現本擴充功能圖示。
-7. 點選工具列右側的「拼圖」圖示（擴充功能管理），找到「Readmoo 書庫提取器」，
+7. 點選工具列右側的「拼圖」圖示（擴充功能管理），找到「Book Overview」，
    點選「釘選」將圖示固定在工具列上，方便日後使用。
 
 ---
@@ -263,7 +263,7 @@ function writeReadme (version, zipName) {
  * 主要發布打包流程
  */
 function packageRelease () {
-  console.log('[RELEASE] Readmoo 書庫提取器 - 測試者發布打包啟動')
+  console.log('[RELEASE] Book Overview - 測試者發布打包啟動')
 
   verifyZipAvailable()
   runProductionBuild()
@@ -279,7 +279,7 @@ function packageRelease () {
   // 清理舊版本 ZIP（保留當前版本），避免 release/ 累積多版本造成誤分發
   cleanStaleZips(version)
 
-  const zipName = `readmoo-book-extractor-v${version}.zip`
+  const zipName = `book-overview-v${version}.zip`
   const zipPath = path.join(RELEASE_DIR, zipName)
 
   createZip(zipPath)

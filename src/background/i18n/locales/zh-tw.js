@@ -13,7 +13,7 @@ const zhTW = {
   // 系統基礎訊息
   // ====================
   system: {
-    name: 'Readmoo 書庫提取器',
+    name: 'Book Overview',
     description: 'Chrome Extension Background Service Worker',
 
     // 系統狀態

@@ -341,7 +341,7 @@ jobs:
       - name: '📦 建立 Release 套件'
         run: |
           cd build/production
-          zip -r ../../readmoo-book-extractor-${{ steps.version.outputs.version_number }}.zip .
+          zip -r ../../book-overview-${{ steps.version.outputs.version_number }}.zip .
           
       - name: '💾 提交版本更新'
         run: |
@@ -368,8 +368,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./readmoo-book-extractor-${{ steps.version.outputs.version_number }}.zip
-          asset_name: readmoo-book-extractor-${{ steps.version.outputs.version_number }}.zip
+          asset_path: ./book-overview-${{ steps.version.outputs.version_number }}.zip
+          asset_name: book-overview-${{ steps.version.outputs.version_number }}.zip
           asset_content_type: application/zip
 ```
 

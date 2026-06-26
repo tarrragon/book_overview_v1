@@ -47,7 +47,7 @@ describe('PopupUIManager Refactor Tests (TDD循環 #36)', () => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Readmoo Book Extractor</title>
+          <title>Book Overview</title>
           <style>
             .error-message { color: red; }
             .success-message { color: green; }

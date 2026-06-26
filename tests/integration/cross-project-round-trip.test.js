@@ -117,7 +117,7 @@ describe('V1↔APP 跨專案 round-trip（W5-002）', () => {
     test('V1 canonical formatVersion = 3.0.0', () => {
       expect(v1Canonical.format).toBe('book-interchange-v1')
       expect(v1Canonical.formatVersion).toBe('3.0.0')
-      expect(v1Canonical.metadata.sourceApp).toBe('readmoo-book-extractor')
+      expect(v1Canonical.metadata.sourceApp).toBe('book-overview')
     })
 
     test('APP canonical formatVersion = 3.x 且 sourceApp = book_overview_app', () => {

@@ -34,7 +34,7 @@ const mockChrome = {
     },
     getManifest: jest.fn(() => ({
       version: '0.6.8',
-      name: 'Readmoo Book Extractor'
+      name: 'Book Overview'
     })),
     lastError: null
   },
@@ -78,7 +78,7 @@ describe('Popup Refactor Regression Tests (TDD循環 #40)', () => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Readmoo Book Extractor</title>
+          <title>Book Overview</title>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
@@ -669,7 +669,7 @@ describe('Popup Refactor Regression Tests (TDD循環 #40)', () => {
         // 模擬擴展版本更新
         mockChrome.runtime.getManifest.mockReturnValueOnce({
           version: '0.7.0', // 新版本
-          name: 'Readmoo Book Extractor'
+          name: 'Book Overview'
         })
 
         // eslint-disable-next-line no-unused-vars

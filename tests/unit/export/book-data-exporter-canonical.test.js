@@ -71,7 +71,7 @@ describe('BookDataExporter canonical（book-interchange-v1 v3）匯出', () => {
       const result = JSON.parse(exporter.exportToJSON({ formatVersion: '3.0.0' }))
 
       expect(typeof result.metadata.exportedAt).toBe('string')
-      expect(result.metadata.sourceApp).toBe('readmoo-book-extractor')
+      expect(result.metadata.sourceApp).toBe('book-overview')
       expect(result.metadata.totalBooks).toBe(mockBooksV2.length)
       expect(result.metadata.totalBooks).toBe(result.books.length)
     })

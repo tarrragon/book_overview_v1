@@ -20,7 +20,7 @@ another agent. Therefore:
 
 ## 1. 專案身份
 
-**專案名稱**: Readmoo 書庫管理器 (readmoo-book-extractor)
+**專案名稱**: 電子書庫總覽管理器 (book-overview)
 
 **專案目標**: 專為 Readmoo 電子書平台設計的 Chrome 擴充功能，提供書庫資料自動提取、本地化書目管理、搜尋篩選和批量匯出功能
 

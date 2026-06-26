@@ -533,7 +533,7 @@ class BookDataExporter {
       metadata: {
         formatVersion: '2.0.0',
         exportDate: new Date().toISOString(),
-        source: 'readmoo-book-extractor',
+        source: 'book-overview',
         schemaVersion: '3.0.0',
         totalBooks: filteredBooks.length,
         totalTags: tags.length,
@@ -589,7 +589,7 @@ class BookDataExporter {
       formatVersion: '3.0.0',
       metadata: {
         exportedAt: new Date().toISOString(),
-        sourceApp: 'readmoo-book-extractor',
+        sourceApp: 'book-overview',
         totalBooks: canonicalBooks.length, // 交叉驗證：等於 books 陣列長度
         ...options.metadata
       },
@@ -767,7 +767,7 @@ class BookDataExporter {
         title,
         metadata: {
           author: 'BookDataExporter',
-          creator: 'Readmoo Book Extractor',
+          creator: 'Book Overview',
           creationDate: new Date()
         },
         content: []
@@ -979,7 +979,7 @@ class BookDataExporter {
 3. Excel 檔案支援進階格式化和公式
 4. PDF 檔案適合列印和分享
 
-由 Readmoo 書庫提取器生成
+由 Book Overview生成
 `
   }
 

@@ -354,7 +354,7 @@ class EventManager {
         } else {
           // 備用方案：顯示使用說明
           const helpText = [
-            'Readmoo 書庫提取器使用說明',
+            'Book Overview使用說明',
             '',
             '1. 前往 Readmoo 書庫頁面',
             '2. 點擊「開始提取書庫資料」按鈕',

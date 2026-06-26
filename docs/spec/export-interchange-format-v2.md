@@ -101,7 +101,7 @@ v2 格式匯入時的驗證清單：
   "metadata": {
     "formatVersion": "2.0.0",
     "exportDate": "2026-04-05T12:00:00.000Z",
-    "source": "readmoo-book-extractor",
+    "source": "book-overview",
     "schemaVersion": "3.0.0",
     "totalBooks": 150,
     "totalTags": 42,
@@ -119,7 +119,7 @@ v2 格式匯入時的驗證清單：
 |------|------|------|------|
 | formatVersion | string | 是 | 固定 `"2.0.0"` |
 | exportDate | string (ISO 8601) | 是 | 匯出時間 |
-| source | string | 是 | 固定 `"readmoo-book-extractor"` |
+| source | string | 是 | 固定 `"book-overview"` |
 | schemaVersion | string | 是 | BookSchema 版本，目前 `"3.0.0"` |
 | totalBooks | number | 是 | 書籍總數（匯入時與 `books.length` 交叉驗證） |
 | totalTags | number | 是 | tag 總數 |
@@ -253,7 +253,7 @@ v2 格式匯入時的驗證清單：
   "metadata": {
     "formatVersion": "2.0.0",
     "exportDate": "2026-04-05T12:00:00.000Z",
-    "source": "readmoo-book-extractor",
+    "source": "book-overview",
     "schemaVersion": "3.0.0",
     "totalBooks": 2,
     "totalTags": 1,

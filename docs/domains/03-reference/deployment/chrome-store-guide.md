@@ -60,7 +60,7 @@ npm run test:e2e:prod
 // package.json 中的版本號
 {
   "version": "1.0.0",  // 主版本號
-  "name": "readmoo-book-extractor"
+  "name": "book-overview"
 }
 
 // manifest.json 中的版本號 (自動同步)
@@ -213,11 +213,11 @@ find dist/release -name '*.map' -delete
 
 # 建立 ZIP 檔案
 cd dist/release
-zip -r ../readmoo-book-extractor-v1.0.0.zip .
+zip -r ../book-overview-v1.0.0.zip .
 cd ../..
 
 # 驗證 ZIP 檔案大小 (< 2MB 建議)
-ls -lh dist/readmoo-book-extractor-v1.0.0.zip
+ls -lh dist/book-overview-v1.0.0.zip
 ```
 
 #### 上傳前檢查清單
@@ -225,7 +225,7 @@ ls -lh dist/readmoo-book-extractor-v1.0.0.zip
 # 自動化檢查腳本
 #!/bin/bash
 
-ZIP_FILE="dist/readmoo-book-extractor-v1.0.0.zip"
+ZIP_FILE="dist/book-overview-v1.0.0.zip"
 
 echo "🔍 檢查 ZIP 檔案..."
 

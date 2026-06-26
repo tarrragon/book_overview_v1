@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Readmoo 書庫提取器 - Manifest 自動化前置驗證腳本
+ * Book Overview - Manifest 自動化前置驗證腳本
  *
  * 用途：作為 build/production/ 內測打包前的 gate-style 驗證，
  * 將原須手動驗證的四類項目自動化（W1-066 acceptance）：

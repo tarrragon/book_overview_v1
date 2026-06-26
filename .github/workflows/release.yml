@@ -42,7 +42,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # package:release 內部會先跑 build:prod，再壓出 release/readmoo-book-extractor-v<version>.zip
+      # package:release 內部會先跑 build:prod，再壓出 release/book-overview-v<version>.zip
       - name: Package production release
         run: npm run package:release
 

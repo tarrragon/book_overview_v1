@@ -46,7 +46,7 @@ describe('Chrome Extension Manifest V3 Configuration', () => {
     test('應該有必要的基本資訊', () => {
       expect(manifest.name).toBeDefined()
       expect(typeof manifest.name).toBe('string')
-      expect(manifest.name).toContain('Readmoo')
+      expect(manifest.name).toContain('Book Overview')
 
       expect(manifest.version).toBeDefined()
       expect(typeof manifest.version).toBe('string')

@@ -558,7 +558,7 @@ class PopupEventController extends EventHandler {
     } else {
       // 備用方案：使用 alert 顯示說明
       const helpText = [
-        'Readmoo 書庫提取器使用說明',
+        'Book Overview使用說明',
         '',
         '1. 前往 Readmoo 書庫頁面',
         '2. 點擊「開始提取書庫資料」按鈕',

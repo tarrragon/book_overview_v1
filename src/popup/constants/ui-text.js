@@ -9,7 +9,7 @@
  */
 
 const HEADER_TEXT = Object.freeze({
-  TITLE: 'Readmoo 書庫提取器',
+  TITLE: 'Book Overview',
   SUBTITLE: '專業書目管理工具'
 })
 

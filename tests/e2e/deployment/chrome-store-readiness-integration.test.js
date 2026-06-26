@@ -56,7 +56,7 @@ describe('🏪 Chrome Web Store 上架準備整合測試', () => {
       runtime: {
         getManifest: () => ({
           manifest_version: 3,
-          name: 'Readmoo 書庫數據提取器',
+          name: 'Book Overview',
           version: '0.5.33',
           description: '專為 Readmoo 電子書平台設計的書庫資料提取工具，支援書目管理和資料匯出功能'
         })

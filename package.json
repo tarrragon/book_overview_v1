@@ -1,5 +1,5 @@
 {
-  "name": "readmoo-book-extractor",
+  "name": "book-overview",
   "version": "1.5.0",
   "description": "一個專為Readmoo電子書平台設計的Chrome擴充功能，能夠自動提取使用者書庫資料，並提供本地化的書目管理與匯出功能。",
   "main": "src/background/service-worker.js",
@@ -266,12 +266,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/readmoo-book-extractor.git"
+    "url": "https://github.com/your-username/book-overview.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/readmoo-book-extractor/issues"
+    "url": "https://github.com/your-username/book-overview/issues"
   },
-  "homepage": "https://github.com/your-username/readmoo-book-extractor#readme",
+  "homepage": "https://github.com/your-username/book-overview#readme",
   "dependencies": {
     "qrcode-generator": "^2.0.4"
   }

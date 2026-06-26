@@ -44,7 +44,7 @@ git config --global user.email
 ```bash
 # 複製專案
 git clone [repository-url]
-cd readmoo-book-extractor
+cd book-overview
 
 # 安裝依賴項 (使用 legacy-peer-deps 確保相容性)
 npm install --legacy-peer-deps

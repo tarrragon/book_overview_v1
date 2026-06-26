@@ -34,7 +34,7 @@
 
 ### 步驟 1: 安裝擴充功能
 
-1. 前往 [Chrome Web Store](https://chrome.google.com/webstore) 搜尋「Readmoo 書庫管理器」
+1. 前往 [Chrome Web Store](https://chrome.google.com/webstore) 搜尋「電子書庫總覽管理器」
 2. 點擊「加到 Chrome」安裝
 3. 確認擴充功能圖示出現在瀏覽器工具列
 

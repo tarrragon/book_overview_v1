@@ -186,7 +186,7 @@ describe('BookDataExporter source limitation 註記（W1-061.2）', () => {
 
       const parsed = JSON.parse(json)
       expect(parsed.metadata.formatVersion).toBe('2.0.0')
-      expect(parsed.metadata.source).toBe('readmoo-book-extractor')
+      expect(parsed.metadata.source).toBe('book-overview')
       expect(parsed.metadata.totalBooks).toBe(1)
     })
   })

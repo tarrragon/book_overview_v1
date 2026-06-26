@@ -864,7 +864,7 @@ describe('BookDataExporter 書籍資料匯出器測試 (TDD循環 #29)', () => {
       const { metadata } = JSON.parse(jsonString)
 
       expect(metadata.formatVersion).toBe('2.0.0')
-      expect(metadata.source).toBe('readmoo-book-extractor')
+      expect(metadata.source).toBe('book-overview')
       expect(metadata.schemaVersion).toBe('3.0.0')
       expect(metadata.totalBooks).toBe(3)
       expect(metadata.totalTags).toBe(2)

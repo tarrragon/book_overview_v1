@@ -193,7 +193,7 @@ function convertV1ToV2Data (v1Data) {
     metadata: {
       formatVersion: '2.0.0',
       exportDate: timestamp,
-      source: 'readmoo-book-extractor',
+      source: 'book-overview',
       schemaVersion: BookSchemaV2.SCHEMA_VERSION,
       totalBooks: books.length,
       totalTags: tags.length,

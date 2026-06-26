@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Readmoo 書庫提取器 - 建置驗證腳本
+ * Book Overview - 建置驗證腳本
  * 負責驗證建置結果的完整性和正確性
  */
 

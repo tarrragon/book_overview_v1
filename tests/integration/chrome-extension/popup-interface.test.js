@@ -136,7 +136,7 @@ describe('Popup Interface 整合測試', () => {
       // 基本結構
       expect(document.querySelector('html[lang="zh-TW"]')).toBeTruthy()
       expect(document.querySelector('head title')).toBeTruthy()
-      expect(document.title).toBe('Readmoo 書庫提取器')
+      expect(document.title).toBe('Book Overview')
 
       // 主要容器
       expect(document.querySelector('.header')).toBeTruthy()

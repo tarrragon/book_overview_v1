@@ -1,5 +1,5 @@
 /**
- * Readmoo 書庫數據提取器 - Popup Interface Script
+ * Book Overview - Popup Interface Script
  *
  * 負責功能：
  * - 處理 Popup 界面的使用者互動

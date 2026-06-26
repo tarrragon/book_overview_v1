@@ -1,4 +1,4 @@
-# Readmoo 書庫管理器 - 安裝指南
+# 電子書庫總覽管理器 - 安裝指南
 
 > **適用版本**: v1.0.0 內測版
 > **適用對象**: 內測使用者（依 [use-cases.md](use-cases.md) Primary Actor，一般電腦使用者）
@@ -16,7 +16,7 @@
 
 本版本採封閉內測，請聯繫內測負責人取得安裝 ZIP 檔案：
 
-- 檔名範例：`readmoo-book-extractor-v1.0.0.zip`
+- 檔名範例：`book-overview-v1.0.0.zip`
 - 檔案大小：約 1.3 MB（最終值以 v1.0.0 發佈 ZIP 為準，發佈時校驗）
 - 取得方式：透過內測負責人指定的傳輸通道（Email / 雲端共享連結）
 
@@ -41,7 +41,7 @@ npm run package
 建置完成後，產物位於：
 
 ```
-dist/readmoo-book-extractor-v1.0.0.zip
+dist/book-overview-v1.0.0.zip
 ```
 
 ### 1.3 校驗
@@ -73,7 +73,7 @@ dist/readmoo-book-extractor-v1.0.0.zip
 |------|---------|
 | macOS | 內建 Archive Utility（雙擊 ZIP 即可解壓） |
 | Windows | 檔案總管右鍵「解壓縮全部」 |
-| CLI | `unzip readmoo-book-extractor-v1.0.0.zip -d ~/readmoo-extractor/` |
+| CLI | `unzip book-overview-v1.0.0.zip -d ~/readmoo-extractor/` |
 
 ### 2.3 解壓後目錄結構驗證
 
@@ -140,7 +140,7 @@ chrome://extensions/
 
 Extension 載入成功後，`chrome://extensions/` 頁面上會出現一張新的 Extension 卡片，預期觀察到：
 
-- **名稱**：「Readmoo 書庫數據提取器」
+- **名稱**：「Book Overview」
 - **版本號**：與 `manifest.json` 中的 `version` 欄位一致（v1.0.0 內測版為 `1.0.0`）
 - **Service worker 連結**：可點擊（顯示為藍色超連結）
 - **啟用 toggle**：預設開啟（藍色）
@@ -161,7 +161,7 @@ Extension 卡片成功出現後，請繼續第 5 章節「安裝後驗證 checkl
 
 ### 步驟 1：解壓 ZIP 驗證
 
-**動作**：解壓 `dist/readmoo-book-extractor-vX.Y.Z.zip` 到任一目錄（例如 `~/Desktop/readmoo-extractor/`）。
+**動作**：解壓 `dist/book-overview-vX.Y.Z.zip` 到任一目錄（例如 `~/Desktop/readmoo-extractor/`）。
 
 **預期觀察結果**：
 
@@ -233,7 +233,7 @@ Extension 卡片成功出現後，請繼續第 5 章節「安裝後驗證 checkl
 1. 訪問 `https://read.readmoo.com/#/library`
 2. 登入 Readmoo 帳號（若尚未登入）
 3. 開啟頁面 DevTools（F12 或右鍵「檢查」），切 Console 分頁
-4. 點 Extension popup（瀏覽器右上角拼圖圖示 → pin Readmoo 書庫管理器到工具列 → 點圖示開啟）
+4. 點 Extension popup（瀏覽器右上角拼圖圖示 → pin 電子書庫總覽管理器到工具列 → 點圖示開啟）
 
 **預期觀察結果**：
 
@@ -304,7 +304,7 @@ Extension 卡片成功出現後，請繼續第 5 章節「安裝後驗證 checkl
 1. **確認 URL 正確**：網址必須是 `https://read.readmoo.com/#/library`（注意是 hash 路由 `#/library`，不是直接路徑）
 2. **完成 Readmoo 登入**：先在 Readmoo 完成帳號登入，再導航至書庫頁
 3. **排查 Extension 衝突**：暫時停用其他 Extension（特別是廣告封鎖、隱私保護類）後重試
-4. **檢查 Extension 啟用狀態**：在 `chrome://extensions/` 確認 Readmoo 書庫數據提取器卡片的「啟用」toggle 為開啟
+4. **檢查 Extension 啟用狀態**：在 `chrome://extensions/` 確認 Book Overview卡片的「啟用」toggle 為開啟
 5. **頁面 reload 後重試**：content script 注入發生於頁面載入時，若 Extension 是書庫頁開啟後才安裝，需 reload 頁面才會注入
 
 ---

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Readmoo 書庫提取器 - 打包腳本
+ * Book Overview - 打包腳本
  *
  * 業務情境：v1.0 內測版本需可分發給內測使用者。npm run build:prod 已能產出
  * build/production/ 目錄，但 Chrome 載入需要可分發的單一檔案。本腳本將
- * build/production/ 壓縮為 dist/readmoo-book-extractor-v{version}.zip。
+ * build/production/ 壓縮為 dist/book-overview-v{version}.zip。
  *
  * 設計決策：
  * - 版本號動態讀取 build/production/manifest.json 的 version 欄位，禁止硬編碼。
@@ -139,23 +139,23 @@ function verifyZip (zipPath) {
  * 清理 dist/ 內舊版本的擴充功能 ZIP，只保留當前版本
  *
  * Why: createZip 只移除「同名」ZIP，版本號 bump 後舊版 ZIP
- * （如 readmoo-book-extractor-v0.18.0.zip）會持續累積於 dist/。
+ * （如 book-overview-v0.18.0.zip）會持續累積於 dist/。
  * 分發時可能誤拿舊檔，且 dist/ 體積無限制成長。
  *
  * Consequence: 不清理會讓 dist/ 同時存在多版本 ZIP，分發者需自行辨識
  * 哪個是最新版，增加誤分發舊版的風險。
  *
- * Action: 打包前掃描 dist/，刪除所有符合 readmoo-book-extractor-v*.zip
+ * Action: 打包前掃描 dist/，刪除所有符合 book-overview-v*.zip
  * 命名規則但版本不等於當前版本的檔案。當前版本 ZIP 不刪（交由 createZip
  * 以「移除同名再重壓」處理），其他命名的檔案不動（避免誤刪非本工具產物）。
  *
  * @param {string} currentVersion 當前打包版本（來源 build/production/manifest.json）
  */
 function cleanStaleZips (currentVersion) {
-  const currentZipName = `readmoo-book-extractor-v${currentVersion}.zip`
-  // 僅比對本工具的命名規則 readmoo-book-extractor-v<version>.zip，
+  const currentZipName = `book-overview-v${currentVersion}.zip`
+  // 僅比對本工具的命名規則 book-overview-v<version>.zip，
   // 避免誤刪 dist/ 內其他來源的檔案。
-  const zipPattern = /^readmoo-book-extractor-v.+\.zip$/
+  const zipPattern = /^book-overview-v.+\.zip$/
 
   const entries = fs.readdirSync(DIST_DIR)
   for (const entry of entries) {
@@ -175,7 +175,7 @@ function cleanStaleZips (currentVersion) {
  * 主要打包流程
  */
 function packageExtension () {
-  console.log('[PACKAGE] Readmoo 書庫提取器 - 打包流程啟動')
+  console.log('[PACKAGE] Book Overview - 打包流程啟動')
 
   verifyBuildOutput()
   verifyZipAvailable()
@@ -190,7 +190,7 @@ function packageExtension () {
   // 清理舊版本 ZIP（保留當前版本），避免 dist/ 累積多版本造成誤分發
   cleanStaleZips(version)
 
-  const zipName = `readmoo-book-extractor-v${version}.zip`
+  const zipName = `book-overview-v${version}.zip`
   const zipPath = path.join(DIST_DIR, zipName)
 
   createZip(zipPath)

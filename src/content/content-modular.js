@@ -2,7 +2,7 @@ const { Logger } = require('src/core/logging/Logger')
 /**
  * content-modular.js
  *
- * Readmoo 書庫數據提取器 - 模組化版本
+ * Book Overview - 模組化版本
  *
  * 負責功能：
  * - 整合各模組化組件（EventBus, ChromeEventBridge, BookDataExtractor, ReadmooAdapter）
