@@ -4,7 +4,7 @@
  * 頁面檢測器模組
  *
  * 負責功能：
- * - 檢測是否為 Readmoo 頁面
+ * - 透過 PlatformRegistry 偵測當前頁面所屬書城平台
  * - 識別頁面類型（書庫、書架、閱讀器等）
  * - 提供頁面狀態查詢功能
  * - 監控 URL 變更事件
@@ -33,9 +33,11 @@
  * @returns {Object} PageDetector 實例
  */
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const PlatformRegistry = require('../platform/platform-registry')
 
 function createPageDetector () {
-  let isReadmooPage = false
+  let isSupportedPage = false
+  let platformName = null
   let pageType = 'unknown'
   let changeObserver = null
 
@@ -46,21 +48,30 @@ function createPageDetector () {
     // 快取當前URL以偵測變更
     _cachedUrl: '',
     /**
-     * 檢測 Readmoo 頁面
+     * 偵測當前頁面所屬書城平台
      *
-     * @returns {Object} 檢測結果 { isReadmooPage, pageType }
+     * @returns {Object} 檢測結果 { isSupportedPage, platformName, isReadmooPage, pageType }
      */
-    detectReadmooPage () {
+    detectPlatform () {
       const location = getLocation()
-      isReadmooPage = location.hostname && location.hostname.includes('readmoo.com')
-      pageType = isReadmooPage ? this.detectPageType() : 'unknown'
+      const url = location.href || ''
+      const platform = PlatformRegistry.detect(url)
+
+      isSupportedPage = !!platform
+      platformName = platform ? platform.config.name : null
+      pageType = isSupportedPage ? this.detectPageType() : 'unknown'
 
       // eslint-disable-next-line no-undef
       if (process.env.NODE_ENV !== 'production') {
-        console.log(`[DETECT] 頁面檢測: ${isReadmooPage ? 'Readmoo' : '非Readmoo'} 頁面 (${pageType})`) // eslint-disable-line no-console
+        console.log(`[DETECT] 頁面檢測: ${isSupportedPage ? platformName : '不支援'} 頁面 (${pageType})`) // eslint-disable-line no-console
       }
 
-      return { isReadmooPage, pageType }
+      return { isSupportedPage, platformName, isReadmooPage: platformName === 'readmoo', pageType }
+    },
+
+    /** @deprecated 使用 detectPlatform() */
+    detectReadmooPage () {
+      return this.detectPlatform()
     },
 
     /**
@@ -95,7 +106,9 @@ function createPageDetector () {
     getPageStatus () {
       const location = getLocation()
       return {
-        isReadmooPage,
+        isSupportedPage,
+        platformName,
+        isReadmooPage: platformName === 'readmoo',
         pageType,
         url: location.href || '',
         hostname: location.hostname || '',
@@ -105,12 +118,26 @@ function createPageDetector () {
     },
 
     /**
-     * 檢查是否為 Readmoo 頁面
+     * 檢查是否為支援的書城頁面
      *
-     * @returns {boolean} 是否為 Readmoo 頁面
+     * @returns {boolean} 是否為支援的書城頁面
      */
+    isSupportedPage () {
+      return isSupportedPage
+    },
+
+    /** @deprecated 使用 isSupportedPage() */
     isReadmooPage () {
-      return isReadmooPage
+      return platformName === 'readmoo'
+    },
+
+    /**
+     * 取得目前偵測到的書城名稱
+     *
+     * @returns {string|null} 書城識別碼或 null
+     */
+    getPlatformName () {
+      return platformName
     },
 
     /**
@@ -128,7 +155,7 @@ function createPageDetector () {
      * @returns {boolean} 是否可提取
      */
     isExtractablePage () {
-      return isReadmooPage && ['library', 'shelf'].includes(pageType)
+      return isSupportedPage && ['library', 'shelf'].includes(pageType)
     },
 
     /**
@@ -159,10 +186,10 @@ function createPageDetector () {
 
         if (currentUrl !== cachedUrl) {
           const oldUrl = cachedUrl
-          const oldStatus = { isReadmooPage, pageType }
+          const oldStatus = { isSupportedPage, platformName, pageType }
 
           detector._cachedUrl = currentUrl
-          this.detectReadmooPage()
+          this.detectPlatform()
 
           const newStatus = this.getPageStatus()
 
@@ -186,7 +213,7 @@ function createPageDetector () {
               oldStatus,
               newStatus,
               changed: oldStatus.pageType !== newStatus.pageType ||
-                       oldStatus.isReadmooPage !== newStatus.isReadmooPage
+                       oldStatus.isSupportedPage !== newStatus.isSupportedPage
             })
           } catch (error) {
             // Logger 後備方案: Content Script 回調錯誤記錄
@@ -232,7 +259,7 @@ function createPageDetector () {
      * @returns {Object} 更新後的頁面狀態
      */
     refresh () {
-      return this.detectReadmooPage()
+      return this.detectPlatform()
     },
 
     /**
@@ -247,7 +274,9 @@ function createPageDetector () {
       return {
         isReady,
         readyState,
-        isReadmooPage,
+        isSupportedPage,
+        platformName,
+        isReadmooPage: platformName === 'readmoo',
         pageType,
         url: window.location.href,
         timestamp: Date.now()
@@ -337,7 +366,8 @@ function createPageDetector () {
      */
     _getCustomHealthStatus () {
       return {
-        pageDetected: isReadmooPage,
+        pageDetected: isSupportedPage,
+        platformName,
         pageType,
         health: 'healthy'
       }
@@ -345,7 +375,7 @@ function createPageDetector () {
   }
 
   // 初始化檢測
-  detector.detectReadmooPage()
+  detector.detectPlatform()
 
   // 設定構造函數名稱
   Object.defineProperty(detector, 'constructor', {

@@ -226,6 +226,8 @@ describe('Modular Content Script', () => {
       // eslint-disable-next-line no-unused-vars
       const status = pageDetector.getPageStatus()
       expect(status).toEqual({
+        isSupportedPage: true,
+        platformName: 'readmoo',
         isReadmooPage: true,
         pageType: 'library',
         url: 'https://readmoo.com/library',
@@ -532,11 +534,11 @@ describe('Modular Content Script', () => {
       const extractor = createBookDataExtractor()
 
       // eslint-disable-next-line no-unused-vars
-      const pageType = extractor.getReadmooPageType()
+      const pageType = extractor.getPageType()
       expect(pageType).toBe('library')
 
       // eslint-disable-next-line no-unused-vars
-      const isExtractable = extractor.isExtractableReadmooPage()
+      const isExtractable = extractor.isExtractablePage()
       expect(isExtractable).toBe(true)
     })
 
@@ -567,7 +569,7 @@ describe('Modular Content Script', () => {
       // eslint-disable-next-line no-unused-vars
       const adapter = createReadmooAdapter({ document })
 
-      extractor.setReadmooAdapter(adapter)
+      extractor.setPlatformAdapter(adapter)
 
       // eslint-disable-next-line no-unused-vars
       const status = await extractor.checkPageReady()
@@ -604,7 +606,7 @@ describe('Modular Content Script', () => {
       const adapter = createReadmooAdapter()
 
       extractor.setEventBus(eventBus)
-      extractor.setReadmooAdapter(adapter)
+      extractor.setPlatformAdapter(adapter)
 
       // eslint-disable-next-line no-unused-vars
       const events = []
@@ -682,7 +684,7 @@ describe('Modular Content Script', () => {
       // 設定模組整合
       chromeBridge.eventBus = eventBus
       extractor.setEventBus(eventBus)
-      extractor.setReadmooAdapter(adapter)
+      extractor.setPlatformAdapter(adapter)
 
       // 測試模組建立
       expect(pageDetector).toBeDefined()
