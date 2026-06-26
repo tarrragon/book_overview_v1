@@ -1,11 +1,11 @@
 # Readmoo 書庫管理器 - 測試者安裝說明
 
-**版本**：v1.4.3
-**分發包**：`readmoo-book-extractor-v1.4.3.zip`
+**版本**：v1.5.0
+**分發包**：`readmoo-book-extractor-v1.5.0.zip`
 
 ## 下載
 
-- **GitHub Releases**：https://github.com/tarrragon/book_overview_v1/releases/tag/v1.4.3
+- **GitHub Releases**：https://github.com/tarrragon/book_overview_v1/releases/tag/v1.5.0
 - 本機打包：執行 `npm run package:release` 後，ZIP 位於 `release/` 目錄
 
 ---
@@ -17,20 +17,24 @@
 
 ## 安裝步驟（Chrome 開發者模式）
 
-1. 從上方連結下載 `readmoo-book-extractor-v1.4.3.zip` 並解壓，得到一個資料夾（內含 `manifest.json` 於根層）。
+1. 從上方連結下載 `readmoo-book-extractor-v1.5.0.zip` 並解壓，得到一個資料夾（內含 `manifest.json` 於根層）。
 2. 開啟 Chrome，於網址列輸入 `chrome://extensions` 並前往。
 3. 開啟右上角的「開發人員模式 / Developer mode」開關。
 4. 點選左上角「載入未封裝項目 / Load unpacked」。
 5. 選擇步驟 1 解壓出的資料夾（包含 `manifest.json` 的那一層）。
-6. 安裝完成後，工具列會出現本擴充功能圖示；釘選後即可使用。
+6. 安裝完成後，工具列會出現本擴充功能圖示。
+7. 點選工具列右側的「拼圖」圖示（擴充功能管理），找到「Readmoo 書庫提取器」，
+   點選「釘選」將圖示固定在工具列上，方便日後使用。
 
 ---
 
 ## 使用方式
 
-1. 登入 Readmoo 並前往書庫頁面：`https://read.readmoo.com/#/library`
-2. 點選工具列的擴充功能圖示，開啟 Popup。
-3. 依 Popup 指示執行書庫提取、搜尋篩選或匯出。
+1. 點選工具列上已釘選的擴充功能圖示，開啟 Popup。
+2. 在「前往書庫」區塊中，點選要前往的書城書庫（如 Readmoo），瀏覽器會自動開啟對應的書庫頁面。
+3. 確認書庫頁面已完整載入後，再次點選擴充功能圖示，點選「開始提取書庫資料」。
+4. 等待提取完成（進度條會顯示目前進度）。
+5. 提取完成後，點選「檢視書庫」即可瀏覽、搜尋和管理已提取的書目資料。
 
 ---
 
@@ -38,7 +42,8 @@
 
 - 本版本以「未封裝項目」安裝，**重新啟動 Chrome 後仍會保留**，但「開發人員模式」
   關閉時擴充功能會停用。
-- 提取功能需在已登入的 Readmoo 書庫頁面（`read.readmoo.com`）執行。
+- 提取功能需在已登入的書城書庫頁面執行（如 Readmoo：`read.readmoo.com`）。
+- 若不在書庫頁面，提取按鈕不會顯示。
 - 若提取結果為空或不完整，請確認書庫頁面已完整載入後再試。
 - 此為測試版，回報問題請附上 Chrome 版本與重現步驟。
 
@@ -50,4 +55,4 @@
 
 ---
 
-*本說明由 `npm run package:release` 自動生成（版本 v1.4.3）。*
+*本說明由 `npm run package:release` 自動生成（版本 v1.5.0）。*
