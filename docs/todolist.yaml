@@ -1,6 +1,6 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-06-24"
+last_updated: "2026-06-26"
 
 versions:
   - version: "1.4.0"
@@ -16,8 +16,9 @@ versions:
 
 
   - version: "1.4.2"
-    status: active
-    description: "書庫跳轉選單 + PROP-011 自動導航補完"
+    status: completed
+    description: "書庫跳轉選單 + PROP-011 自動導航補完（released as v1.4.3）"
+    worklog: "docs/work-logs/v1/v1.4/v1.4.2/"
   - version: "1.4.1"
     status: completed
     description: "根目錄清理與框架維護"
