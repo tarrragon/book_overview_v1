@@ -237,6 +237,130 @@ class PlatformAdapterInterface {
   }
 
   // ==================
+  // 平台識別方法契約
+  // ==================
+
+  /**
+   * 取得平台名稱
+   * @returns {string} 平台名稱 (如 'Readmoo', 'Books')
+   * @abstract
+   */
+  getPlatformName () {
+    throw (() => {
+      const error = new Error('Must implement getPlatformName()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
+  }
+
+  /**
+   * 取得平台書庫頁面 URL
+   * @returns {string} 書庫 URL
+   * @abstract
+   */
+  getLibraryUrl () {
+    throw (() => {
+      const error = new Error('Must implement getLibraryUrl()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
+  }
+
+  /**
+   * 平台是否需要登入才能提取書庫
+   * @returns {boolean} 是否需要登入
+   * @abstract
+   */
+  requiresLogin () {
+    throw (() => {
+      const error = new Error('Must implement requiresLogin()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
+  }
+
+  /**
+   * 取得判斷登入狀態的 DOM 選擇器
+   * @returns {string|null} 登入檢查選擇器，無則回傳 null
+   * @abstract
+   */
+  getLoginCheckSelector () {
+    throw (() => {
+      const error = new Error('Must implement getLoginCheckSelector()')
+      error.code = ErrorCodes.NOT_IMPLEMENTED
+      return error
+    })()
+  }
+
+  // ==================
+  // 通用捲動載入 Helper（protected，子類可沿用或覆寫）
+  // ==================
+
+  /**
+   * 捲動頁面一段距離以觸發 lazy 載入
+   * @param {number} distance - 捲動距離（像素）
+   * @returns {Promise<void>}
+   * @protected
+   */
+  async _scrollStep (distance = 800) {
+    if (typeof window !== 'undefined' && typeof window.scrollBy === 'function') {
+      window.scrollBy(0, distance)
+    }
+  }
+
+  /**
+   * 等待頁面渲染穩定
+   * @param {number} delayMs - 等待毫秒數
+   * @returns {Promise<void>}
+   * @protected
+   */
+  async waitForRenderSettle (delayMs = 500) {
+    return new Promise(resolve => setTimeout(resolve, delayMs))
+  }
+
+  /**
+   * 等待書籍元素出現
+   * @param {number} timeoutMs - 逾時毫秒數
+   * @param {number} intervalMs - 輪詢間隔毫秒數
+   * @returns {Promise<NodeList|Array<Element>>} 書籍元素列表
+   * @protected
+   */
+  async waitForBookElements (timeoutMs = 5000, intervalMs = 200) {
+    const startTime = Date.now()
+    while (Date.now() - startTime < timeoutMs) {
+      if (this.getBookCount() > 0) {
+        return this.getBookElements()
+      }
+      await this.waitForRenderSettle(intervalMs)
+    }
+    return this.getBookElements()
+  }
+
+  /**
+   * 透過反覆捲動載入所有書籍（lazy load）
+   * @param {Object} options - 載入選項
+   * @param {number} [options.maxScrolls=50] - 最大捲動次數
+   * @param {number} [options.scrollDistance=800] - 每次捲動距離
+   * @param {number} [options.settleDelayMs=500] - 每次捲動後等待毫秒數
+   * @returns {Promise<NodeList|Array<Element>>} 所有書籍元素
+   * @protected
+   */
+  async loadAllBooksLazy (options = {}) {
+    const { maxScrolls = 50, scrollDistance = 800, settleDelayMs = 500 } = options
+    let previousCount = -1
+    let currentCount = this.getBookCount()
+    let scrollAttempts = 0
+    while (currentCount !== previousCount && scrollAttempts < maxScrolls) {
+      previousCount = currentCount
+      await this._scrollStep(scrollDistance)
+      await this.waitForRenderSettle(settleDelayMs)
+      currentCount = this.getBookCount()
+      scrollAttempts++
+    }
+    return this.getBookElements()
+  }
+
+  // ==================
   // 介面工具方法
   // ==================
 
@@ -267,7 +391,11 @@ class PlatformAdapterInterface {
       'extractBookData',
       'sanitizeData',
       'getStats',
-      'reset'
+      'reset',
+      'getPlatformName',
+      'getLibraryUrl',
+      'requiresLogin',
+      'getLoginCheckSelector'
     ]
 
     for (const methodName of abstractMethods) {
@@ -315,7 +443,11 @@ class PlatformAdapterInterface {
         'extractBookData',
         'sanitizeData',
         'getStats',
-        'reset'
+        'reset',
+        'getPlatformName',
+        'getLibraryUrl',
+        'requiresLogin',
+        'getLoginCheckSelector'
       ]
     }
   }

@@ -104,6 +104,93 @@ describe('PlatformAdapterInterface', () => {
     })
   })
 
+  describe('平台識別方法契約', () => {
+    test('getPlatformName() 應該拋出未實作錯誤', () => {
+      expect(() => adapter.getPlatformName()).toThrow()
+    })
+
+    test('getLibraryUrl() 應該拋出未實作錯誤', () => {
+      expect(() => adapter.getLibraryUrl()).toThrow()
+    })
+
+    test('requiresLogin() 應該拋出未實作錯誤', () => {
+      expect(() => adapter.requiresLogin()).toThrow()
+    })
+
+    test('getLoginCheckSelector() 應該拋出未實作錯誤', () => {
+      expect(() => adapter.getLoginCheckSelector()).toThrow()
+    })
+  })
+
+  describe('通用捲動載入 Helper', () => {
+    test('應該提供 protected 捲動 helper 方法', () => {
+      expect(typeof adapter._scrollStep).toBe('function')
+      expect(typeof adapter.waitForRenderSettle).toBe('function')
+      expect(typeof adapter.waitForBookElements).toBe('function')
+      expect(typeof adapter.loadAllBooksLazy).toBe('function')
+    })
+
+    test('waitForRenderSettle() 應該回傳會 resolve 的 Promise', async () => {
+      await expect(adapter.waitForRenderSettle(0)).resolves.toBeUndefined()
+    })
+
+    test('loadAllBooksLazy() 應在書籍數量穩定後回傳元素（子類實作 getBookCount/getBookElements）', async () => {
+      const elements = [document.createElement('div'), document.createElement('div')]
+      class CountingAdapter extends PlatformAdapterInterface {
+        constructor () {
+          super()
+          this.callCount = 0
+        }
+
+        getBookCount () {
+          // 前兩次回傳遞增數量，之後穩定
+          this.callCount++
+          return Math.min(this.callCount, 2)
+        }
+
+        getBookElements () {
+          return elements
+        }
+
+        async _scrollStep () {}
+        async waitForRenderSettle () {}
+      }
+
+      const countingAdapter = new CountingAdapter()
+      const result = await countingAdapter.loadAllBooksLazy({ maxScrolls: 10 })
+      expect(result).toBe(elements)
+    })
+
+    test('loadAllBooksLazy() 應受 maxScrolls 上限限制', async () => {
+      let scrollCalls = 0
+      class InfiniteAdapter extends PlatformAdapterInterface {
+        constructor () {
+          super()
+          this.count = 0
+        }
+
+        getBookCount () {
+          // 永遠遞增，模擬無限載入
+          return ++this.count
+        }
+
+        getBookElements () {
+          return []
+        }
+
+        async _scrollStep () {
+          scrollCalls++
+        }
+
+        async waitForRenderSettle () {}
+      }
+
+      const infiniteAdapter = new InfiniteAdapter()
+      await infiniteAdapter.loadAllBooksLazy({ maxScrolls: 3 })
+      expect(scrollCalls).toBe(3)
+    })
+  })
+
   describe('[WARN] 錯誤處理測試', () => {
     test('抽象方法應該提供清楚的錯誤訊息', async () => {
       // eslint-disable-next-line no-unused-vars
@@ -196,8 +283,15 @@ describe('PlatformAdapterInterface', () => {
         'extractBookData',
         'sanitizeData',
         'getStats',
-        'reset'
+        'reset',
+        'getPlatformName',
+        'getLibraryUrl',
+        'requiresLogin',
+        'getLoginCheckSelector'
       ]
+
+      expect(requiredMethods).toHaveLength(17)
+      expect(adapter.getInterfaceInfo().requiredMethods).toHaveLength(17)
 
       for (const methodName of requiredMethods) {
         expect(typeof adapter[methodName]).toBe('function')
