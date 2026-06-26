@@ -16,7 +16,8 @@
     {
       "matches": [
         "*://*.readmoo.com/*",
-        "*://readmoo.com/*"
+        "*://readmoo.com/*",
+        "*://*.books.com.tw/*"
       ],
       "js": [
         "src/content/content-modular.js"

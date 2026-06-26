@@ -62,6 +62,33 @@ function ensureEsbuildAvailable () {
   }
 }
 
+/**
+ * 驗證 manifest content_scripts.matches 與 PlatformRegistry 一致性
+ *
+ * PlatformRegistry.getAllMatchPatterns() 是 match patterns 的 SSOT；
+ * manifest.json content_scripts.matches 必須包含所有 registry patterns，
+ * 否則新書城的 content script 不會被注入。
+ *
+ * @param {object} manifest - 解析後的 manifest.json 物件
+ * @param {string[]} registryPatterns - PlatformRegistry.getAllMatchPatterns() 回傳值
+ * @returns {{ ok: boolean, missing: string[], extra: string[] }}
+ */
+function validateManifestMatchPatterns (manifest, registryPatterns) {
+  const manifestPatterns = new Set(
+    (manifest.content_scripts || []).flatMap((entry) => entry.matches || [])
+  )
+  const registrySet = new Set(registryPatterns)
+
+  const missing = registryPatterns.filter((p) => !manifestPatterns.has(p))
+  const extra = [...manifestPatterns].filter((p) => !registrySet.has(p))
+
+  return {
+    ok: missing.length === 0,
+    missing,
+    extra
+  }
+}
+
 const MODE = process.argv.includes('--prod') ? 'production' : 'development'
 const SKIP_VERSION_CHECK = process.argv.includes('--skip-version-check')
 const BUILD_DIR = path.join(__dirname, '..', 'build', MODE)
@@ -500,6 +527,23 @@ async function build () {
     // 避免清空 build/ 目錄 + 複製檔案完成後才在 bundleEntryPoints 撞到模組錯誤。
     ensureEsbuildAvailable()
 
+    // manifest-registry 一致性驗證：確認 manifest content_scripts.matches
+    // 包含 PlatformRegistry 所有 match patterns，避免新書城 content script 未注入。
+    const sourceManifest = JSON.parse(fs.readFileSync(path.join(SOURCE_DIR, 'manifest.json'), 'utf8'))
+    const { getAllMatchPatterns } = require(path.join(SOURCE_DIR, 'src', 'content', 'platform', 'platform-registry.js'))
+    const matchResult = validateManifestMatchPatterns(sourceManifest, getAllMatchPatterns())
+    if (!matchResult.ok) {
+      console.error('[MANIFEST-REGISTRY] manifest content_scripts.matches 與 PlatformRegistry 不一致：')
+      matchResult.missing.forEach((p) => console.error(`  缺少: ${p}`))
+      console.error('[MANIFEST-REGISTRY] 修復建議：將上述 patterns 加入 manifest.json content_scripts[0].matches')
+      process.exit(1)
+    }
+    if (matchResult.extra.length > 0) {
+      console.warn('[MANIFEST-REGISTRY] manifest 含 PlatformRegistry 未註冊的 patterns（可能為舊書城殘留）：')
+      matchResult.extra.forEach((p) => console.warn(`  額外: ${p}`))
+    }
+    console.log(`[MANIFEST-REGISTRY] 一致性驗證通過（${getAllMatchPatterns().length} patterns）`)
+
     // Design System CSS 產生（0.19.1-W2-001 D1）：
     // 在複製 src/ 之前重新產生 design-system.css，確保 build/{mode}/src/core/
     // design-system/design-system.css 與 3 個 .js 來源一致。filesToCopy 含 src/，
@@ -636,6 +680,7 @@ if (require.main === module) {
 module.exports = {
   detectActiveWorklogVersion,
   validateVersionAlignment,
+  validateManifestMatchPatterns,
   syncWorklogStatus,
   resolveWorklogPath,
   defaultFsAdapter,
