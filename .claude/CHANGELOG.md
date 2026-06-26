@@ -1,3 +1,142 @@
+## [2.8.0] - 2026-06-26
+
+### Summary
+feat: project-init 對 ticket/doc/worktree 改走 shim installer
+
+Changes: 1 feat
+
+- feat: project-init 對 ticket/doc/worktree 改走 shim installer
+
+---
+
+## [2.7.2] - 2026-06-25
+
+### Summary
+docs: WINDOWS-NOTES 補 CLI shim Windows 相容章節
+
+Changes: 1 docs
+
+- docs: WINDOWS-NOTES 補 CLI shim Windows 相容章節
+
+---
+
+## [2.7.1] - 2026-06-25
+
+### Summary
+docs: 落地流程教訓 PC-APP-004/005 + ARCH-007 觸發時機
+
+Changes: 1 docs
+
+- docs: 落地流程教訓 PC-APP-004/005 + ARCH-007 觸發時機
+
+---
+
+## [2.7.0] - 2026-06-25
+
+### Summary
+feat: guard hook 偵測 cwd-resolving shim 即略過; feat: 新增 cwd-resolving CLI shim installer（取代 uv tool install）; docs: 新增 ARCH-APP-002 uv tool install 全域 namespace 碰撞 (+1 more)
+
+Changes: 2 feat, 1 docs, 1 chore
+
+- feat: guard hook 偵測 cwd-resolving shim 即略過
+- feat: 新增 cwd-resolving CLI shim installer（取代 uv tool install）
+- docs: 新增 ARCH-APP-002 uv tool install 全域 namespace 碰撞
+- chore: pull .claude 更新（上游 62c2ee388051）
+
+---
+
+## [2.6.0] - 2026-06-25
+
+### Summary
+feat: push 版本比對提示 + IMP-MON-003 error-pattern; feat: pull 不帶名稱時批次更新已安裝 skill（）; fix: SKILL.md 引導更新為前綴號格式和通用類別
+
+Changes: 2 feat, 1 fix
+
+- feat: push 版本比對提示 + IMP-MON-003 error-pattern
+- feat: pull 不帶名稱時批次更新已安裝 skill（）
+- fix: SKILL.md 引導更新為前綴號格式和通用類別
+
+---
+
+## [2.5.0] - 2026-06-25
+
+### Summary
+feat: sync-push 自動檢查 skill 庫版本 drift（）; feat: basil 升級為 universal_lens 全情境常駐; feat: create 加自動 ID 分配 + domain 推導（） (+19 more)
+
+Changes: 7 feat, 5 refactor, 8 fix, 2 chore
+
+- feat: sync-push 自動檢查 skill 庫版本 drift（）
+- feat: basil 升級為 universal_lens 全情境常駐
+- feat: create 加自動 ID 分配 + domain 推導（）
+- feat: checklist enforcement 加建議值引導（）
+- feat: full overlay 加 confirm 阻擋機制（）
+- feat: clean_stale_files 加三方比對防護（）
+- feat: rmtree 全量替換改為 overlay + diff preview（）
+- refactor: public API 去除 _ prefix（）
+- refactor: 提取 create_reporter.py 從 create.py（）
+- refactor: 提取 duplicate_detector.py 從 create.py（）
+- refactor: ana_spawn_consistency_checker typing 統一為內建泛型（）
+- refactor: 提取 _should_skip_clean_file 共用 helper（）
+- fix: 移除常駐委員加入情境的冗餘列舉（A-G）
+- fix: 移除 basil opt-out 機制（）
+- fix: 並行審查修正 — dead import 清除 + 用字修正（W4 Phase 3）
+- fix: 情境表 Agent 數更新為 3+2（含常駐 linux + basil）
+- fix: 禁止自創不行動/排除類別（）
+- fix: 並行審查修復 — 安全 bug + dead code + 簡化
+- fix: acceptance-gate spawn 計數加行級豁免（）
+- fix: 恢復被 sync-pull 誤刪的 compositional-writing hooks（1037 行）
+- chore: bump SKILL.md to
+- chore: W3 批量完成 — known-limitation 標記 + 語意差異文件化
+
+---
+
+## [2.4.3] - 2026-06-25
+
+### Summary
+chore: basil-writing-critic 對齊 compositional-writing
+
+Changes: 1 chore
+
+- chore: basil-writing-critic 對齊 compositional-writing
+
+---
+
+## [2.4.2] - 2026-06-25
+
+### Summary
+sync .claude configuration
+
+---
+
+## [2.4.1] - 2026-06-25
+
+### Summary
+chore: pull multi-round-review 版本號更新（1.0.0）; chore: pull 寫作 skill 更新（compositional-writing + multi-round-review）; chore: pull .claude 更新（上游 cb11e8a3）
+
+Changes: 3 chore
+
+- chore: pull multi-round-review 版本號更新（1.0.0）
+- chore: pull 寫作 skill 更新（compositional-writing + multi-round-review）
+- chore: pull .claude 更新（上游 cb11e8a3）
+
+---
+
+## [2.4.0] - 2026-06-25
+
+### Summary
+feat: sync-pull post-sync 自動登記 Hook（hook-registry.yaml）; fix: project-init onboard 三項 false positive 修正; docs: 新增 error-pattern PC-V1-013（lenient build 驗證遮蔽 prod gate） (+3 more)
+
+Changes: 1 feat, 1 fix, 2 docs, 2 chore
+
+- feat: sync-pull post-sync 自動登記 Hook（hook-registry.yaml）
+- fix: project-init onboard 三項 false positive 修正
+- docs: 新增 error-pattern PC-V1-013（lenient build 驗證遮蔽 prod gate）
+- docs: agent-dispatch-template 補 append-log 收尾持久化驗證準則
+- chore: 登記 7 個通用 Hook + 排除 3 個語言專屬 Hook
+- chore: pull .claude 更新（upstream ）
+
+---
+
 ## [2.3.0] - 2026-06-25
 
 ### Summary
