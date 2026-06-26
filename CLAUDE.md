@@ -172,8 +172,10 @@ another agent. Therefore:
 | v1.0.0 | 內測版本（Readmoo 提取 + 匯出入 + 跨裝置同步 + 打包分發） | 已完成 |
 | v1.1.0 ~ v1.4.x | QR 離線同步、Skill 上架規範、框架維護、監測收斂 | 已完成 v1.4.1 |
 | v1.5.0 | 多書城 — 博客來 DOM 觀察 + 適配器 + 多書城共用架構 | — |
-| v1.6.0 | 多書城 — Kobo DOM 觀察 + 適配器 | — |
-| v1.7.0 | 多書城 — BookWalker DOM 觀察 + 適配器 | — |
+| v1.6.0 | 多書城 — Kobo 台灣站 DOM 觀察 + 適配器 | — |
+| v1.6.1 | 多書城 — Kobo 日本站適配器 | — |
+| v1.7.0 | 多書城 — BookWalker 台灣站 DOM 觀察 + 適配器 | — |
+| v1.7.1 | 多書城 — BookWalker 日本站適配器 | — |
 | v1.8.0 | 多書城 — Kindle Amazon.co.jp DOM 觀察 + 適配器 | — |
 | v1.9.0 | 多書城 — Kindle Amazon.com DOM 觀察 + 適配器 | — |
 | v1.10.0 | 多書城 — Google Play Books DOM 觀察 + 適配器 | — |

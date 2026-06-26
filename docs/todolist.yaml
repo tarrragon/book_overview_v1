@@ -33,11 +33,19 @@ versions:
 
   - version: "1.6.0"
     status: planned
-    description: "多書城支援 — Kobo DOM 觀察 + 適配器"
+    description: "多書城支援 — Kobo 台灣站 DOM 觀察 + 適配器"
+
+  - version: "1.6.1"
+    status: planned
+    description: "多書城支援 — Kobo 日本站適配器（帳號與台灣站獨立）"
 
   - version: "1.7.0"
     status: planned
-    description: "多書城支援 — BookWalker DOM 觀察 + 適配器"
+    description: "多書城支援 — BookWalker 台灣站 DOM 觀察 + 適配器"
+
+  - version: "1.7.1"
+    status: planned
+    description: "多書城支援 — BookWalker 日本站適配器（帳號與台灣站獨立）"
 
   - version: "1.8.0"
     status: planned
