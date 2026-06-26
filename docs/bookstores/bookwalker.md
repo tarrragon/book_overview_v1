@@ -11,7 +11,7 @@
 | 平台名稱 | BookWalker（台灣/日本） |
 | 官方網址（台灣） | https://www.bookwalker.com.tw/ |
 | 官方網址（日本） | https://bookwalker.jp/ |
-| 電子書庫頁 | 待實機確認 |
+| 電子書庫頁（台灣） | https://www.bookwalker.com.tw/bookcase/available_book_list |
 | 閱讀方式 | BookWalker APP / 網頁版閱讀器 |
 | 是否需登入 | 是 |
 | 登入方式 | BookWalker 帳號、其他 SSO 待確認 |
@@ -24,7 +24,7 @@
 ## 待勘查項目（v1.7.0 ANA）
 
 - [ ] 台灣站 vs 日本站是否需分開處理
-- [ ] 書庫頁實際 URL 確認
+- [x] 書庫頁實際 URL 確認（台灣站：`bookwalker.com.tw/bookcase/available_book_list`）
 - [ ] 書庫頁 DOM 結構
 - [ ] 載入機制
 - [ ] 書目資料欄位（含系列/卷數等漫畫特有欄位）
