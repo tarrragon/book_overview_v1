@@ -10,7 +10,7 @@
 |------|----|
 | 平台名稱 | 樂天 Kobo |
 | 官方網址 | https://www.kobo.com/ |
-| 電子書庫頁 | https://www.kobo.com/tw/zh/library （待實機確認） |
+| 電子書庫頁 | https://www.kobo.com/tw/zh/library/books |
 | 閱讀方式 | Kobo APP / 網頁版閱讀器 |
 | 是否需登入 | 是 |
 | 登入方式 | Kobo/Rakuten 帳號、Facebook、Google |
@@ -21,7 +21,7 @@
 
 ## 待勘查項目（v1.6.0 ANA）
 
-- [ ] 書庫頁實際 URL 確認（含地區差異 tw/us/jp）
+- [x] 書庫頁實際 URL 確認（`kobo.com/tw/zh/library/books`，含地區路徑 `/tw/zh/`）
 - [ ] 書庫頁 DOM 結構
 - [ ] 載入機制
 - [ ] 書目資料欄位
