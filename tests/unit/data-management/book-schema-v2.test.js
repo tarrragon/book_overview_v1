@@ -103,15 +103,15 @@ describe('Book Schema v2 定義', () => {
     expect(SCHEMA_VERSION).toBe('3.0.0')
   })
 
-  test('Schema 平台為 READMOO', () => {
-    expect(BOOK_SCHEMA_V2.platform).toBe('READMOO')
+  test('Schema 不再硬編碼 platform（書城來源由 source 動態識別）', () => {
+    expect(BOOK_SCHEMA_V2.platform).toBeUndefined()
   })
 
   test('Schema 包含所有必填欄位', () => {
     const requiredFields = Object.entries(BOOK_SCHEMA_V2.fields)
       .filter(([, def]) => def.required)
       .map(([name]) => name)
-    expect(requiredFields).toEqual(['id', 'title', 'readingStatus'])
+    expect(requiredFields).toEqual(['id', 'title', 'readingStatus', 'source'])
   })
 
   test('Schema 包含所有選填欄位', () => {

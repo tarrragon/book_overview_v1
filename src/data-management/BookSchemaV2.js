@@ -40,11 +40,16 @@ function isAutoTrackableStatus (status) {
 
 // === Schema 定義 ===
 
+const { getRegisteredPlatforms } = require('../content/platform/platform-registry')
+
 const SCHEMA_VERSION = '3.0.0'
+
+// source 欄位允許值來自 PlatformRegistry，新增書城時自動納入（單一真實來源）
+const PLATFORM_NAMES = Object.freeze(getRegisteredPlatforms().map((platform) => platform.name))
 
 const BOOK_SCHEMA_V2 = Object.freeze({
   version: SCHEMA_VERSION,
-  platform: 'READMOO',
+  // platform 不再硬編碼；書城來源由各書的 source 欄位動態識別（值受 PlatformRegistry 控制）
   fields: {
     // 必填欄位
     id: { type: 'string', required: true },
@@ -63,7 +68,7 @@ const BOOK_SCHEMA_V2 = Object.freeze({
     // 自動欄位
     extractedAt: { type: 'string', required: false, auto: true },
     updatedAt: { type: 'string', required: false, auto: true },
-    source: { type: 'string', required: false, auto: true, default: 'readmoo' }
+    source: { type: 'string', required: true, auto: true, enum: PLATFORM_NAMES }
   }
 })
 
@@ -112,6 +117,11 @@ function applyDefaults (book) {
     if (result[fieldName] === undefined && fieldDef.default !== undefined) {
       result[fieldName] = fieldDef.type === 'array' ? [...fieldDef.default] : fieldDef.default
     }
+  }
+
+  // 向後相容：source 移除 schema default 後，舊資料無 source 時明確回填 'readmoo'
+  if (result.source === undefined) {
+    result.source = 'readmoo'
   }
 
   return result
@@ -243,6 +253,7 @@ const BookSchemaV2 = {
   READING_STATUS,
   READING_STATUS_VALUES,
   SCHEMA_VERSION,
+  PLATFORM_NAMES,
   BOOK_SCHEMA_V2,
   isManualOnlyStatus,
   isAutoTrackableStatus,
