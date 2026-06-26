@@ -5,7 +5,7 @@ const { Logger } = require('src/core/logging/Logger')
  * Book Overview - 模組化版本
  *
  * 負責功能：
- * - 整合各模組化組件（EventBus, ChromeEventBridge, BookDataExtractor, ReadmooAdapter）
+ * - 整合各模組化組件（EventBus, ChromeEventBridge, BookDataExtractor, PlatformAdapter）
  * - 提供統一的初始化和生命週期管理
  * - 處理 Background Service Worker 通訊
  * - 管理 URL 變更和頁面狀態
@@ -21,7 +21,7 @@ const { Logger } = require('src/core/logging/Logger')
  * - ContentEventBus: 內部事件管理
  * - ChromeEventBridge: 跨上下文通訊橋接
  * - BookDataExtractor: 提取流程管理
- * - ReadmooAdapter: DOM 操作和資料解析
+ * - PlatformAdapter: DOM 操作和資料解析（透過 PlatformRegistry 動態選擇）
  *
  * @version 1.0.0
  * @author Readmoo Extension Team
@@ -32,7 +32,7 @@ const createPageDetector = require('./detectors/page-detector')
 const createContentEventBus = require('./core/content-event-bus')
 const createChromeEventBridge = require('./bridge/chrome-event-bridge')
 const createBookDataExtractor = require('./extractors/book-data-extractor')
-const createReadmooAdapter = require('./adapters/readmoo-adapter')
+const PlatformRegistry = require('./platform/platform-registry')
 
 // ====================
 // 全域狀態管理
@@ -43,7 +43,7 @@ let pageDetector = null
 let contentEventBus = null
 let contentChromeBridge = null
 let bookDataExtractor = null
-let readmooAdapter = null
+let platformAdapter = null
 let urlChangeStopFunction = null
 
 // 效能監控
@@ -68,12 +68,12 @@ async function initializeContentScript () {
     pageDetector = createPageDetector()
     const pageStatus = pageDetector.getPageStatus()
 
-    if (!pageStatus.isReadmooPage) {
-      Logger.info('非 Readmoo 頁面，跳過初始化')
+    if (!pageStatus.isSupportedPage) {
+      Logger.info('非支援書城頁面，跳過初始化')
       return
     }
 
-    Logger.info(`Readmoo 頁面檢測成功: ${pageStatus.pageType}`)
+    Logger.info(`書城頁面檢測成功: ${pageStatus.platformName} (${pageStatus.pageType})`)
 
     // 第二步：建立事件系統
     contentEventBus = createContentEventBus()
@@ -82,13 +82,14 @@ async function initializeContentScript () {
     // 第三步：設定事件系統整合
     contentChromeBridge.eventBus = contentEventBus
 
-    // 第四步：建立提取器組件
-    readmooAdapter = createReadmooAdapter()
+    // 第四步：透過 PlatformRegistry 動態建立適配器
+    const platform = PlatformRegistry.detect(window.location.href)
+    platformAdapter = platform.createAdapter()
     bookDataExtractor = createBookDataExtractor()
 
     // 第五步：設定提取器整合
     bookDataExtractor.setEventBus(contentEventBus)
-    bookDataExtractor.setReadmooAdapter(readmooAdapter)
+    bookDataExtractor.setPlatformAdapter(platformAdapter)
 
     // 第六步：設定全域變數 (供測試使用；CE runtime 用 globalThis 與 Node 測試環境共用)
     if (typeof globalThis !== 'undefined') {
@@ -96,7 +97,7 @@ async function initializeContentScript () {
       globalThis.contentEventBus = contentEventBus
       globalThis.contentChromeBridge = contentChromeBridge
       globalThis.bookDataExtractor = bookDataExtractor
-      globalThis.readmooAdapter = readmooAdapter
+      globalThis.platformAdapter = platformAdapter
       globalThis.contentScriptReady = true
     }
 
@@ -118,7 +119,7 @@ async function initializeContentScript () {
         eventBus: !!contentEventBus,
         chromeBridge: !!contentChromeBridge,
         extractor: !!bookDataExtractor,
-        adapter: !!readmooAdapter
+        adapter: !!platformAdapter
       }
     })
 
@@ -196,8 +197,8 @@ async function reportReadyStatus () {
     let bookCount = 0
 
     // 檢查書籍數量（使用 waitForBookElements 等待 SPA 動態渲染完成）
-    if (readmooAdapter && pageStatus.isReadmooPage) {
-      const bookElements = await readmooAdapter.waitForBookElements({ timeoutMs: 3000 })
+    if (platformAdapter && pageStatus.isSupportedPage) {
+      const bookElements = await platformAdapter.waitForBookElements({ timeoutMs: 3000 })
       bookCount = bookElements.length
     }
 
@@ -212,7 +213,7 @@ async function reportReadyStatus () {
           eventBus: !!contentEventBus,
           chromeBridge: !!contentChromeBridge,
           extractor: !!bookDataExtractor,
-          adapter: !!readmooAdapter
+          adapter: !!platformAdapter
         },
         ready: contentScriptReady,
         performance: performanceStats
@@ -345,6 +346,8 @@ async function handleBackgroundMessage (message, sender, sendResponse) {
 async function getPageStatus () {
   if (!pageDetector) {
     return {
+      isSupportedPage: false,
+      platformName: null,
       isReadmooPage: false,
       pageType: 'unknown',
       bookCount: 0,
@@ -356,9 +359,8 @@ async function getPageStatus () {
   const pageStatus = pageDetector.getPageStatus()
   let bookCount = 0
 
-  if (readmooAdapter && pageStatus.isReadmooPage) {
-    // getPageStatus 是同步回應場景，使用即時查詢不等待
-    const bookElements = readmooAdapter.getBookElements()
+  if (platformAdapter && pageStatus.isSupportedPage) {
+    const bookElements = platformAdapter.getBookElements()
     bookCount = bookElements.length
   }
 
@@ -376,8 +378,8 @@ function getHealthStatus () {
   const pageStatus = pageDetector ? pageDetector.getPageStatus() : {}
 
   let bookCount = 0
-  if (readmooAdapter && pageStatus.isReadmooPage) {
-    bookCount = readmooAdapter.getBookElements().length
+  if (platformAdapter && pageStatus.isSupportedPage) {
+    bookCount = platformAdapter.getBookElements().length
   }
 
   return {
@@ -388,7 +390,7 @@ function getHealthStatus () {
       contentEventBus: !!contentEventBus,
       contentChromeBridge: !!contentChromeBridge,
       bookDataExtractor: !!bookDataExtractor,
-      readmooAdapter: !!readmooAdapter
+      platformAdapter: !!platformAdapter
     },
     ready: contentScriptReady,
     performance: performanceStats

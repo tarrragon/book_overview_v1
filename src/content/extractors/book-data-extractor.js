@@ -37,7 +37,7 @@ const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 function createBookDataExtractor () {
   let eventBus = null
-  let readmooAdapter = null
+  let platformAdapter = null
   const activeExtractionFlows = new Map()
   const extractionHistory = []
   const maxHistorySize = 50 // 限制歷史記錄大小
@@ -66,20 +66,25 @@ function createBookDataExtractor () {
     },
 
     /**
-     * 設定 ReadmooAdapter
+     * 設定平台適配器
      *
-     * @param {Object} adapter - ReadmooAdapter 實例
+     * @param {Object} adapter - 平台適配器實例
      */
+    setPlatformAdapter (adapter) {
+      platformAdapter = adapter
+    },
+
+    /** @deprecated 使用 setPlatformAdapter() */
     setReadmooAdapter (adapter) {
-      readmooAdapter = adapter
+      platformAdapter = adapter
     },
 
     /**
-     * 檢測 Readmoo 頁面類型
+     * 檢測頁面類型
      *
      * @returns {string} 頁面類型 ('library', 'shelf', 'reader', 'unknown')
      */
-    getReadmooPageType () {
+    getPageType () {
       const location = getLocation()
       const url = location.href || ''
       const pathname = location.pathname || ''
@@ -103,9 +108,19 @@ function createBookDataExtractor () {
      *
      * @returns {boolean} 是否可提取
      */
-    isExtractableReadmooPage () {
-      const pageType = this.getReadmooPageType()
+    isExtractablePage () {
+      const pageType = this.getPageType()
       return ['library', 'shelf'].includes(pageType)
+    },
+
+    /** @deprecated 使用 getPageType() */
+    getReadmooPageType () {
+      return this.getPageType()
+    },
+
+    /** @deprecated 使用 isExtractablePage() */
+    isExtractableReadmooPage () {
+      return this.isExtractablePage()
     },
 
     /**
@@ -114,13 +129,13 @@ function createBookDataExtractor () {
      * @returns {Promise<Object>} 頁面狀態資訊
      */
     async checkPageReady () {
-      const pageType = this.getReadmooPageType()
+      const pageType = this.getPageType()
       const document = getDocument()
       const isReady = document ? (document.readyState === 'complete' || document.readyState === 'interactive') : false
 
       let bookCount = 0
-      if (readmooAdapter) {
-        const bookElements = readmooAdapter.getBookElements()
+      if (platformAdapter) {
+        const bookElements = platformAdapter.getBookElements()
         bookCount = bookElements.length
       }
 
@@ -129,7 +144,7 @@ function createBookDataExtractor () {
         isReady,
         pageType,
         bookCount,
-        extractable: this.isExtractableReadmooPage() && bookCount > 0,
+        extractable: this.isExtractablePage() && bookCount > 0,
         url: location.href || '',
         timestamp: Date.now()
       }
@@ -154,11 +169,11 @@ function createBookDataExtractor () {
      */
     async startExtractionFlow (config = {}) {
       const flowId = this.generateFlowId()
-      const pageType = config.pageType || this.getReadmooPageType()
+      const pageType = config.pageType || this.getPageType()
 
       try {
         // 檢查頁面是否可提取
-        if (!this.isExtractableReadmooPage()) {
+        if (!this.isExtractablePage()) {
           const error = new Error(`不支援的頁面類型: ${pageType}`)
           error.code = ErrorCodes.VALIDATION_ERROR
           error.details = {
@@ -226,7 +241,7 @@ function createBookDataExtractor () {
      */
     async performActualExtraction (flowId) {
       const flowState = activeExtractionFlows.get(flowId)
-      if (!flowState || !readmooAdapter) {
+      if (!flowState || !platformAdapter) {
         const error = new Error('流程狀態或適配器不存在')
         error.code = ErrorCodes.SYSTEM_ERROR
         error.details = {
@@ -234,7 +249,7 @@ function createBookDataExtractor () {
           component: 'BookDataExtractor',
           flowId,
           hasFlowState: !!flowState,
-          hasAdapter: !!readmooAdapter
+          hasAdapter: !!platformAdapter
         }
         throw error
       }
@@ -248,7 +263,7 @@ function createBookDataExtractor () {
         await this.reportProgress(flowId, 0.1, '開始提取書籍資料')
 
         // 提取所有書籍（內部含捲動載入全部書籍）
-        const booksData = await readmooAdapter.extractAllBooks()
+        const booksData = await platformAdapter.extractAllBooks()
 
         // eslint-disable-next-line no-undef
         if (process.env.NODE_ENV !== 'production') {

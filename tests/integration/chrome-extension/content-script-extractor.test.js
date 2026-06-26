@@ -185,12 +185,12 @@ describe('Content Script Extractor Integration', () => {
       if (extractor) {
         // 測試頁面類型檢測
         // eslint-disable-next-line no-unused-vars
-        const pageType = extractor.getReadmooPageType()
+        const pageType = extractor.getPageType()
         expect(['library', 'shelf', 'reader', 'unknown']).toContain(pageType)
 
         // 測試可提取頁面檢測
         // eslint-disable-next-line no-unused-vars
-        const isExtractable = extractor.isExtractableReadmooPage()
+        const isExtractable = extractor.isExtractablePage()
         expect(typeof isExtractable).toBe('boolean')
       }
     })
@@ -265,8 +265,8 @@ describe('Content Script Extractor Integration', () => {
 
         // 模擬錯誤情況 - 暫時移除ReadmooAdapter
         // eslint-disable-next-line no-unused-vars
-        const originalAdapter = global.readmooAdapter
-        extractor.setReadmooAdapter(null)
+        const originalAdapter = global.platformAdapter || global.platformAdapter
+        extractor.setPlatformAdapter(null)
 
         try {
           await extractor.startExtractionFlow({
@@ -278,7 +278,7 @@ describe('Content Script Extractor Integration', () => {
         }
 
         // 恢復ReadmooAdapter
-        extractor.setReadmooAdapter(originalAdapter)
+        extractor.setPlatformAdapter(originalAdapter)
 
         // 等待事件處理
         await new Promise(resolve => setTimeout(resolve, 100))
@@ -294,15 +294,15 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // 應該建立 ReadmooAdapter 實例
-      expect(global.readmooAdapter).toBeDefined()
-      expect(global.readmooAdapter.constructor.name).toBe('ReadmooAdapter')
+      expect(global.platformAdapter).toBeDefined()
+      expect(global.platformAdapter.constructor.name).toBe('ReadmooAdapter')
     })
 
     test('應該能夠提取書籍元素', async () => {
       await loadContentScript()
 
       // eslint-disable-next-line no-unused-vars
-      const adapter = global.readmooAdapter
+      const adapter = global.platformAdapter
       if (adapter) {
         // 測試書籍元素提取
         // eslint-disable-next-line no-unused-vars
@@ -322,7 +322,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // eslint-disable-next-line no-unused-vars
-      const adapter = global.readmooAdapter
+      const adapter = global.platformAdapter
       if (adapter) {
         // eslint-disable-next-line no-unused-vars
         const bookElements = adapter.getBookElements()
@@ -349,7 +349,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // eslint-disable-next-line no-unused-vars
-      const adapter = global.readmooAdapter
+      const adapter = global.platformAdapter
       if (adapter) {
         // 測試批量書籍資料提取
         // eslint-disable-next-line no-unused-vars
@@ -374,7 +374,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // eslint-disable-next-line no-unused-vars
-      const adapter = global.readmooAdapter
+      const adapter = global.platformAdapter
       if (adapter) {
         // 執行提取操作
         await adapter.extractAllBooks()
@@ -787,7 +787,7 @@ describe('Content Script Extractor Integration', () => {
 
       // 重新提取應該包含新書籍
       // eslint-disable-next-line no-unused-vars
-      const adapter = global.readmooAdapter
+      const adapter = global.platformAdapter
       if (adapter) {
         // eslint-disable-next-line no-unused-vars
         const bookElements = adapter.getBookElements()
@@ -804,7 +804,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // eslint-disable-next-line no-unused-vars
-      const adapter = global.readmooAdapter
+      const adapter = global.platformAdapter
       if (adapter) {
         // 應該優雅處理無書籍元素的情況
         // eslint-disable-next-line no-unused-vars
@@ -832,7 +832,7 @@ describe('Content Script Extractor Integration', () => {
       await loadContentScript()
 
       // eslint-disable-next-line no-unused-vars
-      const adapter = global.readmooAdapter
+      const adapter = global.platformAdapter
       if (adapter) {
         // 應該安全處理惡意內容
         // eslint-disable-next-line no-unused-vars
@@ -857,7 +857,7 @@ describe('Content Script Extractor Integration', () => {
         contentEventBus: !!global.contentEventBus,
         contentChromeBridge: !!global.contentChromeBridge,
         bookDataExtractor: !!global.bookDataExtractor,
-        readmooAdapter: !!global.readmooAdapter,
+        readmooAdapter: !!global.platformAdapter,
         domReady: document.readyState === 'complete',
         pageDetected: !!(global.pageDetector && global.pageDetector.getPageStatus().isReadmooPage)
       }
