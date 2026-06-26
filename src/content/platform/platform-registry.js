@@ -37,6 +37,14 @@ const PLATFORM_CONFIGS = [
     hostnames: ['read.readmoo.com', 'member.readmoo.com', 'readmoo.com'],
     adapterFactory: () => require('../adapters/readmoo-adapter'),
     libraryUrl: 'https://read.readmoo.com/#/library'
+  },
+  {
+    name: 'books-com-tw',
+    displayName: '博客來電子書',
+    matchPatterns: ['*://*.books.com.tw/*'],
+    hostnames: ['viewer-ebook.books.com.tw', 'www.books.com.tw', 'books.com.tw'],
+    adapterFactory: () => require('../adapters/books-com-tw-adapter'),
+    libraryUrl: 'https://viewer-ebook.books.com.tw/viewer/index.html?readlist=all'
   }
 ]
 
