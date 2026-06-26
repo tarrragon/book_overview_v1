@@ -16,25 +16,54 @@ describe('createBookstoreNavSection', () => {
     expect(section.id).toBe('bookstoreNavSection')
   })
 
-  test('renders section title when provided', () => {
+  test('renders section title in collapsible header when provided', () => {
     const section = createBookstoreNavSection({
       bookstores: sampleStores,
       sectionTitle: 'Navigate'
     })
-    const strong = section.querySelector('.results-header strong')
+    const strong = section.querySelector('.collapsible-header strong')
     expect(strong).not.toBeNull()
     expect(strong.textContent).toBe('Navigate')
   })
 
+  test('collapsible header has correct aria attributes', () => {
+    const section = createBookstoreNavSection({
+      bookstores: sampleStores,
+      sectionTitle: 'Navigate'
+    })
+    const header = section.querySelector('.collapsible-header')
+    expect(header.getAttribute('role')).toBe('button')
+    expect(header.getAttribute('aria-expanded')).toBe('false')
+    expect(header.getAttribute('aria-controls')).toBe('bookstoreNavBody')
+  })
+
+  test('clicking header toggles expanded state', () => {
+    const section = createBookstoreNavSection({
+      bookstores: sampleStores,
+      sectionTitle: 'Navigate'
+    })
+    const header = section.querySelector('.collapsible-header')
+    const body = section.querySelector('#bookstoreNavBody')
+
+    header.click()
+    expect(header.getAttribute('aria-expanded')).toBe('true')
+    expect(body.classList.contains('expanded')).toBe(true)
+
+    header.click()
+    expect(header.getAttribute('aria-expanded')).toBe('false')
+    expect(body.classList.contains('expanded')).toBe(false)
+  })
+
   test('omits title header when sectionTitle is not provided', () => {
     const section = createBookstoreNavSection({ bookstores: sampleStores })
-    const header = section.querySelector('.results-header')
+    const header = section.querySelector('.collapsible-header')
     expect(header).toBeNull()
   })
 
-  test('renders only enabled bookstores as buttons', () => {
+  test('renders only enabled bookstores as buttons inside collapsible body', () => {
     const section = createBookstoreNavSection({ bookstores: sampleStores })
-    const buttons = section.querySelectorAll('button')
+    const body = section.querySelector('#bookstoreNavBody')
+    const buttons = body.querySelectorAll('button')
     expect(buttons.length).toBe(2)
     expect(buttons[0].textContent).toBe('Readmoo')
     expect(buttons[1].textContent).toBe('Books')

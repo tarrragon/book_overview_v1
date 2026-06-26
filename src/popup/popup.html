@@ -220,6 +220,39 @@
       line-height: 1.5;
       margin-bottom: var(--spacing-md);
     }
+
+    .collapsible-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0;
+    }
+
+    .collapsible-header[aria-expanded="true"] {
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .collapsible-chevron {
+      font-size: var(--font-size-caption);
+      color: var(--color-on-surface-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .collapsible-header[aria-expanded="true"] .collapsible-chevron {
+      transform: rotate(180deg);
+    }
+
+    .collapsible-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.2s ease;
+    }
+
+    .collapsible-body.expanded {
+      max-height: 500px;
+    }
   </style>
 </head>
 <body>

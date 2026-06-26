@@ -299,14 +299,48 @@ function createBookstoreNavSection ({ bookstores = [], sectionTitle, ariaPrefix 
   container.classList.add('status-card')
   container.id = 'bookstoreNavSection'
 
+  const bodyId = 'bookstoreNavBody'
+
   if (sectionTitle) {
     const header = document.createElement('div')
-    header.classList.add('results-header')
+    header.classList.add('collapsible-header')
+    header.setAttribute('role', 'button')
+    header.setAttribute('tabindex', '0')
+    header.setAttribute('aria-expanded', 'false')
+    header.setAttribute('aria-controls', bodyId)
+
     const strong = document.createElement('strong')
     strong.textContent = sectionTitle
     header.appendChild(strong)
+
+    const chevron = document.createElement('span')
+    chevron.classList.add('collapsible-chevron')
+    chevron.textContent = '▼'
+    header.appendChild(chevron)
+
+    const toggleExpand = () => {
+      const expanded = header.getAttribute('aria-expanded') === 'true'
+      header.setAttribute('aria-expanded', String(!expanded))
+      const body = container.querySelector('#' + bodyId)
+      if (body) {
+        body.classList.toggle('expanded', !expanded)
+      }
+    }
+
+    header.addEventListener('click', toggleExpand)
+    header.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        toggleExpand()
+      }
+    })
+
     container.appendChild(header)
   }
+
+  const body = document.createElement('div')
+  body.id = bodyId
+  body.classList.add('collapsible-body')
 
   const buttonContainer = document.createElement('div')
   buttonContainer.classList.add('action-buttons')
@@ -323,7 +357,8 @@ function createBookstoreNavSection ({ bookstores = [], sectionTitle, ariaPrefix 
     buttonContainer.appendChild(btn)
   })
 
-  container.appendChild(buttonContainer)
+  body.appendChild(buttonContainer)
+  container.appendChild(body)
   return container
 }
 
