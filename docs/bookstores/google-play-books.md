@@ -10,7 +10,7 @@
 |------|----|
 | 平台名稱 | Google Play Books |
 | 官方網址 | https://play.google.com/books |
-| 電子書庫頁 | https://play.google.com/books （待實機確認） |
+| 電子書庫頁 | https://play.google.com/books |
 | 閱讀方式 | Google Play Books APP / 網頁版 |
 | 是否需登入 | 是（Google 帳號） |
 | 登入方式 | Google 帳號 |
@@ -21,7 +21,7 @@
 
 ## 待勘查項目（v1.10.0 ANA）
 
-- [ ] 書庫頁實際 URL 確認
+- [x] 書庫頁實際 URL 確認（`play.google.com/books`）
 - [ ] 書庫頁 DOM 結構
 - [ ] 載入機制
 - [ ] 書目資料欄位
