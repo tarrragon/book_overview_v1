@@ -198,7 +198,14 @@ function writeReadme (version, zipName) {
   const content = `# Readmoo 書庫管理器 - 測試者安裝說明
 
 **版本**：v${version}
-**分發包**：\`${zipName}\`（與本說明同目錄）
+**分發包**：\`${zipName}\`
+
+## 下載
+
+- **GitHub Releases**：https://github.com/tarrragon/book_overview_v1/releases/tag/v${version}
+- 本機打包：執行 \`npm run package:release\` 後，ZIP 位於 \`release/\` 目錄
+
+---
 
 本擴充功能為 Readmoo 電子書平台設計，提供書庫資料自動提取、本地化書目管理、
 搜尋篩選和批量匯出功能。本版本為正式上架前的測試版，以「載入未封裝項目」方式安裝。
@@ -207,7 +214,7 @@ function writeReadme (version, zipName) {
 
 ## 安裝步驟（Chrome 開發者模式）
 
-1. 解壓 \`${zipName}\`，得到一個資料夾（內含 \`manifest.json\` 於根層）。
+1. 從上方連結下載 \`${zipName}\` 並解壓，得到一個資料夾（內含 \`manifest.json\` 於根層）。
 2. 開啟 Chrome，於網址列輸入 \`chrome://extensions\` 並前往。
 3. 開啟右上角的「開發人員模式 / Developer mode」開關。
 4. 點選左上角「載入未封裝項目 / Load unpacked」。
