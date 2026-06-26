@@ -10,7 +10,7 @@
 |------|----|
 | 平台名稱 | 博客來電子書 |
 | 官方網址 | https://www.books.com.tw/ |
-| 電子書庫頁 | https://www.books.com.tw/web/member/ebook （待實機確認） |
+| 電子書庫頁 | https://viewer-ebook.books.com.tw/viewer/index.html?readlist=all |
 | 閱讀方式 | 博客來閱讀器 APP / 網頁版閱讀器 |
 | 是否需登入 | 是（書庫頁需登入） |
 | 登入方式 | 博客來帳號（Email + 密碼）、Facebook、Google |
@@ -21,7 +21,7 @@
 
 ## 待勘查項目（v1.5.0 ANA）
 
-- [ ] 書庫頁實際 URL 確認
+- [x] 書庫頁實際 URL 確認（`viewer-ebook.books.com.tw`）
 - [ ] 書庫頁 DOM 結構（書目容器、書目項目選擇器）
 - [ ] 載入機制（分頁 / infinite scroll / lazy load / 一次全載）
 - [ ] 書目資料欄位（書名、作者、封面、ISBN、購買日期）

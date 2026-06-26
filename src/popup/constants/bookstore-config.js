@@ -11,6 +11,12 @@ const BOOKSTORE_LIST = Object.freeze([
     name: 'Readmoo',
     url: 'https://read.readmoo.com/#/library',
     enabled: true
+  },
+  {
+    id: 'books-com-tw',
+    name: '博客來',
+    url: 'https://viewer-ebook.books.com.tw/viewer/index.html?readlist=all',
+    enabled: false
   }
 ])
 
