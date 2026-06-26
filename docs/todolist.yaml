@@ -26,6 +26,7 @@ versions:
   - version: "1.5.0"
     status: active
     description: "多書城支援 — 博客來 DOM 觀察 + 適配器"
+    worklog: "docs/work-logs/v1/v1.5/v1.5.0/"
     notes: |
       PROP-001 第一站。博客來書庫頁 DOM 勘查、自動載入機制分析、
       platform adapter 實作。含多書城共用架構（PlatformIsolationService 骨架）。
