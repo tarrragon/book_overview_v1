@@ -1,3 +1,49 @@
+## [2.8.5] - 2026-07-01
+
+### Summary
+fix: 移除 .gitignore 對 sample_events.jsonl 的錯誤排除; chore: 新增 PC-APP-006 錯誤模式（.gitignore 排除測試 fixture）
+
+Changes: 1 fix, 1 chore
+
+- fix: 移除 .gitignore 對 sample_events.jsonl 的錯誤排除
+- chore: 新增 PC-APP-006 錯誤模式（.gitignore 排除測試 fixture）
+
+---
+
+## [2.8.4] - 2026-07-01
+
+### Summary
+fix: 同步孤兒檔 sample_events.jsonl 測試 fixture
+
+---
+
+## [2.8.3] - 2026-07-01
+
+### Summary
+feat: 新增 design-system-spec-template.md 範本（W8-002）
+
+---
+
+## [2.8.2] - 2026-06-29
+
+### Summary
+sync .claude configuration
+
+---
+
+## [2.8.1] - 2026-06-26
+
+### Summary
+fix: skill-sync push 排除 __pycache__ 目錄; chore: skill-sync pull 自動版本比對 + 批量拉取 3 個更新 skill; chore: pull .claude 更新（上游 543ce90d）
+
+Changes: 1 fix, 2 chore
+
+- fix: skill-sync push 排除 __pycache__ 目錄
+- chore: skill-sync pull 自動版本比對 + 批量拉取 3 個更新 skill
+- chore: pull .claude 更新（上游 543ce90d）
+
+---
+
 ## [2.8.0] - 2026-06-26
 
 ### Summary
