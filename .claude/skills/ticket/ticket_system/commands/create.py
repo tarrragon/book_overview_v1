@@ -16,6 +16,7 @@ import sys
 import traceback
 from typing import Any, Dict, List, Optional
 
+from ticket_system.constants import PRIORITY_LEVELS, TICKET_TYPES
 from ticket_system.lib.ticket_loader import (
     get_tickets_dir,
     save_ticket,
@@ -1225,9 +1226,15 @@ def register(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument("--target", required=True, help=TrackMessages.ARG_CREATE_TARGET)
     parser.add_argument("--title", help="標題（預設: action + target）")
     parser.add_argument(
-        "--type", help="類型: IMP, TST, ADJ, RES, ANA, INV, DOC（預設: IMP）"
+        "--type",
+        choices=list(TICKET_TYPES),
+        help="類型: IMP, ADJ, ANA, DOC（預設: IMP；TST/RES/INV 已收斂為歷史化石，新票不可用）",
     )
-    parser.add_argument("--priority", help="優先級: P0, P1, P2, P3（預設: P2）")
+    parser.add_argument(
+        "--priority",
+        choices=PRIORITY_LEVELS,
+        help="優先級: P0, P1, P2, P3（預設: P2）",
+    )
     parser.add_argument("--who", help="執行代理人")
     parser.add_argument("--what", help="任務描述（預設: action + target）")
     parser.add_argument("--when", help="觸發時機")

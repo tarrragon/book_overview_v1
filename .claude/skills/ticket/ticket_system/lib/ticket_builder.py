@@ -22,7 +22,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, TypedDict
 
-from ticket_system.lib.constants import STATUS_PENDING, DEFAULT_UNDEFINED_VALUE
+from ticket_system.lib.constants import (
+    CANONICAL_BODY_SECTIONS,
+    DEFAULT_UNDEFINED_VALUE,
+    STATUS_PENDING,
+)
 from ticket_system.lib.paths import GIT_TOPLEVEL_TIMEOUT, get_project_root
 from ticket_system.lib.ticket_loader import (
     get_tickets_dir,
@@ -158,7 +162,7 @@ class TicketConfig(TypedDict, total=False):
     version: str                # 版本號（如 0.31.0）
     wave: int                   # Wave 編號（如 5）
     title: str                  # 標題（「動詞 + 目標」格式）
-    ticket_type: str            # 類型（IMP/TST/ADJ/RES/ANA/INV/DOC）
+    ticket_type: str            # 類型（正典 IMP/ADJ/ANA/DOC；TST/RES/INV 為歷史化石）
     priority: str               # 優先級（P0/P1/P2/P3）
 
     # 5W1H 資訊（7 個欄位）
@@ -192,7 +196,7 @@ def get_default_acceptance_criteria(ticket_type: str) -> List[str]:
     """取得預設驗收條件（依 Ticket 類型）。
 
     Args:
-        ticket_type: Ticket 類型（IMP, TST, ADJ, RES, ANA, INV, DOC）
+        ticket_type: Ticket 類型（正典 IMP, ADJ, ANA, DOC；TST/RES/INV 化石鍵保留供讀取容忍）
 
     Returns:
         預設驗收條件清單
@@ -1113,18 +1117,9 @@ def update_source_spawned_tickets(source_ticket_id: str, new_ticket_id: str) -> 
 # 原樣以免誤刪 ANA 重現實驗或 H3 自由結構。
 # ---------------------------------------------------------------------------
 
-# Schema 章節清單（與 .claude/rules/core/agent-definition-standard.md 「章節結構規則」一致）
-SCHEMA_H2_SECTIONS: Tuple[str, ...] = (
-    "Task Summary",
-    "Problem Analysis",
-    "重現實驗結果",
-    "Solution",
-    "Test Results",
-    "Context Bundle",
-    "NeedsContext",
-    "Exit Status",
-    "Completion Info",
-)
+# Schema 章節清單：自 constants.CANONICAL_BODY_SECTIONS 衍生（單一序列來源，
+# 與 append-log 白名單同源），順序即自動補建的物理定位權威
+SCHEMA_H2_SECTIONS: Tuple[str, ...] = CANONICAL_BODY_SECTIONS
 
 # Placeholder pattern：純 frontmatter 模板殘留判定
 # 命中即視為「無實質內容」：

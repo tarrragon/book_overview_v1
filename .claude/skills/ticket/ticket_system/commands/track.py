@@ -37,6 +37,7 @@ def _parse_top_arg(value: str) -> int:
         raise argparse.ArgumentTypeError("--top must be >= 0")
     return n
 
+from ticket_system.constants import PRIORITY_LEVELS
 from ticket_system.lib.ticket_loader import (
     resolve_version,
     require_version,
@@ -682,10 +683,10 @@ def _register_field_write_commands(
     p_set_how.add_argument("value", help=TrackMessages.ARG_VALUE)
     p_set_how.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
-    # set-priority 操作
+    # set-priority 操作（choices 於參數層 fail-fast，寫入邊界收斂第一層）
     p_set_priority = subparsers.add_parser("set-priority", help=TrackMessages.HELP_SET_PRIORITY)
     p_set_priority.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
-    p_set_priority.add_argument("value", help=TrackMessages.ARG_VALUE)
+    p_set_priority.add_argument("value", choices=PRIORITY_LEVELS, help=TrackMessages.ARG_VALUE)
     p_set_priority.add_argument("--version", help=TrackMessages.ARG_VERSION)
 
     # add-acceptance 操作

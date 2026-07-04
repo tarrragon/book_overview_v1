@@ -9,6 +9,8 @@
 
 ## Schema 對照表
 
+> **type 正典**：4 型 IMP / ADJ / ANA / DOC（SSOT：`ticket_system/constants.py` 的 `TICKET_TYPES`，CLI 以 argparse choices 強制）。TST / RES / INV 為歷史化石（讀取容忍、寫入拒絕）。ADJ 未定義專屬章節要求，Hook 驗證回退通用檢查。
+
 | Section | ANA | IMP | DOC |
 |---------|-----|-----|-----|
 | Task Summary | 必填 | 必填 | 必填 |
