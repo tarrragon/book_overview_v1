@@ -37,19 +37,28 @@ class YAMLParseError(Exception):
 
 
 class EnumGateViolation(Exception):
-    """枚舉驗證閘違規（deny 模式）：非法枚舉值被拒絕落盤。
+    """枚舉驗證閘違規（deny 模式）：非法枚舉值或非法狀態轉移被拒絕落盤。
 
-    violations 為 (field, old_value, new_value, valid_values) tuple 清單，
+    violations 為 (field, old_value, new_value, valid_values, kind) tuple 清單
+    （kind 為 "enum" 枚舉成員違規 / "transition" 狀態轉移違規），
     供呼叫端組錯誤訊息或測試斷言。
     """
 
     def __init__(self, violations: List[tuple]):
         self.violations = violations
         detail = "; ".join(
-            f"{field}: {old!r} -> {new!r}（合法值：{', '.join(sorted(valid))}）"
-            for field, old, new, valid in violations
+            _format_violation(field, old, new, valid, kind)
+            for field, old, new, valid, kind in violations
         )
         super().__init__(f"枚舉驗證閘拒絕落盤：{detail}")
+
+
+def _format_violation(field, old, new, valid, kind) -> str:
+    """組單筆違規的人讀訊息（stderr / 例外共用）。"""
+    if kind == "transition":
+        allowed = ", ".join(sorted(valid)) if valid else "無（終態）"
+        return f"{field} 轉移 {old!r} -> {new!r} 非法（{old} 合法出邊：{allowed}）"
+    return f"{field} 值 {new!r} 不在正典（{', '.join(sorted(valid))}）"
 
 
 # ============================================================================
@@ -92,7 +101,7 @@ def _collect_enum_violations(
     本閘只守「有值時必須是正典值」。非字串值（list/dict 誤塞）視為違規。
 
     Returns:
-        List[tuple]: (field, old_value, new_value, valid_values)
+        List[tuple]: (field, old_value, new_value, valid_values, "enum")
     """
     gate_fields = {
         "type": _enum_constants.VALID_TICKET_TYPES,
@@ -109,8 +118,41 @@ def _collect_enum_violations(
         if snapshot is not None and new_value == snapshot.get(field):
             continue  # 未被本次操作改動 → 化石豁免
         if not isinstance(new_value, str) or new_value not in valid_values:
-            violations.append((field, snapshot.get(field) if snapshot else None, new_value, valid_values))
+            violations.append(
+                (field, snapshot.get(field) if snapshot else None, new_value, valid_values, "enum")
+            )
     return violations
+
+
+def _collect_transition_violations(
+    ticket: Dict[str, Any],
+    snapshot: Optional[Dict[str, Any]],
+) -> List[tuple]:
+    """收集狀態轉移違規：status 變更時查 STATUS_TRANSITIONS[old] 是否含 new。
+
+    邊界（不重複計、化石容忍）：
+    - 無快照（新建票）→ 無「轉移」概念，跳過。
+    - 舊態非正典（skipped 等化石）→ 跳過：無法從未知狀態斷言邊合法性，
+      且矯正化石票回正典狀態不應被阻擋。
+    - 新態非正典 → 跳過：已由枚舉成員違規計入，避免同一寫入雙重告警。
+
+    Returns:
+        List[tuple]: (field, old, new, allowed_targets, "transition")
+    """
+    if snapshot is None:
+        return []
+    old_value = snapshot.get("status")
+    new_value = ticket.get("status")
+    if new_value is None or new_value == old_value:
+        return []
+    transitions = getattr(_enum_constants, "STATUS_TRANSITIONS", {})
+    if not isinstance(old_value, str) or old_value not in transitions:
+        return []
+    if not isinstance(new_value, str) or new_value not in transitions:
+        return []
+    if new_value in transitions[old_value]:
+        return []
+    return [("status", old_value, new_value, transitions[old_value], "transition")]
 
 
 def _log_enum_violations(
@@ -127,8 +169,8 @@ def _log_enum_violations(
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry_id = ticket.get("id", ticket_path.stem)
         with open(log_dir / "enum-gate.log", "a", encoding="utf-8") as f:
-            for field, old, new, _valid in violations:
-                f.write(f"{timestamp}\t{mode}\t{entry_id}\t{field}\t{old!r}\t{new!r}\n")
+            for field, old, new, _valid, kind in violations:
+                f.write(f"{timestamp}\t{mode}\t{kind}\t{entry_id}\t{field}\t{old!r}\t{new!r}\n")
     except OSError as e:
         # 量測日誌失敗不阻斷落盤主流程；stderr 保留可觀測性（雙通道要求）
         sys.stderr.write(
@@ -148,15 +190,15 @@ def _enforce_enum_gate(
     模式讀 constants.ENUM_GATE_MODE（切 deny 須經 warn 期誤報率量測裁定）。
     """
     violations = _collect_enum_violations(ticket, snapshot)
+    violations += _collect_transition_violations(ticket, snapshot)
     if not violations:
         return
     mode = getattr(_enum_constants, "ENUM_GATE_MODE", "warn")
     _log_enum_violations(violations, ticket, ticket_path, mode)
     entry_id = ticket.get("id", ticket_path.stem)
-    for field, _old, new, valid in violations:
+    for field, old, new, valid, kind in violations:
         sys.stderr.write(
-            f"[enum-gate:{mode}] {entry_id} 欄位 {field} 值 {new!r} "
-            f"不在正典（{', '.join(sorted(valid))}）\n"
+            f"[enum-gate:{mode}] {entry_id} {_format_violation(field, old, new, valid, kind)}\n"
         )
     if mode == "deny":
         raise EnumGateViolation(violations)

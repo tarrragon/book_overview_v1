@@ -206,3 +206,95 @@ def test_snapshot_refreshed_after_successful_save(capsys):
 
     save_ticket(ticket, path)  # 未再變更：快照已刷新，不重複告警
     assert "[enum-gate" not in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# 案例 5：狀態轉移矩陣（STATUS_TRANSITIONS 接線）
+# ---------------------------------------------------------------------------
+
+
+def _write_ticket_with_status(ticket_id: str, status: str) -> Path:
+    path = get_ticket_path(_VERSION, ticket_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "---\n"
+        f"id: {ticket_id}\n"
+        "title: transition fixture\n"
+        "type: IMP\n"
+        f"status: {status}\n"
+        "priority: P2\n"
+        "---\n\n# Execution Log\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_completed_to_pending_transition_warns(capsys):
+    """設計案例 5：completed 票未經 release 直改 pending → 觸發。"""
+    path = _write_ticket_with_status("9.9.9-W2-001", "completed")
+    ticket = load_ticket(_VERSION, "9.9.9-W2-001")
+
+    ticket["status"] = "pending"
+    save_ticket(ticket, path)
+
+    err = capsys.readouterr().err
+    assert "[enum-gate:warn]" in err
+    assert "轉移" in err
+    # warn 模式照常落盤
+    assert "status: pending" in path.read_text(encoding="utf-8")
+    # 量測日誌帶 transition kind
+    assert "transition" in _gate_log_path().read_text(encoding="utf-8")
+
+
+def test_legal_transitions_no_warn(capsys):
+    """合法邊（claim / complete 對應轉移）不觸發。"""
+    path = _write_ticket_with_status("9.9.9-W2-002", "pending")
+    ticket = load_ticket(_VERSION, "9.9.9-W2-002")
+    ticket["status"] = "in_progress"  # claim 對應邊
+    save_ticket(ticket, path)
+    assert "[enum-gate" not in capsys.readouterr().err
+
+    ticket["status"] = "completed"  # complete 對應邊（快照已刷新為 in_progress）
+    save_ticket(ticket, path)
+    assert "[enum-gate" not in capsys.readouterr().err
+
+
+def test_fossil_old_status_transition_skipped(capsys):
+    """舊態為化石值（skipped）→ 轉移檢查跳過；矯正回正典態不觸發任何告警。"""
+    path = _write_ticket_with_status("9.9.9-W2-003", "skipped")
+    ticket = load_ticket(_VERSION, "9.9.9-W2-003")
+
+    ticket["status"] = "closed"
+    save_ticket(ticket, path)
+
+    assert "[enum-gate" not in capsys.readouterr().err
+    assert "status: closed" in path.read_text(encoding="utf-8")
+
+
+def test_invalid_new_status_flagged_once_as_enum(capsys):
+    """新態非正典 → 僅枚舉違規一筆，不重複計轉移違規。"""
+    path = _write_ticket_with_status("9.9.9-W2-004", "completed")
+    ticket = load_ticket(_VERSION, "9.9.9-W2-004")
+
+    ticket["status"] = "weird_status"
+    save_ticket(ticket, path)
+
+    err = capsys.readouterr().err
+    assert err.count("[enum-gate:warn]") == 1
+    assert "不在正典" in err
+    assert "轉移" not in err
+
+
+def test_deny_mode_blocks_illegal_transition(monkeypatch, capsys):
+    monkeypatch.setattr(ticket_constants, "ENUM_GATE_MODE", "deny")
+    path = _write_ticket_with_status("9.9.9-W2-005", "completed")
+    ticket = load_ticket(_VERSION, "9.9.9-W2-005")
+
+    ticket["status"] = "pending"
+    with pytest.raises(EnumGateViolation) as exc_info:
+        save_ticket(ticket, path)
+
+    assert "status: completed" in path.read_text(encoding="utf-8")  # 不落盤
+    kinds = [v[4] for v in exc_info.value.violations]
+    assert kinds == ["transition"]
+    assert "[enum-gate:deny]" in capsys.readouterr().err

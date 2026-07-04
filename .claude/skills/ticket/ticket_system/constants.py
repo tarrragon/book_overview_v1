@@ -150,8 +150,12 @@ TERMINAL_STATUSES: frozenset = frozenset({STATUS_COMPLETED, STATUS_CLOSED})
 VALID_STATUSES: frozenset = frozenset(TICKET_STATUS.values())
 
 # 狀態轉移矩陣（lifecycle 兜底驗證消費；claim/complete/release/close 的
-# per-command guard 為語意層，本矩陣為落盤前最後防線）
-# completed 唯一出邊為 superseded（被後繼票取代）；closed/superseded 無出邊
+# per-command guard 為語意層，本矩陣為落盤前最後防線）。
+# 邊集依現行 CLI 語意定稿：claim 接受 pending/blocked（blocked 可重新認領）、
+# complete 僅 in_progress、release 依 blockedBy 退 pending 或 blocked、
+# close 接受三個非終態。completed 唯一出邊為 superseded（被後繼票取代）——
+# 現行 CLI 無寫入 superseded 的命令（grep 實證），此邊為前瞻保留；warn 期
+# 出現其他 completed 出邊即為異常訊號。closed / superseded 為終態無出邊。
 STATUS_TRANSITIONS: Dict[str, frozenset] = {
     STATUS_PENDING: frozenset({STATUS_IN_PROGRESS, STATUS_BLOCKED, STATUS_CLOSED}),
     STATUS_IN_PROGRESS: frozenset(
