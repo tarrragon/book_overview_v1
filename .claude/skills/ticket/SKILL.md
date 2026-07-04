@@ -318,7 +318,7 @@ ticket batch-create --template impl-parsley --targets "a,b" --parent 1.0.0-W28-0
 >
 > **注意**：5W1H 欄位由 `set-who` ~ `set-how` 6 個命令更新。`blockedBy` 用 `set-blocked-by`、`relatedTo` 用 `set-related-to`（均支援 `--add`/`--remove`）、`priority` 用 `set-priority`。其餘 frontmatter 欄位無 CLI 命令，需手動編輯 frontmatter。完整對照表見 `references/track-command.md`。
 >
-> **注意**：`append-log` 必須加上 `--section` 必填參數：`ticket track append-log <id> --section "Problem Analysis" "內容"`。有效區段值：`Problem Analysis`、`Context Bundle`、`重現實驗結果`、`Solution`、`Test Results`、`Execution Log`、`NeedsContext`、`Exit Status`。`重現實驗結果` 為 ANA type 必填章節（PC-063 / ticket-body-schema.md）。`Context Bundle` 用於派發前寫入 PCB（PC-040）；`NeedsContext`/`Exit Status` 用於代理人結束狀態協議（W17-010）。
+> **注意**：`append-log` 必須加上 `--section` 必填參數：`ticket track append-log <id> --section "Problem Analysis" "內容"`。有效區段值（SSOT：`ticket_system/constants.py` 的 `CANONICAL_BODY_SECTIONS` + `Execution Log`，共 10 章）：`Task Summary`、`Problem Analysis`、`重現實驗結果`、`Solution`、`Test Results`、`Context Bundle`、`NeedsContext`、`Exit Status`、`Completion Info`、`Execution Log`。body-schema 全必填章節（含 `Completion Info`）皆可經 append-log 寫入，不需 Edit 繞道。`重現實驗結果` 為 ANA type 必填章節（PC-063 / ticket-body-schema.md）。`Context Bundle` 用於派發前寫入 PCB（PC-040）；`NeedsContext`/`Exit Status` 用於代理人結束狀態協議（W17-010）。
 >
 > **Status precondition（W3-044 / W1-058）**：`append-log` 要求 ticket status 為 `in_progress`（`completed` 亦放行，補 review 場景）。**例外（W1-058）**：派發前章節 `Problem Analysis` / `Context Bundle` 允許 `pending` 直寫——PM 依 PC-040 / PC-100 於 create 後立即寫入派發 context 屬合法 bookkeeping，不需 `--force`、不記 audit。其餘章節（`Solution` / `Test Results` / `Execution Log` 等執行產出）於 pending / blocked / closed 仍阻擋（status 失敗 exit 2）；`--force` 逃生閥行為與 hook-logs audit 紀錄不變。
 >
