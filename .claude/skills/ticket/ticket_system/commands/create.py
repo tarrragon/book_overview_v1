@@ -1074,56 +1074,79 @@ def _auto_extract_context_bundle_post_create(
 
 
 def execute(args: argparse.Namespace) -> int:
-    """執行 create 命令 — 協調四個步驟"""
+    """執行 create 命令 — 協調四個步驟
+
+    版本歸屬引導（建議版本 / VERSION_NOT_REGISTERED 檢查）僅對根票生效。
+    子任務（--parent 存在）無條件繼承父票 version/wave，不受引導與註冊檢查
+    影響（W5-005.13：子票版本應與父票綁定，引導推導值可能未在 todolist
+    註冊而導致子票建立 hard-fail）。
+    """
     ticket_type = args.type or "IMP"
     action = args.action or ""
-
-    # 版本歸屬引導：根據 type + action 建議目標版本
-    suggestion = suggest_version_for_ticket(ticket_type, action)
+    is_child = bool(args.parent)
     user_specified_version = args.version is not None
 
-    if suggestion and not user_specified_version:
-        suggested_ver, reason = suggestion
-        print(format_info(
-            "[版本歸屬引導] 建議版本: {version}（{reason}）",
-            version=suggested_ver,
-            reason=reason,
-        ))
-        args.version = suggested_ver
+    if is_child:
+        # 子任務：version 無條件繼承父票，跳過版本歸屬引導與註冊檢查。
+        # 優先從 --parent ticket ID 解析版本（父票版本為唯一權威來源），
+        # 僅在 --parent 格式異常無法解析時才 fallback 至 resolve_version()。
+        version = extract_version_from_ticket_id(args.parent)
+        if not version:
+            version = resolve_version(args.version)
+        if not version:
+            print(format_error(ErrorEnvelope(
+                component="create",
+                action="resolve_version",
+                errno="VERSION_NOT_DETECTED",
+                hint="無法從 --parent 解析版本號，請確認 --parent 格式正確",
+            )))
+            return 1
+    else:
+        # 根票：版本歸屬引導：根據 type + action 建議目標版本
+        suggestion = suggest_version_for_ticket(ticket_type, action)
 
-    version = resolve_version(args.version)
-    if not version:
-        print(format_error(ErrorEnvelope(
-            component="create",
-            action="resolve_version",
-            errno="VERSION_NOT_DETECTED",
-            hint="無法自動偵測版本號，請使用 --version 明確指定（或確認 todolist.yaml 已設定 current_version）",
-        )))
-        return 1
-
-    # 版本歸屬 warning：用戶指定版本但與建議不符
-    if suggestion and user_specified_version:
-        suggested_ver, reason = suggestion
-        if version != suggested_ver:
-            print(format_warning(
-                "[版本歸屬引導] 指定版本 {version} 與建議版本 {suggested} 不符"
-                "（{reason}）。如有意為之請忽略此警告",
-                version=version,
-                suggested=suggested_ver,
+        if suggestion and not user_specified_version:
+            suggested_ver, reason = suggestion
+            print(format_info(
+                "[版本歸屬引導] 建議版本: {version}（{reason}）",
+                version=suggested_ver,
                 reason=reason,
             ))
+            args.version = suggested_ver
 
-    # 驗證版本已在 todolist.yaml 中註冊
-    from ticket_system.lib.version import validate_version_registered
-    is_valid, error_msg = validate_version_registered(version)
-    if not is_valid:
-        print(format_error(ErrorEnvelope(
-            component="create",
-            action="validate_version",
-            errno="VERSION_NOT_REGISTERED",
-            hint=error_msg,
-        )))
-        return 1
+        version = resolve_version(args.version)
+        if not version:
+            print(format_error(ErrorEnvelope(
+                component="create",
+                action="resolve_version",
+                errno="VERSION_NOT_DETECTED",
+                hint="無法自動偵測版本號，請使用 --version 明確指定（或確認 todolist.yaml 已設定 current_version）",
+            )))
+            return 1
+
+        # 版本歸屬 warning：用戶指定版本但與建議不符
+        if suggestion and user_specified_version:
+            suggested_ver, reason = suggestion
+            if version != suggested_ver:
+                print(format_warning(
+                    "[版本歸屬引導] 指定版本 {version} 與建議版本 {suggested} 不符"
+                    "（{reason}）。如有意為之請忽略此警告",
+                    version=version,
+                    suggested=suggested_ver,
+                    reason=reason,
+                ))
+
+        # 驗證版本已在 todolist.yaml 中註冊（僅根票；子票版本繼承父票，無需重複驗證）
+        from ticket_system.lib.version import validate_version_registered
+        is_valid, error_msg = validate_version_registered(version)
+        if not is_valid:
+            print(format_error(ErrorEnvelope(
+                component="create",
+                action="validate_version",
+                errno="VERSION_NOT_REGISTERED",
+                hint=error_msg,
+            )))
+            return 1
 
     # IMP-072 方案 A：Step 1（ID 分配）到 Step 3（落盤）之間原本無鎖，跨
     # process / 跨 session 並行 create 會同讀相同 max seq 配出同一 ID，後寫者
