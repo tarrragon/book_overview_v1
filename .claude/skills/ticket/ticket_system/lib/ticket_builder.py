@@ -25,6 +25,7 @@ from typing import Any, Dict, List, Optional, Tuple, TypedDict
 from ticket_system.lib.constants import (
     CANONICAL_BODY_SECTIONS,
     DEFAULT_UNDEFINED_VALUE,
+    PROTOCOL_VERSION_CURRENT,
     STATUS_PENDING,
 )
 from ticket_system.lib.paths import GIT_TOPLEVEL_TIMEOUT, get_project_root
@@ -744,6 +745,7 @@ def create_ticket_frontmatter(config: TicketConfig) -> Dict[str, Any]:
         "completed_at": None,
         "created": datetime.now().strftime("%Y-%m-%d"),
         "updated": datetime.now().strftime("%Y-%m-%d"),
+        "protocol_version": PROTOCOL_VERSION_CURRENT,
     }
 
 
