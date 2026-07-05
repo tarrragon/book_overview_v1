@@ -80,6 +80,20 @@ def test_classify_upgraded_via_frontmatter(tmp_path):
     assert classify_memory(mem) == "upgraded"
 
 
+def test_classify_malformed_frontmatter_treated_unevaluated(tmp_path, capsys):
+    """真實資料常見未引號冒號值（PC-165：測試綠燈遮蔽 runtime）不應崩潰。"""
+    mem = _write_memory(
+        tmp_path,
+        "feedback_malformed.md",
+        "---\ntype: feedback\n"
+        "description: 值內含 backtick 或 originSessionId: 334448a4-xxx\n"
+        "---\n\n內容\n",
+    )
+    assert classify_memory(mem) == "unevaluated"
+    captured = capsys.readouterr()
+    assert "feedback_malformed.md" in captured.err
+
+
 def test_classify_upgraded_via_top_annotation(tmp_path):
     mem = _write_memory(
         tmp_path,
@@ -162,6 +176,26 @@ def test_scan_memory_dir_three_categories(tmp_path):
     assert result["dangling"] == [
         {"file": "feedback_dangling.md", "ids": ["PC-V1-999"]}
     ]
+
+
+def test_scan_memory_dir_survives_malformed_frontmatter(tmp_path):
+    """單一壞檔（未引號冒號值）不應中斷整批掃描（PC-165 runtime 缺口修復）。"""
+    memory_dir = tmp_path / "memory"
+    ep_dir = tmp_path / "error-patterns"
+    _write_memory(
+        memory_dir,
+        "feedback_ok.md",
+        "---\ntype: feedback\n---\n\n無 upgrade 鍵\n",
+    )
+    _write_memory(
+        memory_dir,
+        "feedback_malformed.md",
+        "---\ntype: feedback\n"
+        "description: 值內含 backtick 或 originSessionId: 334448a4-xxx\n"
+        "---\n\n內容\n",
+    )
+    result = scan_memory_dir(memory_dir, ep_dir)
+    assert result["unevaluated"] == ["feedback_malformed.md", "feedback_ok.md"]
 
 
 def test_scan_memory_dir_ignores_non_feedback_files(tmp_path):

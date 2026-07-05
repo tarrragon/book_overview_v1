@@ -50,12 +50,27 @@ _STATUS_ANNOTATION_MARKER = "> **Status**: Upgraded"
 _FRONTMATTER_RE = re.compile(r"^---\n(.*?\n)---\n", re.DOTALL)
 
 
-def _parse_frontmatter(text: str) -> dict:
-    """解析檔案開頭的 YAML frontmatter；無 frontmatter 回傳空 dict。"""
+def _parse_frontmatter(text: str, source_name: str = "<unknown>") -> dict:
+    """解析檔案開頭的 YAML frontmatter；無 frontmatter 或解析失敗回傳空 dict。
+
+    真實資料常見 frontmatter 值含未引號冒號（如
+    `description: ... originSessionId: xxx`）導致 `yaml.safe_load` 拋
+    `ScannerError`；此為單一壞檔的 malformed 資料，不應中斷整批掃描
+    （PC-165：測試綠燈遮蔽 runtime，須以真實資料驗證邊界）。捕獲後回傳
+    空 dict（該檔歸類為 unevaluated）並寫 stderr 警告含檔名，符合
+    observability 規則 1（異常不可靜默吞掉）。
+    """
     match = _FRONTMATTER_RE.match(text)
     if not match:
         return {}
-    return yaml.safe_load(match.group(1)) or {}
+    try:
+        return yaml.safe_load(match.group(1)) or {}
+    except yaml.YAMLError as exc:
+        sys.stderr.write(
+            f"[memory_upgrade] WARNING: malformed frontmatter in "
+            f"'{source_name}'，視為 unevaluated（{exc}）\n"
+        )
+        return {}
 
 
 def classify_memory(memory_file) -> str:
@@ -68,7 +83,7 @@ def classify_memory(memory_file) -> str:
     if _STATUS_ANNOTATION_MARKER in text:
         return "upgraded"
 
-    frontmatter = _parse_frontmatter(text)
+    frontmatter = _parse_frontmatter(text, source_name=Path(memory_file).name)
     upgrade = frontmatter.get("upgrade")
     if upgrade == "deferred":
         return "deferred"
