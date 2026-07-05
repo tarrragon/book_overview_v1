@@ -103,6 +103,7 @@ from .track_acceptance import (
     execute_check_acceptance,
     execute_append_log,
     execute_accept_creation,
+    execute_add_spawn_request,
 )
 # 導入 set-acceptance / validate 子命令
 from .track_set_acceptance import execute_set_acceptance
@@ -309,6 +310,7 @@ def _create_command_handlers() -> dict:
         "set-acceptance": execute_set_acceptance,
         "validate": execute_validate,
         "append-log": execute_append_log,
+        "add-spawn-request": execute_add_spawn_request,
         "accept-creation": execute_accept_creation,
         "add-child": execute_add_child,
         "set-blocked-by": execute_set_blocked_by,
@@ -893,6 +895,30 @@ def _register_acceptance_commands(
     p_append_log.add_argument("content", help=TrackMessages.ARG_CONTENT)
     p_append_log.add_argument("--version", help=TrackMessages.ARG_VERSION)
     p_append_log.add_argument(
+        "--force",
+        action="store_true",
+        default=False,
+        help="W3-044 逃生閥：旁路 status precondition 檢查（記入 hook-logs）",
+    )
+
+    # add-spawn-request 操作
+    p_add_spawn_request = subparsers.add_parser(
+        "add-spawn-request",
+        help="追加結構化 spawn request（建議 PM 開新 ticket）至 Spawn Requests 章節",
+    )
+    p_add_spawn_request.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
+    p_add_spawn_request.add_argument("--what", required=True, help="建議開票的目標描述")
+    p_add_spawn_request.add_argument("--why", required=True, help="發現此問題的原因/觸發情境")
+    p_add_spawn_request.add_argument(
+        "--type", required=True, help="建議 ticket 類型（IMP/ADJ/ANA/DOC）"
+    )
+    p_add_spawn_request.add_argument(
+        "--priority", required=True, help="建議優先級（P0/P1/P2/P3）"
+    )
+    p_add_spawn_request.add_argument("--files", default=None, help="相關檔案路徑，逗號分隔")
+    p_add_spawn_request.add_argument("--context", default=None, help="補充 context（可選）")
+    p_add_spawn_request.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    p_add_spawn_request.add_argument(
         "--force",
         action="store_true",
         default=False,

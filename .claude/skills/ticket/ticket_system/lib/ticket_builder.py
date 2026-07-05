@@ -943,6 +943,15 @@ estimated_recovery_effort: ""  # 若 needs_context/blocked，預估補料成本
 
 ---
 
+## Spawn Requests
+
+<!-- agent 執行中發現應開新 ticket 的議題時，用
+`ticket track add-spawn-request <id> --what ... --why ... --type ... --priority ...`
+追加結構化請求。PM 處理後標記 status: processed（已建 ticket）或
+dismissed（評估後不建）+ reason。 -->
+
+---
+
 ## Completion Info{ci_marker}
 
 **Completion Time**: (pending)

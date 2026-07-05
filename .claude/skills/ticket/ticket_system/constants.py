@@ -355,6 +355,7 @@ CANONICAL_BODY_SECTIONS: tuple = (
     "Context Bundle",
     "NeedsContext",
     "Exit Status",
+    "Spawn Requests",
     "Completion Info",
 )
 
