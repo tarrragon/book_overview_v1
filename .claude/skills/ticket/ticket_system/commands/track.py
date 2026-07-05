@@ -107,6 +107,11 @@ from .track_acceptance import (
 )
 # 導入 set-acceptance / validate 子命令
 from .track_set_acceptance import execute_set_acceptance
+# 導入 set-exit-status / set-completion-info 子命令（1.5.0-W5-021 制式化內容生成）
+from .track_structured_body import (
+    execute_set_exit_status,
+    execute_set_completion_info,
+)
 from .track_validate import execute_validate
 # 導入關係和狀態管理模組
 from .track_relations import (
@@ -308,6 +313,8 @@ def _create_command_handlers() -> dict:
         "phase": execute_phase,
         "check-acceptance": execute_check_acceptance,
         "set-acceptance": execute_set_acceptance,
+        "set-exit-status": execute_set_exit_status,
+        "set-completion-info": execute_set_completion_info,
         "validate": execute_validate,
         "append-log": execute_append_log,
         "add-spawn-request": execute_add_spawn_request,
@@ -922,6 +929,55 @@ def _register_acceptance_commands(
         "--force",
         action="store_true",
         default=False,
+        help="W3-044 逃生閥：旁路 status precondition 檢查（記入 hook-logs）",
+    )
+
+    # set-exit-status 操作（1.5.0-W5-021：CLI 生成 Exit Status fenced YAML 區塊）
+    p_set_exit_status = subparsers.add_parser(
+        "set-exit-status",
+        help="設定 Exit Status 章節（CLI 生成 fenced YAML，取代自由格式撰寫）",
+    )
+    p_set_exit_status.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
+    p_set_exit_status.add_argument(
+        "--status", required=True,
+        help="枚舉: success|needs_context|blocked|partial_success|failed",
+    )
+    p_set_exit_status.add_argument("--reason", default="", help="狀態原因說明")
+    p_set_exit_status.add_argument(
+        "--confidence", required=True, help="信心度（0.0-1.0）"
+    )
+    p_set_exit_status.add_argument(
+        "--acceptance-met", nargs="*", default=None,
+        dest="acceptance_met", help="已完成的 acceptance index 列表",
+    )
+    p_set_exit_status.add_argument(
+        "--acceptance-unmet", nargs="*", default=None,
+        dest="acceptance_unmet", help="未完成的 acceptance index 列表",
+    )
+    p_set_exit_status.add_argument(
+        "--artifacts", nargs="*", default=None, help="產出檔案路徑列表",
+    )
+    p_set_exit_status.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    p_set_exit_status.add_argument(
+        "--force", action="store_true", default=False,
+        help="W3-044 逃生閥：旁路 status precondition 檢查（記入 hook-logs）",
+    )
+
+    # set-completion-info 操作（1.5.0-W5-021：CLI 生成 Completion Info 區塊）
+    p_set_completion_info = subparsers.add_parser(
+        "set-completion-info",
+        help="設定 Completion Info 章節（CLI 生成格式，取代自由格式撰寫）",
+    )
+    p_set_completion_info.add_argument("ticket_id", help=TrackMessages.ARG_TICKET_ID)
+    p_set_completion_info.add_argument("--agent", required=True, help="執行代理人名稱")
+    p_set_completion_info.add_argument(
+        "--review-status", dest="review_status", default="pending",
+        help="枚舉: pending|reviewed|n/a",
+    )
+    p_set_completion_info.add_argument("--summary", default="", help="變更摘要")
+    p_set_completion_info.add_argument("--version", help=TrackMessages.ARG_VERSION)
+    p_set_completion_info.add_argument(
+        "--force", action="store_true", default=False,
         help="W3-044 逃生閥：旁路 status precondition 檢查（記入 hook-logs）",
     )
 
