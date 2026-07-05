@@ -928,7 +928,7 @@ def create_ticket_body(what: str, who: str, ticket_type: str = "") -> str:
 
 <!-- 代理人結束時以 YAML 格式回報（W17-010 schema）：
 ```yaml
-status: success        # 枚舉: success|needs_context|blocked|partial_success|failed
+exit_status: success        # 枚舉: success|needs_context|blocked|partial_success|failed
 reason: ""             # 狀態原因說明
 confidence: 1.0        # 0.0-1.0 信心度
 acceptance_met: []     # 已完成的 acceptance index 列表

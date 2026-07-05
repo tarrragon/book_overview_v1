@@ -181,7 +181,7 @@ def _get_exit_status_tag(handoff_info: Optional[Dict]) -> Optional[str]:
     exit_status = handoff_info.get("exit_status")
     if not isinstance(exit_status, dict):
         return None
-    status = exit_status.get("status")
+    status = exit_status.get("exit_status") or exit_status.get("status")
     if isinstance(status, str) and status in _TAGGED_EXIT_STATUSES:
         return status
     return None
@@ -256,7 +256,7 @@ def _compute_readiness(
     info = handoff_info.get(ticket.get("id"))
     exit_status_obj = (info or {}).get("exit_status") if isinstance(info, dict) else None
     if isinstance(exit_status_obj, dict):
-        status = exit_status_obj.get("status")
+        status = exit_status_obj.get("exit_status") or exit_status_obj.get("status")
         if isinstance(status, str):
             mapped = _EXIT_STATUS_TO_READINESS.get(status)
             if mapped:
