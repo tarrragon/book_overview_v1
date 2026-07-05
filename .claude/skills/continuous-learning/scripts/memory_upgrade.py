@@ -33,17 +33,11 @@ if str(_allocator_lib) not in sys.path:
     sys.path.insert(0, str(_allocator_lib))
 
 from lib.pattern_id import PATTERN_ID_RE  # noqa: E402
-from allocator import allocate_pattern_id, identify_project_code  # noqa: E402
-
-_CATEGORY_DIRS = {
-    "ARCH": "architecture",
-    "CQ": "code-quality",
-    "DOC": "documentation",
-    "IMP": "implementation",
-    "PROC": "process",
-    "PC": "process-compliance",
-    "TEST": "test",
-}
+from allocator import (  # noqa: E402
+    _CATEGORY_DIRS,
+    allocate_pattern_id,
+    identify_project_code,
+)
 
 _STATUS_ANNOTATION_MARKER = "> **Status**: Upgraded"
 
