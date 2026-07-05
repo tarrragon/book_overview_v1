@@ -1,3 +1,10 @@
+---
+id: ARCH-021
+title: 模組組裝遺漏導致功能鏈路靜默斷裂
+category: architecture
+severity: medium
+created: 2026-03-29
+---
 # ARCH-021: 模組組裝遺漏導致功能鏈路靜默斷裂
 
 > **編號變更**：原 ARCH-010，於 W10-021 因編號衝突重新編號為 ARCH-021（2026-05-04）。
