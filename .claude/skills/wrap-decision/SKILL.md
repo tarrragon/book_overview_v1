@@ -1,6 +1,6 @@
 ---
 name: wrap-decision
-description: "WRAP 決策框架 — 認知偏誤防護、選項擴增與資料充足度閘門。用於防護自動駕駛、假選項、證據不足下的倉促決策。Use when: 被困住或連續失敗 2+、準備宣告限制性結論前、偏離核心目標、根因分析、代理人失敗歸因、提案評估、重大架構或規則決策、個人化建議（健康/醫療/金錢/法律）前、Context 沉重時。Triggers: stuck, blocked, loop, no progress, 分析, debug, 限制性解法, 個人化建議, 具體推薦。"
+description: "WRAP 決策框架 — 認知偏誤防護、選項擴增與資料充足度閘門。用於防護自動駕駛、假選項、證據不足下的倉促決策。內含完整 premortem 流程（失敗原因並行深挖 + 綜合報告），適用版本規劃、提案評估、發版前等高成本決策。Use when: 被困住或連續失敗 2+、準備宣告限制性結論前、偏離核心目標、根因分析、代理人失敗歸因、提案評估、重大架構或規則決策、個人化建議（健康/醫療/金錢/法律）前、Context 沉重時、需要對計畫做事前風險推演時。Triggers: stuck, blocked, loop, no progress, 分析, debug, 限制性解法, 個人化建議, 具體推薦, premortem, 事前驗屍, 事前假設失敗, 壓力測試計畫, 這計畫會怎麼死, 找出盲點。"
 ---
 
 # WRAP 決策框架 Skill
@@ -31,6 +31,7 @@ description: "WRAP 決策框架 — 認知偏誤防護、選項擴增與資料�
 | **既有結論錨定（Anchor）**（決策路徑層 3.2）          | WRAP W 階段選項能一句話概括 / 全指向同一根因                                | 完整（強制反向思考（Consider the Opposite） + 重新定義問題）                                |
 | **規則失敗草率改規則**（決策路徑層 3.3）              | 失敗第一反應「改規則」，未先重試 2 次                                       | 快速（先挖根因再決定改規則或改行為）                                                        |
 | **多步驟成功率盲點**（決策路徑層 3.4）                | 多步驟計畫中所有中間步驟都預測成功                                          | 快速（R 階段基本率 + 每步獨立驗證）                                                         |
+| **完整 premortem**                                   | 版本規劃、提案評估、發版前等高成本決策，需要對「這計畫會怎麼死」做並行深挖  | **完整**（P 階段展開版，見 `references/premortem-workflow.md`）                            |
 
 > 上述 4 項決策路徑層因子可由各專案映射到自己的掛鉤（Hook）、CLI 或任務系統；本 skill 只保留通用判斷語意。
 
@@ -382,6 +383,8 @@ R 階段一般處理「基本率」「來源核對」（已有「清單類答案
 
 > Gary Klein 方法：先假設計畫失敗了，然後問「是什麼殺了它？」比問「可能會失敗嗎？」多產出 25% 的洞察（且更具體）。
 
+**高成本決策的完整展開版**：上表「行前預想」是 12 小時尺度、3 原因的簡化版，適用一般 ticket。版本規劃、提案評估、發版前等高成本決策改用完整 premortem 流程——原因數量不設上限、每個原因獨立派 subagent 深挖、輸出三分綜合報告，見 `references/premortem-workflow.md`。
+
 ### 自我暴露偏好實踐（提供建議時必行）
 
 提供建議時必暴露偏好、推理鏈、盲點，不偽裝中立：
@@ -451,10 +454,12 @@ WRAP 每階段之間是切割點 — 強迫問「是否繼續」：
 | `references/tripwire-catalog.md`    | 絆腳索類型完整目錄、自動駕駛失敗模式、切割機制、命名效應                                                                                                     |
 | `references/iterative-research.md`  | 多輪迭代查詢方法論（4 輪結構：發散 → 具體化 → 精準化 → 反向驗證 + 進入下一輪訊號 + 反向驗證 8 種類型範本）                                                   |
 | `references/anti-paternalism.md`    | 悖論識別檢查清單 + 自我暴露偏好實踐（善意家長主義（benevolent paternalism）4 條件測試、自我參照悖論識別、推薦標記（Recommended）是暗黑模式（dark pattern）） |
+| `references/premortem-workflow.md`  | 完整 premortem 五步流程（context 閘門 → raw 失敗原因列舉 → 並行深挖 subagent → 三分綜合報告 → 落檔），為 P 階段簡化三問的高成本決策展開版；含本框架落地約束章節（PCB 派發骨架、markdown 落檔限制），其他專案沿用時可調整該章節 |
 
 ---
 
-**Last Updated**: 2026-04-28
+**Last Updated**: 2026-07-05
+**Version**: 2.4.0 — 新增完整 premortem 流程（`references/premortem-workflow.md`）：failure-reason 並行深挖 + 三分綜合報告，銜接 P 階段簡化三問與理論依據 `principles/premortem-klein.md`；description 補觸發詞（premortem/事前驗屍/壓力測試計畫等）（1.5.0-W5-009.5）。
 **Version**: 2.3.0 — 觸發條件新增 4 項決策路徑層干擾（CLI 自動駕駛（autopilot） / 既有結論錨定（Anchor） / 草率改規則 / 多步驟成功率盲點）；既有觸發條件不變動（向後相容）。
 **Version**: 2.2.0 — 觸發條件新增反思深度質疑（reflection_depth_challenge）說明，含與被困住語意的差異。
 **Version**: 2.1.0 — 新增多輪迭代查詢方法論（W）+ 反向驗證範本（R）+ 悖論識別檢查清單（A）+ 自我暴露偏好實踐（P）+ 2 個新 references（iterative-research / anti-paternalism）。
