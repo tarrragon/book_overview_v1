@@ -383,7 +383,9 @@ R 階段一般處理「基本率」「來源核對」（已有「清單類答案
 
 > Gary Klein 方法：先假設計畫失敗了，然後問「是什麼殺了它？」比問「可能會失敗嗎？」多產出 25% 的洞察（且更具體）。
 
-**高成本決策的完整展開版**：上表「行前預想」是 12 小時尺度、3 原因的簡化版，適用一般 ticket。版本規劃、提案評估、發版前等高成本決策改用完整 premortem 流程——原因數量不設上限、每個原因獨立派 subagent 深挖、輸出三分綜合報告，見 `references/premortem-workflow.md`。
+**每個預想失敗原因配早期警訊**：行前預想列出 3 個原因後，為每個原因補 1-2 個**可觀測的早期警訊**——能實際看到或量到的訊號（如「測試 flaky 率 > 5%」「某 API 回應時間翻倍」），不是模糊感覺（如「感覺會出問題」）。**Why**：預想的失敗原因若無對應訊號，只是行前焦慮，無法在執行中被偵測；配上可觀測訊號後，失敗模式從「事後才知道」變成「訊號亮起即介入」。**Action**：警訊只需行前預想時記在 ticket；若某警訊需要跨 session 持續監測，包裝為監測 ticket 並綁定 trigger（`.claude/rules/core/decision-trigger-binding.md` 規則 2：合法 trigger 限 ticket ID，量化閾值須先包裝為 ticket），不可寫「之後再觀察」式無 trigger 延後。
+
+**高成本決策的完整展開版**：上表「行前預想」是 12 小時尺度、3 原因的簡化版，適用一般 ticket。版本規劃、提案評估、發版前等高成本決策改用完整 premortem 流程——原因數量不設上限、每個原因獨立派 subagent 深挖、輸出三分綜合報告（含每原因的早期警訊），見 `references/premortem-workflow.md`。
 
 ### 自我暴露偏好實踐（提供建議時必行）
 
@@ -459,6 +461,7 @@ WRAP 每階段之間是切割點 — 強迫問「是否繼續」：
 ---
 
 **Last Updated**: 2026-07-05
+**Version**: 2.5.0 — P 階段「行前預想」新增「每個預想失敗原因配早期警訊」條款：可觀測訊號（非模糊感覺）+ 需跨 session 監測時包裝為監測 ticket 綁 trigger（decision-trigger-binding 規則 2）（1.5.0-W5-009.6，源自外部 premortem skill early warning signals）。
 **Version**: 2.4.0 — 新增完整 premortem 流程（`references/premortem-workflow.md`）：failure-reason 並行深挖 + 三分綜合報告，銜接 P 階段簡化三問與理論依據 `principles/premortem-klein.md`；description 補觸發詞（premortem/事前驗屍/壓力測試計畫等）（1.5.0-W5-009.5）。
 **Version**: 2.3.0 — 觸發條件新增 4 項決策路徑層干擾（CLI 自動駕駛（autopilot） / 既有結論錨定（Anchor） / 草率改規則 / 多步驟成功率盲點）；既有觸發條件不變動（向後相容）。
 **Version**: 2.2.0 — 觸發條件新增反思深度質疑（reflection_depth_challenge）說明，含與被困住語意的差異。
