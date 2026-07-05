@@ -55,6 +55,7 @@ from ticket_system.lib.constants import (
     DEFAULT_HOW_TASK_TYPE,
     DEFAULT_UNDEFINED_VALUE,
     MAX_TICKET_DEPTH,
+    MAX_CHILDREN_WARNING_THRESHOLD,
 )
 from ticket_system.lib.depth import compute_depth
 from ticket_system.lib.tdd_sequence import suggest_tdd_sequence
@@ -312,6 +313,16 @@ def _resolve_ticket_id_and_wave(args: argparse.Namespace, version: str) -> Optio
                 ticket_id=ticket_id,
                 depth=new_depth,
                 max_depth=MAX_TICKET_DEPTH,
+            ))
+
+        # 扇出 warning（W5-005 F7/D11）：父票 children 數超閾值時 warn（不硬擋）。
+        existing_children_count = child_seq - 1
+        if existing_children_count >= MAX_CHILDREN_WARNING_THRESHOLD:
+            print(format_warning(
+                WarningMessages.CHILDREN_COUNT_HIGH,
+                parent_id=args.parent,
+                count=existing_children_count,
+                threshold=MAX_CHILDREN_WARNING_THRESHOLD,
             ))
 
         # 從 parent_id 中提取 wave

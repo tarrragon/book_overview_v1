@@ -41,6 +41,8 @@ __all__ = [
     "KNOWN_TICKET_SUFFIXES",
     # 嵌套深度上限（W1-056.5 協議 v2 D3）
     "MAX_TICKET_DEPTH",
+    # 子票扇出 warning 閾值（W5-005.11 D11）
+    "MAX_CHILDREN_WARNING_THRESHOLD",
     # 路徑
     "WORK_LOGS_DIR",
     "TICKETS_DIR",
@@ -200,6 +202,13 @@ TICKET_ID_RE = re.compile(TICKET_ID_PATTERN)
 # 保守設計：平台 5 層 - 1 層 PM - 1 層安全邊距 = 3 層 agent 可用。
 # 此常數為 can_descend() 的唯一深度判準來源（DRY，linux F2 修正）。
 MAX_TICKET_DEPTH: int = 3
+
+# ============================================================
+# 子票扇出 warning 閾值（W5-005 F7/D11）
+# ============================================================
+# 普查分佈：巨型父票 top4 = 18/16/14/13 子；全語料 67% 無子票。
+# 閾值 10 覆蓋 top4 全部超標案例，同時不干擾一般使用。
+MAX_CHILDREN_WARNING_THRESHOLD: int = 10
 
 # ============================================================
 # 已知的描述性後綴模式
