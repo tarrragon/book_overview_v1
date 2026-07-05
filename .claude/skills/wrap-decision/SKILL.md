@@ -136,6 +136,18 @@ W 階段「擴增選項（Widen Options）」是「擴增選項空間」，但�
 
 > 各專案可建立個人化建議的三層機制（識別 / 分級 / 誠實）。
 
+### 與 requirement-protocol 的分工邊界
+
+Step 0（本閘門）、premortem 的 context 閘門、`requirement-protocol` 三者都做「資訊不足時先補齊再往下」，但受眾與問題不同，勿混用或重複建置：
+
+| 機制 | 問的是 | 三問 / 檢查焦點 | 用於 |
+|------|--------|---------------|------|
+| WRAP Step 0（本節） | 決策諮詢的**當事人條件**夠不夠 | 當事人是誰 / 目標 / 限制 / 環境（檢查 1-6） | 個人化建議、決策諮詢 |
+| premortem context 閘門 | 要驗屍的**計畫輪廓**清不清楚 | 是什麼 / 影響誰 / 成功長怎樣 | 高成本決策的 premortem 前置（`references/premortem-workflow.md` 步驟 0） |
+| requirement-protocol | 使用者**指令**是否明確可執行 | 模糊指令澄清、可決定 vs 該確認的邊界 | 收到開發指令、需求確認 |
+
+**共用原則**：三者都遵循「一次一問、問到門檻即停、能推斷則不問」（見 `.claude/rules/core/ai-communication-rules.md` 規則 5 主體性保護）。**Action**：進入 WRAP 前若卡在「使用者到底要什麼」屬 requirement-protocol 範圍，先澄清指令；卡在「當事人條件」用 Step 0；卡在「計畫輪廓」用 premortem context 閘門。三者互為前置，不重複問同一組問題。
+
 ---
 
 ## W — 擴增選項（Widen Your Options）
@@ -461,6 +473,7 @@ WRAP 每階段之間是切割點 — 強迫問「是否繼續」：
 ---
 
 **Last Updated**: 2026-07-05
+**Version**: 2.6.0 — Step 0 資料充足度閘門新增「與 requirement-protocol 的分工邊界」子節：三機制（WRAP Step 0 / premortem context 閘門 / requirement-protocol）受眾與問題對照表 + 共用原則（一次一問、互為前置不重複），requirement-protocol 反向交叉引用同步（1.5.0-W5-009.7，源自外部 premortem skill context 充足度閘門）。
 **Version**: 2.5.0 — P 階段「行前預想」新增「每個預想失敗原因配早期警訊」條款：可觀測訊號（非模糊感覺）+ 需跨 session 監測時包裝為監測 ticket 綁 trigger（decision-trigger-binding 規則 2）（1.5.0-W5-009.6，源自外部 premortem skill early warning signals）。
 **Version**: 2.4.0 — 新增完整 premortem 流程（`references/premortem-workflow.md`）：failure-reason 並行深挖 + 三分綜合報告，銜接 P 階段簡化三問與理論依據 `principles/premortem-klein.md`；description 補觸發詞（premortem/事前驗屍/壓力測試計畫等）（1.5.0-W5-009.5）。
 **Version**: 2.3.0 — 觸發條件新增 4 項決策路徑層干擾（CLI 自動駕駛（autopilot） / 既有結論錨定（Anchor） / 草率改規則 / 多步驟成功率盲點）；既有觸發條件不變動（向後相容）。
