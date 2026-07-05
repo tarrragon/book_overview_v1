@@ -828,4 +828,12 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
     print(f"{TrackAcceptanceMessages.TIMESTAMP_PREFIX} {timestamp}")
     print(f"{TrackAcceptanceMessages.CONTENT_PREFIX} {content}")
 
+    # W5-014.2: self-verify — 讀回寫入後的檔案行數（opinionated-default）
+    try:
+        with open(ticket_path, "r", encoding="utf-8") as _vf:
+            line_count = sum(1 for _ in _vf)
+        print(f"[verify] ticket md: {line_count} lines after write")
+    except OSError:
+        pass
+
     return 0
