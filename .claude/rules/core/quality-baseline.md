@@ -63,7 +63,7 @@
 | 設計錯誤被多視角審查發現 | 歸咎個案、不系統性追蹤 | 升級為 error-pattern 或 methodology |
 | 決策失誤事後回顧 | 以「避免犯錯」為由過度保守 | 在相關規則加註觸發案例 |
 
-**豁免邊界**：產出本身有害（資料損壞、架構違規、測試紅燈）時走規則 3 或 skip-gate。**落地通道**：規則 5（ANA/IMP Ticket）+ memory feedback 雙通道；必要時升級為 framework 規則。
+**豁免邊界**：產出本身有害（資料損壞、架構違規、測試紅燈）時走規則 3 或 skip-gate。**落地通道**：規則 5（ANA/IMP Ticket）+ memory feedback 雙通道；必要時升級為 framework 規則。**error-pattern 記錄授權**：判斷某事件/模式屬跨專案可重現的結構性錯誤（替換專案名稱和檔案路徑後仍有意義）時，直接執行 `/error-pattern add` 記錄到 `.claude/error-patterns/`，不需詢問用戶確認——與規則 5「發現即建立，不詢問確認」同精神，載體從 ticket 擴展到 error-pattern。
 
 ## 品質檢查清單
 
