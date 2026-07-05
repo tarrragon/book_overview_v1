@@ -303,7 +303,7 @@ ticket batch-create --template impl-parsley --targets "a,b" --parent 1.0.0-W28-0
 > ticket track stale-list --wave 17 --format ids    # 僅輸出 ID（適合 pipe）
 > ```
 >
-> 閾值複用 `lib/staleness.py`：info ≥ 7 天 / warning ≥ 14 天 / critical ≥ 30 天。輸出依 days 降序。詳見 `references/track-command.md`「track stale-list 子命令」章節。
+> 閾值複用 `lib/staleness.py`：info ≥ 7 天 / warning ≥ 14 天 / critical ≥ 30 天。輸出依 days 降序。table 格式另附 stale in-progress 章節（>= 24h，依 frontmatter `started_at` 單平面判定，附 `ticket track release <id>` 釋放提示）；`ids`/`yaml` 維持 pending-only 向後相容（1.5.0-W5-005.7）。詳見 `references/track-command.md`「track stale-list 子命令」章節。
 
 > **TD 清單校準 — `td-status`**（W10-083 / PC-094）：掃描指定 ticket 的 body 與 git commit 訊息，將 TD 編號分類為「已處理 / 無需處理 / 仍待處理」三狀態。用於 Phase 3a/3b/4 結束時即時校準 TD 清單，防止 Phase 4 評估時誤判已完成項（PC-094 根因）。
 >
