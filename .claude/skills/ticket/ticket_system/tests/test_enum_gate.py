@@ -77,7 +77,8 @@ def test_fossil_field_untouched_no_warn(capsys):
 # ---------------------------------------------------------------------------
 
 
-def test_changed_to_invalid_triggers_warn_and_log(capsys):
+def test_changed_to_invalid_triggers_warn_and_log(monkeypatch, capsys):
+    monkeypatch.setattr(ticket_constants, "ENUM_GATE_MODE", "warn")
     path = _write_ticket_file("9.9.9-W1-002", priority="P9")
     ticket = load_ticket(_VERSION, "9.9.9-W1-002")
 
@@ -116,7 +117,8 @@ def test_valid_change_no_warn(capsys):
 # ---------------------------------------------------------------------------
 
 
-def test_new_ticket_dict_invalid_type_warns(tmp_path, capsys):
+def test_new_ticket_dict_invalid_type_warns(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(ticket_constants, "ENUM_GATE_MODE", "warn")
     ticket = {
         "id": "9.9.9-W1-004",
         "type": "INV",  # 化石 type，新建票不可用
@@ -195,7 +197,8 @@ def test_deny_mode_valid_write_unaffected(monkeypatch, capsys):
 # ---------------------------------------------------------------------------
 
 
-def test_snapshot_refreshed_after_successful_save(capsys):
+def test_snapshot_refreshed_after_successful_save(monkeypatch, capsys):
+    monkeypatch.setattr(ticket_constants, "ENUM_GATE_MODE", "warn")
     path = _write_ticket_file("9.9.9-W1-009", priority="P9")
     ticket = load_ticket(_VERSION, "9.9.9-W1-009")
 
@@ -204,7 +207,7 @@ def test_snapshot_refreshed_after_successful_save(capsys):
     first_err = capsys.readouterr().err
     assert "[enum-gate:warn]" in first_err
 
-    save_ticket(ticket, path)  # 未再變更：快照已刷新，不重複告警
+    save_ticket(ticket, path)  # ���再變更：快照已刷新，不重複告警
     assert "[enum-gate" not in capsys.readouterr().err
 
 
@@ -229,8 +232,9 @@ def _write_ticket_with_status(ticket_id: str, status: str) -> Path:
     return path
 
 
-def test_completed_to_pending_transition_warns(capsys):
+def test_completed_to_pending_transition_warns(monkeypatch, capsys):
     """設計案例 5：completed 票未經 release 直改 pending → 觸發。"""
+    monkeypatch.setattr(ticket_constants, "ENUM_GATE_MODE", "warn")
     path = _write_ticket_with_status("9.9.9-W2-001", "completed")
     ticket = load_ticket(_VERSION, "9.9.9-W2-001")
 
@@ -271,8 +275,9 @@ def test_fossil_old_status_transition_skipped(capsys):
     assert "status: closed" in path.read_text(encoding="utf-8")
 
 
-def test_invalid_new_status_flagged_once_as_enum(capsys):
+def test_invalid_new_status_flagged_once_as_enum(monkeypatch, capsys):
     """新態非正典 → 僅枚舉違規一筆，不重複計轉移違規。"""
+    monkeypatch.setattr(ticket_constants, "ENUM_GATE_MODE", "warn")
     path = _write_ticket_with_status("9.9.9-W2-004", "completed")
     ticket = load_ticket(_VERSION, "9.9.9-W2-004")
 

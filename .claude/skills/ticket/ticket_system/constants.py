@@ -357,7 +357,7 @@ APPEND_LOG_EXTRA_SECTIONS: tuple = ("Execution Log",)
 # ============================================================
 # warn：違規寫入 stderr 警告 + enum-gate.log 記錄後照常落盤（量測期預設）
 # deny：違規拒絕落盤。切換 deny 須經 warn 期誤報率量測裁定，禁時間式延後
-ENUM_GATE_MODE: str = "warn"
+ENUM_GATE_MODE: str = "deny"
 
 # ============================================================
 # Handoff Direction 常數
