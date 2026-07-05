@@ -67,7 +67,7 @@
 
 ## 品質檢查清單
 
-每次提交前確認：測試通過率 100%？Phase 4 評估已完成？無已知設計問題被忽略？技術債務已記錄（如有）？所有分析發現都有對應 Ticket？工作日誌已更新？新功能可觀測性已確認（啟動/異常/狀態 log）？引用一致性已確認（`grep -rl "修改的概念" .claude/`）？修改有對應 Ticket（rules/pm-rules/skills 修改必須有 Ticket，PC-053）？claim 前已處理 AC 漂移偵測輸出（PC-055 / PROP-010）？寫 feedback memory 已執行四問升級檢查（PM 專屬 PC-061 / PC-160，完整四問見 `pm-quality-baseline.md` 規則 7）？
+每次提交前確認：測試通過率 100%？Phase 4 評估已完成？無已知設計問題被忽略？技術債務已記錄（如有）？所有分析發現都有對應 Ticket？工作日誌已更新？新功能可觀測性已確認（啟動/異常/狀態 log）？引用一致性已確認（`grep -rl "修改的概念" .claude/`）？修改有對應 Ticket（rules/pm-rules/skills 修改必須有 Ticket，PC-053）？claim 前已處理 AC 漂移偵測輸出（PC-055 / PROP-010）？記錄經驗教訓前已執行捕獲時分流判準（PM 專屬 PC-061 / PC-160，完整分流判準見 `pm-quality-baseline.md` 規則 7）？
 
 ## 底線要求總結
 
@@ -90,4 +90,5 @@
 - `.claude/pm-rules/ticket-body-schema.md` - 規則 5 ANA spawn 落地確認
 
 ---
-**Last Updated**: 2026-06-12 | **Version**: 3.0.0 — token 收斂：規則 1 兩個邊界段保留主張句 + PC 路由（事件鏈敘事移至 PC-165/168）；規則 4 IMP-013 except 要求濃縮保留；規則 5 ANA spawn 章濃縮為情境動作表 + 路由 ticket-body-schema/acceptance-gate-hook。規則編號與名稱不變（hooks 引用錨點）（1.0.0-W7-004.3）。歷史 2.0–2.5.x 版見 git log。
+**Last Updated**: 2026-07-05 | **Version**: 3.1.0 — 品質檢查清單鏡像項「寫 feedback memory 四問升級檢查」更新為「捕獲時分流判準」（pm-quality-baseline 規則 7 語意前移的鏡像同步，該規則明文要求）。
+**Version**: 3.0.0 — token 收斂：規則 1 兩個邊界段保留主張句 + PC 路由（事件鏈敘事移至 PC-165/168）；規則 4 IMP-013 except 要求濃縮保留；規則 5 ANA spawn 章濃縮為情境動作表 + 路由 ticket-body-schema/acceptance-gate-hook。規則編號與名稱不變（hooks 引用錨點）（1.0.0-W7-004.3）。歷史 2.0–2.5.x 版見 git log。
