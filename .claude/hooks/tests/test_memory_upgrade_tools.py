@@ -10,6 +10,7 @@ prune_memory_index（graceful False）、promote_memory（整合）。
 
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 _scripts_dir = (
     Path(__file__).resolve().parent.parent.parent
@@ -28,6 +29,17 @@ from memory_upgrade import (  # noqa: E402
     prune_memory_index,
     scan_memory_dir,
 )
+
+_version_release_scripts_dir = (
+    Path(__file__).resolve().parent.parent.parent
+    / "skills"
+    / "version-release"
+    / "scripts"
+)
+if str(_version_release_scripts_dir) not in sys.path:
+    sys.path.insert(0, str(_version_release_scripts_dir))
+
+import version_release  # noqa: E402
 
 _REGISTRY = """\
 projects:
@@ -292,3 +304,60 @@ def test_promote_memory_integration(tmp_path):
     annotated = mem.read_text(encoding="utf-8")
     assert "> **Status**: Upgraded" in annotated
     assert "feedback_g.md" not in idx.read_text(encoding="utf-8")
+
+
+# --- check_memory_upgrade_status（1.5.0-W5-011.4） ---
+
+
+def test_check_memory_upgrade_status_all_upgraded():
+    """全 upgraded：unevaluated == 0 → passed True。"""
+    with patch.object(
+        version_release,
+        "scan_memory_dir",
+        return_value={"unevaluated": [], "deferred": [], "dangling": []},
+    ), patch.object(
+        version_release, "_count_memory_feedback", return_value=(3, 3)
+    ):
+        passed, messages = version_release.check_memory_upgrade_status("1.5.0")
+
+    assert passed is True
+    assert "遵循率: 100%" in messages[0]
+
+
+def test_check_memory_upgrade_status_has_unevaluated():
+    """有 unevaluated：passed False，並附決策 trigger 提示。"""
+    with patch.object(
+        version_release,
+        "scan_memory_dir",
+        return_value={
+            "unevaluated": ["feedback_x.md"],
+            "deferred": [],
+            "dangling": [],
+        },
+    ), patch.object(
+        version_release, "_count_memory_feedback", return_value=(2, 3)
+    ):
+        passed, messages = version_release.check_memory_upgrade_status("1.5.0")
+
+    assert passed is False
+    assert any("決策 trigger" in m for m in messages)
+    assert any("feedback_x.md" in m for m in messages)
+
+
+def test_check_memory_upgrade_status_has_dangling():
+    """有 dangling pointer：附於未通過訊息中。"""
+    with patch.object(
+        version_release,
+        "scan_memory_dir",
+        return_value={
+            "unevaluated": ["feedback_y.md"],
+            "deferred": [],
+            "dangling": [{"file": "feedback_y.md", "ids": ["PC-V1-999"]}],
+        },
+    ), patch.object(
+        version_release, "_count_memory_feedback", return_value=(1, 2)
+    ):
+        passed, messages = version_release.check_memory_upgrade_status("1.5.0")
+
+    assert passed is False
+    assert any("dangling pointer" in m and "PC-V1-999" in m for m in messages)
