@@ -157,11 +157,11 @@ requirement-protocol/
 
 ---
 
-**Last Updated**: 2026-04-26
+**Last Updated**: 2026-07-05
+**Version**: 0.8.0 — 觸發路由段新增「與 wrap-decision 的邊界」註記：指令模糊屬本 skill，當事人條件不足 / premortem 計畫輪廓不清屬 wrap-decision Step 0 與 context 閘門，三者互為前置不重複問（1.5.0-W5-009.7）
 **Version**: 0.7.0 — Phase B1 結構升級：加第 4 pillar「Multi-pass Refinement」+ 第 7 原則、明示 multi-pass 在「需求協議」場景的展開、串連 #82 / #83 / #85
 **Version**: 0.6.0 — 補 #82 (字面攔截 vs 行為精煉)：點出 hook 對行為錯誤無能為力、本 skill 的 reference + self-check + dogfood examples 就是 multi-pass 設計、不是「再補一條 hook 規則」
 **Version**: 0.5.0 — 補 #80 (yes/no collapse) + #81 (卡片迭代浮現)、reference 加 dogfood examples 段（4 個 Bad/Good 對照）、#75 加 selector stacking 跨連 #46-#50
-**Version**: 0.5.0 — 觸發路由段新增「與 wrap-decision 的邊界」註記：指令模糊屬本 skill，當事人條件不足 / premortem 計畫輪廓不清屬 wrap-decision Step 0 與 context 閘門，三者互為前置不重複問（1.5.0-W5-009.7）
 **Version**: 0.4.0 — 接入 #74-#79 決策協議系列：新增第 6 份 reference `decision-dialogue.md`（五維度：呈現 / 策略 / 批次 / 時間 / 選項類型）；觸發路由加 3 條入口（呈現決策 / 開放問 / 反省題）；相關抽象層原則段補 #69-#79
 **Version**: 0.3.0 — 接入 #69-#73：相關抽象層原則段補 Test-First (#69)、URL state (#70)、tab order (#71)、外部觸發 meta (#72)、search 匹配模式 (#73)
 **Version**: 0.2.0 — 接入 #55-#68 系列：clarifying-ambiguous-instructions 加第 5 類「篩選類」（呼應 #58）；觸發路由加篩選類入口；SKILL.md 加「相關抽象層原則」段（#42-45 + #67-68）
