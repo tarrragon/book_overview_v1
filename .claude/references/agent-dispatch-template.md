@@ -115,6 +115,7 @@ Ticket: 0.18.0-W17-048.3
 - [ ] context 已在 ticket 的 Problem Analysis / Context Bundle（不塞 prompt）
 - [ ] prompt 總行數 ≤ 15 行（遠低於 30 行硬上限）
 - [ ] 動作描述一句話可理解（不堆疊多個動詞）
+- [ ] 交付通道已確認（L3/L2: append-log+commit / L1: append-log+/tmp / L0: final message 後 PM 立即落檔）
 
 ---
 
@@ -158,6 +159,33 @@ and spawned tickets (執行中發現獨立技術債，PC-073 殘存範圍).
 Do not implement child scope or batch-dispatch agents.
 Record blockers, deps, and next runnable ticket IDs.
 ```
+
+### L0 唯讀型（Plan type）
+
+```markdown
+Ticket: {id}
+
+{agent-name}: Read ticket md and produce your analysis as your final message.
+Do NOT attempt to write files, use Bash redirects, or call ticket CLI.
+Your final message IS the deliverable — PM will archive it immediately.
+```
+
+> PM 收到 final message 後立即落檔（`ticket track append-log {id} --section "Solution" "..."`），不假設下次能取回同樣內容（W2-011 hook 劫持風險）。
+
+---
+
+## 交付通道速查（W5-005.12）
+
+| Agent 能力 | 交付通道 | PM 動作 |
+|-----------|---------|--------|
+| L3/L2（有 Edit/Write） | ticket append-log + commit 產出檔 | 標準驗收（讀 ticket + git log + 測試） |
+| L1（有 Bash 無 Edit/Write） | ticket append-log + Bash heredoc 寫 /tmp 檔 | 標準驗收 + Read /tmp 檔 |
+| L0（Plan type 唯讀） | final message（唯一通道） | 立即落檔保全（見上方 snippet） |
+
+**L0 Fallback SOP**：
+1. 派發前：prompt 明示「報告全文以最終訊息回傳，不嘗試寫檔」
+2. 收到 final message 後：PM 立即寫入 ticket Solution 或 /tmp
+3. 不等待：不假設下次還能取回（hook 劫持風險，W2-011）
 
 ---
 
