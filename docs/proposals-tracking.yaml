@@ -1,5 +1,5 @@
 version: '1.1'
-last_updated: '2026-06-24'
+last_updated: '2026-07-08'
 proposals:
   PROP-000:
     title: 提案驅動需求追蹤機制設計
@@ -365,3 +365,25 @@ proposals:
     - item: JSON 匯入 sync_meta 驗證 + 智慧合併
       status: done
       verified_by: v1.2.0
+  PROP-013:
+    title: 元件庫統一化（Extension 端）——ui-factory 升級為核心元件庫並對齊 APP 命名契約
+    status: draft
+    proposed: '2026-07-08'
+    confirmed: null
+    target_version: null
+    source: cross-project
+    reference: Flutter App PROP-016 對應（命名契約 SSOT 在 APP 端 design-system-spec）
+    spec_refs: []
+    usecase_refs: []
+    ticket_refs: []
+    checklist:
+    - item: ui-factory 升遷核心目錄，popup/overview 統一引用
+      status: pending
+    - item: 元件命名對齊 APP spec 跨平台元件對照表
+      status: pending
+    - item: divider 元件（分割陰影）+ overview.css border 收斂
+      status: pending
+    - item: popup.html 內嵌 style 收斂 + createElement 直建消除
+      status: pending
+    - item: 測試同步（搬遷修正 + 新元件測試）
+      status: pending
