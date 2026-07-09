@@ -1,3 +1,105 @@
+## [2.14.0] - 2026-07-09
+
+### Summary
+feat: 建立 reference-stability 規則 8 強制 hook; feat: 建立 doc skill tracking_schema.py SSOT + conformance test; fix: test_update.py fixture 改從 SSOT 生成（list 格式） (+7 more)
+
+Changes: 2 feat, 6 fix, 2 chore
+
+- feat: 建立 reference-stability 規則 8 強制 hook
+- feat: 建立 doc skill tracking_schema.py SSOT + conformance test
+- fix: test_update.py fixture 改從 SSOT 生成（list 格式）
+- fix: hook 範例改合成 ID 避免規則8自我違反
+- fix: status.py 改 list iterate 修復對真實檔 crash
+- fix: create.py proposals dict→list + confirmed→confirmed_at + 引用 SSOT
+- fix: create.py 頂層 last_updated 鍵與真實 schema 對齊
+- fix: 移除 _sync_tracking_yaml 頂層 last_updated 鍵
+- chore: doc skill 框架碼 ticket ID 最終 sweep（reference-stability 規則 8）
+- chore: batch_init.py traceability 頂層鍵引用 TRACEABILITY_SCHEMA
+
+---
+
+## [2.13.0] - 2026-07-08
+
+### Summary
+feat: 實作提案 confirmed 時 target_version 註冊 todolist 的源頭引導; feat: guard 增補版本目錄缺 main worklog 偵測; feat: guard 增補 confirmed 提案 target_version 與 todolist 註冊對賬 (+14 more)
+
+Changes: 4 feat, 6 fix, 3 docs, 4 chore
+
+- feat: 實作提案 confirmed 時 target_version 註冊 todolist 的源頭引導
+- feat: guard 增補版本目錄缺 main worklog 偵測
+- feat: guard 增補 confirmed 提案 target_version 與 todolist 註冊對賬
+- feat: ticket migrate 新增版本合法性守衛
+- fix: confirmed 欄位名對齊真實 schema confirmed_at
+- fix: _sync_tracking_yaml 相容 proposals-tracking.yaml list 結構
+- fix: list 統計與截斷顯示分離（total_stats 全量統計）
+- fix: 修復 activate_next_planned_version 版本推進選擇防護
+- fix: 阻斷框架 v2.x tags 混入 APP repo
+- fix: 修復 version-tracking-consistency-guard 幽靈版本誤報
+- docs: shutdown_request 驗證狀態升級為單層已驗證（實機 8/8）
+- docs: 落地 idle agent 三態模型與回收 SOP（ ANA 三處落地）
+- docs: 新增 IMP-APP-002 regex 解析多條目檔案未以條目邊界為先
+- chore: shutdown 8/8 直接驗證 + SR-1 轉 （IMP-APP-002 第五起）
+- chore: 驗收收尾——SR-2 轉 + IMP-APP-002 補第四起案例
+- chore: / 驗收收尾——SR-1 轉 + IMP-APP-002 補第三起案例
+- chore: pull .claude 更新（上游 6b4450666ed6）
+
+---
+
+## [2.12.0] - 2026-07-05
+
+### Summary
+feat: ticket CLI mutation self-verify 輸出; feat: Stop hook confabulation 事後審計; feat: batch annotate 130 memory backlog (+42 more)
+
+Changes: 16 feat, 1 refactor, 5 fix, 18 docs, 5 chore
+
+- feat: ticket CLI mutation self-verify 輸出
+- feat: Stop hook confabulation 事後審計
+- feat: batch annotate 130 memory backlog
+- feat: version-release memory 升級稽核 check
+- feat: dashboard 自動歸檔 stale pending handoff
+- feat: emit protocol_version 至新建票 frontmatter
+- feat: 新增 create --parent 時 children 數 warning
+- feat: 實作 runqueue/list type 權重排序與 type 標籤顯示
+- feat: rename Exit Status body key status → exit_status
+- feat: enum-gate 切換 deny 模式
+- feat: memory promote/scan 升級工具核心
+- feat: stale-list 追加 stale in-progress 章節與 release 提示
+- feat: 派發身份前移——dispatch hook 條件式綁定 + 模板 claim --as 強制
+- feat: lifecycle 狀態轉移矩陣接入驗證閘
+- feat: save_ticket 落盤前枚舉驗證閘
+- feat: 枚舉 SSOT 收斂 + argparse choices 封口
+- refactor: import _CATEGORY_DIRS from allocator (T1 SSOT)
+- fix: frontmatter YAML 解析 graceful 處理 malformed 資料
+- fix: main-thread-edit-restriction-hook 改用 lib import 取代已刪除的 hook_utils
+- fix: 測試套件 todolist 環境依賴隔離
+- fix: create --parent 無條件繼承父票版本
+- fix: 移除 Write matcher 內 style-guardian-hook 重複註冊
+- docs: 規則 6 補 error-pattern 記錄授權——判斷值得即做，不需請求用戶確認
+- docs: 補 .3 confabulation 案例 + 防護 F + 建 enforcement 升級評估票
+- docs: basil 審查修正——hook docstring/路徑表副本化 + 載體地圖版本行/受眾欄
+- docs: 分流語意引用點同步——載體地圖（含補 user-level 條目）+ pm-role 路由 + reminder hook 文案
+- docs: IMP-V1-006 大小寫不敏感 fs Edit 成功 vs git pathspec 失敗（捕獲時分流直寫 canonical）+ 檔名慣例追蹤票
+- docs: basil 審查修正——升級後處理對齊規則 7 升級即搬家 + 情境 B 消除延後語意
+- docs: 錯誤學習知識捕獲時分流——規則 7 語意前移 + 鏡像/skill/決策樹四檔同步
+- docs: PC-092 補 v3 案例（PM 裸 commit 掃入 subagent 暫存檔）
+- docs: 套用 Layer 2 審查修正（2 Warning）
+- docs: context 充足度閘門三機制分工邊界
+- docs: P 階段新增早期警訊條款
+- docs: 新增關鍵禁令附最小正反例手法條款
+- docs: 新增過度設計四反模式條目
+- docs: 新增依賴引入紀律
+- docs: 新增最小變更紀律（Surgical Changes）
+- docs: When 提及 vs blockedBy 誤判率量測定案——零機制慣例落 field-semantics
+- docs: SKILL.md 有效區段值對齊 10 章正典 + spawn
+- docs: ticket 系統自我描述模型修正
+- chore: 記錄 gate bypass 語意載體替換錯誤模式
+- chore: HookCheck 自動修正 test_dispatch_record_identity_binding.py 執行權限 (IMP-054)
+- chore: metadata sync post-completion
+- chore: pull .claude 更新（上游 f6b5d50bcc2d）
+- chore: 測試檔加執行權限（HookCheck 自動修正 IMP-054）
+
+---
+
 ## [2.11.1] - 2026-07-03
 
 ### Summary
