@@ -366,27 +366,30 @@ proposals:
       status: done
       verified_by: v1.2.0
   PROP-014:
-    title: Design token 值層統一——中介 token 格式（JSON SSOT）+ 雙端生成 + 平台覆蓋機制
-    status: draft
+    title: Design token 值層統一——token manifest 雙向校驗層 + 平台覆蓋機制
+    status: confirmed
     proposed: '2026-07-11'
-    confirmed: null
-    target_version: null
+    confirmed: '2026-07-11'
+    target_version: v1.5.0
     source: cross-project
-    reference: Flutter App PROP-018 對應（sibling，同日建立；schema 歸屬為 heavy 評估核心決策點）
+    reference: Flutter App PROP-018 對應（sibling；heavy 評估採方案 D，載體 ticket 1.5.0-W6-006）
     spec_refs: []
     usecase_refs: []
-    ticket_refs: []
+    ticket_refs:
+    - 1.5.0-W6-006
+    - 1.5.0-W6-007
+    - 1.5.0-W6-008
     checklist:
-    - item: heavy 級評估（3+ 候選逐一評估表 + 多視角審查）後 confirmed
+    - item: heavy 級評估（5 候選逐評表 + linux/thyme 雙視角審查）後 confirmed
+      status: done
+      verified_by: 1.5.0-W6-006
+    - item: 全量 token 分歧盤點 + manifest schema 設計 + token-manifest.json 初版
       status: pending
-      ticket: 1.5.0-W6-006
-    - item: 中介 token schema 與 APP 端共同定案
+      ticket: 1.5.0-W6-007
+    - item: 雙向校驗 script + CI 接線 + validate:design-system 孤兒腳本接線
       status: pending
-    - item: V1 生成 pipeline 改讀中介格式（含 snapshot test 遷移）
-      status: pending
-    - item: 平台覆蓋機制承載 primary 色值校準（含理由欄位）
-      status: pending
-    - item: token 覆蓋面補齊（divider 系列等）+ 同步校驗機制
+      ticket: 1.5.0-W6-008
+    - item: 跨 repo 比對（第二階段，APP 端 Dart 校驗，PROP-018 承擔）
       status: pending
 
   PROP-013:

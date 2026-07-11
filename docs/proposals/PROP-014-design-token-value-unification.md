@@ -1,16 +1,16 @@
 ---
 id: PROP-014
-title: Design token 值層統一——中介 token 格式（JSON SSOT）+ 雙端生成 + 平台覆蓋機制
-status: draft
+title: Design token 值層統一——token manifest 雙向校驗層 + 平台覆蓋機制
+status: confirmed
 evaluation_level: heavy
 created: "2026-07-11"
-confirmed_date: null
-target_version: null
+confirmed_date: "2026-07-11"
+target_version: v1.5.0
 priority: P2
 related_proposals: [PROP-008, PROP-013]
 ---
 
-# PROP-014: Design token 值層統一——中介 token 格式（JSON SSOT）+ 雙端生成 + 平台覆蓋機制
+# PROP-014: Design token 值層統一——token manifest 雙向校驗層 + 平台覆蓋機制
 
 > **Sibling 提案**：APP 端 `book_overview_app/docs/proposals/PROP-018-design-token-value-unification.md`。
 > **與 PROP-013 的分層**：PROP-013 管元件層命名契約（工廠函式 / variant 名），本提案管 token 值層（色值 / 間距 / 字級 / 陰影參數的單一真實來源）。兩者正交，PROP-013 不依賴本提案。
@@ -57,15 +57,24 @@ related_proposals: [PROP-008, PROP-013]
 - 色值歸一（強制雙端同色）→ 已由用戶仲裁為「平台校準層分歧」，本提案僅承載不推翻
 - §14.6 差異標記補記的 spec 編輯 → APP 端契約權威，由 PROP-018 工作項承擔
 
-## 提案方案（初步，heavy 評估時細化）
+## 替代方案（候選逐一評估表，heavy 級評估產出 2026-07-11）
 
-方案候選（confirmed 前需完成 heavy 級評估：3+ 候選逐一評估表）：
+| 候選 | 類型 | 說明 | 審查結論 |
+|------|------|------|---------|
+| A：Style Dictionary | 新增工具 | JSON SSOT → 多平台生成（Dart 需自訂 format） | **否決**——148 行 token + 年 1 次值變更，複雜度超過問題一個數量級；另有 npm audit 表面擴大 + fail-fast 前置驗證（W1-080 模式）隱含債務 |
+| B：自訂 JSON SSOT + 雙端生成器 | 改造既有 | 擴展 V1 既有生成器模式 + APP 端新建 Dart 生成器 | **否決（保留為升級路徑）**——為年 1 次值變更維護兩個生成器不合比例；且 V1 palette 全量為有意校準，base+overrides 結構下覆蓋將常態化 |
+| C：契約層維持 | 零工具 | markdown 契約 + 人工 diff | 基線（用戶已否決）——同步已實證失效 1 次 |
+| D：token manifest 雙向校驗層 | 改造既有（輕量） | 機器可讀 manifest（token 名對照 + base 值 + 平台覆蓋 + 理由）+ 雙向校驗（npm script + CI step），值仍雙端手寫 | **採用**——唯一與實測對齊（漂移是偵測問題）；平台校準為一等公民；對 V1 pipeline 零改動 |
+| E：單向提取生成（APP→V1） | 改造既有 | 從 Dart 檔解析生成 V1 JS | **否決**——與「平台校準層」用戶仲裁正面衝突；Dart 解析脆弱；build 不再自我完備 |
 
-| 候選 | 說明 | 初步觀察 |
-|------|------|---------|
-| A：Style Dictionary | Amazon 開源 token 轉換工具，JSON SSOT → 多平台輸出（含 Dart/CSS/JS transform） | 生態成熟；引入 npm build 依賴；Flutter 端輸出需自訂 format |
-| B：自訂精簡 JSON schema + 雙端各自小型生成器 | 依現有 `generate-design-system-css.js` 模式擴展 | 零新依賴；schema 治理自負；V1 已有生成器基礎 |
-| C：維持現狀（契約層統一） | markdown 契約 + 人工 diff | 已被用戶決策否決，列為對照基線 |
+## 提案方案：D（token manifest 雙向校驗層）
+
+1. **manifest schema**：機器可讀 JSON，每 token 一列——語意名、base 值、各平台實際值、覆蓋標記與理由（如 `reason: "WCAG AA 校色 0.19.1-W3-001"`）。「值層統一」語意 = **分歧受控可見**（漂移不可能靜默），非分歧為零。
+2. **雙向校驗（成立的必要條件）**：manifest 所列 token 檢查端內存在且值符；端內存在的 token 檢查 manifest 有記載（新增 token 未入 manifest 即紅燈）。單向校驗只是把「spec 漏記」搬家成「manifest 漏記」。
+3. **落點**：V1 端新增 npm script（比照 `validate:design-system` 模式）+ 接入 `.github/workflows/lint.yml`；非 `.claude/hooks`（session-scoped 防不了非 Claude Code 來源變更）。順帶接線既有孤兒腳本 `validate:design-system`（實測未入 CI）。
+4. **分階段**：第一階段 V1 單端校驗（repo 內自足）；第二階段跨 repo 比對（APP 端 sibling PROP-018 承擔 Dart 端校驗）。
+5. **升級路徑**：manifest schema 可演化為 B/A 的 SSOT 輸入。升級 trigger：token 值變更頻率顯著上升時建評估 ticket（依 decision-trigger-binding，屆時包裝為監測/評估 ticket，不預設排程）。
+6. **前置工作項**：全量 token 分歧盤點（量化「共值 vs 平台校準」比例），作為 manifest 初版的資料輸入。
 
 ## 驗收條件（草案）
 
@@ -89,13 +98,31 @@ related_proposals: [PROP-008, PROP-013]
 | 假設 2：APP 端可接受 Dart 生成物 | 需 APP 端評估（build_runner 或 pre-build script） | 未驗證：PROP-018 heavy 評估時驗證 |
 | 假設 3：色值以外的 token 值雙端可完全共值 | 抽樣比對 spacing/radius/fontSize | 部分驗證：間距/圓角 key 與數值一致（PROP-008 移植對應），但單位轉換（rsp/.w vs px）屬實作層需生成器各自處理；字級/陰影覆蓋面不對稱需逐項盤點 |
 
+## 失敗防護
+
+| 失敗情境 | 早期警訊（可觀測） | 防護措施 |
+|---------|------------------|---------|
+| 校驗誤報造成 warning fatigue，開發者繞過 | 校驗 fail 被 --no-verify / skip 繞過 >= 2 次 | 校驗訊息含修復指令；誤報視為 schema bug 立即修 |
+| manifest 淪為第三份手寫副本（雙寫變三寫） | PR 中 token 檔變更但 manifest 未同 commit | 雙向校驗強制：token 檔與 manifest 不一致即 CI 紅燈（本提案採用方案第 2 點） |
+| APP 端 sibling（PROP-018）不落地，跨端校驗缺一半 | PROP-018 draft 停留 > 1 個月無討論記錄 | 第一階段 V1 單端校驗自足運作，不依賴 APP 端；跨 repo 比對為第二階段 |
+| 全量分歧盤點發現校準比例極高，manifest base 值失去意義 | 盤點結果校準比例 > 50% | manifest schema 允許「無 base 值、僅雙端各值 + 對照語意」的列型態，schema 設計時保留 |
+
 ## 風險與權衡
 
 | 風險 | 影響 | 緩解措施 |
 |------|------|---------|
-| 中介格式 schema 治理成本 | 雙 repo 需協調 schema 版本 | schema 帶版本號；變更走雙端 sibling 提案流程 |
-| 生成 pipeline 故障使 build 失敗 | 開發阻塞 | 生成物 commit 進 repo（非 build 時生成），生成器僅在 token 變更時執行 + snapshot test 護欄 |
-| 2-repo 規模下投資回報偏低 | 機會成本 | heavy 評估時以「多書城 UI 面擴張計畫（v1.5~v1.11）」的 token 消費成長作為收益量化輸入 |
+| 2-repo 規模下再輕量的機制仍是維護面 | 機會成本 | D 投入約 0.5 wave，遠低於生成方案；且順帶修補既有孤兒腳本缺口 |
+| 「消費者成長 ≠ 變更頻率成長」誤判導致過早升級 B/A | 過度工程 | 升級 trigger 綁定值變更頻率實測，非多書城消費面成長（多視角審查 linux 訊號） |
+
+## 多視角審查記錄
+
+### 2026-07-11 heavy 級審查（linux + thyme-extension-engineer，載體 ticket 1.5.0-W6-006 Solution 章全文）
+
+兩視角排序一致：**D > B >> A ≈ E**。linux：D 唯一與實測對齊（漂移是偵測問題）、A/B 複雜度超過問題量級、E 方向性錯誤；關鍵發現——V1 palette 全量為有意校準（base+overrides 結構下覆蓋將常態化）、token 行內註解是資產不可生成物化、雙向校驗是 D 成立必要條件。thyme：D 對 V1 pipeline 零改動、落點 npm script + CI step（非 .claude/hooks）、`validate:design-system` 為孤兒腳本順帶接線、跨 repo 校驗次階段化。
+
+## 機會成本
+
+D 方案投入約 0.5 wave（manifest schema + 校驗 script + CI 接線 + 分歧盤點）。同期擠壓對象為 v1.5.0 多書城主線與 PROP-013 W6 元件庫 tickets，但 D 與兩者無檔案衝突可並行。不做 D 的代價：token 覆蓋面漂移持續靠人工盤點（已實證漏過 1 次），且 PROP-013 W6-004 將新增 divider tokens——正是「新增 token 未同步」的高風險時點。生成方案（A/B）的機會成本為 D 的 2-4 倍且收益依賴未實證的變更頻率成長。
 
 ## 討論記錄
 
@@ -103,8 +130,14 @@ related_proposals: [PROP-008, PROP-013]
 
 隨統一強度評估建立（用戶決策：值層也統一 + 色值補記差異標記）。與 PROP-013 分層：013 元件層命名、014 token 值層。sibling PROP-018（APP 端）同日建立。confirmed 前置：heavy 級評估（3+ 候選逐一評估表 + 多視角審查），由後續 ticket 承載。
 
+### 2026-07-11（heavy 評估完成，ticket 1.5.0-W6-006）
+
+WRAP 完整四階段 + 雙視角審查完成。重現實驗修正根因假設：漂移主因是覆蓋面不同步（值變更年約 1 次）。「值層統一」語意修正為「分歧受控可見」（Consider the Opposite + 用戶色值仲裁的延伸）。採用方案收斂為 D（token manifest 雙向校驗層），升級路徑 B/A 保留 trigger 綁定。待用戶最終確認 confirmed + target_version。
+
 ## 轉化記錄
 
 | 轉化類型 | 檔案 | 日期 | 狀態 |
 |---------|------|------|------|
-| Ticket | 1.5.0-W6-006（heavy 評估與確認） | 2026-07-11 | pending |
+| Ticket | 1.5.0-W6-006（heavy 評估與確認） | 2026-07-11 | completed |
+| Ticket | 1.5.0-W6-007（分歧盤點 + manifest schema + 初版） | 2026-07-11 | pending |
+| Ticket | 1.5.0-W6-008（雙向校驗 + CI 接線） | 2026-07-11 | pending |
