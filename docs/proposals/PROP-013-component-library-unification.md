@@ -1,11 +1,11 @@
 ---
 id: PROP-013
 title: 元件庫統一化（Extension 端）——ui-factory 升級為核心元件庫並對齊 APP 命名契約
-status: draft
+status: confirmed
 evaluation_level: standard
 created: "2026-07-08"
-confirmed_date: null
-target_version: null
+confirmed_date: "2026-07-11"
+target_version: v1.5.0
 priority: P2
 related_proposals: [PROP-007, PROP-008]
 ---
@@ -79,6 +79,25 @@ PROP-008 已完成 token 層移植（`src/core/design-system/` colors/spacing/ty
 | 假設 2：ui-factory 模式可推廣至 overview | 檢視 ui-factory 是否耦合 popup 專屬邏輯 | 部分驗證：純函式無狀態設計可搬遷，但 class 名綁定 popup.html 內嵌 style，需先做樣式收斂（工作項 4 為工作項 1 前置） |
 | 假設 3：雙端 variant 語意可完全對照 | 比對 ui-factory 3 variants vs spec §4 五類型 | 未驗證：差集（2 個類型）是否 Extension 需要，待命名契約制定時決定 |
 
+## 替代方案
+
+| 方案 | 說明 | 評估 |
+|------|------|------|
+| A：本提案（元件庫升格 + 命名契約對齊） | ui-factory 升遷核心目錄，雙端命名對齊，散落樣式收斂 | 採用 — 根治散落、雙端一致 |
+| B：維持現狀，僅文件規範 | 不搬遷 ui-factory，以文件約定命名規範 | 否決 — PROP-008 已證實「文件規範 vs 工具預設」，工具預設總是贏（opinionated-default 原則）；token 曾散落 89+ 處即為此模式失敗案例 |
+
+## 機會成本
+
+本提案佔用約 1 wave 工時。同期可做的替代項：v1.5.0 多書城適配器開發。權衡：元件層不對齊的技術債會在每個新書城適配器中累積（每新增一個書城 UI 面就多一輪散落），先收斂再擴展書城可避免 N 倍返工。
+
+## 失敗防護
+
+| 失敗情境 | 防護措施 |
+|---------|---------|
+| popup.html 樣式遷移後視覺回歸 | 遷移前後截圖比對；class 名保持不變只搬位置；測試含 DOM 結構驗證 |
+| APP PROP-016 命名契約延遲產出，工作項 2/3 阻塞過久 | 工作項 1/4/5 無外部依賴可先行；命名契約延遲不阻塞本提案整體進度 |
+| ui-factory 搬遷破壞既有 import 路徑 | 搬遷 ticket 含全量 grep 引用修正 + 測試修正；TDD 流程保證紅燈即停 |
+
 ## 風險與權衡
 
 | 風險 | 影響 | 緩解措施 |
@@ -97,4 +116,8 @@ PROP-008 已完成 token 層移植（`src/core/design-system/` colors/spacing/ty
 
 | 轉化類型 | 檔案 | 日期 | 狀態 |
 |---------|------|------|------|
-| Ticket | （提案確認後開立） | | pending |
+| Ticket | 1.5.0-W6-001（樣式收斂） | 2026-07-11 | pending |
+| Ticket | 1.5.0-W6-002（元件庫升格） | 2026-07-11 | pending |
+| Ticket | 1.5.0-W6-003（命名契約對齊） | 2026-07-11 | pending |
+| Ticket | 1.5.0-W6-004（divider 元件） | 2026-07-11 | pending |
+| Ticket | 1.5.0-W6-005（測試同步） | 2026-07-11 | pending |
