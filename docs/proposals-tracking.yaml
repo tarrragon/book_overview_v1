@@ -365,6 +365,30 @@ proposals:
     - item: JSON 匯入 sync_meta 驗證 + 智慧合併
       status: done
       verified_by: v1.2.0
+  PROP-014:
+    title: Design token 值層統一——中介 token 格式（JSON SSOT）+ 雙端生成 + 平台覆蓋機制
+    status: draft
+    proposed: '2026-07-11'
+    confirmed: null
+    target_version: null
+    source: cross-project
+    reference: Flutter App PROP-018 對應（sibling，同日建立；schema 歸屬為 heavy 評估核心決策點）
+    spec_refs: []
+    usecase_refs: []
+    ticket_refs: []
+    checklist:
+    - item: heavy 級評估（3+ 候選逐一評估表 + 多視角審查）後 confirmed
+      status: pending
+      ticket: 1.5.0-W6-006
+    - item: 中介 token schema 與 APP 端共同定案
+      status: pending
+    - item: V1 生成 pipeline 改讀中介格式（含 snapshot test 遷移）
+      status: pending
+    - item: 平台覆蓋機制承載 primary 色值校準（含理由欄位）
+      status: pending
+    - item: token 覆蓋面補齊（divider 系列等）+ 同步校驗機制
+      status: pending
+
   PROP-013:
     title: 元件庫統一化（Extension 端）——ui-factory 升級為核心元件庫並對齊 APP 命名契約
     status: confirmed
