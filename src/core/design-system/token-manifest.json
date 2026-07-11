@@ -1,0 +1,319 @@
+{
+  "$schemaVersion": "1.0.0",
+  "sourceTicket": "1.5.0-W6-007",
+  "proposalRef": "docs/proposals/PROP-014-design-token-value-unification.md",
+  "generatedAt": "2026-07-11",
+  "description": "V1 (Chrome Extension) 與 APP (Flutter) design token 全量分歧盤點 manifest。schema 設計依 linux 審查輸入：V1 全 palette 為有意平台校準，非漂移；colors 域內 matched-pair 校準比例 75%（> 50%），故每列支援 base 為 null 的無共同基準值型態，不強迫校準值收斂為單一 base。",
+  "sourceFiles": {
+    "v1": [
+      "src/core/design-system/colors.js",
+      "src/core/design-system/shadows.js",
+      "src/core/design-system/spacing.js",
+      "src/core/design-system/typography.js"
+    ],
+    "app": [
+      "lib/core/design_system/colors.dart",
+      "lib/core/design_system/shadows.dart",
+      "lib/core/design_system/spacing.dart",
+      "lib/core/design_system/typography.dart",
+      "lib/core/design_system/border_radius.dart",
+      "lib/core/design_system/animations.dart",
+      "lib/core/design_system/component_sizes.dart"
+    ],
+    "appExcluded": [
+      {
+        "file": "lib/core/design_system/buttons.dart",
+        "reason": "FlatDesignConfig 為組合式元件樣式模組（ButtonStyle/BoxDecoration，由 colors/spacing/borderRadius/shadows token 組裝而成），非扁平化 key-value token，逐項列入會與已收錄的來源 token 重複計數，故排除於 manifest 逐項列舉範圍，僅於此處註記存在。"
+      }
+    ]
+  },
+  "categoryEnum": {
+    "shared": "雙端數值完全相同的共值 token（含平台單位轉換但設計基準值一致，如 spacing 的 px 對 .w 響應式縮放）",
+    "calibrated": "雙端皆有對應 token 但數值刻意不同的平台校準（例：V1 primary #1A56DB vs APP primary #2196F3，兩者皆為各自平台驗證過的可用值，非未同步的漂移）",
+    "platformOnlyV1": "僅 V1 定義、APP 無對應 token（含 APP 已放棄的設計軸，如邊框 border 系列；APP 走陰影取代邊框的平面化設計）",
+    "platformOnlyApp": "僅 APP 定義、V1 無對應 token（含 V1 缺口項，如 divider 系列——APP 以陰影模擬分隔線，V1 尚無此語意層級）"
+  },
+  "inventorySummary": {
+    "totalTokens": 114,
+    "byCategory": {
+      "shared": { "count": 32, "percentage": "28.07%" },
+      "calibrated": { "count": 17, "percentage": "14.91%" },
+      "platformOnlyV1": { "count": 13, "percentage": "11.40%" },
+      "platformOnlyApp": { "count": 52, "percentage": "45.61%" }
+    },
+    "matchedPairAnalysis": {
+      "note": "matched-pair = 雙端皆有對應 token（shared + calibrated），用於評估校準比例是否 > 50%（schema 設計輸入閾值）",
+      "allDomains": { "matchedPairCount": 49, "calibratedRatio": "34.69%" },
+      "colorsdomainOnly": { "matchedPairCount": 20, "calibratedRatio": "75.00%", "note": "colors 域校準比例 75% > 50%，觸發 schema 無 base 值列型態要求；此為 linux 審查具體指涉的域" }
+    },
+    "byDomain": {
+      "colors": { "total": 38, "shared": 5, "calibrated": 15, "platformOnlyV1": 6, "platformOnlyApp": 12 },
+      "statusColors": { "total": 6, "shared": 0, "calibrated": 0, "platformOnlyV1": 6, "platformOnlyApp": 0 },
+      "spacing": { "total": 14, "shared": 7, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 7 },
+      "borderRadius": { "total": 6, "shared": 5, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 1 },
+      "typographyFontFamily": { "total": 1, "shared": 1, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 0 },
+      "typographyFontSizes": { "total": 13, "shared": 9, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 4 },
+      "typographyFontWeights": { "total": 5, "shared": 5, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 0 },
+      "typographyLineHeight": { "total": 3, "shared": 0, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 3 },
+      "shadowColors": { "total": 2, "shared": 0, "calibrated": 2, "platformOnlyV1": 0, "platformOnlyApp": 0 },
+      "overlayColors": { "total": 1, "shared": 0, "calibrated": 0, "platformOnlyV1": 1, "platformOnlyApp": 0 },
+      "animations": { "total": 7, "shared": 0, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 7 },
+      "componentSizes": { "total": 18, "shared": 0, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 18 }
+    }
+  },
+  "domains": {
+    "colors": {
+      "tokens": [
+        { "key": "primary", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.primary", "value": "#1A56DB" }, "app": { "path": "UIColors.primary", "value": "#2196F3" } },
+          "notes": "各自平台 WCAG 驗證通過值，非漂移" },
+        { "key": "primaryLightest", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.primaryLightest", "value": "#EAF0FD" }, "app": { "path": "UIColors.primaryLightest", "value": "#E3F2FD" } } },
+        { "key": "primaryLight", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.primaryLight", "value": "#CBDBF8" }, "app": { "path": "UIColors.primaryLight", "value": "#BBDEFB" } } },
+        { "key": "primaryMedium", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.primaryMedium", "value": "#5B8DEF" }, "app": { "path": "UIColors.primaryMedium", "value": "#64B5F6" } } },
+        { "key": "primaryDark", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.primaryDark", "value": "#1442AE" }, "app": { "path": "UIColors.primaryDark", "value": "#1976D2" } } },
+        { "key": "primaryDarkest", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.primaryDarkest", "value": "#0F317D" }, "app": { "path": "UIColors.primaryDarkest", "value": "#0D47A1" } } },
+        { "key": "success", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.success", "value": "#2E8B57" }, "app": { "path": "UIColors.success (alias of positive)", "value": "#4CAF50" } } },
+        { "key": "successLight", "category": "shared", "base": "#C8E6C9",
+          "platforms": { "v1": { "path": "COLORS.successLight", "value": "#C8E6C9" }, "app": { "path": "UIColors.successLight (alias of positiveLight)", "value": "#C8E6C9" } } },
+        { "key": "successDark", "category": "shared", "base": "#388E3C",
+          "platforms": { "v1": { "path": "COLORS.successDark", "value": "#388E3C" }, "app": { "path": "UIColors.successDark (alias of positiveDark)", "value": "#388E3C" } } },
+        { "key": "successText", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "COLORS.successText", "value": "#1B6B3A" }, "app": null },
+          "notes": "APP 無獨立成功文字色 token，沿用 onSurface 系列" },
+        { "key": "warning", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.warning", "value": "#B7791F" }, "app": { "path": "UIColors.warning (alias of negative)", "value": "#FF9800" } },
+          "notes": "APP negative 為單一色系同時承擔 warning 與 error 語意（見 error 條目），非分開校準" },
+        { "key": "warningLight", "category": "shared", "base": "#FFE0B2",
+          "platforms": { "v1": { "path": "COLORS.warningLight", "value": "#FFE0B2" }, "app": { "path": "UIColors.warningLight (alias of negativeLight)", "value": "#FFE0B2" } } },
+        { "key": "warningDark", "category": "shared", "base": "#F57C00",
+          "platforms": { "v1": { "path": "COLORS.warningDark", "value": "#F57C00" }, "app": { "path": "UIColors.warningDark (alias of negativeDark)", "value": "#F57C00" } } },
+        { "key": "background", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.background", "value": "#F5F7FA" }, "app": { "path": "UIColors.backgroundLight", "value": "#FAFAFA" } } },
+        { "key": "surface", "category": "shared", "base": "#FFFFFF",
+          "platforms": { "v1": { "path": "COLORS.surface", "value": "#FFFFFF" }, "app": { "path": "UIColors.surface (alias of surfaceLight)", "value": "#FFFFFF" } } },
+        { "key": "panel", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "COLORS.panel", "value": "#EDF1F7" }, "app": null },
+          "notes": "V1 第二中性層（sidebar/toolbar/表頭底）；APP surfaceElevated (#FFFBFF) 角色不同（提升表面非次要底色），不視為對應" },
+        { "key": "onBackground", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.onBackground", "value": "#1A2233" }, "app": { "path": "UIColors.onBackground (alias of onBackgroundLight)", "value": "#212121" } } },
+        { "key": "onSurface", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.onSurface", "value": "#34404F" }, "app": { "path": "UIColors.onSurface (alias of onSurfaceLight)", "value": "#424242" } } },
+        { "key": "onSurfaceMuted", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.onSurfaceMuted", "value": "#5B6573" }, "app": { "path": "UIColors.onSurfaceMuted", "value": "#757575" } } },
+        { "key": "error", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.error", "value": "#C2342B" }, "app": { "path": "UIColors.error (alias of negative)", "value": "#FF9800" } },
+          "notes": "APP negative 與 warning 共用同一常數（見 warning 條目），V1 error/warning 為獨立色相；平台結構差異非單純數值校準" },
+        { "key": "errorLight", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "COLORS.errorLight", "value": "#FFCDD2" }, "app": null },
+          "notes": "APP 無獨立 errorLight，error 語意與 warning 共用 negativeLight (#FFE0B2)" },
+        { "key": "border", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "COLORS.border", "value": "#D9E0EA" }, "app": null },
+          "notes": "APP 平面化設計移除邊框改用陰影表達邊界，僅存 @Deprecated borderLight/borderDark 供相容" },
+        { "key": "borderStrong", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "COLORS.borderStrong", "value": "#C4CDD9" }, "app": null } },
+        { "key": "borderDark", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.borderDark", "value": "#424242" }, "app": { "path": "UIColors.borderDark", "value": "#616161", "appDeprecated": true } },
+          "notes": "APP 側已標記 @Deprecated（平面化設計不使用邊框），僅存相容值" },
+        { "key": "darkBackground", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "COLORS.darkBackground", "value": "#121212" }, "app": { "path": "UIColors.backgroundDark", "value": "#0A0E13" } } },
+        { "key": "tagDefault", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "COLORS.tagDefault", "value": "#808080" }, "app": null } },
+        { "key": "backgroundLightest", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.backgroundLightest", "value": "#FCFCFC" } } },
+        { "key": "surfaceElevated", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.surfaceElevated", "value": "#FFFBFF" } } },
+        { "key": "onPrimary", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.onPrimary", "value": "#FFFFFF" } } },
+        { "key": "surfaceDark", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.surfaceDark", "value": "#1A1D23" } } },
+        { "key": "onBackgroundDark", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.onBackgroundDark", "value": "#E3F2FD" } } },
+        { "key": "onSurfaceDark", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.onSurfaceDark", "value": "#BBDEFB" } } },
+        { "key": "shadowLight", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.shadowLight", "value": "rgba(33,150,243,0.08)" } },
+          "notes": "APP 陰影為 primary 色相派生 alpha，非中性黑（見 shadowColors 域校準說明）" },
+        { "key": "shadowMedium", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.shadowMedium", "value": "rgba(33,150,243,0.12)" } } },
+        { "key": "shadowStrong", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.shadowStrong", "value": "rgba(33,150,243,0.16)" } } },
+        { "key": "dividerSubtle", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.dividerSubtle", "value": "rgba(33,150,243,0.06)" } },
+          "notes": "V1 缺口項：V1 尚無 divider 語意 token（V1 分隔線目前直接寫在 CSS，未收斂至 design-system），待後續補齊或顯性排除" },
+        { "key": "dividerNormal", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.dividerNormal", "value": "rgba(33,150,243,0.10)" } },
+          "notes": "V1 缺口項，同 dividerSubtle" },
+        { "key": "dividerStrong", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.dividerStrong", "value": "rgba(33,150,243,0.14)" } },
+          "notes": "V1 缺口項，同 dividerSubtle" }
+      ]
+    },
+    "statusColors": {
+      "description": "Readmoo 閱讀狀態配色（V1 專屬功能，APP 尚無閱讀狀態 UI 對應 token）",
+      "tokens": [
+        { "key": "unread", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "STATUS_COLORS.unread", "value": { "fg": "#546E7A", "bg": "#ECEFF1" } }, "app": null } },
+        { "key": "queued", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "STATUS_COLORS.queued", "value": { "fg": "#0D47A1", "bg": "#BBDEFB" } }, "app": null } },
+        { "key": "reading", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "STATUS_COLORS.reading", "value": { "fg": "#0D47A1", "bg": "#E3F2FD" } }, "app": null } },
+        { "key": "finished", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "STATUS_COLORS.finished", "value": { "fg": "#1B5E20", "bg": "#C8E6C9" } }, "app": null } },
+        { "key": "abandoned", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "STATUS_COLORS.abandoned", "value": { "fg": "#804000", "bg": "#FFE0B2" } }, "app": null } },
+        { "key": "reference", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "STATUS_COLORS.reference", "value": { "fg": "#311B92", "bg": "#EDE7F6" } }, "app": null } }
+      ]
+    },
+    "spacing": {
+      "tokens": [
+        { "key": "xxs", "category": "shared", "base": 2, "platforms": { "v1": { "path": "SPACING.xxs", "value": 2 }, "app": { "path": "UISpacing.xxs", "value": "2.w (base 2)" } } },
+        { "key": "xs", "category": "shared", "base": 4, "platforms": { "v1": { "path": "SPACING.xs", "value": 4 }, "app": { "path": "UISpacing.xs", "value": "4.w (base 4)" } } },
+        { "key": "sm", "category": "shared", "base": 8, "platforms": { "v1": { "path": "SPACING.sm", "value": 8 }, "app": { "path": "UISpacing.sm", "value": "8.w (base 8)" } } },
+        { "key": "md", "category": "shared", "base": 16, "platforms": { "v1": { "path": "SPACING.md", "value": 16 }, "app": { "path": "UISpacing.md", "value": "16.w (base 16)" } } },
+        { "key": "lg", "category": "shared", "base": 24, "platforms": { "v1": { "path": "SPACING.lg", "value": 24 }, "app": { "path": "UISpacing.lg", "value": "24.w (base 24)" } } },
+        { "key": "xl", "category": "shared", "base": 32, "platforms": { "v1": { "path": "SPACING.xl", "value": 32 }, "app": { "path": "UISpacing.xl", "value": "32.w (base 32)" } } },
+        { "key": "xxl", "category": "shared", "base": 48, "platforms": { "v1": { "path": "SPACING.xxl", "value": 48 }, "app": { "path": "UISpacing.xxl", "value": "48.w (base 48)" } } },
+        { "key": "xxxl", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UISpacing.xxxl", "value": "64.w (base 64)" } } },
+        { "key": "verticalXs", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UISpacing.verticalXs", "value": "4.h" } },
+          "notes": "APP 獨有垂直軸間距別名，數值與水平軸 xs 相同但為結構性重複，非新設計值" },
+        { "key": "verticalSm", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UISpacing.verticalSm", "value": "8.h" } } },
+        { "key": "verticalMd", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UISpacing.verticalMd", "value": "16.h" } } },
+        { "key": "verticalLg", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UISpacing.verticalLg", "value": "24.h" } } },
+        { "key": "verticalXl", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UISpacing.verticalXl", "value": "32.h" } } },
+        { "key": "verticalXxl", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UISpacing.verticalXxl", "value": "48.h" } } }
+      ]
+    },
+    "borderRadius": {
+      "notes": "PM 派發時原標記 border_radius.dart 為『APP 單端獨有』檔案；實際比對發現與 V1 spacing.js 的 BORDER_RADIUS 常數高度對應（5/6 為共值），僅 circular 為 APP 獨有新增，非全檔單端獨有。此更正已回報，manifest 依實測結果建立。",
+      "tokens": [
+        { "key": "xs", "category": "shared", "base": 4, "platforms": { "v1": { "path": "BORDER_RADIUS.xs", "value": 4 }, "app": { "path": "UIBorderRadius.xs", "value": "4.r (base 4)" } } },
+        { "key": "sm", "category": "shared", "base": 8, "platforms": { "v1": { "path": "BORDER_RADIUS.sm", "value": 8 }, "app": { "path": "UIBorderRadius.sm", "value": "8.r (base 8)" } } },
+        { "key": "md", "category": "shared", "base": 12, "platforms": { "v1": { "path": "BORDER_RADIUS.md", "value": 12 }, "app": { "path": "UIBorderRadius.md", "value": "12.r (base 12)" } } },
+        { "key": "lg", "category": "shared", "base": 16, "platforms": { "v1": { "path": "BORDER_RADIUS.lg", "value": 16 }, "app": { "path": "UIBorderRadius.lg", "value": "16.r (base 16)" } } },
+        { "key": "xl", "category": "shared", "base": 20, "platforms": { "v1": { "path": "BORDER_RADIUS.xl", "value": 20 }, "app": { "path": "UIBorderRadius.xl", "value": "20.r (base 20)" } } },
+        { "key": "circular", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIBorderRadius.circular", "value": "999.r (base 999)" } },
+          "notes": "V1 缺口項：V1 尚無全圓角 token，如需圓形元件目前需硬編碼" }
+      ]
+    },
+    "typography": {
+      "fontFamily": {
+        "tokens": [
+          { "key": "fontFamily", "category": "shared", "base": "PingFang SC, Microsoft YaHei",
+            "platforms": {
+              "v1": { "path": "FONT_FAMILY", "value": "'PingFang SC', 'Microsoft YaHei', sans-serif" },
+              "app": { "path": "UITypography.primaryFontFamily + fallbackFontFamily", "value": "primaryFontFamily='PingFang SC', fallbackFontFamily='Microsoft YaHei'" }
+            },
+            "notes": "字型名稱共值；結構不同（V1 為單一 CSS font-stack 字串含 sans-serif 通用族；APP 拆為 primary/fallback 兩常數，無 CSS 通用族 fallback，由 Flutter TextStyle.fontFamilyFallback 機制承擔）" }
+        ]
+      },
+      "fontSizes": {
+        "tokens": [
+          { "key": "headline3", "category": "shared", "base": 24, "platforms": { "v1": { "path": "FONT_SIZES.headline3", "value": 24 }, "app": { "path": "UIFontSizes.headline3", "value": "24.rsp (base 24)" } } },
+          { "key": "titleLarge", "category": "shared", "base": 20, "platforms": { "v1": { "path": "FONT_SIZES.titleLarge", "value": 20 }, "app": { "path": "UIFontSizes.titleLarge", "value": "20.rsp (base 20)" } } },
+          { "key": "titleMedium", "category": "shared", "base": 18, "platforms": { "v1": { "path": "FONT_SIZES.titleMedium", "value": 18 }, "app": { "path": "UIFontSizes.titleMedium", "value": "18.rsp (base 18)" } } },
+          { "key": "titleSmall", "category": "shared", "base": 16, "platforms": { "v1": { "path": "FONT_SIZES.titleSmall", "value": 16 }, "app": { "path": "UIFontSizes.titleSmall", "value": "16.rsp (base 16)" } } },
+          { "key": "bodyLarge", "category": "shared", "base": 16, "platforms": { "v1": { "path": "FONT_SIZES.bodyLarge", "value": 16 }, "app": { "path": "UIFontSizes.bodyLarge", "value": "16.rsp (base 16)" } } },
+          { "key": "bodyMedium", "category": "shared", "base": 14, "platforms": { "v1": { "path": "FONT_SIZES.bodyMedium", "value": 14 }, "app": { "path": "UIFontSizes.bodyMedium", "value": "14.rsp (base 14)" } } },
+          { "key": "bodySmall", "category": "shared", "base": 12, "platforms": { "v1": { "path": "FONT_SIZES.bodySmall", "value": 12 }, "app": { "path": "UIFontSizes.bodySmall", "value": "12.rsp (base 12)" } } },
+          { "key": "caption", "category": "shared", "base": 12, "platforms": { "v1": { "path": "FONT_SIZES.caption", "value": 12 }, "app": { "path": "UIFontSizes.caption", "value": "12.rsp (base 12)" } } },
+          { "key": "overline", "category": "shared", "base": 10, "platforms": { "v1": { "path": "FONT_SIZES.overline", "value": 10 }, "app": { "path": "UIFontSizes.overline", "value": "10.rsp (base 10)" } } },
+          { "key": "headline1", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIFontSizes.headline1", "value": "32.rsp (base 32)" } } },
+          { "key": "headline2", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIFontSizes.headline2", "value": "28.rsp (base 28)" } } },
+          { "key": "headline4", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIFontSizes.headline4", "value": "20.rsp (base 20)" } },
+            "notes": "數值與 titleLarge 相同但為獨立語意 token（段落標題 vs 大標題），非共值收斂對象" },
+          { "key": "button", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIFontSizes.button", "value": "14.rsp (base 14)" } } }
+        ]
+      },
+      "fontWeights": {
+        "tokens": [
+          { "key": "light", "category": "shared", "base": 300, "platforms": { "v1": { "path": "FONT_WEIGHTS.light", "value": 300 }, "app": { "path": "UITypography.light", "value": "FontWeight.w300 (300)" } } },
+          { "key": "regular", "category": "shared", "base": 400, "platforms": { "v1": { "path": "FONT_WEIGHTS.regular", "value": 400 }, "app": { "path": "UITypography.regular", "value": "FontWeight.w400 (400)" } } },
+          { "key": "medium", "category": "shared", "base": 500, "platforms": { "v1": { "path": "FONT_WEIGHTS.medium", "value": 500 }, "app": { "path": "UITypography.medium", "value": "FontWeight.w500 (500)" } } },
+          { "key": "semiBold", "category": "shared", "base": 600, "platforms": { "v1": { "path": "FONT_WEIGHTS.semiBold", "value": 600 }, "app": { "path": "UITypography.semiBold", "value": "FontWeight.w600 (600)" } } },
+          { "key": "bold", "category": "shared", "base": 700, "platforms": { "v1": { "path": "FONT_WEIGHTS.bold", "value": 700 }, "app": { "path": "UITypography.bold", "value": "FontWeight.w700 (700)" } } }
+        ]
+      },
+      "lineHeight": {
+        "description": "V1 尚無行高 token（CSS 中硬編碼或未定義），APP 獨有",
+        "tokens": [
+          { "key": "lineHeightTight", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UITypography.lineHeightTight", "value": 1.2 } } },
+          { "key": "lineHeightNormal", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UITypography.lineHeightNormal", "value": 1.4 } } },
+          { "key": "lineHeightRelaxed", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UITypography.lineHeightRelaxed", "value": 1.6 } } }
+        ]
+      }
+    },
+    "shadowColors": {
+      "description": "V1 為中性黑 alpha token（品牌無關，見 shadows.js 檔頭設計決策 0.19.1-W2-002）；APP 為 primary 色相派生 alpha（品牌相關）。角色語意對應後仍列為 calibrated（雙端皆有對應語意角色，但技術路線不同：中性黑 vs 品牌色調），而非 platformOnly。",
+      "tokens": [
+        { "key": "sm", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "SHADOW_COLORS.sm", "value": "rgba(0,0,0,0.1)" }, "app": { "path": "UIColors.shadowLight (used by UIShadows.card)", "value": "rgba(33,150,243,0.08)" } },
+          "notes": "角色對應：容器/表格/卡片輕陰影。V1 中性黑 vs APP 品牌藍派生，非同軸校準而是設計路線差異" },
+        { "key": "md", "category": "calibrated", "base": null,
+          "platforms": { "v1": { "path": "SHADOW_COLORS.md", "value": "rgba(0,0,0,0.25)" }, "app": { "path": "UIColors.shadowStrong (used by UIShadows.dialog/floating)", "value": "rgba(33,150,243,0.16)" } },
+          "notes": "角色對應：modal/dialog 提升層級陰影" }
+      ]
+    },
+    "overlayColors": {
+      "tokens": [
+        { "key": "scrim", "category": "platformOnlyV1", "base": null,
+          "platforms": { "v1": { "path": "OVERLAY_COLORS.scrim", "value": "rgba(0,0,0,0.5)" }, "app": null },
+          "notes": "APP 未在 design_system 定義 modal 遮罩 token，依賴 Flutter Material 預設 barrierColor（未收斂至 design token 層）" }
+      ]
+    },
+    "appOnlyDomains": {
+      "description": "APP 獨有的完整檔案域，V1 無對應概念（無 token 層級比對基準）",
+      "animations": {
+        "sourceFile": "lib/core/design_system/animations.dart",
+        "tokens": [
+          { "key": "fast", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIAnimations.fast", "value": "200ms" } } },
+          { "key": "medium", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIAnimations.medium", "value": "300ms" } } },
+          { "key": "slow", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIAnimations.slow", "value": "500ms" } } },
+          { "key": "easeIn", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIAnimations.easeIn", "value": "Curves.easeIn" } } },
+          { "key": "easeOut", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIAnimations.easeOut", "value": "Curves.easeOut" } } },
+          { "key": "easeInOut", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIAnimations.easeInOut", "value": "Curves.easeInOut" } } },
+          { "key": "elasticOut", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIAnimations.elasticOut", "value": "Curves.elasticOut" } } }
+        ]
+      },
+      "componentSizes": {
+        "sourceFile": "lib/core/design_system/component_sizes.dart",
+        "excludedResponsiveFunctions": ["appBar(context)", "bottomNavigation(context)", "sidebar(context)"],
+        "excludedReason": "需 BuildContext 解析的響應式函式，非靜態 token 值，不納入本 manifest 逐項列舉",
+        "tokens": [
+          { "key": "buttonSmall", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.buttonSmall", "value": "36.h" } } },
+          { "key": "buttonMedium", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.buttonMedium", "value": "48.h" } } },
+          { "key": "buttonLarge", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.buttonLarge", "value": "56.h" } } },
+          { "key": "inputField", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.inputField", "value": "48.h" } } },
+          { "key": "inputFieldLarge", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.inputFieldLarge", "value": "56.h" } } },
+          { "key": "fab", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.fab", "value": "56.w" } } },
+          { "key": "fabSmall", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.fabSmall", "value": "40.w" } } },
+          { "key": "avatarSmall", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.avatarSmall", "value": "32.w" } } },
+          { "key": "avatarMedium", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.avatarMedium", "value": "48.w" } } },
+          { "key": "avatarLarge", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.avatarLarge", "value": "64.w" } } },
+          { "key": "iconSmall", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.iconSmall", "value": "16.rsp" } } },
+          { "key": "iconMedium", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.iconMedium", "value": "24.rsp" } } },
+          { "key": "iconLarge", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.iconLarge", "value": "32.rsp" } } },
+          { "key": "iconXSmall", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.iconXSmall", "value": "14.rsp" } } },
+          { "key": "icon20", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.icon20", "value": "20.rsp" } } },
+          { "key": "loadingIndicatorSmall", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.loadingIndicatorSmall", "value": "16.w" } } },
+          { "key": "loadingIndicatorMedium", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.loadingIndicatorMedium", "value": "24.w" } } },
+          { "key": "loadingIndicatorLarge", "category": "platformOnlyApp", "base": null, "platforms": { "v1": null, "app": { "path": "UIComponentSizes.loadingIndicatorLarge", "value": "32.w" } } }
+        ]
+      }
+    }
+  }
+}
