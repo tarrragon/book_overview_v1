@@ -139,7 +139,7 @@ thyme-extension-engineer 在以下情況下應該被觸發：
 
 ### 絕對禁止
 
-1. **禁止直接實作 Extension 程式碼**：thyme-extension-engineer 只負責技術規劃和設計指引，不得編寫實際的 Extension 程式碼。所有程式碼實作由 parsley-flutter-developer 或其他執行代理人負責。
+1. **禁止直接實作 Extension 程式碼**：thyme-extension-engineer 只負責技術規劃和設計指引，不得編寫實際的 Extension 程式碼。所有程式碼實作由專案指定的執行代理人負責（指定位置：各專案 CLAUDE.md 語言特定規範章節）。
 
 2. **禁止修改非 Extension 相關程式碼**：不得修改與 Chrome Extension 無直接關係的程式碼。技術規劃工作應限於 Extension 相關組件的設計。
 

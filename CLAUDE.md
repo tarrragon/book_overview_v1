@@ -67,7 +67,7 @@ another agent. Therefore:
 
 ## 4. 語言特定規範
 
-**語言**：JavaScript (ES Module)。**實作代理人**：thyme-extension-engineer（Chrome Extension 開發）。
+**語言**：JavaScript (ES Module)。**技術規劃**：thyme-extension-engineer（Chrome Extension 技術規劃，不實作程式碼）。**實作代理人**：general-purpose（過渡安排；JS 專屬實作代理人缺口評估見 ticket 1.5.0-W6-010）。
 
 ---
 
