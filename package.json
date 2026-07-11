@@ -37,6 +37,7 @@
     "validate:manifest": "node scripts/validate-manifest.js",
     "validate:manifest:prod": "node scripts/validate-manifest.js --dir build/production",
     "validate:design-system": "node scripts/generate-design-system-css.js && git diff --exit-code src/core/design-system/design-system.css",
+    "validate:token-manifest": "node scripts/validate-token-manifest.js",
     "dev": "npm run build:dev && npm run test:watch",
     "lint": "eslint src/ tests/ scripts/",
     "lint:fix": "eslint src/ tests/ scripts/ --fix",
