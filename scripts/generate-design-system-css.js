@@ -29,6 +29,7 @@ const { COLORS, STATUS_COLORS } = require('../src/core/design-system/colors.js')
 const { SPACING, BORDER_RADIUS } = require('../src/core/design-system/spacing.js')
 const { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS } = require('../src/core/design-system/typography.js')
 const { SHADOW_COLORS, OVERLAY_COLORS } = require('../src/core/design-system/shadows.js')
+const { COMPONENT_RULES } = require('../src/core/design-system/component-rules.js')
 
 const OUTPUT_PATH = path.join(__dirname, '..', 'src', 'core', 'design-system', 'design-system.css')
 
@@ -118,6 +119,12 @@ function buildCss () {
   lines.push(...mapToCssVars('overlay', OVERLAY_COLORS, asIs))
 
   lines.push('}')
+  lines.push('')
+
+  // Component Rules（1.5.0-W6-001）：popup.html 內嵌共用元件樣式遷入。
+  // 區段註解由 generator push（generator 管結構、來源模組管內容分工）。
+  lines.push('/* Popup Component Rules (PROP-013 工作項 4, 1.5.0-W6-001) */')
+  lines.push(COMPONENT_RULES.trim())
   lines.push('')
 
   return lines.join('\n')
