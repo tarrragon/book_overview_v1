@@ -39,3 +39,9 @@ jobs:
 
       - name: Check no emoji (src/)
         run: npm run lint:emoji
+
+      - name: Validate token manifest (雙向校驗)
+        run: npm run validate:token-manifest
+
+      - name: Validate design system CSS (孤兒腳本接線)
+        run: npm run validate:design-system

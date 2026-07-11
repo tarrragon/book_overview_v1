@@ -261,17 +261,17 @@
       "description": "V1 為中性黑 alpha token（品牌無關，見 shadows.js 檔頭設計決策 0.19.1-W2-002）；APP 為 primary 色相派生 alpha（品牌相關）。角色語意對應後仍列為 calibrated（雙端皆有對應語意角色，但技術路線不同：中性黑 vs 品牌色調），而非 platformOnly。",
       "tokens": [
         { "key": "sm", "category": "calibrated", "base": null,
-          "platforms": { "v1": { "path": "SHADOW_COLORS.sm", "value": "rgba(0,0,0,0.1)" }, "app": { "path": "UIColors.shadowLight (used by UIShadows.card)", "value": "rgba(33,150,243,0.08)" } },
+          "platforms": { "v1": { "path": "SHADOW_COLORS.sm", "value": "rgba(0, 0, 0, 0.1)" }, "app": { "path": "UIColors.shadowLight (used by UIShadows.card)", "value": "rgba(33,150,243,0.08)" } },
           "notes": "角色對應：容器/表格/卡片輕陰影。V1 中性黑 vs APP 品牌藍派生，非同軸校準而是設計路線差異" },
         { "key": "md", "category": "calibrated", "base": null,
-          "platforms": { "v1": { "path": "SHADOW_COLORS.md", "value": "rgba(0,0,0,0.25)" }, "app": { "path": "UIColors.shadowStrong (used by UIShadows.dialog/floating)", "value": "rgba(33,150,243,0.16)" } },
+          "platforms": { "v1": { "path": "SHADOW_COLORS.md", "value": "rgba(0, 0, 0, 0.25)" }, "app": { "path": "UIColors.shadowStrong (used by UIShadows.dialog/floating)", "value": "rgba(33,150,243,0.16)" } },
           "notes": "角色對應：modal/dialog 提升層級陰影" }
       ]
     },
     "overlayColors": {
       "tokens": [
         { "key": "scrim", "category": "platformOnlyV1", "base": null,
-          "platforms": { "v1": { "path": "OVERLAY_COLORS.scrim", "value": "rgba(0,0,0,0.5)" }, "app": null },
+          "platforms": { "v1": { "path": "OVERLAY_COLORS.scrim", "value": "rgba(0, 0, 0, 0.5)" }, "app": null },
           "notes": "APP 未在 design_system 定義 modal 遮罩 token，依賴 Flutter Material 預設 barrierColor（未收斂至 design token 層）" }
       ]
     },
