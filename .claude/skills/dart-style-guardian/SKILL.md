@@ -1,9 +1,11 @@
 ---
-name: style-guardian
+name: dart-style-guardian
 description: "Style Guardian - Unified Design System Enforcement Tool. Use for: (1) Preventing hardcoded styles (colors, spacing, typography), (2) Preventing hardcoded text (i18n violations), (3) Guiding unified configuration usage, (4) Detecting and fixing style violations"
 ---
 
 # Style Guardian - Unified Design System Enforcement
+
+> 元件層約束原則（禁自製元件、豁免三條件、白名單治理、WARNING 升阻擋判準）見 `.claude/methodologies/component-library-bidirectional-constraint-methodology.md`；本 skill 為其「工具執法」層的專案實作。
 
 ## Core Principles
 
@@ -139,7 +141,7 @@ TextStyle(fontSize: 14.sp)  // Manual scaling
 
 ## Internationalization (i18n)
 
-i18n 硬編碼檢測、ARB 工作流程、支援語言清單詳見 `/i18n-checker`。
+i18n 硬編碼檢測、ARB 工作流程、支援語言清單詳見 `/dart-i18n-checker`。
 
 **快速參考**：所有使用者可見文字必須使用 `context.l10n!.keyName`，禁止硬編碼字串。
 
@@ -192,7 +194,7 @@ BorderRadius.circular(UIBorderRadius.sm)
 
 ### Violation 5: Hardcoded Text
 
-硬編碼文字檢測和修正詳見 `/i18n-checker`。
+硬編碼文字檢測和修正詳見 `/dart-i18n-checker`。
 
 ### Violation 6: ViewModel Hardcoded User Messages
 
@@ -225,13 +227,13 @@ state = state.copyWith(errorMessage: ErrorHandler.getUserMessage(exception));
 
 ```bash
 # Scan entire project
-uv run .claude/skills/style-guardian/scripts/style_checker.py scan lib/
+uv run .claude/skills/dart-style-guardian/scripts/style_checker.py scan lib/
 
 # Scan specific directory
-uv run .claude/skills/style-guardian/scripts/style_checker.py scan lib/presentation/
+uv run .claude/skills/dart-style-guardian/scripts/style_checker.py scan lib/presentation/
 
 # Generate report
-uv run .claude/skills/style-guardian/scripts/style_checker.py report
+uv run .claude/skills/dart-style-guardian/scripts/style_checker.py report
 ```
 
 ### Hook Integration
@@ -261,7 +263,7 @@ The style checker is integrated into PostEdit Hook:
 - [Typography System Reference](./references/typography-system.md)
 
 ### Related Skills
-- `/i18n-checker` - i18n 硬編碼全量掃描和修正工作流程
+- `/dart-i18n-checker` - i18n 硬編碼全量掃描和修正工作流程
 
 ### External Resources
 - [Flat Design Explained - MasterClass](https://www.masterclass.com/articles/flat-design-explained)

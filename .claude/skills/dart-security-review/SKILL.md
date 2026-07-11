@@ -1,5 +1,5 @@
 ---
-name: security-review
+name: dart-security-review
 description: "Performs security review for Flutter/Dart code. Use when implementing authentication, handling user input, working with API keys or secrets, managing permissions, storing sensitive data locally, or integrating third-party APIs. Provides Flutter-specific security checklists and patterns."
 ---
 

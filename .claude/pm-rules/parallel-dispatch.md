@@ -43,7 +43,7 @@
 - [ ] 資源無競爭：不會同時存取相同外部資源
 - [ ] Wave 無跨越：所有任務屬於同一個 Wave
 - [ ] 目標檔案路徑在代理人可編輯範圍（見下方路徑權限）
-- [ ] 實作代理人使用 `isolation: "worktree"` 派發
+- [ ] 高風險代理人（IMP/重構/測試實作）使用 `isolation: "worktree"` 派發（見下方風險分級表）
 - [ ] **派發 prompt 已引用職責邊界聲明骨架**（見 `.claude/references/agent-dispatch-template.md`）
 - [ ] **派發 prompt 已明示精準 git staging**（並行 commit 場景，禁用 `git add .` / `git add -A`；見下方 PC-092 防護）
 ```
@@ -228,21 +228,25 @@ Ticket 的 `what` / `how` 含以下任一特徵即屬於驗證類：
 
 ---
 
-## Worktree 隔離（強制）
+## Worktree 隔離（風險分級）
 
-所有會修改檔案或執行 git 操作的代理人，必須使用 `Agent(isolation: "worktree")` 派發。
+派發代理人時，依任務風險等級決定隔離策略，非一律強制 worktree。
+
+> **設計依據（W5-008 方案 C 分段採納）**：低風險任務（ANA/DOC/唯讀，約 40-60%）免 worktree 是既有實務的明文化（hook 本來就不對分析/審核代理人強制 worktree）；高風險長 IMP 維持 worktree 強制。中風險短 IMP 共享 tree + PM 統一 commit 暫緩，待 W5-033 受控實驗結論。
+
+### 風險分級表
+
+| 風險等級 | 任務特徵 | 隔離策略 | 代理人範例 |
+|---------|---------|---------|-----------|
+| 低風險 | ANA/DOC/唯讀分析，不修改 `src/` `lib/` `test/` 產品程式碼 | 主 repo cwd（不需 worktree） | saffron, linux, bay, basil, thyme-documentation, lavender, Explore |
+| 高風險 | IMP/重構/測試實作，修改 `src/` `lib/` `test/` 產品程式碼或測試 | `isolation: "worktree"` 強制 | parsley, fennel, thyme-python, cinnamon, pepper, mint |
+| 中風險 | 短 IMP 共享 tree + PM 統一 commit | **暫緩**（blocked pending W5-033 受控實驗結論） | — |
+
+> **Source of truth**：此風險分級表為 worktree 隔離需求的唯一定義來源。Hook `agent-dispatch-validation-hook.py` 的 `IMPLEMENTATION_AGENTS` 清單必須與高風險列的代理人範例同步。
+
+### worktree 派發注意事項
 
 > **worktree base 取 origin/main（可能 stale）**：cc runtime 的 `Agent(isolation: "worktree")` 以 `origin/main`（remote-tracking ref）為 worktree base，**而非** local main HEAD（W3-007 實證）。**Why**：cc runtime 取 remote-tracking ref 作 base；當 local main 領先 origin/main（有未 push 的本地 commit）時，worktree 建在 stale 基底上，缺少最新本地 commit。**Consequence**：agent 以缺 commit 的過時基底工作，產出與 local main 不相容，需 agent 手動 recovery（W2-013 實證 parsley 手動 checkout feat 分支救回）。**Action**：(1) **派發 worktree agent 前先 `git push origin main`**，使 origin/main 對齊 local main（消除根因分歧）；`worktree-commit-before-dispatch-hook.py` 會在 origin/main 落後時 stderr 警告。(2) 派發 prompt 開頭加 `git merge main` 指引作補強（worktree 共享 `.git`，main ref 一致）。完整說明與 prompt 範本見 `.claude/references/agent-dispatch-template.md`「worktree 派發 base 同步指引（W1-035）」。
-
-| 代理人類型 | 需要 worktree |
-|-----------|--------------|
-| 實作代理人（parsley, fennel, thyme-python） | 強制 |
-| 重構代理人（cinnamon） | 強制 |
-| 測試/格式代理人（pepper, mint） | 強制 |
-| 分析/審核代理人（linux, bay, saffron） | 不需要 |
-| 探索代理人（Explore） | 不需要 |
-
-> **Source of truth**：此表格為 worktree 隔離需求的唯一定義來源。Hook `agent-dispatch-validation-hook.py` 的 `IMPLEMENTATION_AGENTS` 清單必須與此表格同步。
 
 ### 並行場景路徑區分（`.claude/` vs `src/`）
 

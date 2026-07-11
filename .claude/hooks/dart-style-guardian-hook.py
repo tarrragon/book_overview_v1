@@ -4,10 +4,10 @@
 # dependencies = []
 # ///
 """
-Style Guardian PostEdit Hook
+Dart Style Guardian PostEdit Hook
 
 Automatically checks edited files for style violations.
-Integrated with the style-guardian SKILL.
+Integrated with the dart-style-guardian SKILL.
 
 Hook Type: PostToolUse (Edit, Write, MultiEdit)
 Trigger: When editing files in lib/presentation/
@@ -21,7 +21,7 @@ Usage:
         "postToolUse": [
           {
             "matcher": "Edit|Write|MultiEdit",
-            "command": "uv run .claude/hooks/style-guardian-hook.py \"$CLAUDE_FILE_PATHS\""
+            "command": "uv run .claude/hooks/dart-style-guardian-hook.py \"$CLAUDE_FILE_PATHS\""
           }
         ]
       }
@@ -92,6 +92,19 @@ def check_file_for_violations(file_path: Path) -> list[dict]:
         (r'BorderRadius\.circular\s*\(\s*\d+\s*\)', 'BorderRadius', 'Use UIBorderRadius instead'),
     ]
 
+    # Native component direct-use patterns (spec §14.3 禁用對照表)
+    # word-boundary anchored to avoid matching AppCard / _buildXxxChip etc.
+    native_component_patterns = [
+        (r'\bTextButton\(', 'NativeComponent', 'Use AppButton instead'),
+        (r'\bElevatedButton\(', 'NativeComponent', 'Use AppButton instead'),
+        (r'\bCard\(', 'NativeComponent', 'Use AppCard instead'),
+        (r'\bAlertDialog\(', 'NativeComponent', 'Use AppDialog instead'),
+        (r'\bshowDialog\(', 'NativeComponent', 'Use AppDialog helper instead'),
+        (r'\bDivider\(', 'NativeComponent', 'Use AppDivider instead'),
+        (r'\bChip\(', 'NativeComponent', 'Use AppBadge/AppChip instead'),
+        (r'\bChoiceChip\(', 'NativeComponent', 'Use AppChip instead'),
+    ]
+
     # Exception patterns (already using config)
     exceptions = [
         r'UIColors\.',
@@ -100,26 +113,45 @@ def check_file_for_violations(file_path: Path) -> list[dict]:
         r'UIBorderRadius\.',
     ]
 
+    # Line-level exclusions for native component patterns (spec §14.3 注意事項)
+    native_exclusion_patterns = [
+        r'\bApp(Card|Button|Dialog|Divider|Badge|Chip)\b',  # already migrated
+        r'ThemeData',
+        r'^\s*(Widget\s+)?_build\w+.*\(',  # _build* method definitions
+        r'^\s*import\s',
+    ]
+
     for line_num, line in enumerate(lines, 1):
-        # Skip lines that already use config
-        if any(re.search(e, line) for e in exceptions):
+        # Skip lines that already use config (style patterns only)
+        if not any(re.search(e, line) for e in exceptions):
+            for pattern, category, suggestion in patterns:
+                if re.search(pattern, line):
+                    violations.append({
+                        'line': line_num,
+                        'category': category,
+                        'suggestion': suggestion,
+                    })
+                    break  # One violation per line is enough
+
+        # Native component direct-use check (independent exclusion set, WARNING mode)
+        if any(re.search(e, line) for e in native_exclusion_patterns):
             continue
 
-        for pattern, category, suggestion in patterns:
+        for pattern, category, suggestion in native_component_patterns:
             if re.search(pattern, line):
                 violations.append({
                     'line': line_num,
                     'category': category,
                     'suggestion': suggestion,
                 })
-                break  # One violation per line is enough
+                break
 
     return violations
 
 
 def main() -> int:
     """Main hook entry point."""
-    logger = setup_hook_logging("style-guardian-hook")
+    logger = setup_hook_logging("dart-style-guardian-hook")
     # Get file paths from argument
     if len(sys.argv) < 2:
         # No files to check
@@ -178,7 +210,7 @@ def main() -> int:
             message_lines.append(f"  ... and {len(violations) - 5} more")
 
     message_lines.append("")
-    message_lines.append("Run `/style-guardian` for detailed guidance.")
+    message_lines.append("Run `/dart-style-guardian` for detailed guidance.")
 
     # Output informational message (don't block)
     output = {
@@ -191,4 +223,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(run_hook_safely(main, "style-guardian-hook"))
+    sys.exit(run_hook_safely(main, "dart-style-guardian-hook"))

@@ -1,5 +1,5 @@
 ---
-name: i18n-checker
+name: dart-i18n-checker
 description: "全量掃描硬編碼中文字串並生成 i18n 修正建議。檢測所有層（Model/Service/Domain/UI）中文硬編碼，生成 ARB 鍵值建議，支援批量替換工作流程。Use for: (1) 檢查專案全部硬編碼中文（不只 UI 層）, (2) 進行大規模 i18n 修復, (3) 生成 ARB 鍵值建議, (4) i18n 技術債務評估"
 ---
 
@@ -55,7 +55,7 @@ uv run scripts/i18n_hardcode_checker.py
 | 工具 | 檢查範圍 | 用途 |
 |------|---------|------|
 | style-guardian | UI 層（Text、AppBar、labelText） | 快速日常檢查 |
-| i18n-checker | 全層（Model/Service/Domain/UI） | 深度技術債務清理 |
+| dart-i18n-checker | 全層（Model/Service/Domain/UI） | 深度技術債務清理 |
 
 ## 參考資源
 

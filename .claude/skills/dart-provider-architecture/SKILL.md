@@ -1,5 +1,5 @@
 ---
-name: provider-architecture
+name: dart-provider-architecture
 description: "Riverpod Provider 架構設計規範 - 確保正確的依賴注入、介面隔離和測試可行性。Use for: (1) 設計新的 ViewModel/Notifier 類別, (2) 審查 Provider 依賴注入是否正確, (3) 測試中配置 ProviderScope.overrides, (4) 發現 ref.read/watch 使用錯誤時。Use when: 程式碼涉及 Riverpod Provider、Notifier、ViewModel 設計或出現 ref 操作問題時。"
 ---
 
@@ -12,7 +12,7 @@ Riverpod Provider 架構設計規範 - 確保正確的依賴注入、介面隔�
 要查詢 Provider 架構設計指南，輸入：
 
 ```text
-/provider-architecture
+/dart-provider-architecture
 ```
 
 ---
