@@ -17,6 +17,9 @@
 const { buildCss, camelToKebab } = require('../../scripts/generate-design-system-css.js')
 const { STATUS_COLORS } = require('../../src/core/design-system/colors.js')
 const { SHADOW_COLORS, OVERLAY_COLORS } = require('../../src/core/design-system/shadows.js')
+const { MIGRATED_SELECTORS } = require('./helpers/popup-migrated-selectors.js')
+
+const COMPONENT_RULES_MARKER = '/* Popup Component Rules (PROP-013 工作項 4, 1.5.0-W6-001) */'
 
 describe('design-system.css 產生器', () => {
   let css
@@ -150,6 +153,42 @@ describe('design-system.css 產生器', () => {
       Object.keys(OVERLAY_COLORS).forEach((key) => {
         expect(css).toContain(`--overlay-${camelToKebab(key)}: ${OVERLAY_COLORS[key]};`)
       })
+    })
+  })
+
+  describe('Component Rules（1.5.0-W6-001）', () => {
+    // C1：popup.html 遷入的 32 條 rule block 逐一存在於生成 CSS（完整字面斷言，
+    // 缺失時紅燈訊息直接指名選擇器）
+    test.each(MIGRATED_SELECTORS)('遷入選擇器存在於 buildCss() 輸出：%s', (selector) => {
+      expect(css).toContain(`${selector} {`)
+    })
+
+    // C2：@keyframes pulse 存在且僅一次（隨 .status-dot.loading 遷入，
+    // 動畫定義與使用不分離）
+    test('@keyframes pulse 存在且僅一次', () => {
+      expect(css.match(/@keyframes pulse\s*\{/g)).toHaveLength(1)
+    })
+
+    // C3：Component Rules 區段標記存在且位於 :root 區塊關閉之後
+    // （generator 管結構：區段註解由 buildCss() push，非來源模組內容）
+    test('Component Rules 區段標記存在且位於 :root 關閉之後', () => {
+      const markerIndex = css.indexOf(COMPONENT_RULES_MARKER)
+      expect(markerIndex).toBeGreaterThanOrEqual(0)
+
+      const rootOpenIndex = css.indexOf(':root {')
+      const rootCloseIndex = css.indexOf('\n}', rootOpenIndex)
+      expect(rootCloseIndex).toBeGreaterThanOrEqual(0)
+      expect(markerIndex).toBeGreaterThan(rootCloseIndex)
+    })
+
+    // C4：Component Rules 區段值一律引用 var(--*) token，不含 raw hex 色碼
+    // （區段標記不存在時本測試 fail 而非 vacuous pass）
+    test('Component Rules 區段不含 raw hex 色碼（值一律引用 token）', () => {
+      const markerIndex = css.indexOf(COMPONENT_RULES_MARKER)
+      expect(markerIndex).toBeGreaterThanOrEqual(0)
+
+      const componentSection = css.slice(markerIndex)
+      expect(componentSection).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
     })
   })
 
