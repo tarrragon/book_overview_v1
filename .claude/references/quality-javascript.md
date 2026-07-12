@@ -37,7 +37,8 @@
 | 模組專屬常數 | 模組內 constants 檔案或模組頂部 | `const MAX_RETRY_COUNT = 3;` |
 
 ```javascript
-// 正確：具名常數
+// 正確：具名常數（require 為既有共用模組 CJS 模式，經 esbuild bundle 後執行，
+// 非 content script runtime require；環境邊界見 §5 / §6）
 const { HANDSHAKE_CONFIG } = require('../constants/layout');
 setTimeout(retry, HANDSHAKE_CONFIG.RETRY_INTERVAL_MS);
 
@@ -86,6 +87,7 @@ statusEl.textContent = '提取完成';        // 硬編碼使用者可見字串
 
 ```javascript
 // 正確：專案錯誤類別 + OperationResult 統一回應格式
+// （require 環境邊界說明同 §2 範例；見 §5 / §6）
 const { ErrorCodes } = require('../core/errors/ErrorCodes');
 const { OperationResult } = require('../core/errors/OperationResult');
 return OperationResult.failure(ErrorCodes.NETWORK_ERROR, { url, cause: error });
