@@ -235,7 +235,7 @@ npm run lint
 - [ ] `npm run lint` 0 warnings（`--max-warnings=0` 把關）
 - [ ] `npm test` 100% 通過
 - [ ] 無硬編碼字串或數值
-- [ ] 函式長度 <= 30 行、巢狀深度 <= 3 層
+- [ ] 函式長度 <= 30 行（語言硬上限；通用理想標準 <= 15 行見 cognitive-load.md，超過即應考慮拆分）、巢狀深度 <= 3 層
 - [ ] 使用 ES2022+ 語法（無降級相容寫法）
 - [ ] Ticket body 已依 type schema 填必填章節（Solution / Test Results / Exit Status）
 

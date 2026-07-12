@@ -321,7 +321,7 @@ return errors.New("read failed")
 
 | 指標 | 理想值 | 上限 |
 |------|-------|------|
-| 函式行數 | 10-20 行 | 40 行 |
+| 函式行數 | 10-20 行 | 40 行（Go error handling 冗長的語言硬上限；通用理想標準 <= 15 行見 cognitive-load.md） |
 | 參數數量 | 1-3 個 | 4 個（超過考慮 option struct） |
 | 回傳值 | 1-2 個 | 3 個（通常含 error） |
 | 巢狀深度 | 1-2 層 | 3 層 |
@@ -406,7 +406,7 @@ grep -rn '"[A-Z]' server/ --include="*.go" | grep -v "_test.go" | grep -v "const
 - [ ] 無硬編碼字串或數值
 - [ ] 所有 log 使用 slog + 訊息常數 + `"layer"` 欄位
 - [ ] 所有常數在 `constants.go` 中定義
-- [ ] 函式長度 <= 40 行
+- [ ] 函式長度 <= 40 行（語言硬上限；通用理想標準 <= 15 行見 cognitive-load.md，超過即應考慮拆分）
 - [ ] 巢狀深度 <= 3 層
 - [ ] 錯誤處理使用 sentinel error 或自訂類型
 - [ ] 長時間運行的資源有清理機制（見下方資源管理章節）
