@@ -35,8 +35,8 @@ related_proposals: [PROP-008, PROP-013]
 
 | 影響項目 | 說明 |
 |---------|------|
-| V1 模組 | `src/core/design-system/`（4 個 JS token 檔改為生成物或消費生成物）、`scripts/generate-design-system-css.js`（改讀中介格式）、`scripts/build.js`（pipeline 接線） |
-| V1 測試 | design-system.css snapshot test 遷移；token 值斷言測試連動 |
+| V1 模組 | `src/core/design-system/`（新增 `token-manifest.json`；4 個 JS token 檔維持手寫不變——方案 D 對 pipeline 零改動，原「改為生成物」描述隨生成方案否決作廢） |
+| V1 測試 | `validate:token-manifest` 校驗 script + CI 接線（W6-008）；snapshot test 不需遷移 |
 | APP 模組 | `lib/core/design_system/*.dart`（sibling PROP-018 承擔） |
 | 規格 | APP 端 spec §12 / §14.6 差異標記增補「色值屬平台校準層」；中介格式 schema 文件 |
 
@@ -44,15 +44,20 @@ related_proposals: [PROP-008, PROP-013]
 
 ### 本提案要做的（In Scope，V1 端）
 
-1. **中介 token 格式設計**：與 APP 端共同定義 JSON token schema（候選：Style Dictionary 格式或自訂精簡 schema），含 base 值 + 平台覆蓋（platform overrides）兩層。schema 檔的存放位置與 repo 歸屬（APP 端 / 獨立 repo / 雙端各持副本 + 校驗）為本提案評估時的核心決策點。
-2. **平台覆蓋機制**：色值校準（V1 primary `#1A56DB`）以 `overrides.extension` 層表達，base 值維持 APP `#2196F3`；覆蓋項必須附理由欄位（如 `reason: "WCAG AA 校色 0.19.1-W3-001"`）。
-3. **V1 生成 pipeline 改造**：`generate-design-system-css.js` 改讀中介 JSON 生成 JS token 檔 + design-system.css（或 JS 檔直接消費 JSON）；snapshot test 隨遷。
-4. **token 覆蓋面補齊**：以中介格式為準補齊 V1 缺口 token（divider 系列、石碑刻痕陰影中 Extension 需要者），不需要者以顯性排除清單記錄。
-5. **同步校驗**：CI 或 hook 層校驗雙端生成物與中介格式一致（取代人工 diff）。
+> 2026-07-13 更新（1.5.0-W6-027）：本節原為評估前草稿（生成方案語意）。heavy 評估採**方案 D（token manifest 雙向校驗層，值仍雙端手寫、不引入生成、對 V1 pipeline 零改動）**後改寫如下；W6-007/W6-008 已完成落地。原項 3「生成 pipeline 改造」與方案 D 矛盾，已移除（生成語意見升級路徑）。
+
+1. **manifest schema 設計 + 全量分歧盤點**：機器可讀 JSON schema（token 名 + base 值 + 各平台實際值 + category 四分類 + 理由欄位）；colors 域校準比例 60.53% > 50%，schema 支援 base 為 null 的無共同基準值列型態。**已完成（W6-007，`token-manifest.json` v1.0.0，114 tokens 含 APP 對照）**。
+2. **平台覆蓋機制**：色值校準（V1 primary `#1A56DB` vs APP `#2196F3`）以 `category: "calibrated"` + platforms 雙值 + notes 理由承載——盤點證實 V1 palette 全量為有意校準，故不採「base 值 + overrides」而採對等雙值型態。**已完成（W6-007）**。
+3. **token 覆蓋面對帳**：V1 缺口 token 補齊（divider 系列已由 1.5.0-W6-004 補齊轉入 shared）；平台獨有 token 以 `platformOnlyV1` / `platformOnlyApp` 分類顯性記錄於 manifest。**已完成（W6-004 + W6-007）**。
+4. **雙向校驗**：`validate:token-manifest` npm script + CI 接線（含孤兒腳本 `validate:design-system` 順帶接線），取代人工 diff。**已完成（W6-008）**。
+
+### manifest 存放與跨 repo 消費機制（2026-07-13 回填）
+
+原「schema 檔存放位置與 repo 歸屬」決策點的事實決策：**V1 repo `src/core/design-system/token-manifest.json` 為存放權威**（W6-007 產出落點）。APP 端（sibling PROP-018）消費機制候選三案（APP repo 持副本 + hash 比對 / CI 跨 repo fetch / 移共用 repo），於 PROP-018 confirm 時定案——兩提案此節內容須保持一致（sibling 對照維護）。
 
 ### 本提案不做的（Out of Scope）
 
-- APP 端 Dart 生成 pipeline → sibling PROP-018（APP repo）承擔
+- APP 端校驗 script + APP CI 接線 → sibling PROP-018（APP repo）承擔（2026-07-13 更新：原「Dart 生成 pipeline」描述隨生成方案否決作廢）
 - 元件層命名契約 → PROP-013 既有範圍
 - 色值歸一（強制雙端同色）→ 已由用戶仲裁為「平台校準層分歧」，本提案僅承載不推翻
 - §14.6 差異標記補記的 spec 編輯 → APP 端契約權威，由 PROP-018 工作項承擔
@@ -78,11 +83,12 @@ related_proposals: [PROP-008, PROP-013]
 
 ## 驗收條件（草案）
 
-- [ ] 中介 token 格式 schema 定案且雙端提案（PROP-014/PROP-018）採用同一 schema
-- [ ] V1 token 值全數由中介格式生成或消費，`src/core/design-system/` 無手工維護的值
-- [ ] 平台覆蓋機制承載 primary 色值校準，且覆蓋項含理由欄位
-- [ ] 同步校驗機制存在（CI/hook），人工 diff 退役
-- [ ] 既有測試 100% 通過，snapshot test 遷移完成
+- [x] 中介 token 格式 schema 定案且雙端提案（PROP-014/PROP-018）採用同一 schema（`$schemaVersion` 1.0.0，W6-007）
+- [x] V1 token 值仍手寫於 `src/core/design-system/`，manifest 記載雙端對照，雙向校驗攔截漂移（方案 D：值層統一 = 分歧受控可見，非值歸一亦非生成；W6-007/008）
+- [x] 平台校準機制承載 primary 色值校準（`category: "calibrated"` + notes 理由欄位，W6-007）
+- [x] 同步校驗機制存在（`validate:token-manifest` + CI），人工 diff 退役（W6-008）
+- [ ] 既有測試 100% 通過（版本收尾驗收確認）
+- [ ] manifest 之 APP 對照經 APP 端逐項複核（sibling PROP-018，APP ticket 0.38.0-W10-004）
 
 ## Reality Test / 觸發案例實證
 
@@ -95,7 +101,7 @@ related_proposals: [PROP-008, PROP-013]
 | 假設 | 驗證方式 | 結果 |
 |------|---------|------|
 | 假設 1：V1 生成 pipeline 可改讀中介格式 | 檢視 generate-design-system-css.js 架構 | 已驗證：JS 常數 → CSS 的生成器已存在（含 snapshot test），改造輸入端可行 |
-| 假設 2：APP 端可接受 Dart 生成物 | 需 APP 端評估（build_runner 或 pre-build script） | 未驗證：PROP-018 heavy 評估時驗證 |
+| 假設 2：APP 端可接受 Dart 生成物 | 需 APP 端評估（build_runner 或 pre-build script） | 已不適用（2026-07-13）：生成方案否決，APP 端 WRAP 分析確認 `.w`/`.rsp` 響應式單位與行內註解使生成成本高於 V1 端，方案 D 值仍手寫 |
 | 假設 3：色值以外的 token 值雙端可完全共值 | 抽樣比對 spacing/radius/fontSize | 部分驗證：間距/圓角 key 與數值一致（PROP-008 移植對應），但單位轉換（rsp/.w vs px）屬實作層需生成器各自處理；字級/陰影覆蓋面不對稱需逐項盤點 |
 
 ## 失敗防護
@@ -134,10 +140,15 @@ D 方案投入約 0.5 wave（manifest schema + 校驗 script + CI 接線 + 分�
 
 WRAP 完整四階段 + 雙視角審查完成。重現實驗修正根因假設：漂移主因是覆蓋面不同步（值變更年約 1 次）。「值層統一」語意修正為「分歧受控可見」（Consider the Opposite + 用戶色值仲裁的延伸）。採用方案收斂為 D（token manifest 雙向校驗層），升級路徑 B/A 保留 trigger 綁定。待用戶最終確認 confirmed + target_version。
 
+### 2026-07-13（文件漂移修正 + sibling 統一，ticket 1.5.0-W6-027）
+
+APP 端（sibling PROP-018）統一作業時發現本提案三處漂移：In Scope 項 3「生成 pipeline 改造」與 AC 第 2 項「值全數由中介格式生成」仍為評估前生成語意（與已採用方案 D 矛盾）、轉化記錄 W6-007/008 標 pending（實際已完成）。已全數修正並回填 manifest 存放權威決策（V1 repo）與跨 repo 消費機制候選。用戶決策同步：雙專案主力維護者為 AI，**文件規格統一優先於程式碼調整**——manifest 定位為雙端 AI 讀取的統一規格文件本體（詳見 APP PROP-018「文件先行兩段式定位」節）。APP 端後續：manifest APP 對照複核（0.38.0-W10-004）、APP 端校驗 script（blockedBy APP CI ticket 1.0.0-W1-001）。
+
 ## 轉化記錄
 
 | 轉化類型 | 檔案 | 日期 | 狀態 |
 |---------|------|------|------|
 | Ticket | 1.5.0-W6-006（heavy 評估與確認） | 2026-07-11 | completed |
-| Ticket | 1.5.0-W6-007（分歧盤點 + manifest schema + 初版） | 2026-07-11 | pending |
-| Ticket | 1.5.0-W6-008（雙向校驗 + CI 接線） | 2026-07-11 | pending |
+| Ticket | 1.5.0-W6-007（分歧盤點 + manifest schema + 初版） | 2026-07-11 | completed |
+| Ticket | 1.5.0-W6-008（雙向校驗 + CI 接線） | 2026-07-11 | completed |
+| Ticket | 1.5.0-W6-027（提案文件漂移修正 + sibling 統一） | 2026-07-13 | in_progress |
