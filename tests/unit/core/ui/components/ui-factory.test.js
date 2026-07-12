@@ -35,14 +35,30 @@ describe('ui-factory', () => {
       expect(btn.classList.contains('danger')).toBe(true)
     })
 
+    test('confirm variant 產出 button.confirm（1.5.0-W6-003 命名契約對齊）', () => {
+      const btn = createButton({ variant: 'confirm', text: '確認' })
+      expect(btn.classList.contains('confirm')).toBe(true)
+    })
+
+    test('ghost variant 產出 button.ghost（1.5.0-W6-003 命名契約對齊）', () => {
+      const btn = createButton({ variant: 'ghost', text: '輔助連結' })
+      expect(btn.classList.contains('ghost')).toBe(true)
+    })
+
     test('size=small 加上 small class', () => {
       const btn = createButton({ variant: 'secondary', text: '匯出', size: 'small' })
       expect(btn.classList.contains('small')).toBe(true)
     })
 
-    test('size 預設 normal 不加 small class', () => {
+    test('size=large 加上 large class', () => {
+      const btn = createButton({ variant: 'primary', text: '確定', size: 'large' })
+      expect(btn.classList.contains('large')).toBe(true)
+    })
+
+    test('size 預設 normal 不加 small/large class', () => {
       const btn = createButton({ variant: 'primary', text: '提取' })
       expect(btn.classList.contains('small')).toBe(false)
+      expect(btn.classList.contains('large')).toBe(false)
     })
 
     test('缺少 variant 時拋出錯誤', () => {

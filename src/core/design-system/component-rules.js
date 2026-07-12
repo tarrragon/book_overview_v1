@@ -120,6 +120,30 @@ const COMPONENT_RULES = `
   opacity: 0.9;
 }
 
+/* confirm：正向確認語意（APP AppButton.confirm 對照，跨平台命名契約 §14.6），
+   token 沿用 v1 既有 color-success（契約標記 token 主名差異 success vs positive，
+   僅記錄不重命名，屬 W6-006/W6-007 範疇） */
+.button.confirm {
+  background: var(--color-success);
+  color: var(--color-surface);
+  font-weight: var(--font-weight-semi-bold);
+}
+
+.button.confirm:hover {
+  background: var(--color-success-dark);
+}
+
+/* ghost：輔助低調語意（APP AppButton.ghost 對照），transparent 背景 + primary 文字 */
+.button.ghost {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid transparent;
+}
+
+.button.ghost:hover {
+  background: var(--color-primary-lightest);
+}
+
 .button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -128,6 +152,13 @@ const COMPONENT_RULES = `
 .button.small {
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-caption);
+}
+
+/* large：對齊 §14.6 size 契約（small/medium/large），medium 為既有預設 .button
+   基準樣式，本規則僅補 large 差異值 */
+.button.large {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-title-small);
 }
 
 /* 文字 */

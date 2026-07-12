@@ -10,21 +10,30 @@
  * 對應 ticket 1.2.0-W2-003.1（建立）、1.5.0-W6-002（升格至 core）。
  */
 
-const BUTTON_VARIANTS = ['primary', 'secondary', 'danger']
-const BUTTON_SIZES = { NORMAL: 'normal', SMALL: 'small' }
+// variant 命名契約對齊 APP 端跨平台元件對照表（design-system-spec.md §14.6，
+// contract-version: v1）：primary=AppButton.action、confirm=AppButton.confirm
+// （token positive，v1 沿用 color-success）、danger=AppButton.caution（token
+// negative，v1 沿用 color-error）、secondary=AppButton.neutral、ghost=
+// AppButton.ghost（token transparent）。既有 primary/secondary/danger 依契約
+// 規則保留為既有別名，不重命名（1.5.0-W6-003）。
+const BUTTON_VARIANTS = ['primary', 'secondary', 'danger', 'confirm', 'ghost']
+// size 命名契約對齊 §14.6（雙端共用 small/medium/large）。'normal' 為 v1
+// 既有呼叫點（popup.js 等）沿用的歷史別名，保留相容並映射為 medium 的
+// 視覺表現（無額外 class，同 .button 基準樣式）。
+const BUTTON_SIZES = { NORMAL: 'normal', SMALL: 'small', MEDIUM: 'medium', LARGE: 'large' }
 const STATUS_DOT_CLASS = { loading: 'loading', error: 'error', ready: null }
 
 /**
  * 建立按鈕元素。
  *
  * @param {Object} options
- * @param {'primary'|'secondary'|'danger'} options.variant - 必填
+ * @param {'primary'|'secondary'|'danger'|'confirm'|'ghost'} options.variant - 必填
  * @param {string} [options.text] - 按鈕文字
  * @param {string} [options.id] - DOM id
  * @param {string} [options.ariaLabel] - aria-label 屬性
  * @param {Function} [options.onClick] - click callback
  * @param {boolean} [options.disabled] - 是否禁用
- * @param {'normal'|'small'} [options.size='normal'] - 尺寸
+ * @param {'normal'|'small'|'medium'|'large'} [options.size='normal'] - 尺寸（normal 為 medium 歷史別名）
  * @returns {HTMLButtonElement}
  */
 function createButton ({ variant, text, id, ariaLabel, onClick, disabled, size = BUTTON_SIZES.NORMAL } = {}) {
@@ -36,6 +45,8 @@ function createButton ({ variant, text, id, ariaLabel, onClick, disabled, size =
   button.classList.add('button', variant)
   if (size === BUTTON_SIZES.SMALL) {
     button.classList.add('small')
+  } else if (size === BUTTON_SIZES.LARGE) {
+    button.classList.add('large')
   }
 
   if (text !== undefined) button.textContent = text
