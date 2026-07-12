@@ -128,7 +128,7 @@ if (typeof require !== 'undefined') {
 let uiFactory
 if (typeof require !== 'undefined') {
   try {
-    uiFactory = require('src/popup/components/ui-factory')
+    uiFactory = require('src/core/ui/components/ui-factory')
   } catch (e) {
     uiFactory = (typeof window !== 'undefined' && window.PopupUIFactory) || null
   }

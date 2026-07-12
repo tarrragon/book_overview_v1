@@ -1,11 +1,13 @@
 /**
- * ui-factory — Popup UI 元件工廠（無狀態純函式）
+ * ui-factory — 全 Extension 共用 UI 元件工廠（無狀態純函式）
  *
- * 以純 DOM API 動態建立 popup 元件，class 名稱與 popup.html 既有 `<style>`
- * 完全一致（不新增 CSS），使元件可程式化組裝、替換。CommonJS 匯出與
- * popup-ui-components.js 一致，供 jsdom 測試環境與 esbuild bundle 共用。
+ * 以純 DOM API 動態建立 UI 元件，class 名稱對齊
+ * src/core/design-system/component-rules.js 的元件樣式規則
+ * （design-system.css 的 SSOT 來源，不新增 CSS），使元件可程式化組裝、替換。
+ * CommonJS 匯出與 popup-ui-components.js 一致，供 jsdom 測試環境與
+ * esbuild bundle 共用。
  *
- * 對應 ticket 1.2.0-W2-003.1。
+ * 對應 ticket 1.2.0-W2-003.1（建立）、1.5.0-W6-002（升格至 core）。
  */
 
 const BUTTON_VARIANTS = ['primary', 'secondary', 'danger']

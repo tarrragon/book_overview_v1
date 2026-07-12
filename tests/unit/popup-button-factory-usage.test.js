@@ -1,20 +1,22 @@
 /**
  * createElement('button') 工廠使用守護（1.5.0-W6-001，AC2 驗證型）
  *
- * 目的：popup 的按鈕元件一律經 src/popup/components/ui-factory.js 工廠建立
+ * 目的：popup 的按鈕元件一律經 src/core/ui/components/ui-factory.js 工廠建立
  *   （CLAUDE.md §6.1），繞過工廠直建 `createElement('button')` 歸零。
- *   Phase 1 查證現況已滿足（僅 ui-factory.js 自身一處合法），本測試固化現況
- *   並防未來回歸。
+ *   1.5.0-W6-002 工廠升格至 core 後，src/popup/ 內直建處歸零（工廠自身
+ *   已移出 popup），本測試固化「popup 零直建 + 工廠常駐 core」並防未來回歸。
  *
  * 靜態掃描為專案內原始碼 fs 同步讀取，無網路/計時/隨機依賴。
  *
  * @see docs/work-logs/v1/v1.5/v1.5.0/tickets/1.5.0-W6-001.md Solution Phase 1 第 3 節
+ * @see docs/work-logs/v1/v1.5/v1.5.0/tickets/1.5.0-W6-002.md（工廠升格至 core）
  */
 
 const fs = require('fs')
 const path = require('path')
 
 const POPUP_SRC_DIR = path.join(__dirname, '..', '..', 'src', 'popup')
+const UI_FACTORY_PATH = path.join(__dirname, '..', '..', 'src', 'core', 'ui', 'components', 'ui-factory.js')
 const BUTTON_CREATE_PATTERN = /createElement\(\s*['"`]button['"`]\s*\)/
 
 /**
@@ -37,13 +39,19 @@ function listJsFiles (dir, baseDir) {
 }
 
 describe('popup 按鈕工廠使用守護（1.5.0-W6-001）', () => {
-  // B1：createElement('button') 直建僅 ui-factory.js 一處
-  test("createElement('button') 命中檔案僅 components/ui-factory.js", () => {
+  // B1：src/popup/ 內 createElement('button') 直建歸零（工廠已升格至 core，1.5.0-W6-002）
+  test("src/popup/ 內 createElement('button') 直建歸零", () => {
     const jsFiles = listJsFiles(POPUP_SRC_DIR, POPUP_SRC_DIR)
     const hitFiles = jsFiles.filter((relFile) => {
       const source = fs.readFileSync(path.join(POPUP_SRC_DIR, relFile), 'utf8')
       return BUTTON_CREATE_PATTERN.test(source)
     })
-    expect(hitFiles).toEqual(['components/ui-factory.js'])
+    expect(hitFiles).toEqual([])
+  })
+
+  // B2：工廠常駐 src/core/ui/components/，仍為按鈕唯一合法直建處
+  test('ui-factory.js 位於 core 且含 createElement(button)', () => {
+    const source = fs.readFileSync(UI_FACTORY_PATH, 'utf8')
+    expect(BUTTON_CREATE_PATTERN.test(source)).toBe(true)
   })
 })

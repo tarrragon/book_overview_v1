@@ -26,7 +26,7 @@ console.log('[POPUP DEBUG] popup-ui-components.js 已載入')
 // Chrome runtime 以獨立 <script> tag 載入，require 不存在；fallback 到 window.PopupUIFactory
 let uiFactoryExports
 if (typeof require !== 'undefined') {
-  try { uiFactoryExports = require('src/popup/components/ui-factory') } catch (_e) { /* bundle 外 */ }
+  try { uiFactoryExports = require('src/core/ui/components/ui-factory') } catch (_e) { /* bundle 外 */ }
 }
 if (!uiFactoryExports && typeof window !== 'undefined' && window.PopupUIFactory) {
   uiFactoryExports = window.PopupUIFactory

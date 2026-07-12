@@ -1,6 +1,6 @@
 const {
   createBookstoreNavSection
-} = require('../../../src/popup/components/ui-factory')
+} = require('../../../src/core/ui/components/ui-factory')
 
 describe('createBookstoreNavSection', () => {
   const sampleStores = [

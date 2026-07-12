@@ -1,8 +1,9 @@
 /**
  * ui-factory 工廠函式單元測試 — ticket 1.2.0-W2-003.1
  *
- * 驗證 6 個工廠函式產出的 DOM 元素 class 與結構，與 popup.html 既有
- * 元件一致（不新增 CSS，純 DOM API 動態建立可替換元件）。
+ * 驗證 6 個工廠函式產出的 DOM 元素 class 與結構，與
+ * src/core/design-system/component-rules.js 元件樣式規則一致
+ * （不新增 CSS，純 DOM API 動態建立可替換元件）。
  */
 
 const {
@@ -12,7 +13,7 @@ const {
   createProgressSection,
   createResultsSection,
   createErrorSection
-} = require('../../../src/popup/components/ui-factory')
+} = require('../../../../../src/core/ui/components/ui-factory')
 
 describe('ui-factory', () => {
   describe('createButton', () => {
