@@ -20,6 +20,7 @@ from typing import List
 # W17-072：Schema 定義章節名清單（必須與 `execution_log_checker._SCHEMA_SECTION_NAMES`
 # 及 `ticket_validator._SCHEMA_SECTION_NAMES` 同步；三處將於 ARCH-020 refactor 收斂）。
 # 來源：.claude/pm-rules/ticket-body-schema.md
+# 1.5.0-W6-018：與 ticket_system/constants.py CANONICAL_BODY_SECTIONS 同步（補 "Spawn Requests"）
 _SCHEMA_SECTION_NAMES = [
     "Task Summary",
     "Problem Analysis",
@@ -30,6 +31,7 @@ _SCHEMA_SECTION_NAMES = [
     "Exit Status",
     "重現實驗結果",
     "Context Bundle",
+    "Spawn Requests",
 ]
 
 

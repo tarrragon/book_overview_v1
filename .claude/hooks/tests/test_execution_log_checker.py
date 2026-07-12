@@ -130,6 +130,20 @@ pytest all green.
         # Solution 底下含 `## 實作摘要` 和 `## 驗證指令與結果`，都視為 Solution 一部分
         assert _is_section_empty(content, "Solution") is False
 
+    def test_spawn_requests_recognized_as_schema_boundary(self):
+        """1.5.0-W6-018：`## Spawn Requests` 是 Schema 章節，應被視為有效邊界"""
+        content = """## Test Results
+pytest all green.
+
+## Spawn Requests
+<!-- agent 執行中發現應開新 ticket 的議題時追加於此 -->
+
+## Completion Info
+pending.
+"""
+        # Test Results 內容不應延伸吞入 Spawn Requests 佔位符
+        assert _is_section_empty(content, "Test Results") is False
+
 
 class TestIsSectionEmptyLegacyBehavior:
     """既有行為保留：標準 placeholder 偵測不變"""

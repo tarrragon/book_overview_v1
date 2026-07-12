@@ -230,6 +230,26 @@ OK。
 """
         assert find_custom_h2_sections(content) == []
 
+    def test_spawn_requests_not_reported(self):
+        """1.5.0-W6-018：模板自生 `## Spawn Requests` 是 Schema 章節，不應被誤報"""
+        content = """---
+id: test
+---
+
+## Solution
+OK。
+
+## Test Results
+OK。
+
+## Spawn Requests
+<!-- agent 執行中發現應開新 ticket 的議題時追加於此 -->
+
+## Completion Info
+pending.
+"""
+        assert find_custom_h2_sections(content) == []
+
 
 # ----------------------------------------------------------------------------
 # check_custom_h2_sections（整合）

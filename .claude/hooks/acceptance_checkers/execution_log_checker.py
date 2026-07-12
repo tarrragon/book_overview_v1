@@ -10,6 +10,7 @@ import re
 # 擷取 section 內容時只把這些章節名當作邊界，避免 agent 自定義 H2
 # （如 `## 實作摘要`）把 schema section 範圍切斷。
 # 來源：.claude/pm-rules/ticket-body-schema.md
+# 1.5.0-W6-018：與 ticket_system/constants.py CANONICAL_BODY_SECTIONS 同步（補 "Spawn Requests"）
 _SCHEMA_SECTION_NAMES = [
     "Task Summary",
     "Problem Analysis",
@@ -20,6 +21,7 @@ _SCHEMA_SECTION_NAMES = [
     "Exit Status",
     "重現實驗結果",
     "Context Bundle",
+    "Spawn Requests",
 ]
 
 
