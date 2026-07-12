@@ -67,4 +67,42 @@ const EXEMPT_SELECTORS = [
   '.version'
 ]
 
-module.exports = { MIGRATED_SELECTORS, EXEMPT_SELECTORS }
+/**
+ * 解析 CSS 字串的 top-level 選擇器清單（1.5.0-W6-011）
+ *
+ * 規則：剝除 CSS 註解後以大括號深度掃描，深度 0 遇 `{` 前的文字即一個
+ * top-level 選擇器（空白摺疊為單一空格）；@keyframes 視為一個 top-level 項，
+ * 其內層 0%/100% 因深度 > 0 不計。
+ *
+ * 供雙向守護共用：popup-style-scope.test.js 以此解析 popup.html 內嵌
+ * `<style>`（S1/S2 單向守護）與 component-rules.js COMPONENT_RULES 字串
+ * （B1 全等守護），確保兩端使用同一解析語意。
+ *
+ * @param {string} cssText - CSS 字串（不含 `<style>` 標籤）
+ * @returns {string[]} top-level 選擇器（出現順序）
+ */
+function parseTopLevelSelectors (cssText) {
+  const stripped = cssText.replace(/\/\*[\s\S]*?\*\//g, '')
+  const selectors = []
+  let depth = 0
+  let buffer = ''
+
+  for (const char of stripped) {
+    if (char === '{') {
+      if (depth === 0) {
+        selectors.push(buffer.replace(/\s+/g, ' ').trim())
+        buffer = ''
+      }
+      depth += 1
+    } else if (char === '}') {
+      depth -= 1
+      buffer = ''
+    } else if (depth === 0) {
+      buffer += char
+    }
+  }
+
+  return selectors
+}
+
+module.exports = { MIGRATED_SELECTORS, EXEMPT_SELECTORS, parseTopLevelSelectors }
