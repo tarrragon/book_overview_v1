@@ -381,6 +381,7 @@ Claude Code 內建了官方的 memory 系統（`~/.claude/projects/{project}/mem
 | PC-V1-013 | acceptance 用 lenient build:dev 驗證遮蔽 production-only gate 失敗（驗證路徑 ≠ 出貨路徑） | 中 | v1.0.0 |
 | PC-V1-014 | 為繞過 gate 而改變語意載體（children→spawned_tickets） | 中 | v1.5.0 |
 | PC-V1-015 | 角色指定雙載體矛盾：CLAUDE.md 與 agent 定義檔職責記載相反，派發行為不可預測 | 高 | v1.5.0 |
+| PC-V1-016 | 代理人敘述聲稱已執行副作用型 CLI（spawn request 上報），實際未執行、章節為空 | 中 | v1.5.0 |
 | PC-APP-001 | 延後決策綁定的 trigger ticket 引用未查證 scope 一致性（trigger 名存實亡） | 中 | v0.32.0 |
 | PC-APP-002 | sync-pull 孤兒清理超出宣稱範圍刪除，preserve 機制未生效致專案特化檔遺失 | 高 | v0.32.0 |
 | PC-APP-004 | 症狀緩解累積偏誤——同一根因累積多個緩解機制而非根治 | 中 | v0.37.0 |
