@@ -39,6 +39,12 @@ W3-006 主題是「migration 分隔符語意」，與「VO 驗證遷移」毫無
 
 緩解因子：本案在 U2 派發前的審查階段被攔截，VO 驗證尚未真正遺失，屬 near-miss。本 PC 固化規則，防止未經審查直接派發時的實害（驗證隨 VO 刪除無痕消失，且無 ticket 追蹤）。
 
+## 再現案例：V1 測試碼 TODO 引用 0.15.0-W1-002（2026-07-12，實害型）
+
+`tests/integration/workflows/error-recovery-workflow.test.js` 整檔 describe.skip（12 test）的 TODO 註解引用 `Ticket: 0.15.0-W1-002` 作為 ErrorSimulator 重構的承接錨點。1.5.0-W6-021 考證時查證：該票已完成（「全面修復測試錯誤」），但其 scope 未含此重構——trigger 完成時語意斷裂未被察覺，錯誤恢復工作流的整合防護自 0.15.0 起靜默失效跨越十餘個版本，屬**實害型**（對照上方 W5-002 near-miss）。修正：1.5.0-W6-026 重建承接錨點。
+
+本案補充兩個識別維度：(1) trigger 引用的載體不限 ticket/worklog——**測試碼 TODO 註解**同樣會發生語意斷裂，且更難被 ticket 生命週期 hook 覆蓋；(2) 斷裂發現時點可遲至數十版本後，靠的是主動盤點（skip 稽核）而非任何自動防線——skip/TODO 類延後標記應納入定期稽核範圍。
+
 ## 防護
 
 | 步驟 | 動作 | 目的 |
