@@ -2,7 +2,7 @@
 # Schema Version: 1.0.0
 # 用途：Agent 能力宣告的機器可讀 Source of Truth
 # 更新原則：每次新增或修改 agent 時同步更新
-# 最後更新：2026-03-23（Phase 3b 初始化）
+# 最後更新：2026-07-12（新增 dill-javascript-developer phase3b 條目，ticket 1.5.0-W6-013）
 
 schema_version: "1.0"
 
@@ -385,6 +385,54 @@ agents:
 
     file_patterns:
       - "server/**/*.go"
+
+
+  dill-javascript-developer:
+    name: dill-javascript-developer
+    description: TDD Phase 3b JavaScript 實作代理人。將 Phase 3a 語言無關策略轉換為符合 Chrome Extension Manifest V3 限制的 JavaScript (ES2022+) 程式碼。執行測試驅動開發，確保 100% 測試通過。
+    model: sonnet
+    color: cyan
+    version: "1.0"
+
+    accepts:
+      - artifact_type: "phase3a-strategy"
+        description: "Phase 3a 實作策略和虛擬碼"
+      - artifact_type: "ticket"
+        description: "實作需求"
+
+    produces:
+      - artifact_type: "javascript-code"
+        path_pattern: "src/**/*.js"
+        description: "Chrome Extension JavaScript 程式碼（src/）"
+      - artifact_type: "javascript-test"
+        path_pattern: "tests/**/*.js"
+        description: "Jest 測試 GREEN 實作（tests/，不改測試契約）"
+
+    requires:
+      - capability: "javascript-code"
+        description: "JavaScript / Chrome Extension 程式碼撰寫能力"
+      - capability: "jest-test-execution"
+        description: "Jest 測試執行能力（npm test）"
+
+    preconditions:
+      - condition: "ticket-exists"
+
+    conflict_avoidance:
+      - type: "cannot_work_with"
+        agents: ["dill-javascript-developer"]
+        reason: "同一 agent 不可重複派發至同一 Ticket"
+        scope: "same_ticket"
+      - type: "cannot_work_with"
+        agents: ["cinnamon-refactor-owl"]
+        reason: "Phase 3b 和 Phase 4b 不可在同一 Ticket 並行派發（會修改相同 JavaScript 檔案）"
+        scope: "same_ticket"
+
+    tdd_phases:
+      - "phase3b"
+
+    file_patterns:
+      - "src/**/*.js"
+      - "tests/**/*.js"
 
 
   # ===== 質量保證代理人 =====
