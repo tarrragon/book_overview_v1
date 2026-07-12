@@ -618,6 +618,35 @@ def _replace_or_append_section_content(
     return header_line + new_entry.lstrip("\n") + "\n"
 
 
+def _downgrade_h2_outside_fence(content: str) -> tuple[str, bool]:
+    """H2 → H3 自動降級（W1-068 方案 B），但豁免三反引號 code fence 圍欄內文字。
+
+    1.5.0-W6-016: fence 內引用的 '## ' 字面（如 grep 輸出範例、markdown
+    教學片段）不應被降級改寫，僅 fence 外的真實 H2 標題才降級。
+
+    fence 判定：逐行掃描，行首三反引號（含帶語言標注如 ```bash）toggle
+    fence 狀態。未閉合 fence 視為進入後直到結尾都在 fence 內（保守不改寫）。
+
+    Returns:
+        (降級後內容, 是否實際發生降級)
+    """
+    lines = content.split("\n")
+    in_fence = False
+    downgraded = False
+    result_lines = []
+    for line in lines:
+        if re.match(r'^```', line):
+            in_fence = not in_fence
+            result_lines.append(line)
+            continue
+        if not in_fence and re.match(r'^## ', line):
+            result_lines.append("### " + line[len("## "):])
+            downgraded = True
+        else:
+            result_lines.append(line)
+    return "\n".join(result_lines), downgraded
+
+
 def execute_append_log(args: argparse.Namespace, version: str) -> int:
     """
     追加執行日誌
@@ -718,15 +747,15 @@ def _execute_append_log_locked(args: argparse.Namespace, version: str) -> int:
         "Context Bundle", "NeedsContext", "Exit Status", "Completion Info",
     }
     if section in schema_sections_for_h2_check and content:
-        if re.search(r'(?m)^## ', content):
+        downgraded_content, downgrade_happened = _downgrade_h2_outside_fence(content)
+        if downgrade_happened:
             import sys as _sys
             _sys.stderr.write(
                 "[append-log] WARNING: 偵測到內容含 H2 標題；append-log 寫入應為既有章節的 "
                 "H3 子節，避免切斷 Schema 章節範圍（W17-072）。"
                 "已自動降級 H2 → H3（W1-068 方案 B：源頭阻斷）。\n"
             )
-            # W1-068（W1-038 方案 B）: 自動降級 H2 → H3 規範化（只匹配行首 H2，不影響 H3+）
-            content = re.sub(r'(?m)^## ', '### ', content)
+            content = downgraded_content
 
     # 獲取 Ticket 內容（body 已於前置檢核載入）
     if not body:
