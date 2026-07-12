@@ -11,6 +11,11 @@
  * box-shadow 顏色取用 --shadow-color-sm / --shadow-color-md（offset/blur 仍由
  * 各規則自行宣告），modal backdrop 取用 --overlay-scrim。需帶品牌色調的
  * focus / hover 光暈改用 color-mix() 由 --color-primary 推導，不再硬編碼 alpha 值。
+ *
+ * 分隔語意的 border 宣告（表格列/表頭底線、展開行邊界）已收斂為分割陰影 divider
+ * token（--divider-subtle/normal/strong，取代 border-bottom，1.5.0-W6-004，
+ * 對齊 src/core/design-system/component-rules.js .divider-* 與 APP AppDivider）；
+ * 容器邊框語意（輸入框 / 按鈕 / 上傳區 / 錯誤框等外框）維持既有 --color-border-*。
  */
 
 /* 基礎設定 */
@@ -204,12 +209,14 @@ body {
   text-align: left;
   font-weight: var(--font-weight-semi-bold);
   font-size: var(--font-size-body-medium);
-  border-bottom: 1px solid var(--color-border-strong);
+  /* 分隔語意（標題下方界線）收斂為 divider strong 分割陰影（1.5.0-W6-004） */
+  box-shadow: 0 3px 6px var(--divider-strong);
 }
 
 #booksTable td {
   padding: var(--spacing-md);
-  border-bottom: 1px solid var(--color-border);
+  /* 分隔語意（列表項間細分隔）收斂為 divider subtle 分割陰影（1.5.0-W6-004） */
+  box-shadow: 0 1px 2px var(--divider-subtle);
   vertical-align: middle;
   font-size: var(--font-size-body-medium);
 }
@@ -219,7 +226,7 @@ body {
 }
 
 #booksTable tr:last-child td {
-  border-bottom: none;
+  box-shadow: none;
 }
 
 /* 選取狀態（W6-012.7.1）*/
@@ -304,7 +311,8 @@ body {
 .tag-expand-row td {
   background-color: var(--color-panel);
   padding: var(--spacing-sm) var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border);
+  /* 分隔語意（展開內容區塊邊界）收斂為 divider normal 分割陰影（1.5.0-W6-004） */
+  box-shadow: 0 2px 4px var(--divider-normal);
 }
 
 .tag-expand-row:hover {

@@ -31,23 +31,23 @@
     "shared": "雙端數值完全相同的共值 token（含平台單位轉換但設計基準值一致，如 spacing 的 px 對 .w 響應式縮放）",
     "calibrated": "雙端皆有對應 token 但數值刻意不同的平台校準（例：V1 primary #1A56DB vs APP primary #2196F3，兩者皆為各自平台驗證過的可用值，非未同步的漂移）",
     "platformOnlyV1": "僅 V1 定義、APP 無對應 token（含 APP 已放棄的設計軸，如邊框 border 系列；APP 走陰影取代邊框的平面化設計）",
-    "platformOnlyApp": "僅 APP 定義、V1 無對應 token（含 V1 缺口項，如 divider 系列——APP 以陰影模擬分隔線，V1 尚無此語意層級）"
+    "platformOnlyApp": "僅 APP 定義、V1 無對應 token（divider 系列缺口已於 1.5.0-W6-004 補齊，轉入 shared）"
   },
   "inventorySummary": {
     "totalTokens": 114,
     "byCategory": {
-      "shared": { "count": 32, "percentage": "28.07%" },
+      "shared": { "count": 35, "percentage": "30.70%" },
       "calibrated": { "count": 17, "percentage": "14.91%" },
       "platformOnlyV1": { "count": 13, "percentage": "11.40%" },
-      "platformOnlyApp": { "count": 52, "percentage": "45.61%" }
+      "platformOnlyApp": { "count": 49, "percentage": "42.98%" }
     },
     "matchedPairAnalysis": {
-      "note": "matched-pair = 雙端皆有對應 token（shared + calibrated），用於評估校準比例是否 > 50%（schema 設計輸入閾值）",
-      "allDomains": { "matchedPairCount": 49, "calibratedRatio": "34.69%" },
-      "colorsdomainOnly": { "matchedPairCount": 20, "calibratedRatio": "75.00%", "note": "colors 域校準比例 75% > 50%，觸發 schema 無 base 值列型態要求；此為 linux 審查具體指涉的域" }
+      "note": "matched-pair = 雙端皆有對應 token（shared + calibrated），用於評估校準比例是否 > 50%（schema 設計輸入閾值）。1.5.0-W6-004 補齊 divider 三項 V1 值後由 platformOnlyApp 轉入 shared，計數同步更新。",
+      "allDomains": { "matchedPairCount": 52, "calibratedRatio": "45.61%" },
+      "colorsdomainOnly": { "matchedPairCount": 23, "calibratedRatio": "60.53%", "note": "colors 域校準比例 > 50%，觸發 schema 無 base 值列型態要求；此為 linux 審查具體指涉的域" }
     },
     "byDomain": {
-      "colors": { "total": 38, "shared": 5, "calibrated": 15, "platformOnlyV1": 6, "platformOnlyApp": 12 },
+      "colors": { "total": 38, "shared": 8, "calibrated": 15, "platformOnlyV1": 6, "platformOnlyApp": 9 },
       "statusColors": { "total": 6, "shared": 0, "calibrated": 0, "platformOnlyV1": 6, "platformOnlyApp": 0 },
       "spacing": { "total": 14, "shared": 7, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 7 },
       "borderRadius": { "total": 6, "shared": 5, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 1 },
@@ -143,15 +143,15 @@
           "platforms": { "v1": null, "app": { "path": "UIColors.shadowMedium", "value": "rgba(33,150,243,0.12)" } } },
         { "key": "shadowStrong", "category": "platformOnlyApp", "base": null,
           "platforms": { "v1": null, "app": { "path": "UIColors.shadowStrong", "value": "rgba(33,150,243,0.16)" } } },
-        { "key": "dividerSubtle", "category": "platformOnlyApp", "base": null,
-          "platforms": { "v1": null, "app": { "path": "UIColors.dividerSubtle", "value": "rgba(33,150,243,0.06)" } },
-          "notes": "V1 缺口項：V1 尚無 divider 語意 token（V1 分隔線目前直接寫在 CSS，未收斂至 design-system），待後續補齊或顯性排除" },
-        { "key": "dividerNormal", "category": "platformOnlyApp", "base": null,
-          "platforms": { "v1": null, "app": { "path": "UIColors.dividerNormal", "value": "rgba(33,150,243,0.10)" } },
-          "notes": "V1 缺口項，同 dividerSubtle" },
-        { "key": "dividerStrong", "category": "platformOnlyApp", "base": null,
-          "platforms": { "v1": null, "app": { "path": "UIColors.dividerStrong", "value": "rgba(33,150,243,0.14)" } },
-          "notes": "V1 缺口項，同 dividerSubtle" }
+        { "key": "dividerSubtle", "category": "shared", "base": "rgba(33, 150, 243, 0.06)",
+          "platforms": { "v1": { "path": "DIVIDER_COLORS.subtle", "value": "rgba(33, 150, 243, 0.06)" }, "app": { "path": "UIColors.dividerSubtle", "value": "rgba(33,150,243,0.06)" } },
+          "notes": "1.5.0-W6-004：V1 缺口已補齊，src/core/design-system/shadows.js DIVIDER_COLORS，值與 APP 相同（僅千分位空格書寫差異）" },
+        { "key": "dividerNormal", "category": "shared", "base": "rgba(33, 150, 243, 0.10)",
+          "platforms": { "v1": { "path": "DIVIDER_COLORS.normal", "value": "rgba(33, 150, 243, 0.10)" }, "app": { "path": "UIColors.dividerNormal", "value": "rgba(33,150,243,0.10)" } },
+          "notes": "1.5.0-W6-004：同 dividerSubtle" },
+        { "key": "dividerStrong", "category": "shared", "base": "rgba(33, 150, 243, 0.14)",
+          "platforms": { "v1": { "path": "DIVIDER_COLORS.strong", "value": "rgba(33, 150, 243, 0.14)" }, "app": { "path": "UIColors.dividerStrong", "value": "rgba(33,150,243,0.14)" } },
+          "notes": "1.5.0-W6-004：同 dividerSubtle" }
       ]
     },
     "statusColors": {

@@ -27,4 +27,17 @@ const OVERLAY_COLORS = Object.freeze({
   scrim: 'rgba(0, 0, 0, 0.5)'
 })
 
-module.exports = { SHADOW_COLORS, OVERLAY_COLORS }
+// 分割陰影顏色（取代分隔線，1.5.0-W6-004）
+// @see docs/spec/design-system-spec.md（APP repo）Section 8.2「分割陰影（取代分隔線）」
+// 與 APP 端 UIColors.dividerSubtle/Normal/Strong 共用同一 rgba 值（品牌藍派生 alpha，
+// 與 SHADOW_COLORS 中性黑路線不同——divider 語意本就對齊 APP 契約 token，非既有陰影校準）。
+//   subtle（0.06）：細分隔，列表項間 / 密集內容
+//   normal（0.10）：標準分隔，標準區塊分隔
+//   strong（0.14）：粗分隔，主要區段界線 / 標題下方
+const DIVIDER_COLORS = Object.freeze({
+  subtle: 'rgba(33, 150, 243, 0.06)',
+  normal: 'rgba(33, 150, 243, 0.10)',
+  strong: 'rgba(33, 150, 243, 0.14)'
+})
+
+module.exports = { SHADOW_COLORS, OVERLAY_COLORS, DIVIDER_COLORS }

@@ -28,7 +28,7 @@ const path = require('path')
 const { COLORS, STATUS_COLORS } = require('../src/core/design-system/colors.js')
 const { SPACING, BORDER_RADIUS } = require('../src/core/design-system/spacing.js')
 const { FONT_FAMILY, FONT_SIZES, FONT_WEIGHTS } = require('../src/core/design-system/typography.js')
-const { SHADOW_COLORS, OVERLAY_COLORS } = require('../src/core/design-system/shadows.js')
+const { SHADOW_COLORS, OVERLAY_COLORS, DIVIDER_COLORS } = require('../src/core/design-system/shadows.js')
 const { COMPONENT_RULES } = require('../src/core/design-system/component-rules.js')
 
 const OUTPUT_PATH = path.join(__dirname, '..', 'src', 'core', 'design-system', 'design-system.css')
@@ -117,6 +117,10 @@ function buildCss () {
   lines.push('  /* Shadows & Overlay (Section 8) */')
   lines.push(...mapToCssVars('shadow-color', SHADOW_COLORS, asIs))
   lines.push(...mapToCssVars('overlay', OVERLAY_COLORS, asIs))
+  // 分割陰影顏色（Section 8.2，1.5.0-W6-004）：offset/blur 隨 variant 不同
+  // （0 1px 2px / 0 2px 4px / 0 3px 6px），故 token 僅收斂顏色維度，
+  // 與 SHADOW_COLORS 同一設計（見 shadows.js 檔頭）。
+  lines.push(...mapToCssVars('divider', DIVIDER_COLORS, asIs))
 
   lines.push('}')
   lines.push('')

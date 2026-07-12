@@ -12,7 +12,8 @@ const {
   createStatusIndicator,
   createProgressSection,
   createResultsSection,
-  createErrorSection
+  createErrorSection,
+  createDivider
 } = require('../../../../../src/core/ui/components/ui-factory')
 
 describe('ui-factory', () => {
@@ -271,6 +272,33 @@ describe('ui-factory', () => {
     test('suggestions 為空時不建立 ol 清單', () => {
       const el = createErrorSection({ message: '失敗' })
       expect(el.querySelector('ol')).toBeNull()
+    })
+  })
+
+  describe('createDivider（1.5.0-W6-004，分割陰影三變體）', () => {
+    test('subtle variant 產出 div.divider.divider-subtle', () => {
+      const el = createDivider({ variant: 'subtle' })
+      expect(el.tagName).toBe('DIV')
+      expect(el.classList.contains('divider')).toBe(true)
+      expect(el.classList.contains('divider-subtle')).toBe(true)
+    })
+
+    test('normal variant 產出 div.divider.divider-normal', () => {
+      const el = createDivider({ variant: 'normal' })
+      expect(el.classList.contains('divider-normal')).toBe(true)
+    })
+
+    test('strong variant 產出 div.divider.divider-strong', () => {
+      const el = createDivider({ variant: 'strong' })
+      expect(el.classList.contains('divider-strong')).toBe(true)
+    })
+
+    test('缺少 variant 時拋出錯誤', () => {
+      expect(() => createDivider({})).toThrow()
+    })
+
+    test('無效 variant 時拋出錯誤', () => {
+      expect(() => createDivider({ variant: 'huge' })).toThrow()
     })
   })
 })

@@ -254,6 +254,27 @@ const COMPONENT_RULES = `
 .collapsible-body.expanded {
   max-height: 500px;
 }
+
+/* 分割陰影（取代分隔線，1.5.0-W6-004，spec §8.2）：以 box-shadow 呈現分隔語意，
+   不使用 border。厚度固定 1px，offset/blur 隨變體遞增（對齊 APP UIShadows）。 */
+.divider {
+  height: 1px;
+  width: 100%;
+  background: transparent;
+  border: none;
+}
+
+.divider.divider-subtle {
+  box-shadow: 0 1px 2px var(--divider-subtle);
+}
+
+.divider.divider-normal {
+  box-shadow: 0 2px 4px var(--divider-normal);
+}
+
+.divider.divider-strong {
+  box-shadow: 0 3px 6px var(--divider-strong);
+}
 `
 
 module.exports = { COMPONENT_RULES }

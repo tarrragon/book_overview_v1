@@ -22,6 +22,9 @@ const BUTTON_VARIANTS = ['primary', 'secondary', 'danger', 'confirm', 'ghost']
 // 視覺表現（無額外 class，同 .button 基準樣式）。
 const BUTTON_SIZES = { NORMAL: 'normal', SMALL: 'small', MEDIUM: 'medium', LARGE: 'large' }
 const STATUS_DOT_CLASS = { loading: 'loading', error: 'error', ready: null }
+// variant 命名契約對齊 §14.6：分隔 | AppDivider.subtle/.normal/.strong |
+// createDivider({variant:'subtle'/'normal'/'strong'}) | dividerSubtle/Normal/Strong
+const DIVIDER_VARIANTS = ['subtle', 'normal', 'strong']
 
 /**
  * 建立按鈕元素。
@@ -375,6 +378,24 @@ function createBookstoreNavSection ({ bookstores = [], sectionTitle, ariaPrefix 
   return container
 }
 
+/**
+ * 建立分割陰影元素（取代分隔線，1.5.0-W6-004，spec §8.2/§14.2）。
+ * 以 box-shadow 呈現分隔語意，不使用 border，命名對齊 APP AppDivider。
+ *
+ * @param {Object} options
+ * @param {'subtle'|'normal'|'strong'} options.variant - 必填
+ * @returns {HTMLDivElement}
+ */
+function createDivider ({ variant } = {}) {
+  if (!DIVIDER_VARIANTS.includes(variant)) {
+    throw new Error(`createDivider: variant 必須為 ${DIVIDER_VARIANTS.join('/')}，收到 ${variant}`)
+  }
+
+  const divider = document.createElement('div')
+  divider.classList.add('divider', `divider-${variant}`)
+  return divider
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     createButton,
@@ -383,7 +404,8 @@ if (typeof module !== 'undefined' && module.exports) {
     createProgressSection,
     createResultsSection,
     createErrorSection,
-    createBookstoreNavSection
+    createBookstoreNavSection,
+    createDivider
   }
 }
 
@@ -395,6 +417,7 @@ if (typeof window !== 'undefined') {
     createProgressSection,
     createResultsSection,
     createErrorSection,
-    createBookstoreNavSection
+    createBookstoreNavSection,
+    createDivider
   }
 }
