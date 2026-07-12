@@ -4,10 +4,12 @@
  * 單一來源：design-system-css-snapshot.test.js（C1：遷入規則存在於生成 CSS）與
  * popup-style-scope.test.js（S2：內嵌與生成規則不並存）共用本清單，防兩份平行
  * 清單漂移。順序照 Phase 1 分類清單：卡片 3 → 狀態指示 4 + @keyframes → 按鈕 9
- * → 文字 2 → 標頭 3 → 進度條 3 → 佈局容器 1 → 摺疊 6，共 32 條 rule block。
+ * → 文字 2 → 標頭 3 → 進度條 2 → 佈局容器 1 → 摺疊 6，共 31 條 rule block
+ * （原 32 條，1.5.0-W6-012 合併 .progress-bar/.progress-fill）。
  *
  * 字面即 popup.html 原選擇器（含合併選擇器逗號分隔全文），供 `toContain('<selector> {')`
- * 完整字面斷言使用。
+ * 完整字面斷言使用。例外：`.progress-bar, .progress-fill` 為 W6-012 遷入後
+ * 合併產物，非 popup.html 原字面。
  *
  * @see docs/work-logs/v1/v1.5/v1.5.0/tickets/1.5.0-W6-001.md Solution Phase 1/2
  */
@@ -40,10 +42,9 @@ const MIGRATED_SELECTORS = [
   '.progress-header, .results-header, .error-header',
   '.progress-header strong, .results-header strong, .error-header strong',
   '.progress-percentage',
-  // 進度條（3）
+  // 進度條（2；原 3，1.5.0-W6-012 合併 .progress-bar/.progress-fill 逐字重複宣告）
   '.progress-bar-container',
-  '.progress-bar',
-  '.progress-fill',
+  '.progress-bar, .progress-fill',
   // 佈局容器（1）
   '.action-buttons',
   // 摺疊元件（6）

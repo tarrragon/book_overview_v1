@@ -3,7 +3,8 @@
  *
  * 業務情境（PROP-013 工作項 4）：popup.html 內嵌 `<style>` 的共用元件樣式
  *   （卡片 / 狀態指示 / 按鈕 / 文字 / 標頭 / 進度條 / 佈局容器 / 摺疊元件，
- *   共 32 條 rule block 含 @keyframes pulse）遷入 design-system.css，
+ *   共 31 條 rule block 含 @keyframes pulse；原 32 條，1.5.0-W6-012 合併
+ *   .progress-bar/.progress-fill 逐字重複宣告為群組選擇器）遷入 design-system.css，
  *   頁面專屬佈局（body / .header / .content / .version）豁免保留於 popup.html。
  *
  * 定位：generator（scripts/generate-design-system-css.js）的第 5 個來源模組，
@@ -172,14 +173,10 @@ const COMPONENT_RULES = `
   margin-bottom: var(--spacing-sm);
 }
 
-.progress-bar {
-  height: 100%;
-  background: var(--color-primary);
-  border-radius: var(--radius-xs);
-  transition: width 0.3s ease-in-out;
-}
-
-.progress-fill {
+/* 容器（.progress-bar，JS 查詢錨點）與內層填充（.progress-fill，JS 驅動 width）
+   宣告逐字相同，合併為群組選擇器（1.5.0-W6-012）；兩 class 均為 JS 活躍查詢
+   目標（popup.js / popup-ui-components.js / ui-progress-handler.js），禁止刪除 */
+.progress-bar, .progress-fill {
   height: 100%;
   background: var(--color-primary);
   border-radius: var(--radius-xs);
