@@ -16,8 +16,13 @@ const ErrorSimulator = require('../../helpers/error-simulator')
 // eslint-disable-next-line no-unused-vars
 const RecoveryValidator = require('../../helpers/recovery-validator')
 
-// TODO: ErrorSimulator 的模擬方法直接拋出錯誤，但測試預期錯誤被優雅地攔截和處理。
-// 需要重構 ErrorSimulator 以支援非拋出式錯誤注入，或重寫測試以 try/catch 包裹模擬呼叫 (Ticket: 0.15.0-W1-002)
+// TODO: ErrorSimulator 非拋出式重構已完成（1.5.0-W6-026），但實測發現真正根因更深：
+// chrome-extension-controller.js 缺少此套件依賴的多個 mock 方法
+// （waitForErrorWithDiagnostics / waitForErrorDisplay / waitForErrorWithGuidance /
+// waitForErrorAndRecover），且既有 waitForErrorState / clickExtractButton 等回傳的
+// canned 資料未涵蓋 solutionOptions / automaticRetryDisabled / recoveryPossible 等欄位，
+// 也未依 errorSimulator 注入的狀態調整回傳結果（兩者完全解耦）。
+// 需要新 Ticket 針對 chrome-extension-controller.js 補齊上述 mock 契約後才能啟用。
 describe.skip('錯誤恢復工作流程整合測試', () => {
   // eslint-disable-next-line no-unused-vars
   let testSuite
