@@ -25,6 +25,38 @@ const STATUS_DOT_CLASS = { loading: 'loading', error: 'error', ready: null }
 // variant 命名契約對齊 §14.6：分隔 | AppDivider.subtle/.normal/.strong |
 // createDivider({variant:'subtle'/'normal'/'strong'}) | dividerSubtle/Normal/Strong
 const DIVIDER_VARIANTS = ['subtle', 'normal', 'strong']
+// variant 命名契約對齊 §14.6：AppDialog.confirm/.alert ↔ createDialog（1.5.0-W6-022）
+const DIALOG_VARIANTS = ['confirm', 'alert']
+// variant 命名契約對齊 §14.6：AppBadge.success/.warning/.info/.muted ↔ createBadge
+// （1.5.0-W6-023）。V1 既有 6 閱讀狀態（overview .reading-status-badge 的
+// data-status 屬性）非 1:1 對應四契約 variant，映射設計見該 ticket Solution。
+const BADGE_VARIANTS = ['success', 'warning', 'info', 'muted']
+// type 命名契約對齊 §14.6：AppTextField.text/.search ↔ createInput（1.5.0-W6-024）。
+// v1 先支援 text/search 二 type，其餘 type（如 password/number）隨消費場景出現再擴充。
+const INPUT_TYPES = ['text', 'search']
+// 無自訂 actions 時的預設按鈕組。cancel/dismiss 統一以 value:null 表示「無結果」，
+// 與 Esc / 遮罩點擊的 resolve(null) 語意一致（單一「取消」判斷點，呼叫端不需分辨來源）。
+const DEFAULT_DIALOG_ACTIONS = {
+  confirm: [
+    { value: 'confirm', text: '確認', variant: 'primary' },
+    { value: null, text: '取消', variant: 'secondary' }
+  ],
+  alert: [
+    { value: null, text: '確定', variant: 'primary' }
+  ]
+}
+
+let dialogElementIdSeq = 0
+/**
+ * 產生 dialog 內部元素的唯一 id（title/description aria 對應用）。
+ * @param {string} prefix
+ * @returns {string}
+ * @private
+ */
+function generateDialogElementId (prefix) {
+  dialogElementIdSeq += 1
+  return `${prefix}-${dialogElementIdSeq}`
+}
 
 /**
  * 建立按鈕元素。
@@ -396,6 +428,195 @@ function createDivider ({ variant } = {}) {
   return divider
 }
 
+/**
+ * 建立徽章元素（契約 §14.6：AppBadge.success/.warning/.info/.muted ↔ createBadge）。
+ *
+ * @param {Object} options
+ * @param {'success'|'warning'|'info'|'muted'} [options.variant='info']
+ * @param {string} [options.text] - 徽章文字
+ * @param {string} [options.dataStatus] - 選填，設定 data-status 屬性，供保留
+ *   status-specific 色值變體使用（如 overview 6 閱讀狀態，見 BADGE_VARIANTS 註解）
+ * @returns {HTMLSpanElement}
+ */
+function createBadge ({ variant = 'info', text, dataStatus } = {}) {
+  if (!BADGE_VARIANTS.includes(variant)) {
+    throw new Error(`createBadge: variant 必須為 ${BADGE_VARIANTS.join('/')}，收到 ${variant}`)
+  }
+
+  const badge = document.createElement('span')
+  badge.classList.add('badge', `badge--${variant}`)
+  if (text !== undefined) badge.textContent = text
+  if (dataStatus) badge.dataset.status = dataStatus
+
+  return badge
+}
+
+/**
+ * 建立輸入框元素（契約 §14.6：AppTextField.text/.search ↔ createInput）。
+ *
+ * @param {Object} options
+ * @param {'text'|'search'} [options.type='text'] - 語意型別，決定 class 而非原生
+ *   input type 屬性（DOM type 固定為 text，避免 search 原生 type 帶出的瀏覽器內建
+ *   清除按鈕改變既有視覺/測試行為，型別區分完全透過 CSS class 表達）
+ * @param {string} [options.id] - DOM id
+ * @param {string} [options.placeholder] - placeholder 文字（呼叫端應引用 l10n
+ *   常數，禁止在呼叫點硬編碼字面）
+ * @param {string} [options.ariaLabel] - aria-label 屬性
+ * @param {string} [options.className] - 額外附加的 class（空白分隔，選填）
+ * @returns {HTMLInputElement}
+ */
+function createInput ({ type = 'text', id, placeholder, ariaLabel, className } = {}) {
+  if (!INPUT_TYPES.includes(type)) {
+    throw new Error(`createInput: type 必須為 ${INPUT_TYPES.join('/')}，收到 ${type}`)
+  }
+
+  const input = document.createElement('input')
+  input.type = 'text'
+  input.classList.add('input', `input--${type}`)
+  if (id) input.id = id
+  if (placeholder !== undefined) input.placeholder = placeholder
+  if (ariaLabel) input.setAttribute('aria-label', ariaLabel)
+  if (className) {
+    className.split(' ').filter(Boolean).forEach(c => input.classList.add(c))
+  }
+
+  return input
+}
+
+/**
+ * 建立對話框元素與生命週期控制器（契約 §14.6：AppDialog.confirm/.alert ↔ createDialog）。
+ *
+ * 與其他 ui-factory 函式（回傳純 HTMLElement）不同，dialog 天生需要生命週期管理
+ * （show → user action → close → resolve），故回傳 { overlay, open() } 複合物件——
+ * ui-factory 首個「元件+控制器」模式。overlay 需由呼叫端掛載至 DOM（如
+ * document.body.appendChild(dialog.overlay)），resolve 後呼叫端負責移除。
+ *
+ * @param {Object} options
+ * @param {'confirm'|'alert'} options.variant - 必填
+ * @param {string} [options.title] - 對話框標題（渲染為 h2.modal-title）
+ * @param {string|HTMLElement} [options.message] - 訊息內容；HTMLElement 直接插入（不包 p 標籤）
+ * @param {Array<{value: *, text: string, variant?: string}>} [options.actions]
+ *   按鈕清單。未提供時 confirm 預設 [確認/取消]、alert 預設 [確定]（皆以 value:null
+ *   表示取消/確定，與 Esc / 遮罩點擊 resolve(null) 語意一致）
+ * @param {Object} [options.aria] - 無障礙屬性覆蓋
+ * @param {string} [options.aria.labelledby] - title 元素 id 覆蓋值
+ * @param {string} [options.aria.describedby] - description 元素 id 覆蓋值
+ * @returns {{ overlay: HTMLElement, open: () => Promise<*> }}
+ *   overlay 為完整 DOM 樹（遮罩+對話框+按鈕）；open() 顯示對話框並回傳 Promise，
+ *   resolve(actionValue) 於按鈕點擊，resolve(null) 於 Esc / 遮罩點擊。
+ */
+function createDialog ({ variant, title, message, actions, aria } = {}) {
+  if (!DIALOG_VARIANTS.includes(variant)) {
+    throw new Error(`createDialog: variant 必須為 ${DIALOG_VARIANTS.join('/')}，收到 ${variant}`)
+  }
+
+  const resolvedActions = actions || DEFAULT_DIALOG_ACTIONS[variant]
+
+  const overlay = document.createElement('div')
+  overlay.classList.add('modal-overlay')
+  overlay.style.display = 'none'
+
+  const dialogEl = document.createElement('div')
+  dialogEl.classList.add('modal-dialog')
+  dialogEl.setAttribute('role', 'dialog')
+  dialogEl.setAttribute('aria-modal', 'true')
+
+  if (title !== undefined) {
+    const titleEl = document.createElement('h2')
+    titleEl.classList.add('modal-title')
+    titleEl.id = (aria && aria.labelledby) || generateDialogElementId('dialog-title')
+    titleEl.textContent = title
+    dialogEl.appendChild(titleEl)
+    dialogEl.setAttribute('aria-labelledby', titleEl.id)
+  }
+
+  if (message !== undefined) {
+    if (message instanceof HTMLElement) {
+      dialogEl.appendChild(message)
+    } else {
+      const descEl = document.createElement('p')
+      descEl.classList.add('modal-description')
+      descEl.id = (aria && aria.describedby) || generateDialogElementId('dialog-desc')
+      descEl.textContent = message
+      dialogEl.appendChild(descEl)
+      dialogEl.setAttribute('aria-describedby', descEl.id)
+    }
+  }
+
+  const actionsContainer = document.createElement('div')
+  actionsContainer.classList.add('modal-actions')
+
+  // settle 於 open() 內賦值；按鈕 onClick 透過閉包引用最新賦值（single-instance 模式核心）
+  let settle = () => {}
+  resolvedActions.forEach(action => {
+    const btn = createButton({
+      variant: action.variant || 'secondary',
+      text: action.text,
+      onClick: () => settle(action.value)
+    })
+    actionsContainer.appendChild(btn)
+  })
+  dialogEl.appendChild(actionsContainer)
+  overlay.appendChild(dialogEl)
+
+  let pendingPromise = null
+  let previousFocusEl = null
+
+  function open () {
+    if (pendingPromise) return pendingPromise
+
+    previousFocusEl = document.activeElement
+    overlay.style.display = 'flex'
+
+    const buttons = Array.from(actionsContainer.querySelectorAll('button'))
+    if (buttons[0]) buttons[0].focus()
+
+    const handleKeydown = (event) => {
+      if (event.key === 'Escape') {
+        settle(null)
+        return
+      }
+      if (event.key === 'Tab') {
+        const first = buttons[0]
+        const last = buttons[buttons.length - 1]
+        if (event.shiftKey) {
+          if (document.activeElement === first) {
+            event.preventDefault()
+            last.focus()
+          }
+        } else if (document.activeElement === last) {
+          event.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
+    const handleOverlayClick = (event) => {
+      if (event.target === overlay) settle(null)
+    }
+
+    dialogEl.addEventListener('keydown', handleKeydown)
+    overlay.addEventListener('click', handleOverlayClick)
+
+    pendingPromise = new Promise((resolve) => {
+      settle = (value) => {
+        dialogEl.removeEventListener('keydown', handleKeydown)
+        overlay.removeEventListener('click', handleOverlayClick)
+        overlay.style.display = 'none'
+        if (previousFocusEl && typeof previousFocusEl.focus === 'function') {
+          previousFocusEl.focus()
+        }
+        pendingPromise = null
+        resolve(value)
+      }
+    })
+
+    return pendingPromise
+  }
+
+  return { overlay, open }
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     createButton,
@@ -405,7 +626,10 @@ if (typeof module !== 'undefined' && module.exports) {
     createResultsSection,
     createErrorSection,
     createBookstoreNavSection,
-    createDivider
+    createDivider,
+    createDialog,
+    createBadge,
+    createInput
   }
 }
 
@@ -418,6 +642,9 @@ if (typeof window !== 'undefined') {
     createResultsSection,
     createErrorSection,
     createBookstoreNavSection,
-    createDivider
+    createDivider,
+    createDialog,
+    createBadge,
+    createInput
   }
 }

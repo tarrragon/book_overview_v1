@@ -275,6 +275,63 @@ const COMPONENT_RULES = `
 .divider.divider-strong {
   box-shadow: 0 3px 6px var(--divider-strong);
 }
+
+/* Badge（契約 §14.6：AppBadge.success/.warning/.info/.muted ↔ createBadge，1.5.0-W6-023）。
+   基礎樣式與 overview .reading-status-badge 收斂共用（該元件 6 閱讀狀態色值透過
+   data-status 屬性保留，不透過 variant，映射設計見該 ticket Solution），
+   故選擇器合併列出，值與收斂前的 .reading-status-badge 基礎樣式完全一致。 */
+.badge, .reading-status-badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  display: inline-block;
+}
+
+.badge--success {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.badge--warning {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-dark);
+}
+
+.badge--info {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.badge--muted {
+  background-color: var(--color-panel);
+  color: var(--color-on-surface-muted);
+}
+
+/* Input（契約 §14.6：AppTextField.text/.search ↔ createInput，1.5.0-W6-024）。
+   石碑刻痕 inset 效果（design-system-spec.md §8.3，凹陷語意對齊選中/按下狀態）
+   目前無獨立 token，借用既有 --shadow-color-sm 搭配 CSS inset 關鍵字呈現
+   凹陷感，非新增未定義 CSS 變數。 */
+.input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body-medium);
+  color: var(--color-on-background);
+  background: var(--color-surface);
+  box-shadow: inset 0 1px 2px var(--shadow-color-sm);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.input--search {
+  /* search 型別 v1 沿用 .input 基礎樣式（無 icon 消費場景），class 區分僅供
+     契約型別語意與未來擴充預留 */
+}
 `
 
 module.exports = { COMPONENT_RULES }

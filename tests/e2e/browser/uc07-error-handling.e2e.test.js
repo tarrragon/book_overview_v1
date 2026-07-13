@@ -356,10 +356,23 @@ describe('UC-07 錯誤處理 E2E (W4-001.3)', () => {
       await page.click('#loadFileBtn')
 
       // modal 出現才點選模式（容錯：validate 階段就拋錯的路徑不會出 modal）
-      const modeBtnId = mode === 'overwrite' ? 'importModeOverwriteBtn' : 'importModeMergeBtn'
+      // 1.5.0-W6-022 遷移後動態 overlay 無 ID，靜態錨點有 ID；:not([id]) 精確命中動態元素
+      const modeBtnText = mode === 'overwrite' ? '覆蓋（清空現有書庫）' : '合併（保留現有書庫）'
       try {
-        await page.waitForSelector('#importModeOverlay', { visible: true, timeout: 5000 })
-        await page.click(`#${modeBtnId}`)
+        await page.waitForFunction(
+          () => {
+            const overlay = document.querySelector('.modal-overlay:not([id])')
+            return !!overlay && overlay.style.display === 'flex'
+          },
+          { timeout: 5000 }
+        )
+        await page.evaluate((btnText) => {
+          const overlay = document.querySelector('.modal-overlay:not([id])')
+          const target = Array.from(overlay.querySelectorAll('.modal-actions button'))
+            .find(btn => btn.textContent === btnText)
+          if (!target) throw new Error(`[SETUP] 找不到文字為「${btnText}」的模式選擇按鈕`)
+          target.click()
+        }, modeBtnText)
       } catch (_) {
         // modal 未出現（validate 階段拋錯）：場景 C 兩 fixture 皆 .json 應會出 modal，
         // 但保留容錯以免錯誤路徑變動造成假失敗。

@@ -9,7 +9,11 @@
  * - DOM 缺失 fail-safe（Group E）
  * - execute 流程整合（Modal A → Modal B 銜接 / 持久化分流）（Group F）
  *
- * 對應 Phase 2 測試設計：6 群 26 個 TC（21 unit + 5 integration）。
+ * 1.5.0-W6-022 遷移：confirmEmptyFileOverwrite（Modal B）與 promptImportMode
+ * （Modal A）內部皆改走 createDialog 動態建立對話框（掛載於 document.body），不再
+ * 操作 overview.html 靜態 modal 標記（該標記僅作為「DOM 是否已初始化」防禦錨點保留，
+ * 見 import-flow-controller.js 設計註解）。測試改以 getOpenDialog() 查詢當前開啟的
+ * 動態對話框，取代原本的 document.getElementById('emptyFileConfirmOverlay' 等) 查詢。
  *
  * Mock 策略：jsdom 真實 DOM 事件 + 外部依賴 mock（TagStorageAdapter /
  * importer.reader.read / importer.validator.validate），不 mock 被測 API
@@ -18,37 +22,32 @@
  * @jest-environment jsdom
  */
 
-const { JSDOM } = require('jsdom')
-
 /**
- * 建立含 Modal A + Modal B DOM 的 JSDOM 文檔
+ * 建置 DOM 固定內容（container 基礎元素 + Modal A / Modal B 靜態錨點）
  *
  * @param {Object} options
- * @param {boolean} options.withEmptyConfirmModal - 是否注入 Modal B DOM
+ * @param {boolean} options.withEmptyConfirmModal - 是否注入 Modal B 靜態錨點
  *   （false 用於 Group E DOM 缺失 fail-safe 測試）
- * @param {boolean} options.withProceedBtn - 是否注入 Modal B 的 proceed 按鈕
+ * @param {boolean} options.withProceedBtn - 是否注入 Modal B 的 proceed 錨點按鈕
  *   （用於 TC-E2 部分 DOM 缺失驗證）
- * @returns {{ dom: JSDOM, document: Document, window: Window }}
  */
-function createDom ({ withEmptyConfirmModal = true, withProceedBtn = true } = {}) {
-  // Modal A 始終注入（整合測試需 Modal A → Modal B 銜接）
+function setupDom ({ withEmptyConfirmModal = true, withProceedBtn = true } = {}) {
+  // Modal A 錨點始終注入（整合測試需 Modal A → Modal B 銜接）
   const modalAHtml = `
     <div id="importModeOverlay" class="modal-overlay" style="display: none;">
       <div id="importModeModal" class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="importModeTitle">
         <h2 id="importModeTitle" class="modal-title">選擇匯入模式</h2>
-        <p class="modal-description">
-          覆蓋模式會清空現有書庫後完全載入匯入資料；合併模式保留現有書庫，將匯入資料與既有書籍合併。
-        </p>
+        <p class="modal-description"></p>
         <div class="modal-actions">
-          <button class="modal-btn modal-btn-primary" id="importModeOverwriteBtn">覆蓋（清空現有書庫）</button>
-          <button class="modal-btn modal-btn-primary" id="importModeMergeBtn">合併（保留現有書庫）</button>
-          <button class="modal-btn modal-btn-secondary" id="importModeCancelBtn">取消</button>
+          <button id="importModeOverwriteBtn">覆蓋（清空現有書庫）</button>
+          <button id="importModeMergeBtn">合併（保留現有書庫）</button>
+          <button id="importModeCancelBtn">取消</button>
         </div>
       </div>
     </div>`
 
   const proceedBtnHtml = withProceedBtn
-    ? '<button class="modal-btn modal-btn-danger" id="emptyFileConfirmProceedBtn">確認清空</button>'
+    ? '<button id="emptyFileConfirmProceedBtn">確認清空</button>'
     : ''
 
   const modalBHtml = withEmptyConfirmModal
@@ -58,73 +57,75 @@ function createDom ({ withEmptyConfirmModal = true, withProceedBtn = true } = {}
           <h2 id="emptyFileConfirmTitle" class="modal-title">確認清空書庫？</h2>
           <p id="emptyFileConfirmDesc" class="modal-description"></p>
           <div class="modal-actions">
-            <button class="modal-btn modal-btn-secondary" id="emptyFileConfirmCancelBtn">取消</button>
+            <button id="emptyFileConfirmCancelBtn">取消</button>
             ${proceedBtnHtml}
           </div>
         </div>
       </div>`
     : ''
 
-  const dom = new JSDOM(`
-    <!DOCTYPE html>
-    <html lang="zh-TW">
-    <head><meta charset="UTF-8"><title>Readmoo書籍目錄</title></head>
-    <body>
-      <div class="container">
-        <div class="stat-number" id="totalBooks">0</div>
-        <div class="stat-number" id="displayedBooks">0</div>
-        <input type="text" id="searchBox">
-        <button id="exportCSVBtn"></button>
-        <button id="exportJSONBtn"></button>
-        <button id="importJSONBtn"></button>
-        <button id="selectAllBtn"></button>
-        <button id="reloadBtn"></button>
-        <select id="sortSelect"><option value="title">書名</option></select>
-        <select id="sortDirection"><option value="asc">升冪</option></select>
-        <div id="fileUploader" style="display: none;">
-          <input type="file" id="jsonFileInput">
-          <button id="loadFileBtn"></button>
-          <button id="loadSampleBtn"></button>
-        </div>
-        <table id="booksTable">
-          <thead><tr><th><input type="checkbox" id="selectAllHeaderCheckbox"></th></tr></thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-        <div id="loadingIndicator" style="display: none;">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">載入中...</div>
-        </div>
-        <div id="errorContainer" style="display: none;">
-          <div class="error-message" id="errorMessage"></div>
-          <button id="retryBtn">重試</button>
-        </div>
+  document.body.innerHTML = `
+    <div class="container">
+      <div class="stat-number" id="totalBooks">0</div>
+      <div class="stat-number" id="displayedBooks">0</div>
+      <input type="text" id="searchBox">
+      <button id="exportCSVBtn"></button>
+      <button id="exportJSONBtn"></button>
+      <button id="importJSONBtn"></button>
+      <button id="selectAllBtn"></button>
+      <button id="reloadBtn"></button>
+      <select id="sortSelect"><option value="title">書名</option></select>
+      <select id="sortDirection"><option value="asc">升冪</option></select>
+      <div id="fileUploader" style="display: none;">
+        <input type="file" id="jsonFileInput">
+        <button id="loadFileBtn"></button>
+        <button id="loadSampleBtn"></button>
       </div>
-      ${modalAHtml}
-      ${modalBHtml}
-    </body>
-    </html>
-  `, { runScripts: 'outside-only', pretendToBeVisual: true })
+      <table id="booksTable">
+        <thead><tr><th><input type="checkbox" id="selectAllHeaderCheckbox"></th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="loadingIndicator" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">載入中...</div>
+      </div>
+      <div id="errorContainer" style="display: none;">
+        <div class="error-message" id="errorMessage"></div>
+        <button id="retryBtn">重試</button>
+      </div>
+    </div>
+    ${modalAHtml}
+    ${modalBHtml}
+  `
+}
 
-  return { dom, document: dom.window.document, window: dom.window }
+/**
+ * 查詢目前開啟（顯示中）的動態對話框（createDialog 建立，非靜態錨點）
+ * @returns {HTMLElement|null}
+ */
+function getOpenDialog () {
+  const overlays = Array.from(document.querySelectorAll('.modal-overlay'))
+  return overlays.find(el => el.style.display !== 'none') || null
+}
+
+/**
+ * 取得對話框內 .modal-actions 底下的按鈕，依建立順序回傳
+ * @param {HTMLElement} dialog
+ * @returns {HTMLButtonElement[]}
+ */
+function getDialogButtons (dialog) {
+  return Array.from(dialog.querySelectorAll('.modal-actions button'))
 }
 
 describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
-  let dom
-  let document
-  let window
   let mockEventBus
   let OverviewPageController
 
   /**
-   * 建立 controller，並注入 Modal A + Modal B DOM
+   * 建立 controller，並注入 Modal A + Modal B 靜態錨點
    */
   function createController ({ withEmptyConfirmModal = true, withProceedBtn = true } = {}) {
-    const env = createDom({ withEmptyConfirmModal, withProceedBtn })
-    dom = env.dom
-    document = env.document
-    window = env.window
-    global.document = document
-    global.window = window
+    setupDom({ withEmptyConfirmModal, withProceedBtn })
 
     const EventHandler = require('src/core/event-handler')
     window.EventHandler = EventHandler
@@ -156,9 +157,7 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
   })
 
   afterEach(() => {
-    if (dom) {
-      dom.window.close()
-    }
+    document.body.innerHTML = ''
     jest.clearAllMocks()
   })
 
@@ -166,18 +165,18 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
   // Group A：Modal B 基礎顯示/隱藏行為（對應 AC-1.1, AC-1.5；場景 1/7）
   // ===========================================================================
   describe('Group A：Modal B 基礎顯示/隱藏行為', () => {
-    test('TC-A1 confirmEmptyFileOverwrite 呼叫後 overlay 由隱藏轉為顯示', async () => {
+    test('TC-A1 confirmEmptyFileOverwrite 呼叫後動態對話框由無到有且顯示', async () => {
       const controller = createController()
-      const overlay = document.getElementById('emptyFileConfirmOverlay')
-
-      expect(overlay.style.display).toBe('none')
+      expect(getOpenDialog()).toBeNull()
 
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      expect(overlay.style.display).not.toBe('none')
+      const dialog = getOpenDialog()
+      expect(dialog).not.toBeNull()
+      expect(dialog.style.display).not.toBe('none')
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(dialog)[0].click()
       await pending
     })
 
@@ -186,15 +185,11 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      const proceedBtn = document.getElementById('emptyFileConfirmProceedBtn')
-      const cancelBtn = document.getElementById('emptyFileConfirmCancelBtn')
+      const buttons = getDialogButtons(getOpenDialog())
+      expect(buttons.length).toBe(2)
+      buttons.forEach(btn => expect(btn.disabled).toBe(false))
 
-      expect(proceedBtn).not.toBeNull()
-      expect(cancelBtn).not.toBeNull()
-      expect(proceedBtn.disabled).toBe(false)
-      expect(cancelBtn.disabled).toBe(false)
-
-      cancelBtn.click()
+      buttons[0].click()
       await pending
     })
 
@@ -203,12 +198,12 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      const desc = document.getElementById('emptyFileConfirmDesc')
+      const desc = getOpenDialog().querySelector('.modal-description')
       expect(desc.textContent).toContain('5')
       expect(desc.textContent).toContain('清空')
       expect(desc.textContent).toContain('無法復原')
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
       await pending
     })
 
@@ -217,13 +212,13 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const pending = controller.confirmEmptyFileOverwrite(0)
       await Promise.resolve()
 
-      const desc = document.getElementById('emptyFileConfirmDesc')
+      const desc = getOpenDialog().querySelector('.modal-description')
       expect(desc.textContent).toContain('書庫為空')
       expect(desc.textContent).toContain('仍要繼續')
       // 不應出現具體的「0 本書」誤導文字（語意應為「無資料」而非「0 本」）
       expect(desc.textContent).not.toMatch(/0\s*本/)
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
       await pending
     })
 
@@ -232,25 +227,25 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      expect(document.getElementById('emptyFileConfirmTitle').textContent).toBe('確認清空書庫？')
-      expect(document.getElementById('emptyFileConfirmProceedBtn').textContent).toBe('確認清空')
-      expect(document.getElementById('emptyFileConfirmCancelBtn').textContent).toBe('取消')
+      const dialog = getOpenDialog()
+      const buttons = getDialogButtons(dialog)
+      expect(dialog.querySelector('.modal-title').textContent).toBe('確認清空書庫？')
+      expect(buttons[0].textContent).toBe('取消')
+      expect(buttons[1].textContent).toBe('確認清空')
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      buttons[0].click()
       await pending
     })
 
     test('TC-A6 resolve 前 modal 持續顯示', async () => {
       const controller = createController()
-      const overlay = document.getElementById('emptyFileConfirmOverlay')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      // 未做出任何選擇，modal 仍可見
-      expect(overlay.style.display).not.toBe('none')
+      const dialog = getOpenDialog()
+      expect(dialog.style.display).not.toBe('none')
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(dialog)[0].click()
       await pending
     })
   })
@@ -259,80 +254,74 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
   // Group B：確認/取消途徑（對應 AC-2.1~2.4；場景 1/2/3/4）
   // ===========================================================================
   describe('Group B：確認/取消途徑', () => {
-    test('TC-B1 點 Proceed 鈕 → resolve true 且 modal 關閉', async () => {
+    test('TC-B1 點 Proceed 鈕 → resolve true 且對話框關閉', async () => {
       const controller = createController()
-      const overlay = document.getElementById('emptyFileConfirmOverlay')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      document.getElementById('emptyFileConfirmProceedBtn').click()
+      const dialog = getOpenDialog()
+      getDialogButtons(dialog)[1].click()
       const result = await pending
 
       expect(result).toBe(true)
-      expect(overlay.style.display).toBe('none')
+      expect(dialog.style.display).toBe('none')
     })
 
-    test('TC-B2 點 Cancel 鈕 → resolve false 且 modal 關閉', async () => {
+    test('TC-B2 點 Cancel 鈕 → resolve false 且對話框關閉', async () => {
       const controller = createController()
-      const overlay = document.getElementById('emptyFileConfirmOverlay')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      const dialog = getOpenDialog()
+      getDialogButtons(dialog)[0].click()
       const result = await pending
 
       expect(result).toBe(false)
-      expect(overlay.style.display).toBe('none')
+      expect(dialog.style.display).toBe('none')
     })
 
-    test('TC-B3 按 Esc 鍵 → resolve false 且 modal 關閉', async () => {
+    test('TC-B3 按 Esc 鍵 → resolve false 且對話框關閉', async () => {
       const controller = createController()
-      const overlay = document.getElementById('emptyFileConfirmOverlay')
-      const modal = document.getElementById('emptyFileConfirmModal')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      modal.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+      const dialog = getOpenDialog()
+      const dialogEl = dialog.querySelector('.modal-dialog')
+      dialogEl.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
       const result = await pending
 
       expect(result).toBe(false)
-      expect(overlay.style.display).toBe('none')
+      expect(dialog.style.display).toBe('none')
     })
 
-    test('TC-B4 點遮罩層 → resolve false 且 modal 關閉', async () => {
+    test('TC-B4 點遮罩層 → resolve false 且對話框關閉', async () => {
       const controller = createController()
-      const overlay = document.getElementById('emptyFileConfirmOverlay')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      overlay.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+      const dialog = getOpenDialog()
+      dialog.dispatchEvent(new window.MouseEvent('click', { bubbles: false }))
       const result = await pending
 
       expect(result).toBe(false)
-      expect(overlay.style.display).toBe('none')
+      expect(dialog.style.display).toBe('none')
     })
 
     test('TC-B5 點 modal 內部空白不觸發取消（事件冒泡防護）', async () => {
       const controller = createController()
-      const overlay = document.getElementById('emptyFileConfirmOverlay')
-      const title = document.getElementById('emptyFileConfirmTitle')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      // 點 modal 內部元素（冒泡至 overlay，但 e.target !== overlay）
+      const dialog = getOpenDialog()
+      const title = dialog.querySelector('.modal-title')
       title.dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
       await Promise.resolve()
 
       // modal 仍可見，pending 未 resolve
-      expect(overlay.style.display).not.toBe('none')
+      expect(dialog.style.display).not.toBe('none')
 
       // 收斂：點取消結束 pending
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(dialog)[0].click()
       await pending
     })
   })
@@ -346,13 +335,13 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      const modal = document.getElementById('emptyFileConfirmModal')
-      expect(modal.getAttribute('role')).toBe('dialog')
-      expect(modal.getAttribute('aria-modal')).toBe('true')
-      expect(modal.getAttribute('aria-labelledby')).toBe('emptyFileConfirmTitle')
-      expect(modal.getAttribute('aria-describedby')).toBe('emptyFileConfirmDesc')
+      const dialogEl = getOpenDialog().querySelector('.modal-dialog')
+      expect(dialogEl.getAttribute('role')).toBe('dialog')
+      expect(dialogEl.getAttribute('aria-modal')).toBe('true')
+      expect(document.getElementById(dialogEl.getAttribute('aria-labelledby'))).not.toBeNull()
+      expect(document.getElementById(dialogEl.getAttribute('aria-describedby'))).not.toBeNull()
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
       await pending
     })
 
@@ -361,76 +350,69 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      const cancelBtn = document.getElementById('emptyFileConfirmCancelBtn')
-      expect(document.activeElement).toBe(cancelBtn)
+      const buttons = getDialogButtons(getOpenDialog())
+      expect(document.activeElement).toBe(buttons[0])
 
-      cancelBtn.click()
+      buttons[0].click()
       await pending
     })
 
     test('TC-C3 Tab 從 Proceed（最後一個）循環回 Cancel（第一個）', async () => {
       const controller = createController()
-      const modal = document.getElementById('emptyFileConfirmModal')
-      const cancelBtn = document.getElementById('emptyFileConfirmCancelBtn')
-      const proceedBtn = document.getElementById('emptyFileConfirmProceedBtn')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      // 將焦點移到最後一個（proceed）
-      proceedBtn.focus()
-      expect(document.activeElement).toBe(proceedBtn)
+      const dialog = getOpenDialog()
+      const dialogEl = dialog.querySelector('.modal-dialog')
+      const buttons = getDialogButtons(dialog)
 
-      modal.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
-      await Promise.resolve()
+      buttons[1].focus()
+      expect(document.activeElement).toBe(buttons[1])
 
-      // 應循環回第一個（cancel）
-      expect(document.activeElement).toBe(cancelBtn)
+      dialogEl.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
 
-      cancelBtn.click()
+      expect(document.activeElement).toBe(buttons[0])
+
+      buttons[0].click()
       await pending
     })
 
     test('TC-C4 Shift+Tab 從 Cancel（第一個）循環至 Proceed（最後一個）', async () => {
       const controller = createController()
-      const modal = document.getElementById('emptyFileConfirmModal')
-      const cancelBtn = document.getElementById('emptyFileConfirmCancelBtn')
-      const proceedBtn = document.getElementById('emptyFileConfirmProceedBtn')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
+      const dialog = getOpenDialog()
+      const dialogEl = dialog.querySelector('.modal-dialog')
+      const buttons = getDialogButtons(dialog)
+
       // 預設焦點已在 cancelBtn
-      expect(document.activeElement).toBe(cancelBtn)
+      expect(document.activeElement).toBe(buttons[0])
 
-      modal.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }))
-      await Promise.resolve()
+      dialogEl.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }))
 
-      expect(document.activeElement).toBe(proceedBtn)
+      expect(document.activeElement).toBe(buttons[1])
 
-      cancelBtn.click()
+      buttons[0].click()
       await pending
     })
 
     test('TC-C5 Tab 焦點始終在 [cancel, proceed] 兩按鈕集合內', async () => {
       const controller = createController()
-      const modal = document.getElementById('emptyFileConfirmModal')
-      const cancelBtn = document.getElementById('emptyFileConfirmCancelBtn')
-      const proceedBtn = document.getElementById('emptyFileConfirmProceedBtn')
-
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      // 連續 Tab 兩次，焦點應始終為 cancelBtn 或 proceedBtn
-      modal.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
-      await Promise.resolve()
-      expect([cancelBtn, proceedBtn]).toContain(document.activeElement)
+      const dialog = getOpenDialog()
+      const dialogEl = dialog.querySelector('.modal-dialog')
+      const buttons = getDialogButtons(dialog)
 
-      modal.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
-      await Promise.resolve()
-      expect([cancelBtn, proceedBtn]).toContain(document.activeElement)
+      dialogEl.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+      expect(buttons).toContain(document.activeElement)
 
-      cancelBtn.click()
+      dialogEl.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+      expect(buttons).toContain(document.activeElement)
+
+      buttons[0].click()
       await pending
     })
 
@@ -445,7 +427,7 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const pending = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
       await pending
 
       // 焦點還原至 loadFileBtn
@@ -454,10 +436,8 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
 
     test('TC-C7 modal 開啟前焦點元素被刪除時 settle 不 throw 且 graceful fallback（W1-071 Finding #1）', async () => {
       // 業務情境：modal 開啟期間原焦點元素被其他流程從 DOM 移除（例如 SPA 路由切換、
-      // 非同步資料載入完成後重新渲染）。settle 還原焦點時若無 optional chaining 守護，
-      // previousFocus.focus() 會拋 TypeError（element 已脫離 DOM 但物件參考仍存活，
-      // 部分 jsdom 行為下 focus 方法仍可呼叫但會無作用；嚴格場景下會拋）。
-      // 本 TC 驗證：(1) settle 不 throw；(2) modal 正常關閉；(3) focus fallback 至 body 或合理元素
+      // 非同步資料載入完成後重新渲染）。settle 還原焦點時若無守護會拋 TypeError。
+      // 本 TC 驗證：(1) settle 不 throw；(2) modal 正常關閉；(3) focus fallback 至合理元素
       const controller = createController()
 
       // 開啟前焦點落於可被移除的暫時元素（模擬 SPA 動態元素）
@@ -473,12 +453,10 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       // modal 開啟後，原焦點元素被移除（模擬非同步 DOM 變更）
       tempElement.remove()
 
-      // settle 觸發焦點還原：previousFocus 物件參考仍存在，但元素已脫離 DOM
-      // 預期：?.focus?.() 守護不 throw；若元素 focus 方法仍可呼叫，
-      // jsdom 會將 activeElement fallback 至 body
+      const dialog = getOpenDialog()
       let settleError = null
       try {
-        document.getElementById('emptyFileConfirmCancelBtn').click()
+        getDialogButtons(dialog)[0].click()
         await pending
       } catch (err) {
         settleError = err
@@ -486,7 +464,7 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
 
       expect(settleError).toBeNull()
       // modal 已關閉
-      expect(document.getElementById('emptyFileConfirmOverlay').style.display).toBe('none')
+      expect(dialog.style.display).toBe('none')
       // 焦點 fallback 至合理元素（body 或其他可聚焦元素），未崩潰至 null
       expect(document.activeElement).not.toBeNull()
     })
@@ -496,7 +474,7 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
   // Group D：單一實例保護（對應 §5.2 _emptyConfirmPending）
   // ===========================================================================
   describe('Group D：單一實例保護', () => {
-    test('TC-D1 重複呼叫回傳同一 pending Promise 物件，DOM modal 仍為單一', async () => {
+    test('TC-D1 重複呼叫回傳同一 pending Promise 物件，只有一個對話框開啟', async () => {
       const controller = createController()
       const pending1 = controller.confirmEmptyFileOverwrite(5)
       await Promise.resolve()
@@ -507,11 +485,12 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       // 同一 pending Promise（reference equal）
       expect(pending2).toBe(pending1)
 
-      // DOM 中 modal 仍只有一個
-      const modals = document.querySelectorAll('#emptyFileConfirmModal')
-      expect(modals.length).toBe(1)
+      // 只有一個開啟中的動態對話框
+      const openOverlays = Array.from(document.querySelectorAll('.modal-overlay'))
+        .filter(el => el.style.display !== 'none')
+      expect(openOverlays.length).toBe(1)
 
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
       await pending1
     })
 
@@ -522,7 +501,7 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const pending2 = controller.confirmEmptyFileOverwrite(3)
       await Promise.resolve()
 
-      document.getElementById('emptyFileConfirmProceedBtn').click()
+      getDialogButtons(getOpenDialog())[1].click()
 
       const [r1, r2] = await Promise.all([pending1, pending2])
       expect(r1).toBe(true)
@@ -575,7 +554,7 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
      * 跨檔 TC 共用同一 require cache 實例，後續 TC 可能讀到前一 TC 的 mock 殘留，
      * 造成 expect(mock).toHaveBeenCalledTimes(1) 在 isolation 下通過、並行下失敗。
      *
-     * 雖然頂層 beforeEach（第 ~155 行）已呼叫 jest.resetModules()，但保險起見在
+     * 雖然頂層 beforeEach（第 ~130 行）已呼叫 jest.resetModules()，但保險起見在
      * Group F 內再次明確 reset 並清除既有 mock，避免跨 TC 污染。
      */
     beforeEach(() => {
@@ -635,15 +614,15 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       // 啟動 handleFileLoad（會等待 Modal A）
       const flowPromise = controller.handleFileLoad(mockFile)
 
-      // 等待 Modal A DOM 出現後點覆蓋
+      // 等待 Modal A 動態對話框出現後點覆蓋
       await Promise.resolve()
       await Promise.resolve()
-      document.getElementById('importModeOverwriteBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
 
       // 等到 Modal B 顯示後點確認
       // 流程中等待 reader.read + Modal B 顯示，多 await 數輪確保 micro-tasks 排空
       for (let i = 0; i < 5; i++) await Promise.resolve()
-      document.getElementById('emptyFileConfirmProceedBtn').click()
+      getDialogButtons(getOpenDialog())[1].click()
 
       await flowPromise
 
@@ -661,10 +640,10 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
       const flowPromise = controller.handleFileLoad(mockFile)
       await Promise.resolve()
       await Promise.resolve()
-      document.getElementById('importModeOverwriteBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
 
       for (let i = 0; i < 5; i++) await Promise.resolve()
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
 
       await flowPromise
 
@@ -681,56 +660,59 @@ describe('空檔案覆蓋二次確認 modal（UC-04 / W1-049）', () => {
 
     test('TC-F3 overwrite + 非空檔案 → 直接 replaceAllData，Modal B 不顯示', async () => {
       controller = setupExecuteController({ readBooks: [{ id: 'b1', title: 'book1' }] })
-      const overlayB = document.getElementById('emptyFileConfirmOverlay')
 
       const flowPromise = controller.handleFileLoad(mockFile)
       await Promise.resolve()
       await Promise.resolve()
-      document.getElementById('importModeOverwriteBtn').click()
+      getDialogButtons(getOpenDialog())[0].click()
 
       await flowPromise
 
-      // Modal B 始終隱藏
-      expect(overlayB.style.display).toBe('none')
+      // Modal B 從未開啟
+      const openOverlays = Array.from(document.querySelectorAll('.modal-overlay'))
+        .filter(el => el.style.display !== 'none')
+      expect(openOverlays.length).toBe(0)
       expect(TagStorageAdapter.replaceAllData).toHaveBeenCalledTimes(1)
     })
 
     test('TC-F4 merge + 空檔案 → 直接 mergeAllData，Modal B 不顯示', async () => {
       controller = setupExecuteController({ readBooks: [] })
-      const overlayB = document.getElementById('emptyFileConfirmOverlay')
 
       const flowPromise = controller.handleFileLoad(mockFile)
       await Promise.resolve()
       await Promise.resolve()
-      document.getElementById('importModeMergeBtn').click()
+      getDialogButtons(getOpenDialog())[1].click()
 
       await flowPromise
 
-      // Modal B 始終隱藏
-      expect(overlayB.style.display).toBe('none')
+      // Modal B 從未開啟
+      const openOverlays = Array.from(document.querySelectorAll('.modal-overlay'))
+        .filter(el => el.style.display !== 'none')
+      expect(openOverlays.length).toBe(0)
       expect(TagStorageAdapter.mergeAllData).toHaveBeenCalledTimes(1)
       expect(TagStorageAdapter.mergeAllData.mock.calls[0][0].books).toEqual([])
     })
 
     test('TC-F5 Modal A → Modal B closure 序列化（A closed 才 B open）', async () => {
       controller = setupExecuteController({ readBooks: [], currentBooks: [{ id: 'a' }] })
-      const overlayA = document.getElementById('importModeOverlay')
-      const overlayB = document.getElementById('emptyFileConfirmOverlay')
 
       const flowPromise = controller.handleFileLoad(mockFile)
       await Promise.resolve()
       await Promise.resolve()
-      document.getElementById('importModeOverwriteBtn').click()
+      const dialogA = getOpenDialog()
+      getDialogButtons(dialogA)[0].click()
 
       // Modal A click 後等候多輪，給 reader.read + Modal B 開啟時間
       for (let i = 0; i < 5; i++) await Promise.resolve()
 
       // 此時應為：Modal A 已 closed (display: none)，Modal B 已 open (display: flex)
-      expect(overlayA.style.display).toBe('none')
-      expect(overlayB.style.display).not.toBe('none')
+      expect(dialogA.style.display).toBe('none')
+      const dialogB = getOpenDialog()
+      expect(dialogB).not.toBeNull()
+      expect(dialogB).not.toBe(dialogA)
 
       // 收斂：取消 Modal B 結束 flow
-      document.getElementById('emptyFileConfirmCancelBtn').click()
+      getDialogButtons(dialogB)[0].click()
       await flowPromise
     })
   })

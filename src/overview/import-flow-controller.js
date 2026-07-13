@@ -19,6 +19,8 @@
  * - UI 更新（透過 onImportSuccess callback 反向通知 controller）
  */
 
+const { createDialog } = require('src/core/ui/components/ui-factory')
+
 /**
  * 匯入模式 modal DOM 缺失的哨兵值（UC-04）。
  *
@@ -101,12 +103,6 @@ class ImportFlowController {
 
     // W1-049：Modal B 單一實例保護（同 Modal A 模式，獨立變數避免干擾）
     this._emptyConfirmPending = null
-
-    // 匯入模式 modal 開啟前的焦點元素，modal 關閉時還原焦點至此（無障礙）
-    this._importModePreviousFocus = null
-
-    // W1-049：Modal B 開啟前的焦點元素（獨立變數，與 Modal A 隔離）
-    this._emptyConfirmPreviousFocus = null
   }
 
   /**
@@ -118,12 +114,12 @@ class ImportFlowController {
    *   - null：使用者取消（取消鈕 / Esc / 點遮罩）
    *   - IMPORT_MODE_MODAL_MISSING：modal DOM 未注入（呼叫端應 showError）
    *
-   * 設計：
-   * - modal 一次只允許一個實例；重複呼叫回傳「同一個」pending Promise 物件（場景 8）。
-   *   本方法刻意不用 async（async 會將回傳值包成新 Promise，破壞 pending Promise
-   *   的物件識別性），改為直接回傳 Promise 物件以保證重複呼叫得到同一引用。
-   * - resolve 前 modal 持續顯示，不自動關閉。
-   * - settle 統一收斂出口：移除監聽器 → 隱藏 modal → 清 pending 旗標 → 還原焦點 → resolve。
+   * 設計（1.5.0-W6-022 遷移至 createDialog）：
+   * - elements.importMode* 五元素僅作為「DOM 是否已初始化」的存在性防禦錨點
+   *   （沿用既有 DOM 缺失防禦介面，不再作為互動 DOM 使用）；實際對話框內容由
+   *   createDialog 動態建立並掛載至 this.document.body，resolve 後即移除。
+   * - modal 一次只允許一個實例；重複呼叫回傳「同一個」pending Promise 物件（場景 8），
+   *   委由 createDialog 的 open() 單實例保護機制處理。
    */
   promptImportMode () {
     const overlay = this.elements.importModeOverlay
@@ -144,101 +140,25 @@ class ImportFlowController {
       return this._importModePending
     }
 
-    this._importModePending = new Promise((resolve) => {
-      // 焦點還原起點：記錄 modal 開啟前的焦點元素
-      this._importModePreviousFocus =
-        (this.document && this.document.activeElement) || null
+    const dialog = createDialog({
+      variant: 'confirm',
+      title: '選擇匯入模式',
+      message: '覆蓋模式會清空現有書庫後完全載入匯入資料；合併模式保留現有書庫，將匯入資料與既有書籍合併。',
+      actions: [
+        { value: IMPORT_MODE.OVERWRITE, text: '覆蓋（清空現有書庫）', variant: 'primary' },
+        { value: IMPORT_MODE.MERGE, text: '合併（保留現有書庫）', variant: 'primary' },
+        { value: null, text: '取消', variant: 'secondary' }
+      ]
+    })
+    this.document.body.appendChild(dialog.overlay)
 
-      const focusable = [overwriteBtn, mergeBtn, cancelBtn]
-
-      // focus trap：Tab / Shift+Tab 在三按鈕集合內循環，不跑出 modal
-      const handleFocusTrap = (event) => {
-        const first = focusable[0]
-        const last = focusable[focusable.length - 1]
-        const active = this.document.activeElement
-        if (event.shiftKey && active === first) {
-          event.preventDefault()
-          last.focus()
-        } else if (!event.shiftKey && active === last) {
-          event.preventDefault()
-          first.focus()
-        }
-      }
-
-      // keydown 處理：Esc 取消、Tab 進入 focus trap
-      const onKeydown = (event) => {
-        if (event.key === 'Escape') {
-          settle(null)
-        } else if (event.key === 'Tab') {
-          handleFocusTrap(event)
-        }
-      }
-
-      // 遮罩點擊：只有點遮罩本身（非冒泡自 modal 內部）才視為取消（場景 5 / TC-B4）
-      const onOverlayClick = (event) => {
-        if (event.target === overlay) {
-          settle(null)
-        }
-      }
-
-      const onOverwrite = () => settle(IMPORT_MODE.OVERWRITE)
-      const onMerge = () => settle(IMPORT_MODE.MERGE)
-      const onCancel = () => settle(null)
-
-      // 統一收斂出口：移除監聽器 → 隱藏 modal → 清 pending 旗標 → 還原焦點 → resolve
-      const settle = (result) => {
-        overwriteBtn.removeEventListener('click', onOverwrite)
-        mergeBtn.removeEventListener('click', onMerge)
-        cancelBtn.removeEventListener('click', onCancel)
-        overlay.removeEventListener('click', onOverlayClick)
-        modal.removeEventListener('keydown', onKeydown)
-
-        this._hideImportModeModal()
-        this._importModePending = null
-
-        // 焦點還原：modal 關閉後焦點回到開啟前的元素
-        // 業務情境：開啟期間原焦點元素可能已被 DOM remove（W1-071 Finding #1）；
-        // 用 optional chaining 兩層守護，元素消失或無 focus 方法時靜默 fallback，
-        // 避免 settle 拋例外造成 modal 卡死、pending Promise 永不 resolve。
-        this._importModePreviousFocus?.focus?.()
-        this._importModePreviousFocus = null
-
-        resolve(result)
-      }
-
-      // 綁定四種出口
-      overwriteBtn.addEventListener('click', onOverwrite)
-      mergeBtn.addEventListener('click', onMerge)
-      cancelBtn.addEventListener('click', onCancel)
-      overlay.addEventListener('click', onOverlayClick)
-      modal.addEventListener('keydown', onKeydown)
-
-      // 顯示 modal 並設初始焦點至預設按鈕（覆蓋）
-      this._showImportModeModal()
-      overwriteBtn.focus()
+    this._importModePending = dialog.open().then((result) => {
+      dialog.overlay.remove()
+      this._importModePending = null
+      return result
     })
 
     return this._importModePending
-  }
-
-  /**
-   * 顯示匯入模式 modal（UC-04）
-   * @private
-   */
-  _showImportModeModal () {
-    if (this.elements.importModeOverlay) {
-      this.elements.importModeOverlay.style.display = 'flex'
-    }
-  }
-
-  /**
-   * 隱藏匯入模式 modal（UC-04）
-   * @private
-   */
-  _hideImportModeModal () {
-    if (this.elements.importModeOverlay) {
-      this.elements.importModeOverlay.style.display = 'none'
-    }
   }
 
   /**
@@ -253,14 +173,14 @@ class ImportFlowController {
    *   - true：使用者明確點「確認清空」按鈕
    *   - false：取消（取消鈕 / Esc / 點遮罩） OR DOM 缺失（fail-safe 安全預設）
    *
-   * 設計：
-   * - destructive 預設焦點落於 Cancel 鈕（與 Modal A 的覆蓋鈕預設焦點不同），
+   * 設計（1.5.0-W6-022 遷移至 createDialog）：
+   * - destructive 預設焦點落於 Cancel 鈕（actions 陣列 [取消, 確認清空] 順序），
    *   符合 Material Design / WCAG 防呆原則——避免使用者直覺 Enter 即清空資料。
-   * - DOM 缺失視為「使用者未確認」，安全 default = 不清空（與 Modal A 不同，
-   *   Modal A 用 sentinel 區分「DOM 缺失」與「取消」，Modal B 兩者合併為 false
-   *   即可，因兩者後續處理相同：不寫 storage）。
-   * - modal 一次只允許一個實例；重複呼叫回傳同一個 pending Promise 物件。
-   * - settle 統一收斂出口：移除監聽器 → 隱藏 modal → 清 pending 旗標 → 還原焦點 → resolve。
+   * - DOM 缺失視為「使用者未確認」，安全 default = 不清空。elements.emptyFileConfirm*
+   *   五元素僅作為 DOM 是否已初始化的存在性防禦錨點，實際對話框由 createDialog
+   *   動態建立並掛載至 this.document.body。
+   * - modal 一次只允許一個實例；重複呼叫回傳同一個 pending Promise 物件，委由
+   *   createDialog 的 open() 單實例保護機制處理。
    */
   confirmEmptyFileOverwrite (currentBookCount) {
     const overlay = this.elements.emptyFileConfirmOverlay
@@ -281,103 +201,31 @@ class ImportFlowController {
       return this._emptyConfirmPending
     }
 
-    // 動態填入說明文字（N>=1 與 N===0 文案差異）
+    // 動態文案（N>=1 與 N===0 文案差異）
     const count = Number.isInteger(currentBookCount) ? currentBookCount : 0
-    if (count >= 1) {
-      desc.textContent = `此檔案不包含任何書目資料。繼續將清空目前書庫中的 ${count} 本書，且無法復原。`
-    } else {
-      desc.textContent = '此檔案不包含任何書目資料。目前書庫為空，無資料可清空。仍要繼續嗎？'
-    }
+    const message = count >= 1
+      ? `此檔案不包含任何書目資料。繼續將清空目前書庫中的 ${count} 本書，且無法復原。`
+      : '此檔案不包含任何書目資料。目前書庫為空，無資料可清空。仍要繼續嗎？'
 
-    this._emptyConfirmPending = new Promise((resolve) => {
-      // 焦點還原起點：記錄 modal 開啟前的焦點元素
-      this._emptyConfirmPreviousFocus =
-        (this.document && this.document.activeElement) || null
+    const dialog = createDialog({
+      variant: 'confirm',
+      title: '確認清空書庫？',
+      message,
+      // destructive 防呆：cancel 排第一個 → open() 初始焦點落於 cancel
+      actions: [
+        { value: false, text: '取消', variant: 'secondary' },
+        { value: true, text: '確認清空', variant: 'danger' }
+      ]
+    })
+    this.document.body.appendChild(dialog.overlay)
 
-      // focus trap 集合：[cancel, proceed]，預設焦點 cancel（destructive 防呆）
-      const focusable = [cancelBtn, proceedBtn]
-
-      const handleFocusTrap = (event) => {
-        const first = focusable[0]
-        const last = focusable[focusable.length - 1]
-        const active = this.document.activeElement
-        if (event.shiftKey && active === first) {
-          event.preventDefault()
-          last.focus()
-        } else if (!event.shiftKey && active === last) {
-          event.preventDefault()
-          first.focus()
-        }
-      }
-
-      const onKeydown = (event) => {
-        if (event.key === 'Escape') {
-          settle(false)
-        } else if (event.key === 'Tab') {
-          handleFocusTrap(event)
-        }
-      }
-
-      // 遮罩點擊：只有點遮罩本身（非冒泡自 modal 內部）才視為取消
-      const onOverlayClick = (event) => {
-        if (event.target === overlay) {
-          settle(false)
-        }
-      }
-
-      const onProceed = () => settle(true)
-      const onCancel = () => settle(false)
-
-      // 統一收斂出口：移除監聽器 → 隱藏 modal → 清 pending 旗標 → 還原焦點 → resolve
-      const settle = (result) => {
-        proceedBtn.removeEventListener('click', onProceed)
-        cancelBtn.removeEventListener('click', onCancel)
-        overlay.removeEventListener('click', onOverlayClick)
-        modal.removeEventListener('keydown', onKeydown)
-
-        this._hideEmptyConfirmModal()
-        this._emptyConfirmPending = null
-
-        // 焦點還原：與 Modal A settle 對稱（W1-071 Finding #1）。
-        // optional chaining 守護開啟期間原元素被 remove 的邊界，靜默 fallback。
-        this._emptyConfirmPreviousFocus?.focus?.()
-        this._emptyConfirmPreviousFocus = null
-
-        resolve(result)
-      }
-
-      // 綁定四種出口
-      proceedBtn.addEventListener('click', onProceed)
-      cancelBtn.addEventListener('click', onCancel)
-      overlay.addEventListener('click', onOverlayClick)
-      modal.addEventListener('keydown', onKeydown)
-
-      // 顯示 modal 並設初始焦點至 Cancel（destructive 安全預設）
-      this._showEmptyConfirmModal()
-      cancelBtn.focus()
+    this._emptyConfirmPending = dialog.open().then((result) => {
+      dialog.overlay.remove()
+      this._emptyConfirmPending = null
+      return result === true
     })
 
     return this._emptyConfirmPending
-  }
-
-  /**
-   * 顯示空檔案確認 modal（W1-049）
-   * @private
-   */
-  _showEmptyConfirmModal () {
-    if (this.elements.emptyFileConfirmOverlay) {
-      this.elements.emptyFileConfirmOverlay.style.display = 'flex'
-    }
-  }
-
-  /**
-   * 隱藏空檔案確認 modal（W1-049）
-   * @private
-   */
-  _hideEmptyConfirmModal () {
-    if (this.elements.emptyFileConfirmOverlay) {
-      this.elements.emptyFileConfirmOverlay.style.display = 'none'
-    }
   }
 
   /**

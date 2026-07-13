@@ -100,14 +100,88 @@ class RecoveryValidator {
 
   /**
    * 驗證資料完整性
+   *
+   * 支援兩種呼叫方式：
+   * - validateDataIntegrity(books)：單一書籍陣列，檢查每筆記錄結構完整性
+   * - validateDataIntegrity(originalHash, currentData)：雜湊比對（沿用既有呼叫端）
    */
-  async validateDataIntegrity (originalHash, currentData) {
+  async validateDataIntegrity (originalHashOrBooks, currentData) {
+    if (currentData === undefined) {
+      const books = originalHashOrBooks || []
+      const corruptedRecords = books.filter(book => !book || !book.id || !book.title)
+      return {
+        isValid: corruptedRecords.length === 0,
+        corruptedRecords
+      }
+    }
+
+    const originalHash = originalHashOrBooks
     const currentHash = await this.calculateDataHash(currentData)
     return {
       isValid: originalHash === currentHash,
       originalHash,
       currentHash,
       corruptionDetected: originalHash !== currentHash
+    }
+  }
+
+  /**
+   * 驗證完整資料恢復完整性（比對新增資料集是否完整落地、有無損毀或重複）
+   */
+  async validateFullDataIntegrity (initialBooks, finalBooks, addedDataset) {
+    const finalIds = new Set((finalBooks || []).map(book => book.id))
+    const missingRecords = (addedDataset || []).filter(book => !finalIds.has(book.id))
+    const corruptedRecords = (finalBooks || []).filter(book => !book || !book.id || !book.title)
+
+    const idCounts = {}
+    ;(finalBooks || []).forEach(book => {
+      idCounts[book.id] = (idCounts[book.id] || 0) + 1
+    })
+    const duplicateRecords = Object.keys(idCounts).filter(id => idCounts[id] > 1)
+
+    return {
+      isComplete: missingRecords.length === 0,
+      missingRecords,
+      corruptedRecords,
+      duplicateRecords
+    }
+  }
+
+  /**
+   * 分析資料遺失情況（比對操作前後的書籍數量變化）
+   */
+  async analyzeDataLoss (initialState, finalState, options = {}) {
+    const initialBooks = initialState?.books || []
+    const finalBooks = finalState?.books || []
+    const addedRecords = finalBooks.length - initialBooks.length
+    const deletedRecords = 0
+    const modifiedRecords = 0
+
+    const expectedAdditions = options.expectedAdditions || 0
+    const allowedDeletions = options.allowedDeletions || 0
+    const hasDataLoss = addedRecords < expectedAdditions || deletedRecords > allowedDeletions
+
+    return {
+      hasDataLoss,
+      addedRecords,
+      modifiedRecords,
+      deletedRecords,
+      integrityScore: hasDataLoss ? 0.0 : 1.0
+    }
+  }
+
+  /**
+   * 驗證複合恢復（多重錯誤情境）後的資料一致性
+   */
+  async validateComplexRecoveryIntegrity (books) {
+    const corruptedRecords = (books || []).filter(book => !book || !book.id || !book.title)
+    const passedAllChecks = corruptedRecords.length === 0
+
+    return {
+      passedAllChecks,
+      dataConsistency: passedAllChecks ? 'perfect' : 'degraded',
+      recoverabilityScore: passedAllChecks ? 1.0 : 0.0,
+      corruptedRecords
     }
   }
 

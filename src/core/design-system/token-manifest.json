@@ -34,20 +34,20 @@
     "platformOnlyApp": "僅 APP 定義、V1 無對應 token（divider 系列缺口已於 1.5.0-W6-004 補齊，轉入 shared）"
   },
   "inventorySummary": {
-    "totalTokens": 114,
+    "totalTokens": 115,
     "byCategory": {
-      "shared": { "count": 35, "percentage": "30.70%" },
-      "calibrated": { "count": 17, "percentage": "14.91%" },
-      "platformOnlyV1": { "count": 13, "percentage": "11.40%" },
-      "platformOnlyApp": { "count": 49, "percentage": "42.98%" }
+      "shared": { "count": 35, "percentage": "30.43%" },
+      "calibrated": { "count": 17, "percentage": "14.78%" },
+      "platformOnlyV1": { "count": 13, "percentage": "11.30%" },
+      "platformOnlyApp": { "count": 50, "percentage": "43.48%" }
     },
     "matchedPairAnalysis": {
       "note": "matched-pair = 雙端皆有對應 token（shared + calibrated），用於評估校準比例是否 > 50%（schema 設計輸入閾值）。1.5.0-W6-004 補齊 divider 三項 V1 值後由 platformOnlyApp 轉入 shared，計數同步更新。",
-      "allDomains": { "matchedPairCount": 52, "calibratedRatio": "45.61%" },
-      "colorsdomainOnly": { "matchedPairCount": 23, "calibratedRatio": "60.53%", "note": "colors 域校準比例 > 50%，觸發 schema 無 base 值列型態要求；此為 linux 審查具體指涉的域" }
+      "allDomains": { "matchedPairCount": 52, "calibratedRatio": "45.22%" },
+      "colorsdomainOnly": { "matchedPairCount": 23, "calibratedRatio": "58.97%", "note": "colors 域校準比例 > 50%，觸發 schema 無 base 值列型態要求；此為 linux 審查具體指涉的域" }
     },
     "byDomain": {
-      "colors": { "total": 38, "shared": 8, "calibrated": 15, "platformOnlyV1": 6, "platformOnlyApp": 9 },
+      "colors": { "total": 39, "shared": 8, "calibrated": 15, "platformOnlyV1": 6, "platformOnlyApp": 10 },
       "statusColors": { "total": 6, "shared": 0, "calibrated": 0, "platformOnlyV1": 6, "platformOnlyApp": 0 },
       "spacing": { "total": 14, "shared": 7, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 7 },
       "borderRadius": { "total": 6, "shared": 5, "calibrated": 0, "platformOnlyV1": 0, "platformOnlyApp": 1 },
@@ -101,7 +101,7 @@
           "platforms": { "v1": { "path": "COLORS.panel", "value": "#EDF1F7" }, "app": null },
           "notes": "V1 第二中性層（sidebar/toolbar/表頭底）；APP surfaceElevated (#FFFBFF) 角色不同（提升表面非次要底色），不視為對應" },
         { "key": "onBackground", "category": "calibrated", "base": null,
-          "platforms": { "v1": { "path": "COLORS.onBackground", "value": "#1A2233" }, "app": { "path": "UIColors.onBackground (alias of onBackgroundLight)", "value": "#212121" } } },
+          "platforms": { "v1": { "path": "COLORS.onBackground", "value": "#1A2233" }, "app": { "path": "UIColors.onBackgroundLight", "value": "#212121" } } },
         { "key": "onSurface", "category": "calibrated", "base": null,
           "platforms": { "v1": { "path": "COLORS.onSurface", "value": "#34404F" }, "app": { "path": "UIColors.onSurface (alias of onSurfaceLight)", "value": "#424242" } } },
         { "key": "onSurfaceMuted", "category": "calibrated", "base": null,
@@ -119,6 +119,9 @@
           "platforms": { "v1": { "path": "COLORS.borderStrong", "value": "#C4CDD9" }, "app": null } },
         { "key": "borderDark", "category": "calibrated", "base": null,
           "platforms": { "v1": { "path": "COLORS.borderDark", "value": "#424242" }, "app": { "path": "UIColors.borderDark", "value": "#616161", "appDeprecated": true } },
+          "notes": "APP 側已標記 @Deprecated（平面化設計不使用邊框），僅存相容值" },
+        { "key": "borderLight", "category": "platformOnlyApp", "base": null,
+          "platforms": { "v1": null, "app": { "path": "UIColors.borderLight", "value": "#BDBDBD", "appDeprecated": true } },
           "notes": "APP 側已標記 @Deprecated（平面化設計不使用邊框），僅存相容值" },
         { "key": "darkBackground", "category": "calibrated", "base": null,
           "platforms": { "v1": { "path": "COLORS.darkBackground", "value": "#121212" }, "app": { "path": "UIColors.backgroundDark", "value": "#0A0E13" } } },
