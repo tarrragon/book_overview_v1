@@ -16,13 +16,7 @@ const ErrorSimulator = require('../../helpers/error-simulator')
 // eslint-disable-next-line no-unused-vars
 const RecoveryValidator = require('../../helpers/recovery-validator')
 
-// TODO: ErrorSimulator 已於 1.5.0-W6-026 重構為非拋出式錯誤注入（見 tests/helpers/error-simulator.js）。
-// 仍待處理：ChromeExtensionController mock 缺少本套件依賴的多個方法
-// （waitForErrorDisplay / waitForErrorWithDiagnostics / waitForErrorWithGuidance /
-// waitForErrorAndRecover / getResumeOptions / resumeFromLastCheckpoint / getOperationLogs /
-// getRetryOptions / waitForNetworkRecovery），且 clickExtractButton 目前非狀態化模擬，
-// 無法反映「操作進行中途注入錯誤」的時序契約。追蹤：見 1.5.0-W6-026 spawn request。
-describe.skip('錯誤恢復工作流程整合測試', () => {
+describe('錯誤恢復工作流程整合測試', () => {
   // eslint-disable-next-line no-unused-vars
   let testSuite
   let extensionController
@@ -44,6 +38,10 @@ describe.skip('錯誤恢復工作流程整合測試', () => {
     testDataGenerator = new TestDataGenerator()
     errorSimulator = new ErrorSimulator(testSuite)
     recoveryValidator = new RecoveryValidator()
+
+    // 橋接 errorSimulator 到 extensionController，讓 clickExtractButton 的中途錯誤偵測
+    // 可讀取 errorSimulator.activeError（僅本測試套件使用，不影響其他 ChromeExtensionController 呼叫端）
+    extensionController.errorSimulator = errorSimulator
   })
 
   afterAll(async () => {

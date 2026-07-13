@@ -738,6 +738,33 @@ class E2ETestSuite {
     return { success: true, maliciousPageCleared: true }
   }
 
+  /**
+   * 導航到受限制頁面（模擬 Content Script 無法注入的場景）
+   */
+  async navigateToRestrictedPage () {
+    this.log('導航到受限制頁面')
+
+    if (this.extensionController) {
+      this.extensionController.state.storage.set('isReadmooPage', false)
+      this.extensionController.state.storage.set('pageRestricted', true)
+    }
+
+    return { success: true, restricted: true }
+  }
+
+  /**
+   * 注入損壞的書籍資料（模擬資料驗證失敗的場景）
+   */
+  async injectCorruptedBookData () {
+    this.log('注入損壞的書籍資料')
+
+    if (this.extensionController) {
+      this.extensionController.state.storage.set('corruptedDataDetected', true)
+    }
+
+    return { success: true, corrupted: true }
+  }
+
   async navigateToPage (url) {
     this.log(`導航到頁面: ${url}`)
 
