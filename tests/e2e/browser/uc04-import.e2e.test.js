@@ -205,13 +205,32 @@ describe('UC-04 資料匯入 E2E (W4-001.2)', () => {
     // 步驟 3：真實 click #loadFileBtn 觸發匯入流程（讀 input.files[0] -> handleFileLoad）
     await page.click('#loadFileBtn')
 
-    // 步驟 4：等待模式選擇 modal 顯示後 click 對應模式按鈕
-    const modeBtnId = mode === 'overwrite' ? 'importModeOverwriteBtn' : 'importModeMergeBtn'
-    await page.waitForSelector('#importModeOverlay', { visible: true, timeout: DEFAULT_NAV_TIMEOUT })
-    await page.click(`#${modeBtnId}`)
+    // 步驟 4：等待動態 createDialog overlay 顯示（1.5.0-W6-022 遷移後 .modal-overlay
+    // 無 ID，以 style.display === 'flex' 判定可見），再依按鈕文字找到並 click
+    const modeBtnText = mode === 'overwrite' ? '覆蓋（清空現有書庫）' : '合併（保留現有書庫）'
+    await page.waitForFunction(
+      () => {
+        const overlay = document.querySelector('.modal-overlay')
+        return !!overlay && overlay.style.display === 'flex'
+      },
+      { timeout: DEFAULT_NAV_TIMEOUT }
+    )
+    await page.evaluate((btnText) => {
+      const overlay = document.querySelector('.modal-overlay')
+      const target = Array.from(overlay.querySelectorAll('.modal-actions button'))
+        .find(btn => btn.textContent === btnText)
+      if (!target) throw new Error(`[SETUP] 找不到文字為「${btnText}」的模式選擇按鈕`)
+      target.click()
+    }, modeBtnText)
 
     // 步驟 5：等待 modal 收斂（持久化前 modal 已 hide），持久化完成由 caller poll storage 確認
-    await page.waitForSelector('#importModeOverlay', { hidden: true, timeout: DEFAULT_NAV_TIMEOUT })
+    await page.waitForFunction(
+      () => {
+        const overlay = document.querySelector('.modal-overlay')
+        return !overlay || overlay.style.display === 'none'
+      },
+      { timeout: DEFAULT_NAV_TIMEOUT }
+    )
   }
 
   beforeAll(async () => {
