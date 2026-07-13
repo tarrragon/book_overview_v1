@@ -4,11 +4,12 @@
  * 單一來源：design-system-css-snapshot.test.js（C1：遷入規則存在於生成 CSS）與
  * popup-style-scope.test.js（S2：內嵌與生成規則不並存）共用本清單，防兩份平行
  * 清單漂移。順序照 Phase 1 分類清單：卡片 3 → 狀態指示 4 + @keyframes → 按鈕 14
- * → 文字 2 → 標頭 3 → 進度條 2 → 佈局容器 1 → 摺疊 6 → 分割陰影 4 → 徽章 5，
- * 共 45 條 rule block（原 32 條，1.5.0-W6-012 合併 .progress-bar/.progress-fill；
- * 1.5.0-W6-003 命名契約對齊新增 confirm/ghost/large 5 條；1.5.0-W6-004 新增
- * divider 4 條；1.5.0-W6-023 新增 badge 5 條——divider/badge 皆非 popup.html
- * 遷移，僅供 B1 全等守護計數對齊）。
+ * → 文字 2 → 標頭 3 → 進度條 2 → 佈局容器 1 → 摺疊 6 → 分割陰影 4 → 徽章 5 →
+ * 輸入框 3，共 48 條 rule block（原 32 條，1.5.0-W6-012 合併
+ * .progress-bar/.progress-fill；1.5.0-W6-003 命名契約對齊新增
+ * confirm/ghost/large 5 條；1.5.0-W6-004 新增 divider 4 條；1.5.0-W6-023 新增
+ * badge 5 條；1.5.0-W6-024 新增 input 3 條——divider/badge/input 皆非
+ * popup.html 遷移，僅供 B1 全等守護計數對齊）。
  *
  * 字面即 popup.html 原選擇器（含合併選擇器逗號分隔全文），供 `toContain('<selector> {')`
  * 完整字面斷言使用。例外：`.progress-bar, .progress-fill` 為 W6-012 遷入後
@@ -74,7 +75,11 @@ const MIGRATED_SELECTORS = [
   '.badge--success',
   '.badge--warning',
   '.badge--info',
-  '.badge--muted'
+  '.badge--muted',
+  // 輸入框（3，1.5.0-W6-024，新增元件非 popup.html 遷移，B1 全等守護仍納入計數）
+  '.input',
+  '.input:focus',
+  '.input--search'
 ]
 
 /**

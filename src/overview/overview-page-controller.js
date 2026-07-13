@@ -33,6 +33,7 @@ const { BookExporter } = require('src/overview/book-exporter')
 const { BookFileImporter } = require('src/overview/book-file-importer')
 const { ImportFlowController } = require('src/overview/import-flow-controller')
 const { createTagCellRenderer } = require('src/overview/tag-cell-renderer')
+const { createInput } = require('src/core/ui/components/ui-factory')
 // v2 匯出器（Interchange Format v2）：book-data-exporter.js 使用 default export
 const BookDataExporter = require('src/export/book-data-exporter')
 // Tag 資料來源（v2 匯出需要 tags / tagCategories 頂層區段）
@@ -51,7 +52,9 @@ const CONSTANTS = {
     NO_DATA_EXPORT: '沒有資料可以匯出',
     FILE_PARSE_ERROR: '檔案解析失敗',
     FILE_READ_ERROR: '檔案讀取失敗',
-    INVALID_JSON: '無效的 JSON 格式'
+    INVALID_JSON: '無效的 JSON 格式',
+    // l10n key 契約（1.5.0-W6-024）：searchBox placeholder 唯一來源，禁止在建立點硬編碼字面
+    SEARCH_PLACEHOLDER: '搜尋書籍標題...'
   },
 
   // 表格配置
@@ -156,6 +159,10 @@ class OverviewPageController extends EventHandlerClass {
       showError: (msg) => this.showError(msg)
     })
 
+    // 動態建立 searchBox（1.5.0-W6-024，須在 initializeElements() 之前執行，
+    // 確保 getElementById('searchBox') 查找得到）
+    this._ensureSearchBox()
+
     // 初始化 DOM 元素引用（importFlowController 依賴 this.elements，故須先建立）
     this.initializeElements()
 
@@ -191,6 +198,29 @@ class OverviewPageController extends EventHandlerClass {
   set books (value) {
     this.currentBooks = value
     this.filteredBooks = [...value] // 預設顯示全部書籍
+  }
+
+  /**
+   * 確保 searchBox 存在於 DOM（1.5.0-W6-024：收斂自 overview.html 硬編碼
+   * input，改由 createInput 動態建立並插入 #searchBoxContainer）。
+   *
+   * 冪等設計：若 DOM 內已存在 id="searchBox" 元素（測試 fixture 常直接以
+   * innerHTML 建置整組靜態元素）則略過建立，維持既有測試相容，不需逐一
+   * 調整測試 setup。容器不存在時同樣略過，行為與遷移前一致（無搜尋框）。
+   */
+  _ensureSearchBox () {
+    if (this.document.getElementById('searchBox')) return
+
+    const container = this.document.getElementById('searchBoxContainer')
+    if (!container) return
+
+    const searchBox = createInput({
+      type: 'search',
+      id: 'searchBox',
+      placeholder: CONSTANTS.MESSAGES.SEARCH_PLACEHOLDER,
+      ariaLabel: CONSTANTS.MESSAGES.SEARCH_PLACEHOLDER
+    })
+    container.appendChild(searchBox)
   }
 
   /**

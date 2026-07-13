@@ -31,6 +31,9 @@ const DIALOG_VARIANTS = ['confirm', 'alert']
 // （1.5.0-W6-023）。V1 既有 6 閱讀狀態（overview .reading-status-badge 的
 // data-status 屬性）非 1:1 對應四契約 variant，映射設計見該 ticket Solution。
 const BADGE_VARIANTS = ['success', 'warning', 'info', 'muted']
+// type 命名契約對齊 §14.6：AppTextField.text/.search ↔ createInput（1.5.0-W6-024）。
+// v1 先支援 text/search 二 type，其餘 type（如 password/number）隨消費場景出現再擴充。
+const INPUT_TYPES = ['text', 'search']
 // 無自訂 actions 時的預設按鈕組。cancel/dismiss 統一以 value:null 表示「無結果」，
 // 與 Esc / 遮罩點擊的 resolve(null) 語意一致（單一「取消」判斷點，呼叫端不需分辨來源）。
 const DEFAULT_DIALOG_ACTIONS = {
@@ -449,6 +452,38 @@ function createBadge ({ variant = 'info', text, dataStatus } = {}) {
 }
 
 /**
+ * 建立輸入框元素（契約 §14.6：AppTextField.text/.search ↔ createInput）。
+ *
+ * @param {Object} options
+ * @param {'text'|'search'} [options.type='text'] - 語意型別，決定 class 而非原生
+ *   input type 屬性（DOM type 固定為 text，避免 search 原生 type 帶出的瀏覽器內建
+ *   清除按鈕改變既有視覺/測試行為，型別區分完全透過 CSS class 表達）
+ * @param {string} [options.id] - DOM id
+ * @param {string} [options.placeholder] - placeholder 文字（呼叫端應引用 l10n
+ *   常數，禁止在呼叫點硬編碼字面）
+ * @param {string} [options.ariaLabel] - aria-label 屬性
+ * @param {string} [options.className] - 額外附加的 class（空白分隔，選填）
+ * @returns {HTMLInputElement}
+ */
+function createInput ({ type = 'text', id, placeholder, ariaLabel, className } = {}) {
+  if (!INPUT_TYPES.includes(type)) {
+    throw new Error(`createInput: type 必須為 ${INPUT_TYPES.join('/')}，收到 ${type}`)
+  }
+
+  const input = document.createElement('input')
+  input.type = 'text'
+  input.classList.add('input', `input--${type}`)
+  if (id) input.id = id
+  if (placeholder !== undefined) input.placeholder = placeholder
+  if (ariaLabel) input.setAttribute('aria-label', ariaLabel)
+  if (className) {
+    className.split(' ').filter(Boolean).forEach(c => input.classList.add(c))
+  }
+
+  return input
+}
+
+/**
  * 建立對話框元素與生命週期控制器（契約 §14.6：AppDialog.confirm/.alert ↔ createDialog）。
  *
  * 與其他 ui-factory 函式（回傳純 HTMLElement）不同，dialog 天生需要生命週期管理
@@ -593,7 +628,8 @@ if (typeof module !== 'undefined' && module.exports) {
     createBookstoreNavSection,
     createDivider,
     createDialog,
-    createBadge
+    createBadge,
+    createInput
   }
 }
 
@@ -608,6 +644,7 @@ if (typeof window !== 'undefined') {
     createBookstoreNavSection,
     createDivider,
     createDialog,
-    createBadge
+    createBadge,
+    createInput
   }
 }
