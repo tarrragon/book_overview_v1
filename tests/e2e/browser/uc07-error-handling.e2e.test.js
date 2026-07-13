@@ -356,19 +356,18 @@ describe('UC-07 錯誤處理 E2E (W4-001.3)', () => {
       await page.click('#loadFileBtn')
 
       // modal 出現才點選模式（容錯：validate 階段就拋錯的路徑不會出 modal）
-      // 1.5.0-W6-022 遷移後 .modal-overlay 無 ID，以 style.display === 'flex' 判定可見，
-      // 再依按鈕文字找到並 click（與 uc04-import.importFixture 同鏈路）
+      // 1.5.0-W6-022 遷移後動態 overlay 無 ID，靜態錨點有 ID；:not([id]) 精確命中動態元素
       const modeBtnText = mode === 'overwrite' ? '覆蓋（清空現有書庫）' : '合併（保留現有書庫）'
       try {
         await page.waitForFunction(
           () => {
-            const overlay = document.querySelector('.modal-overlay')
+            const overlay = document.querySelector('.modal-overlay:not([id])')
             return !!overlay && overlay.style.display === 'flex'
           },
           { timeout: 5000 }
         )
         await page.evaluate((btnText) => {
-          const overlay = document.querySelector('.modal-overlay')
+          const overlay = document.querySelector('.modal-overlay:not([id])')
           const target = Array.from(overlay.querySelectorAll('.modal-actions button'))
             .find(btn => btn.textContent === btnText)
           if (!target) throw new Error(`[SETUP] 找不到文字為「${btnText}」的模式選擇按鈕`)
