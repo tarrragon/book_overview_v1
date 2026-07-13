@@ -32,8 +32,20 @@ const HANDSHAKE_CONFIG = Object.freeze({
   RETRY_BACKOFF_MULTIPLIER: 2
 })
 
+/**
+ * Content Script 就緒輪詢配置（1.5.0-W5-027）
+ *
+ * checkCurrentTab() 對書庫頁面 PING 失敗時（content script 尚未注入完成），
+ * 啟動此輪詢直到成功或達最大重試次數，取代「需手動關閉再開 popup」的舊行為。
+ */
+const CONTENT_SCRIPT_POLL_CONFIG = Object.freeze({
+  INTERVAL_MS: 1500,
+  MAX_RETRIES: 10
+})
+
 module.exports = {
   POPUP_DIMENSIONS,
   STATUS_CONFIG,
-  HANDSHAKE_CONFIG
+  HANDSHAKE_CONFIG,
+  CONTENT_SCRIPT_POLL_CONFIG
 }

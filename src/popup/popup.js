@@ -242,6 +242,11 @@ const CONFIG = {
 const HANDSHAKE_CONFIG = popupConstants.HANDSHAKE_CONFIG
 
 /**
+ * Content Script 就緒輪詢配置（1.5.0-W5-027）
+ */
+const CONTENT_SCRIPT_POLL_CONFIG = popupConstants.CONTENT_SCRIPT_POLL_CONFIG
+
+/**
  * 以集中常數注入 popup.html 的靜態 UI 文字
  *
  * constants/ui-text.js 為文字的單一事實來源；popup.html 中保留同值文字僅作為
@@ -375,6 +380,14 @@ let initializationTracker = null
  * - 設為 false：startExtraction 函式開頭（用戶再次點擊提取，重置回 polling）
  */
 let isFinalStatus = false
+
+/**
+ * Content Script 就緒輪詢狀態（1.5.0-W5-027）
+ *
+ * checkCurrentTab() PING 失敗時啟動輪詢，取代「需手動關閉再開 popup」的舊行為。
+ */
+let contentScriptPollTimerId = null
+let contentScriptPollAttempts = 0
 
 // ==================== 狀態管理 ====================
 
@@ -911,6 +924,64 @@ function checkBackgroundStatus () {
 }
 
 /**
+ * 停止 Content Script 就緒輪詢（1.5.0-W5-027）
+ */
+function stopContentScriptPolling () {
+  if (contentScriptPollTimerId) {
+    clearInterval(contentScriptPollTimerId)
+    contentScriptPollTimerId = null
+  }
+  contentScriptPollAttempts = 0
+}
+
+/**
+ * 單次輪詢嘗試：PING 成功則更新 UI 並停止輪詢，達最大重試次數則放棄
+ *
+ * @param {chrome.tabs.Tab} tab - 目標標籤頁
+ */
+async function pollContentScriptOnce (tab) {
+  contentScriptPollAttempts += 1
+
+  try {
+    const response = await chrome.tabs.sendMessage(tab.id, { type: MESSAGE_TYPES.PING })
+    if (response && response.success) {
+      stopContentScriptPolling()
+      elements.bookCount.textContent = response.bookCount !== undefined ? String(response.bookCount) : '0'
+      updateStatus('就緒', '已連線到書庫頁面', '可以開始提取書庫資料', STATUS_TYPES.READY)
+      updateButtonState(false)
+      return
+    }
+  } catch (error) {
+    Logger.info('Content Script 輪詢中尚未就緒', { attempt: contentScriptPollAttempts, error })
+  }
+
+  if (contentScriptPollAttempts >= CONTENT_SCRIPT_POLL_CONFIG.MAX_RETRIES) {
+    Logger.warn('Content Script 輪詢已達最大重試次數，停止輪詢', { attempts: contentScriptPollAttempts })
+    stopContentScriptPolling()
+  }
+}
+
+/**
+ * 啟動 Content Script 就緒輪詢（1.5.0-W5-027）
+ *
+ * 業務情境：
+ * - 用戶回報 popup 開著時 content script 就緒後狀態不會自動更新，需手動關閉再開
+ * - checkCurrentTab() PING 失敗時呼叫本函式，定時重試直到成功或逾時，
+ *   避免依賴 3 秒週期的 periodicStatusUpdate 才能感知就緒
+ *
+ * @param {chrome.tabs.Tab} tab - 目標標籤頁
+ */
+function startContentScriptPolling (tab) {
+  if (contentScriptPollTimerId) {
+    return
+  }
+  contentScriptPollAttempts = 0
+  contentScriptPollTimerId = setInterval(() => {
+    pollContentScriptOnce(tab)
+  }, CONTENT_SCRIPT_POLL_CONFIG.INTERVAL_MS)
+}
+
+/**
  * 檢查當前標籤頁狀態
  *
  * @returns {Promise<chrome.tabs.Tab|null>} 當前標籤頁物件或 null
@@ -965,6 +1036,7 @@ async function checkCurrentTab () {
         const response = await chrome.tabs.sendMessage(tab.id, { type: MESSAGE_TYPES.PING })
 
         if (response && response.success) {
+          stopContentScriptPolling()
           if (response.bookCount !== undefined) {
             elements.bookCount.textContent = String(response.bookCount)
           } else {
@@ -977,8 +1049,10 @@ async function checkCurrentTab () {
       } catch (error) {
         Logger.info('Content Script 尚未就緒', { error })
         updateStatus('載入中', MESSAGES.CONTENT_SCRIPT_LOADING, MESSAGES.CONTENT_SCRIPT_RELOAD_HINT, STATUS_TYPES.LOADING)
+        startContentScriptPolling(tab)
       }
     } else {
+      stopContentScriptPolling()
       updateStatus('待機', MESSAGES.NON_READMOO_PAGE, MESSAGES.NON_READMOO_HINT, STATUS_TYPES.READY)
       updateButtonState(true)
     }
@@ -1754,6 +1828,11 @@ if (typeof window !== 'undefined') {
   window.periodicStatusUpdate = periodicStatusUpdate
   window.getIsFinalStatus = () => isFinalStatus
   window.setIsFinalStatus = (value) => { isFinalStatus = !!value }
+  // 1.5.0-W5-027：暴露 Content Script 就緒輪詢供測試使用
+  window.stopContentScriptPolling = stopContentScriptPolling
+  window.getContentScriptPollAttempts = () => contentScriptPollAttempts
+  window.isContentScriptPolling = () => contentScriptPollTimerId !== null
+  window.CONTENT_SCRIPT_POLL_CONFIG = CONTENT_SCRIPT_POLL_CONFIG
 
   // 新增的進度和結果功能
   window.updateProgress = updateProgress
@@ -1796,5 +1875,8 @@ setInterval(periodicStatusUpdate, CONFIG.STATUS_UPDATE_INTERVAL)
 
 // 全域錯誤處理
 window.addEventListener('error', handleGlobalError)
+
+// popup 關閉時停止 Content Script 就緒輪詢（1.5.0-W5-027）
+window.addEventListener('unload', stopContentScriptPolling)
 
 popupLogger.info('POPUP_SCRIPT_LOADED')
