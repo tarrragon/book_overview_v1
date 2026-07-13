@@ -41,7 +41,8 @@
     "tabs"
   ],
   "host_permissions": [
-    "*://*.readmoo.com/*"
+    "*://*.readmoo.com/*",
+    "*://*.books.com.tw/*"
   ],
   "web_accessible_resources": [
     {
