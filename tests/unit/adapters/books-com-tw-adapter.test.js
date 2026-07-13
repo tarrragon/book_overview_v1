@@ -221,6 +221,151 @@ describe('BooksComTwAdapter', () => {
     })
   })
 
+  describe('extractAllBooks - ReadList API 路徑', () => {
+    beforeEach(() => {
+      adapter = BooksComTwAdapter()
+    })
+
+    afterEach(() => {
+      delete global.fetch
+    })
+
+    function buildApiRecord (overrides = {}) {
+      return {
+        book_uni_id: 'G000034891_reflowable_normal',
+        item_type: 'book',
+        item_info: {
+          item: 'G000034891',
+          c_title: '蜜蜂與遠雷',
+          author: '恩田陸',
+          publisher_name: '博客來網路書店',
+          publish_date: '2018/04/17',
+          efile_cover_url: 'https://s3public-ebook.books.com.tw/cover/G000034891.jpg',
+          percent: 67,
+          last_read_time: '2025-01-24T16:48:40+08:00',
+          auth_time: '2018-05-11T17:40:09+08:00',
+          book_format: 'reflowable',
+          language: 'zh-tw',
+          type: 'book',
+          ...overrides
+        }
+      }
+    }
+
+    test('成功時回傳對應 BookSchemaV2 欄位的書籍資料', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          total_records: 1,
+          current_offset: 0,
+          records: [buildApiRecord()]
+        })
+      })
+
+      const books = await adapter.extractAllBooks()
+
+      expect(books).toHaveLength(1)
+      expect(books[0]).toMatchObject({
+        bookId: 'G000034891',
+        title: '蜜蜂與遠雷',
+        author: '恩田陸',
+        publisher: '博客來網路書店',
+        publishDate: '2018/04/17',
+        coverUrl: 'https://s3public-ebook.books.com.tw/cover/G000034891.jpg',
+        readProgress: 67,
+        lastReadAt: '2025-01-24T16:48:40+08:00',
+        purchaseDate: '2018-05-11T17:40:09+08:00',
+        format: 'reflowable',
+        language: 'zh-tw',
+        itemType: 'book',
+        source: 'books-com-tw'
+      })
+    })
+
+    test('會呼叫 ReadList API endpoint 並帶入 offset 分頁參數', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ total_records: 1, current_offset: 0, records: [buildApiRecord()] })
+      })
+
+      await adapter.extractAllBooks()
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        '//appapi-ebook.books.com.tw/V1.7/CMSAPIApp/ReadList',
+        expect.objectContaining({ method: 'POST' })
+      )
+      const requestBody = JSON.parse(global.fetch.mock.calls[0][1].body)
+      expect(requestBody.offset).toBe(0)
+      expect(requestBody.page_size).toBe(40)
+    })
+
+    test('total_records 超過單頁時會循環呼叫多次直到取得全部書目', async () => {
+      global.fetch = jest.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            total_records: 45,
+            current_offset: 0,
+            records: [buildApiRecord({ item: 'G1' })]
+          })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            total_records: 45,
+            current_offset: 40,
+            records: [buildApiRecord({ item: 'G2' })]
+          })
+        })
+
+      const books = await adapter.extractAllBooks()
+
+      expect(global.fetch).toHaveBeenCalledTimes(2)
+      expect(books.map(b => b.bookId)).toEqual(['G1', 'G2'])
+    })
+
+    test('API 回應非 ok 時降級為 DOM 解析', async () => {
+      global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 500 })
+
+      const container = document.createElement('div')
+      container.classList.add('bookshelf__main')
+      const book = document.createElement('div')
+      book.classList.add('bookshelf__book')
+      const titleEl = document.createElement('div')
+      titleEl.classList.add('book__description__title')
+      titleEl.textContent = 'DOM Fallback 書名'
+      book.appendChild(titleEl)
+      container.appendChild(book)
+      document.body.appendChild(container)
+
+      const books = await adapter.extractAllBooks()
+
+      expect(books).toHaveLength(1)
+      expect(books[0].title).toBe('DOM Fallback 書名')
+      expect(books[0].source).toBe('books-com-tw')
+
+      document.body.removeChild(container)
+    })
+
+    test('fetch 未定義（無 API 支援環境）時降級為 DOM 解析', async () => {
+      delete global.fetch
+
+      const container = document.createElement('div')
+      container.classList.add('bookshelf__main')
+      const book = document.createElement('div')
+      book.classList.add('bookshelf__book')
+      container.appendChild(book)
+      document.body.appendChild(container)
+
+      const books = await adapter.extractAllBooks()
+
+      expect(books).toHaveLength(1)
+      expect(books[0].source).toBe('books-com-tw')
+
+      document.body.removeChild(container)
+    })
+  })
+
   describe('getStats', () => {
     beforeEach(() => {
       adapter = BooksComTwAdapter()

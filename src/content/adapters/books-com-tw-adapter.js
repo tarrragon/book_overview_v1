@@ -15,10 +15,12 @@
  * - hostname 採邊界比對，避免 evilbooks.com.tw 誤判為 books.com.tw
  *
  * 處理流程：
- * 1. checkPageReady → 等待 .bookshelf__main 容器出現
- * 2. 解析當前頁面 .bookshelf__book 元素
- * 3. 迴圈點擊「看更多」載入後續分頁直到按鈕隱藏
- * 4. sanitizeData 過濾每筆書籍資料
+ * 1. extractAllBooks 優先透過 ReadList API 取得完整書目（含分頁）
+ * 2. API 失敗時降級為 DOM 解析 fallback：
+ *    a. checkPageReady → 等待 .bookshelf__main 容器出現
+ *    b. 解析當前頁面 .bookshelf__book 元素
+ *    c. 迴圈點擊「看更多」載入後續分頁直到按鈕隱藏
+ * 3. sanitizeData 過濾每筆書籍資料
  *
  * 資料來源勘查：docs/bookstores/books-com-tw.md
  */
@@ -38,7 +40,8 @@ const booksComTwAdapterMessages = new MessageDictionary({
   BOOKS_COM_TW_EXTRACT_START: '開始提取博客來書庫，初始書籍數：{count}',
   BOOKS_COM_TW_EXTRACT_DONE: '博客來書庫提取完成，成功 {success} / 失敗 {fail}',
   BOOKS_COM_TW_BOOK_PARSE_FAILED: '單一書籍解析失敗：{reason}',
-  BOOKS_COM_TW_LOAD_MORE_FAILED: '分頁載入點擊失敗：{reason}'
+  BOOKS_COM_TW_LOAD_MORE_FAILED: '分頁載入點擊失敗：{reason}',
+  BOOKS_COM_TW_API_FETCH_FAILED: 'ReadList API 擷取失敗，改用 DOM 解析：{reason}'
 })
 
 /**
@@ -80,6 +83,15 @@ const AUTHOR_PREFIX_PATTERN = /^作者[：:]/
  * 安全 URL 協定白名單
  */
 const SAFE_URL_PROTOCOLS = ['https:', 'http:']
+
+/**
+ * ReadList API 端點與請求參數配置（對齊 docs/bookstores/books-com-tw.md）
+ */
+const READ_LIST_API_ENDPOINT = '//appapi-ebook.books.com.tw/V1.7/CMSAPIApp/ReadList'
+const READ_LIST_PAGE_SIZE = 40
+const READ_LIST_SORT_ORDER = 'ReadTimeDesc'
+const READ_LIST_DEFAULT_LAST_UPDATED_TIME = '1900-01-01T00:00:00+08:00'
+const READ_LIST_MAX_PAGES = 100
 
 /**
  * 博客來電子書平台適配器
@@ -234,10 +246,39 @@ class BooksComTwAdapter extends PlatformAdapterInterface {
   }
 
   /**
-   * 提取所有書籍（分頁載入 + DOM 解析）
+   * 提取所有書籍：優先透過 ReadList API，失敗時降級為 DOM 解析
    * @returns {Promise<Array<Object>>} 書籍資料陣列
    */
   async extractAllBooks () {
+    try {
+      const apiBooks = await this._fetchBooksFromApi()
+      this._recordApiExtractionStats(apiBooks.length)
+      return apiBooks
+    } catch (error) {
+      this.logger.warn('BOOKS_COM_TW_API_FETCH_FAILED', { reason: error.message })
+    }
+
+    return this._extractAllBooksFromDom()
+  }
+
+  /**
+   * 記錄 API 路徑提取統計
+   * @param {number} count - 成功提取書籍數
+   * @private
+   */
+  _recordApiExtractionStats (count) {
+    this._stats.totalExtracted = count
+    this._stats.successCount = count
+    this._stats.failCount = 0
+    this.logger.info('BOOKS_COM_TW_EXTRACT_DONE', { success: count, fail: 0 })
+  }
+
+  /**
+   * DOM 解析路徑：分頁載入 + 逐一解析 .bookshelf__book 元素
+   * @returns {Promise<Array<Object>>} 書籍資料陣列
+   * @private
+   */
+  async _extractAllBooksFromDom () {
     await this.checkPageReady()
     this.logger.info('BOOKS_COM_TW_EXTRACT_START', { count: this.getBookCount() })
 
@@ -260,6 +301,91 @@ class BooksComTwAdapter extends PlatformAdapterInterface {
       fail: this._stats.failCount
     })
     return books
+  }
+
+  /**
+   * 透過 ReadList API 循環取得全部書目（offset 分頁）
+   * @returns {Promise<Array<Object>>} 已對應 BookSchemaV2 的書籍資料陣列
+   * @private
+   */
+  async _fetchBooksFromApi () {
+    const records = []
+    let offset = 0
+    let totalRecords = Infinity
+    let pageCount = 0
+
+    while (offset < totalRecords && pageCount < READ_LIST_MAX_PAGES) {
+      const payload = await this._requestReadListPage(offset)
+      records.push(...payload.records)
+      totalRecords = payload.total_records
+
+      if (payload.records.length === 0) {
+        break
+      }
+
+      offset = payload.current_offset + READ_LIST_PAGE_SIZE
+      pageCount += 1
+    }
+
+    return records.map(record => this._mapApiRecordToBookData(record))
+  }
+
+  /**
+   * 呼叫 ReadList API 取得單頁資料
+   * @param {number} offset - 分頁起始位置
+   * @returns {Promise<{total_records: number, current_offset: number, records: Array<Object>}>}
+   * @private
+   */
+  async _requestReadListPage (offset) {
+    const response = await fetch(READ_LIST_API_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        offset,
+        page_size: READ_LIST_PAGE_SIZE,
+        sort_order: READ_LIST_SORT_ORDER,
+        last_updated_time: READ_LIST_DEFAULT_LAST_UPDATED_TIME,
+        eplanid: 'all',
+        is_buyout: '',
+        listname: '["all"]',
+        cat: 'all'
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`ReadList API 回應狀態碼 ${response.status}`)
+    }
+
+    const payload = await response.json()
+    if (!Array.isArray(payload.records)) {
+      throw new Error('ReadList API 回應缺少 records 陣列')
+    }
+    return payload
+  }
+
+  /**
+   * 將 ReadList API 單筆 record 對應為 BookSchemaV2 欄位
+   * @param {Object} record - API records[] 單筆項目
+   * @returns {Object} 清理後書籍資料
+   * @private
+   */
+  _mapApiRecordToBookData (record) {
+    const info = record.item_info || {}
+    return this.sanitizeData({
+      bookId: info.item || '',
+      title: info.c_title || '',
+      author: info.author || '',
+      publisher: info.publisher_name || '',
+      publishDate: info.publish_date || '',
+      coverUrl: info.efile_cover_url || '',
+      readProgress: typeof info.percent === 'number' ? info.percent : 0,
+      lastReadAt: info.last_read_time || '',
+      purchaseDate: info.auth_time || '',
+      format: info.book_format || '',
+      language: info.language || '',
+      itemType: info.type || '',
+      source: PLATFORM_NAME
+    })
   }
 
   /**
