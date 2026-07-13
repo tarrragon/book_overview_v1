@@ -337,3 +337,35 @@
 .divider.divider-strong {
   box-shadow: 0 3px 6px var(--divider-strong);
 }
+
+/* Badge（契約 §14.6：AppBadge.success/.warning/.info/.muted ↔ createBadge，1.5.0-W6-023）。
+   基礎樣式與 overview .reading-status-badge 收斂共用（該元件 6 閱讀狀態色值透過
+   data-status 屬性保留，不透過 variant，映射設計見該 ticket Solution），
+   故選擇器合併列出，值與收斂前的 .reading-status-badge 基礎樣式完全一致。 */
+.badge, .reading-status-badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-medium);
+  display: inline-block;
+}
+
+.badge--success {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.badge--warning {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-dark);
+}
+
+.badge--info {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.badge--muted {
+  background-color: var(--color-panel);
+  color: var(--color-on-surface-muted);
+}

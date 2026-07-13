@@ -27,6 +27,10 @@ const STATUS_DOT_CLASS = { loading: 'loading', error: 'error', ready: null }
 const DIVIDER_VARIANTS = ['subtle', 'normal', 'strong']
 // variant 命名契約對齊 §14.6：AppDialog.confirm/.alert ↔ createDialog（1.5.0-W6-022）
 const DIALOG_VARIANTS = ['confirm', 'alert']
+// variant 命名契約對齊 §14.6：AppBadge.success/.warning/.info/.muted ↔ createBadge
+// （1.5.0-W6-023）。V1 既有 6 閱讀狀態（overview .reading-status-badge 的
+// data-status 屬性）非 1:1 對應四契約 variant，映射設計見該 ticket Solution。
+const BADGE_VARIANTS = ['success', 'warning', 'info', 'muted']
 // 無自訂 actions 時的預設按鈕組。cancel/dismiss 統一以 value:null 表示「無結果」，
 // 與 Esc / 遮罩點擊的 resolve(null) 語意一致（單一「取消」判斷點，呼叫端不需分辨來源）。
 const DEFAULT_DIALOG_ACTIONS = {
@@ -422,6 +426,29 @@ function createDivider ({ variant } = {}) {
 }
 
 /**
+ * 建立徽章元素（契約 §14.6：AppBadge.success/.warning/.info/.muted ↔ createBadge）。
+ *
+ * @param {Object} options
+ * @param {'success'|'warning'|'info'|'muted'} [options.variant='info']
+ * @param {string} [options.text] - 徽章文字
+ * @param {string} [options.dataStatus] - 選填，設定 data-status 屬性，供保留
+ *   status-specific 色值變體使用（如 overview 6 閱讀狀態，見 BADGE_VARIANTS 註解）
+ * @returns {HTMLSpanElement}
+ */
+function createBadge ({ variant = 'info', text, dataStatus } = {}) {
+  if (!BADGE_VARIANTS.includes(variant)) {
+    throw new Error(`createBadge: variant 必須為 ${BADGE_VARIANTS.join('/')}，收到 ${variant}`)
+  }
+
+  const badge = document.createElement('span')
+  badge.classList.add('badge', `badge--${variant}`)
+  if (text !== undefined) badge.textContent = text
+  if (dataStatus) badge.dataset.status = dataStatus
+
+  return badge
+}
+
+/**
  * 建立對話框元素與生命週期控制器（契約 §14.6：AppDialog.confirm/.alert ↔ createDialog）。
  *
  * 與其他 ui-factory 函式（回傳純 HTMLElement）不同，dialog 天生需要生命週期管理
@@ -565,7 +592,8 @@ if (typeof module !== 'undefined' && module.exports) {
     createErrorSection,
     createBookstoreNavSection,
     createDivider,
-    createDialog
+    createDialog,
+    createBadge
   }
 }
 
@@ -579,6 +607,7 @@ if (typeof window !== 'undefined') {
     createErrorSection,
     createBookstoreNavSection,
     createDivider,
-    createDialog
+    createDialog,
+    createBadge
   }
 }

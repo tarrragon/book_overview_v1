@@ -351,15 +351,10 @@ body {
 }
 
 /* 閱讀狀態標籤（6 狀態，對齊 SPEC-DESIGN-SYSTEM Section 3）
-   D3：深字淺底 WCAG AA，色值取自 design-system.css --status-*-fg/bg */
-.reading-status-badge {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-body-small);
-  font-weight: var(--font-weight-medium);
-  display: inline-block;
-}
-
+   D3：深字淺底 WCAG AA，色值取自 design-system.css --status-*-fg/bg
+   基礎樣式（padding/border-radius/font-size/font-weight/display）已收斂至
+   design-system.css 的 .badge, .reading-status-badge 合併規則（1.5.0-W6-023，
+   src/core/design-system/component-rules.js），此處僅保留 6 個 data-status 色值變體。 */
 .reading-status-badge[data-status="unread"] {
   background-color: var(--status-unread-bg);
   color: var(--status-unread-fg);
