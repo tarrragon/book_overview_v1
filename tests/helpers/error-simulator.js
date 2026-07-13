@@ -1,6 +1,11 @@
 /**
  * Error Simulator - 測試錯誤模擬工具
  * 提供各種錯誤情境的模擬功能
+ *
+ * 設計原則（1.5.0-W6-026）：
+ * 模擬方法本身不拋出例外，而是記錄模擬錯誤狀態並正常 resolve。
+ * 呼叫端（ChromeExtensionController mock 方法）依 testSuite/errorSimulator 狀態
+ * 產生對應的錯誤回應，模擬「錯誤被優雅攔截」的行為契約。
  */
 
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
@@ -16,50 +21,71 @@ class ErrorSimulator {
       STORAGE_ERROR: 'Storage Error'
     }
     this.simulatedErrors = []
+    this.activeError = null
+  }
+
+  /**
+   * 建立模擬錯誤物件（不拋出，僅回傳）
+   */
+  #createError (message, code, details = {}) {
+    const error = new Error(message)
+    error.code = code
+    error.details = { category: 'testing', simulation: true, ...details }
+    return error
+  }
+
+  /**
+   * 記錄並設定當前作用中的模擬錯誤（非拋出式注入）
+   */
+  #registerError (message, code, details = {}) {
+    const error = this.#createError(message, code, details)
+    this.logError(error)
+    this.activeError = error
+    return { success: true, simulated: true, error }
   }
 
   /**
    * 模擬網路錯誤
    */
   simulateNetworkError () {
-    throw (() => { const error = new Error(this.errorTypes.NETWORK_ERROR); error.code = ErrorCodes.NETWORK_ERROR; error.details = { category: 'testing' }; return error })()
+    return this.#registerError(this.errorTypes.NETWORK_ERROR, ErrorCodes.NETWORK_ERROR)
   }
 
   /**
    * 模擬記憶體錯誤
    */
   simulateMemoryError () {
-    throw (() => { const error = new Error(this.errorTypes.MEMORY_ERROR); error.code = ErrorCodes.MEMORY_ERROR; error.details = { category: 'testing' }; return error })()
+    return this.#registerError(this.errorTypes.MEMORY_ERROR, ErrorCodes.MEMORY_ERROR)
   }
 
   /**
    * 模擬超時錯誤
    */
   simulateTimeoutError () {
-    throw (() => { const error = new Error(this.errorTypes.TIMEOUT_ERROR); error.code = ErrorCodes.TIMEOUT_ERROR; error.details = { category: 'testing' }; return error })()
+    return this.#registerError(this.errorTypes.TIMEOUT_ERROR, ErrorCodes.TIMEOUT_ERROR)
   }
 
   /**
    * 模擬權限錯誤
    */
   simulatePermissionError () {
-    throw (() => { const error = new Error(this.errorTypes.PERMISSION_ERROR); error.code = ErrorCodes.PERMISSION_ERROR; error.details = { category: 'testing' }; return error })()
+    return this.#registerError(this.errorTypes.PERMISSION_ERROR, ErrorCodes.PERMISSION_ERROR)
   }
 
   /**
    * 模擬儲存錯誤
    */
   simulateStorageError () {
-    throw (() => { const error = new Error(this.errorTypes.STORAGE_ERROR); error.code = ErrorCodes.STORAGE_ERROR; error.details = { category: 'testing' }; return error })()
+    return this.#registerError(this.errorTypes.STORAGE_ERROR, ErrorCodes.STORAGE_ERROR)
   }
 
   /**
-   * 創建模擬錯誤的 Promise
+   * 創建模擬錯誤的 Promise（維持拒絕語意，供顯式測試 rejected path 使用）
    */
   createErrorPromise (errorType, delay = 0) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        reject((() => { const error = new Error(errorType); error.code = ErrorCodes.ERROR_SIMULATION; error.details = { category: 'testing', simulation: true }; return error })())
+        reject(this.#createError(errorType, ErrorCodes.ERROR_SIMULATION))
       }, delay)
     })
   }
@@ -217,10 +243,19 @@ class ErrorSimulator {
   }
 
   /**
+   * 清除目前作用中的模擬錯誤（優雅恢復，不拋出）
+   */
+  async clearError () {
+    this.activeError = null
+    return { success: true, cleared: true }
+  }
+
+  /**
    * 重置錯誤模擬器
    */
   async reset () {
     this.simulatedErrors = []
+    this.activeError = null
     if (this.testSuite && this.testSuite.reset) {
       await this.testSuite.reset()
     }
@@ -240,56 +275,87 @@ class ErrorSimulator {
    * 模擬網路中斷
    */
   async simulateNetworkDisconnection () {
-    // 模擬網路中斷狀況
-    const error = (() => { const error = new Error('Network disconnected'); error.code = ErrorCodes.NETWORK_DISCONNECTED; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('Network disconnected', ErrorCodes.NETWORK_DISCONNECTED)
+  }
+
+  /**
+   * 恢復網路連線（對應 simulateNetworkDisconnection 的恢復動作）
+   */
+  async restoreNetworkConnection () {
+    this.activeError = null
+    return { success: true, restored: true }
+  }
+
+  /**
+   * 恢復網路（對應 simulateNetworkError 的恢復動作）
+   */
+  async restoreNetwork () {
+    this.activeError = null
+    return { success: true, restored: true }
+  }
+
+  /**
+   * 撤銷 Extension 權限
+   */
+  async revokeExtensionPermissions (permissions = []) {
+    return this.#registerError('Extension permissions revoked', ErrorCodes.PERMISSION_ERROR, { permissions })
+  }
+
+  /**
+   * 模擬權限被撤銷（多重錯誤情境使用）
+   */
+  async simulatePermissionRevocation () {
+    return this.#registerError('Permission revoked', ErrorCodes.PERMISSION_ERROR)
+  }
+
+  /**
+   * 恢復 Extension 權限
+   */
+  async restorePermissions () {
+    this.activeError = null
+    return { success: true, restored: true }
   }
 
   /**
    * 模擬擴展錯誤
    */
   async simulateExtensionError () {
-    // 模擬擴展運行錯誤
-    const error = (() => { const error = new Error('Extension runtime error'); error.code = ErrorCodes.EXTENSION_RUNTIME_ERROR; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('Extension runtime error', ErrorCodes.EXTENSION_RUNTIME_ERROR)
   }
 
   /**
    * 模擬資料損壞錯誤
    */
   async simulateDataCorruption () {
-    const error = (() => { const error = new Error('Data corruption detected'); error.code = ErrorCodes.DATA_CORRUPTION_DETECTED; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('Data corruption detected', ErrorCodes.DATA_CORRUPTION_DETECTED)
+  }
+
+  /**
+   * 模擬損壞儲存資料（對應使用者指導測試情境）
+   */
+  async corruptStorageData () {
+    return this.#registerError('Data corruption detected', ErrorCodes.DATA_CORRUPTION_DETECTED)
   }
 
   /**
    * 模擬系統過載錯誤
    */
   async simulateSystemOverload () {
-    const error = (() => { const error = new Error('System overload'); error.code = ErrorCodes.SYSTEM_OVERLOAD; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('System overload', ErrorCodes.SYSTEM_OVERLOAD)
   }
 
   /**
    * 模擬認證失敗
    */
   async simulateAuthenticationFailure () {
-    const error = (() => { const error = new Error('Authentication failed'); error.code = ErrorCodes.AUTHENTICATION_FAILED; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('Authentication failed', ErrorCodes.AUTHENTICATION_FAILED)
   }
 
   /**
    * 模擬儲存損壞
    */
   async simulateStorageCorruption () {
-    const error = (() => { const error = new Error('Storage corruption detected'); error.code = ErrorCodes.STORAGE_CORRUPTION_DETECTED; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('Storage corruption detected', ErrorCodes.STORAGE_CORRUPTION_DETECTED)
   }
 
   /**
@@ -298,27 +364,29 @@ class ErrorSimulator {
   async simulateSlowNetwork (timeoutMs = 30000) {
     // 模擬網路延遲
     await new Promise(resolve => setTimeout(resolve, Math.min(timeoutMs / 10, 1000)))
-    const error = (() => { const error = new Error(`Network timeout after ${timeoutMs}ms`); error.code = ErrorCodes.NETWORK_TIMEOUT; error.details = { category: 'testing', simulation: true, timeoutMs }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError(`Network timeout after ${timeoutMs}ms`, ErrorCodes.NETWORK_TIMEOUT, { timeoutMs })
   }
 
   /**
    * 模擬儲存配額超限
    */
   async simulateStorageQuotaExceeded () {
-    const error = (() => { const error = new Error('Storage quota exceeded'); error.code = ErrorCodes.STORAGE_QUOTA_EXCEEDED; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('Storage quota exceeded', ErrorCodes.STORAGE_QUOTA_EXCEEDED)
+  }
+
+  /**
+   * 釋放儲存空間（對應 simulateStorageQuotaExceeded 的恢復動作）
+   */
+  async freeStorageSpace () {
+    this.activeError = null
+    return { success: true, freed: true }
   }
 
   /**
    * 模擬儲存配額錯誤 - 測試期望的方法名稱
    */
   async simulateStorageQuotaError () {
-    const error = (() => { const error = new Error('Storage quota exceeded'); error.code = ErrorCodes.STORAGE_QUOTA_EXCEEDED; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('Storage quota exceeded', ErrorCodes.STORAGE_QUOTA_EXCEEDED)
   }
 
   /**
@@ -326,43 +394,51 @@ class ErrorSimulator {
    */
   simulateIntermittentNetworkErrors (networkInterruptions) {
     if (!networkInterruptions || !Array.isArray(networkInterruptions)) {
-      throw (() => { const error = new Error('Network interruptions array is required'); error.code = ErrorCodes.INVALID_ARGUMENT; error.details = { category: 'testing' }; return error })()
+      return this.#registerError('Network interruptions array is required', ErrorCodes.INVALID_ARGUMENT)
     }
 
     // 模擬間歇性網路中斷
     networkInterruptions.forEach((interruption, index) => {
       setTimeout(() => {
-        const error = (() => { const error = new Error(`Network interruption ${index + 1}: ${interruption.type}`); error.code = ErrorCodes.NETWORK_INTERRUPTION; error.details = { category: 'testing', simulation: true, interruption }; return error })()
+        const error = this.#createError(
+          `Network interruption ${index + 1}: ${interruption.type}`,
+          ErrorCodes.NETWORK_INTERRUPTION,
+          { interruption }
+        )
         this.logError(error)
       }, interruption.delay || index * 1000)
     })
+
+    return { success: true, scheduled: networkInterruptions.length }
   }
 
   /**
    * 模擬系統中斷
    */
   async simulateSystemInterruption () {
-    const error = (() => { const error = new Error('System interruption detected'); error.code = ErrorCodes.SYSTEM_INTERRUPTION; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('System interruption detected', ErrorCodes.SYSTEM_INTERRUPTION)
+  }
+
+  /**
+   * 清除系統中斷（斷點續傳恢復動作）
+   */
+  async clearInterruption () {
+    this.activeError = null
+    return { success: true, cleared: true }
   }
 
   /**
    * 模擬資料解析錯誤
    */
   async simulateDataParsingError () {
-    const error = (() => { const error = new Error('Data parsing failed'); error.code = ErrorCodes.DATA_PARSING_FAILED; error.details = { category: 'testing', simulation: true }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError('Data parsing failed', ErrorCodes.DATA_PARSING_FAILED)
   }
 
   /**
    * 模擬內容腳本錯誤
    */
   async simulateContentScriptError (errorType = 'PARSING_ERROR') {
-    const error = (() => { const error = new Error(`Content script error: ${errorType}`); error.code = ErrorCodes.CONTENT_SCRIPT_ERROR; error.details = { category: 'testing', simulation: true, errorType }; return error })()
-    this.logError(error)
-    throw error
+    return this.#registerError(`Content script error: ${errorType}`, ErrorCodes.CONTENT_SCRIPT_ERROR, { errorType })
   }
 }
 
