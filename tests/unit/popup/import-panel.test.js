@@ -30,8 +30,15 @@ jest.mock('src/import/json-importer', () => ({
   }
 }))
 
+// _handleStaleData 改走 createDialog（1.5.0-W6-022）；mock 為可控 resolve 值的假對話框，
+// overlay 用真實 DOM 元素以相容 document.body.appendChild/remove。
+jest.mock('src/core/ui/components/ui-factory', () => ({
+  createDialog: jest.fn()
+}))
+
 const { ImportPanel } = require('src/popup/components/import-panel')
 const { executeImport, IMPORT_ERROR_CODES } = require('src/import/json-importer')
+const { createDialog } = require('src/core/ui/components/ui-factory')
 
 function createElement (tag = 'div') {
   return {
@@ -103,7 +110,11 @@ describe('ImportPanel', () => {
     elements.errorContainer.style.display = 'none'
 
     executeImport.mockReset()
-    window.confirm = jest.fn()
+    createDialog.mockReset()
+    createDialog.mockImplementation(() => ({
+      overlay: document.createElement('div'),
+      open: jest.fn().mockResolvedValue(false)
+    }))
   })
 
   describe('N1：Happy Path — 匯入成功顯示摘要', () => {
@@ -148,7 +159,10 @@ describe('ImportPanel', () => {
           summary: { added: 0, updated: 2, unchanged: 8 }
         })
 
-      window.confirm.mockReturnValue(true)
+      createDialog.mockImplementation(() => ({
+        overlay: document.createElement('div'),
+        open: jest.fn().mockResolvedValue(true)
+      }))
 
       const file = new Blob([VALID_JSON], { type: 'application/json' })
       await panel.handleFileSelected({ target: { files: [file] } })
@@ -156,7 +170,7 @@ describe('ImportPanel', () => {
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
-      expect(window.confirm).toHaveBeenCalled()
+      expect(createDialog).toHaveBeenCalled()
       expect(executeImport).toHaveBeenCalledTimes(2)
       expect(executeImport).toHaveBeenLastCalledWith(VALID_JSON, { skipStalenessCheck: true })
       expect(elements.resultContainer.style.display).not.toBe('none')
@@ -171,7 +185,7 @@ describe('ImportPanel', () => {
         staleness: { isStale: true, exportedAt: '2026-06-20', lastImportedAt: '2026-06-21' }
       })
 
-      window.confirm.mockReturnValue(false)
+      // beforeEach 預設 createDialog open() resolve false（取消）
 
       const file = new Blob([VALID_JSON], { type: 'application/json' })
       await panel.handleFileSelected({ target: { files: [file] } })
@@ -179,7 +193,7 @@ describe('ImportPanel', () => {
 
       await new Promise(resolve => setTimeout(resolve, 0))
 
-      expect(window.confirm).toHaveBeenCalled()
+      expect(createDialog).toHaveBeenCalled()
       expect(executeImport).toHaveBeenCalledTimes(1)
       expect(elements.fileInput.value).toBe('')
     })

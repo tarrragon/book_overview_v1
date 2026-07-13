@@ -11,6 +11,7 @@
 import { Logger } from '../../core/logging/Logger.js'
 import { executeImport, IMPORT_ERROR_CODES } from '../../import/json-importer.js'
 import FileReaderFactory from '../../utils/file-reader-factory.js'
+import { createDialog } from '../../core/ui/components/ui-factory.js'
 
 const logger = new Logger('ImportPanel')
 
@@ -22,8 +23,11 @@ const IMPORT_MESSAGES = {
   FALLBACK_ERROR: '匯入失敗',
   FILE_READ_ERROR: '檔案讀取失敗',
   STORAGE_ERROR: '儲存失敗，請重試',
+  STALE_CONFIRM_TITLE: '資料過期確認',
   STALE_CONFIRM: (exportedAt, lastImportedAt) =>
     '匯入檔案（' + exportedAt + '）較本機上次匯入（' + lastImportedAt + '）舊，確定要覆蓋？',
+  STALE_CONFIRM_ACTION: '確認匯入',
+  CANCEL: '取消',
   SUMMARY_ADDED: '新增:',
   SUMMARY_UPDATED: '更新:',
   SUMMARY_UNCHANGED: '未變更:',
@@ -142,7 +146,20 @@ export class ImportPanel {
     const staleness = result.staleness || {}
     const message = IMPORT_MESSAGES.STALE_CONFIRM(staleness.exportedAt, staleness.lastImportedAt)
 
-    if (!window.confirm(message)) {
+    const dialog = createDialog({
+      variant: 'confirm',
+      title: IMPORT_MESSAGES.STALE_CONFIRM_TITLE,
+      message,
+      actions: [
+        { value: false, text: IMPORT_MESSAGES.CANCEL, variant: 'secondary' },
+        { value: true, text: IMPORT_MESSAGES.STALE_CONFIRM_ACTION, variant: 'primary' }
+      ]
+    })
+    document.body.appendChild(dialog.overlay)
+    const confirmed = await dialog.open()
+    dialog.overlay.remove()
+
+    if (!confirmed) {
       this.reset()
       return
     }
