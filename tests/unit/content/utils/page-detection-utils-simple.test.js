@@ -78,6 +78,7 @@ describe('PageDetectionUtils - 完整功能測試', () => {
     test('應該正確檢測 Readmoo 網域', () => {
       expect(PageDetectionUtils.isReadmooDomain('https://readmoo.com/library')).toBe(true)
       expect(PageDetectionUtils.isReadmooDomain('https://www.readmoo.com/shelf')).toBe(true)
+      expect(PageDetectionUtils.isReadmooDomain('https://readmoo.com')).toBe(true)
       expect(PageDetectionUtils.isReadmooDomain('https://member.readmoo.com')).toBe(true)
       expect(PageDetectionUtils.isReadmooDomain('https://api.readmoo.com')).toBe(true)
     })
@@ -98,6 +99,16 @@ describe('PageDetectionUtils - 完整功能測試', () => {
       // 使用 updateMockLocation 更新 mock 環境
       updateMockLocation('https://readmoo.com/library')
       expect(PageDetectionUtils.isReadmooDomain()).toBe(true)
+    })
+
+    test('應該處理 undefined 參數使用當前 URL', () => {
+      // 設定當前 URL 為 Readmoo
+      updateMockLocation('https://readmoo.com/library')
+      expect(PageDetectionUtils.isReadmooDomain(undefined)).toBe(true)
+
+      // 設定當前 URL 為非 Readmoo
+      updateMockLocation('https://amazon.com')
+      expect(PageDetectionUtils.isReadmooDomain(undefined)).toBe(false)
     })
   })
 
