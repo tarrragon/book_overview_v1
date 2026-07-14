@@ -527,18 +527,18 @@ describe('Modular Content Script', () => {
   })
 
   describe('BookDataExtractor 模組', () => {
-    test('應該能夠檢測頁面類型', () => {
+    test('應該能夠檢測頁面類型', async () => {
       // eslint-disable-next-line no-unused-vars
       const createBookDataExtractor = require('src/content/extractors/book-data-extractor')
       // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
 
       // eslint-disable-next-line no-unused-vars
-      const pageType = extractor.getPageType()
+      const pageType = await extractor.getPageType()
       expect(pageType).toBe('library')
 
       // eslint-disable-next-line no-unused-vars
-      const isExtractable = extractor.isExtractablePage()
+      const isExtractable = await extractor.isExtractablePage()
       expect(isExtractable).toBe(true)
     })
 

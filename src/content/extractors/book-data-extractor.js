@@ -82,9 +82,19 @@ function createBookDataExtractor () {
     /**
      * 檢測頁面類型
      *
-     * @returns {string} 頁面類型 ('library', 'shelf', 'reader', 'unknown')
+     * 優先委派給 platformAdapter.getPageType()（各書城適配器自行判斷）；
+     * 適配器不存在、無此方法或回傳 'unknown' 時，退回 Readmoo 硬編碼路徑判斷。
+     *
+     * @returns {Promise<string>} 頁面類型 ('library', 'shelf', 'reader', 'unknown')
      */
-    getPageType () {
+    async getPageType () {
+      if (platformAdapter && typeof platformAdapter.getPageType === 'function') {
+        const adapterPageType = await platformAdapter.getPageType()
+        if (adapterPageType !== 'unknown') {
+          return adapterPageType
+        }
+      }
+
       const location = getLocation()
       const url = location.href || ''
       const pathname = location.pathname || ''
@@ -106,10 +116,17 @@ function createBookDataExtractor () {
     /**
      * 檢查是否為可提取的頁面
      *
-     * @returns {boolean} 是否可提取
+     * 優先委派給 platformAdapter.isExtractablePage()；適配器不存在或無此方法時，
+     * 退回以（可能已委派過的）getPageType() 結果判斷。
+     *
+     * @returns {Promise<boolean>} 是否可提取
      */
-    isExtractablePage () {
-      const pageType = this.getPageType()
+    async isExtractablePage () {
+      if (platformAdapter && typeof platformAdapter.isExtractablePage === 'function') {
+        return await platformAdapter.isExtractablePage()
+      }
+
+      const pageType = await this.getPageType()
       return ['library', 'shelf'].includes(pageType)
     },
 
@@ -129,7 +146,7 @@ function createBookDataExtractor () {
      * @returns {Promise<Object>} 頁面狀態資訊
      */
     async checkPageReady () {
-      const pageType = this.getPageType()
+      const pageType = await this.getPageType()
       const document = getDocument()
       const isReady = document ? (document.readyState === 'complete' || document.readyState === 'interactive') : false
 
@@ -144,7 +161,7 @@ function createBookDataExtractor () {
         isReady,
         pageType,
         bookCount,
-        extractable: this.isExtractablePage() && bookCount > 0,
+        extractable: (await this.isExtractablePage()) && bookCount > 0,
         url: location.href || '',
         timestamp: Date.now()
       }
@@ -169,11 +186,11 @@ function createBookDataExtractor () {
      */
     async startExtractionFlow (config = {}) {
       const flowId = this.generateFlowId()
-      const pageType = config.pageType || this.getPageType()
+      const pageType = config.pageType || (await this.getPageType())
 
       try {
         // 檢查頁面是否可提取
-        if (!this.isExtractablePage()) {
+        if (!(await this.isExtractablePage())) {
           const error = new Error(`不支援的頁面類型: ${pageType}`)
           error.code = ErrorCodes.VALIDATION_ERROR
           error.details = {

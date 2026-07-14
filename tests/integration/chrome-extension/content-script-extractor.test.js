@@ -185,12 +185,12 @@ describe('Content Script Extractor Integration', () => {
       if (extractor) {
         // 測試頁面類型檢測
         // eslint-disable-next-line no-unused-vars
-        const pageType = extractor.getPageType()
+        const pageType = await extractor.getPageType()
         expect(['library', 'shelf', 'reader', 'unknown']).toContain(pageType)
 
         // 測試可提取頁面檢測
         // eslint-disable-next-line no-unused-vars
-        const isExtractable = extractor.isExtractablePage()
+        const isExtractable = await extractor.isExtractablePage()
         expect(typeof isExtractable).toBe('boolean')
       }
     })
