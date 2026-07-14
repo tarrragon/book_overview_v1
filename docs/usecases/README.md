@@ -26,6 +26,8 @@ cp .claude/skills/doc/templates/usecase-template.md docs/usecases/UC-{XX}-{簡�
 | [UC-06](UC-06-loan-management.md) | 借閱管理系統 | app | not-applicable | SPEC-004 |
 | [UC-07](UC-07-sync.md) | 跨平台資料同步準備 | both | partial | SPEC-004, SPEC-003 |
 | [UC-08](UC-08-error-handling.md) | 系統錯誤處理與恢復 | both | implemented | SPEC-001, SPEC-007 |
+| [UC-09](UC-09-auto-full-library-extraction.md) | 全自動化書庫提取 | chrome-extension | planned | - |
+| [UC-10](UC-10-multi-platform-detection.md) | 多書城偵測與切換 | chrome-extension | planned | SPEC-STORAGE-ISOLATION |
 
 ## 平台歸屬說明
 
