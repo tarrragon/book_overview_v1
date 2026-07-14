@@ -509,6 +509,28 @@ const SYNC_EVENTS = {
 // ====================
 
 /**
+ * 支援的電子書平台 ID（小寫 snake_case，作為 storage key 前綴）
+ */
+const PLATFORM_IDS = {
+  READMOO: 'readmoo',
+  BOOKS_COM_TW: 'books_com_tw',
+  KOBO: 'kobo',
+  BOOKWALKER: 'bookwalker',
+  KINDLE: 'kindle'
+}
+
+Object.freeze(PLATFORM_IDS)
+
+/**
+ * 依平台 ID 產生書目 storage key
+ * @param {string} platformId - PLATFORM_IDS 中的值（如 'readmoo'、'kobo'）
+ * @returns {string} storage key（如 'readmoo_books'、'kobo_books'）
+ */
+function platformBooksKey (platformId) {
+  return `${platformId}_books`
+}
+
+/**
  * Chrome Storage 鍵名
  */
 const STORAGE_KEYS = {
@@ -590,5 +612,9 @@ module.exports = {
   OPERATION_TYPES,
 
   // 儲存鍵名
-  STORAGE_KEYS
+  STORAGE_KEYS,
+
+  // 多書城平台
+  PLATFORM_IDS,
+  platformBooksKey
 }
