@@ -17,7 +17,8 @@
       "matches": [
         "*://*.readmoo.com/*",
         "*://readmoo.com/*",
-        "*://*.books.com.tw/*"
+        "*://*.books.com.tw/*",
+        "*://*.kobo.com/*"
       ],
       "js": [
         "src/content/content-modular.js"
@@ -42,7 +43,8 @@
   ],
   "host_permissions": [
     "*://*.readmoo.com/*",
-    "*://*.books.com.tw/*"
+    "*://*.books.com.tw/*",
+    "*://*.kobo.com/*"
   ],
   "web_accessible_resources": [
     {

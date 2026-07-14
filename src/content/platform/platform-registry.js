@@ -45,6 +45,14 @@ const PLATFORM_CONFIGS = [
     hostnames: ['viewer-ebook.books.com.tw', 'www.books.com.tw', 'books.com.tw'],
     adapterFactory: () => require('../adapters/books-com-tw-adapter'),
     libraryUrl: 'https://viewer-ebook.books.com.tw/viewer/index.html?readlist=all'
+  },
+  {
+    name: 'kobo',
+    displayName: 'Kobo 樂天書城',
+    matchPatterns: ['*://*.kobo.com/*'],
+    hostnames: ['www.kobo.com', 'kobo.com'],
+    adapterFactory: () => require('../adapters/kobo-adapter'),
+    libraryUrl: 'https://www.kobo.com/tw/zh/library/books'
   }
 ]
 
