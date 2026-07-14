@@ -27,6 +27,8 @@ const {
   CHINESE_CLASSIFICATION_PRESETS
 } = require('../../data-management/presets/chinese-classification')
 
+const { platformBooksKey } = require('../../background/constants/module-constants')
+
 const { Logger } = require('../../core/logging/Logger')
 // 顯式指向 messages/index 避免與同層 messages.js（legacy 基礎字典）衝突解析
 const { MessageDictionary } = require('../../core/messages/index')
@@ -256,22 +258,38 @@ async function loadTags () {
   return (await loadFromStorage(STORAGE_KEYS.TAGS)) || []
 }
 
-async function loadBooks () {
-  const raw = await loadFromStorage(STORAGE_KEYS.READMOO_BOOKS)
+/**
+ * 讀取指定書城的書目。
+ *
+ * platformId 預設 'readmoo' 向後相容既有單書城呼叫端；多書城場景由呼叫端顯式傳入。
+ *
+ * @param {string} [platformId='readmoo'] - PLATFORM_IDS 中的值
+ * @returns {Promise<Array>}
+ */
+async function loadBooks (platformId = 'readmoo') {
+  const key = platformBooksKey(platformId)
+  const raw = await loadFromStorage(key)
   if (!raw) return []
-  // readmoo_books 可能是 { books: [...] } 或直接陣列
+  // 書目 storage 值可能是 { books: [...] } 或直接陣列
   if (Array.isArray(raw)) return raw
   if (raw.books && Array.isArray(raw.books)) return raw.books
   return []
 }
 
-async function saveBooksWrapper (books) {
-  // 保持原始結構格式
-  const raw = await loadFromStorage(STORAGE_KEYS.READMOO_BOOKS)
+/**
+ * 寫入指定書城的書目，保持原始結構格式（陣列或 { books: [...] }）。
+ *
+ * @param {Array} books
+ * @param {string} [platformId='readmoo']
+ * @returns {Promise<void>}
+ */
+async function saveBooksWrapper (books, platformId = 'readmoo') {
+  const key = platformBooksKey(platformId)
+  const raw = await loadFromStorage(key)
   if (raw && !Array.isArray(raw) && raw.books) {
-    await saveToStorage({ [STORAGE_KEYS.READMOO_BOOKS]: { ...raw, books } })
+    await saveToStorage({ [key]: { ...raw, books } })
   } else {
-    await saveToStorage({ [STORAGE_KEYS.READMOO_BOOKS]: books })
+    await saveToStorage({ [key]: books })
   }
 }
 
@@ -313,9 +331,10 @@ const SNAPSHOT_KEY_TO_STORAGE_KEY = {
  *   格式: { tags: [...], books: [...], categories?: [...] }
  * @param {Function} operation - async 操作函式
  * @param {string} operationName - 操作名稱（用於錯誤日誌）
+ * @param {string} [platformId='readmoo'] - books 快照回滾所屬書城
  * @returns {Promise<Object>} operation 的回傳值，或回滾結果
  */
-async function withAtomicRollback (snapshotKeys, operation, operationName) {
+async function withAtomicRollback (snapshotKeys, operation, operationName, platformId = 'readmoo') {
   const snapshot = {}
   for (const [key, value] of Object.entries(snapshotKeys)) {
     snapshot[key] = JSON.parse(JSON.stringify(value))
@@ -327,7 +346,7 @@ async function withAtomicRollback (snapshotKeys, operation, operationName) {
     logger.error('ROLLBACK_TRIGGERED', { operation: operationName, error: err.message })
     for (const [key, value] of Object.entries(snapshot)) {
       if (key === 'books') {
-        await saveBooksWrapper(value)
+        await saveBooksWrapper(value, platformId)
       } else {
         const storageKey = SNAPSHOT_KEY_TO_STORAGE_KEY[key]
         if (storageKey) {
@@ -709,11 +728,13 @@ function collectSubtreeIds (rootId, categories) {
  * @param {string} categoryId
  * @param {Object} [options]
  * @param {boolean} [options.cascadeSubtree=false] - 是否刪整棵子樹（opt-in）
+ * @param {string} [options.platformId='readmoo'] - cascade 影響的書目所屬書城
  * @returns {Promise<Object>} { success: true } 或 { success: false, error, hint?, rolledBack? }
  */
 async function deleteTagCategory (categoryId, options = {}) {
   return operationLock.run(async () => {
     const cascadeSubtree = options.cascadeSubtree === true
+    const platformId = options.platformId || 'readmoo'
     const categories = await loadCategories()
     const catIndex = categories.findIndex(c => c.id === categoryId)
     if (catIndex === -1) {
@@ -736,7 +757,7 @@ async function deleteTagCategory (categoryId, options = {}) {
     }
 
     const currentTags = await loadTags()
-    const currentBooks = await loadBooks()
+    const currentBooks = await loadBooks(platformId)
 
     // 樹狀刪除自管原子回滾：rollback 本身寫入也可能失敗，需保證恆回傳
     // cascade_partial + rolledBack:true 契約（既有 withAtomicRollback 無此語意）。
@@ -763,7 +784,7 @@ async function deleteTagCategory (categoryId, options = {}) {
             if (book.tagIds.length < before) booksChanged = true
           }
         }
-        if (booksChanged) await saveBooksWrapper(currentBooks)
+        if (booksChanged) await saveBooksWrapper(currentBooks, platformId)
         await saveToStorage({ [STORAGE_KEYS.TAGS]: remainingTags })
         const remainingCategories = categories.filter(c => !subtreeIds.has(c.id))
         await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: remainingCategories })
@@ -786,7 +807,7 @@ async function deleteTagCategory (categoryId, options = {}) {
       logger.error('CASCADE_DELETE_FAILED', { error: err && err.message ? err.message : String(err) })
       // 嘗試回滾至刪除前快照；回滾寫入本身可能再失敗，吞掉以保證契約回傳
       try {
-        await saveBooksWrapper(snapshot.books)
+        await saveBooksWrapper(snapshot.books, platformId)
         await saveToStorage({ [STORAGE_KEYS.TAGS]: snapshot.tags })
         await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: snapshot.categories })
       } catch (rollbackErr) {
@@ -948,10 +969,11 @@ async function getTagsByCategory (categoryId) {
  * 業務規則：tagIds 中不存在的 tag 跳過
  *
  * @param {string} bookId
+ * @param {string} [platformId='readmoo']
  * @returns {Promise<Array>}
  */
-async function getTagsForBook (bookId) {
-  const books = await loadBooks()
+async function getTagsForBook (bookId, platformId = 'readmoo') {
+  const books = await loadBooks(platformId)
   const book = books.find(b => b.id === bookId)
   if (!book || !book.tagIds || book.tagIds.length === 0) {
     return []
@@ -994,9 +1016,10 @@ async function updateTag (tagId, updates) {
  * 業務規則：isSystem=true 不可刪除
  *
  * @param {string} tagId
+ * @param {string} [platformId='readmoo']
  * @returns {Promise<Object>}
  */
-async function deleteTag (tagId) {
+async function deleteTag (tagId, platformId = 'readmoo') {
   return operationLock.run(async () => {
     const tags = await loadTags()
     const tagIndex = tags.findIndex(t => t.id === tagId)
@@ -1007,7 +1030,7 @@ async function deleteTag (tagId) {
       return { success: false, error: 'cannot_delete_system' }
     }
 
-    const currentBooks = await loadBooks()
+    const currentBooks = await loadBooks(platformId)
 
     return withAtomicRollback(
       { tags, books: currentBooks },
@@ -1018,7 +1041,7 @@ async function deleteTag (tagId) {
             book.tagIds = book.tagIds.filter(tid => tid !== tagId)
           }
         }
-        await saveBooksWrapper(currentBooks)
+        await saveBooksWrapper(currentBooks, platformId)
 
         // Step 2: 刪除 tag
         tags.splice(tagIndex, 1)
@@ -1026,7 +1049,8 @@ async function deleteTag (tagId) {
 
         return { success: true }
       },
-      'deleteTag'
+      'deleteTag',
+      platformId
     )
   })
 }
@@ -1114,9 +1138,10 @@ async function batchMoveTags (tagIds, targetCategoryId) {
  * 回 { deleted, failed }。單次原子寫入存活 tag 與書籍集合。
  *
  * @param {string[]} tagIds - 要刪除的 tag id 陣列
+ * @param {string} [platformId='readmoo']
  * @returns {Promise<{ deleted: number, failed: number }>}
  */
-async function batchDeleteTags (tagIds) {
+async function batchDeleteTags (tagIds, platformId = 'readmoo') {
   return operationLock.run(async () => {
     const ids = Array.isArray(tagIds) ? tagIds : []
     const tags = await loadTags()
@@ -1130,7 +1155,7 @@ async function batchDeleteTags (tagIds) {
       else failed += 1 // ghost id → 計入 failed
     }
 
-    const currentBooks = await loadBooks()
+    const currentBooks = await loadBooks(platformId)
     return withAtomicRollback(
       { tags, books: currentBooks },
       async () => {
@@ -1140,7 +1165,7 @@ async function batchDeleteTags (tagIds) {
             book.tagIds = book.tagIds.filter(tid => !toDelete.has(tid))
           }
         }
-        await saveBooksWrapper(currentBooks)
+        await saveBooksWrapper(currentBooks, platformId)
 
         // Step 2: 刪除存在的 tag
         const remaining = tags.filter(t => !toDelete.has(t.id))
@@ -1148,7 +1173,8 @@ async function batchDeleteTags (tagIds) {
 
         return { deleted: toDelete.size, failed }
       },
-      'batchDeleteTags'
+      'batchDeleteTags',
+      platformId
     )
   })
 }
@@ -1163,16 +1189,17 @@ async function batchDeleteTags (tagIds) {
  *
  * @param {string} bookId
  * @param {string} tagId
+ * @param {string} [platformId='readmoo']
  * @returns {Promise<Object>}
  */
-async function addTagToBook (bookId, tagId) {
+async function addTagToBook (bookId, tagId, platformId = 'readmoo') {
   return operationLock.run(async () => {
     const tags = await loadTags()
     if (!tags.some(t => t.id === tagId)) {
       return { success: false, error: 'tag_not_found' }
     }
 
-    const books = await loadBooks()
+    const books = await loadBooks(platformId)
     const book = books.find(b => b.id === bookId)
     if (!book) {
       return { success: false, error: 'book_not_found' }
@@ -1185,7 +1212,7 @@ async function addTagToBook (bookId, tagId) {
       book.tagIds.push(tagId)
     }
 
-    await saveBooksWrapper(books)
+    await saveBooksWrapper(books, platformId)
     return { success: true, tagIds: [...book.tagIds] }
   })
 }
@@ -1195,11 +1222,12 @@ async function addTagToBook (bookId, tagId) {
  *
  * @param {string} bookId
  * @param {string} tagId
+ * @param {string} [platformId='readmoo']
  * @returns {Promise<Object>}
  */
-async function removeTagFromBook (bookId, tagId) {
+async function removeTagFromBook (bookId, tagId, platformId = 'readmoo') {
   return operationLock.run(async () => {
-    const books = await loadBooks()
+    const books = await loadBooks(platformId)
     const book = books.find(b => b.id === bookId)
     if (!book) {
       return { success: false, error: 'book_not_found' }
@@ -1209,7 +1237,7 @@ async function removeTagFromBook (bookId, tagId) {
       book.tagIds = book.tagIds.filter(tid => tid !== tagId)
     }
 
-    await saveBooksWrapper(books)
+    await saveBooksWrapper(books, platformId)
     return { success: true, tagIds: [...(book.tagIds || [])] }
   })
 }
@@ -1220,11 +1248,12 @@ async function removeTagFromBook (bookId, tagId) {
  *
  * @param {string} bookId
  * @param {string[]} tagIds
+ * @param {string} [platformId='readmoo']
  * @returns {Promise<Object>}
  */
-async function setBookTags (bookId, tagIds) {
+async function setBookTags (bookId, tagIds, platformId = 'readmoo') {
   return operationLock.run(async () => {
-    const books = await loadBooks()
+    const books = await loadBooks(platformId)
     const book = books.find(b => b.id === bookId)
     if (!book) {
       return { success: false, error: 'book_not_found' }
@@ -1240,7 +1269,7 @@ async function setBookTags (bookId, tagIds) {
     }
 
     book.tagIds = [...new Set(validatedTagIds)]
-    await saveBooksWrapper(books)
+    await saveBooksWrapper(books, platformId)
     return { success: true, tagIds: [...book.tagIds] }
   })
 }
@@ -1249,10 +1278,11 @@ async function setBookTags (bookId, tagIds) {
  * 查詢含特定 tag 的所有書籍
  *
  * @param {string} tagId
+ * @param {string} [platformId='readmoo']
  * @returns {Promise<Array>}
  */
-async function getBooksByTag (tagId) {
-  const books = await loadBooks()
+async function getBooksByTag (tagId, platformId = 'readmoo') {
+  const books = await loadBooks(platformId)
   return books.filter(b => b.tagIds && b.tagIds.includes(tagId))
 }
 
@@ -1284,13 +1314,14 @@ async function getQuotaStatus () {
  * - 移除書籍 tagIds 中不存在的 tagId
  * - tag 的 categoryId 引用不存在時，移至預設 category 或刪除
  *
+ * @param {string} [platformId='readmoo']
  * @returns {Promise<Object>} 修復結果
  */
-async function checkReferentialIntegrity () {
+async function checkReferentialIntegrity (platformId = 'readmoo') {
   return operationLock.run(async () => {
     const tags = await loadTags()
     const categories = await loadCategories()
-    const books = await loadBooks()
+    const books = await loadBooks(platformId)
 
     const validTagIds = new Set(tags.map(t => t.id))
     const validCategoryIds = new Set(categories.map(c => c.id))
@@ -1326,7 +1357,7 @@ async function checkReferentialIntegrity () {
       }
     }
 
-    await saveBooksWrapper(books)
+    await saveBooksWrapper(books, platformId)
     await saveToStorage({ [STORAGE_KEYS.TAGS]: remainingTags })
 
     return { success: true, booksFixed, tagsFixed }
@@ -1365,12 +1396,13 @@ async function initializeSchema () {
  * @param {Array<Object>} data.books          - v2 書籍陣列
  * @param {Array<Object>} data.tags           - v2 tag 陣列
  * @param {Array<Object>} data.tagCategories  - v2 tag category 陣列
+ * @param {string} [platformId='readmoo']     - books 所屬書城
  * @returns {Promise<{ success: boolean, error?: string,
  *                      counts?: { books: number, tags: number, tagCategories: number } }>}
  *   success=true：三 key 寫入完成，counts 回報寫入筆數
  *   success=false：error 為 'quota_exceeded' | 'storage_error'
  */
-async function replaceAllData ({ books, tags, tagCategories }) {
+async function replaceAllData ({ books, tags, tagCategories }, platformId = 'readmoo') {
   return operationLock.run(async () => {
     // 步驟 A：配額前置攔截——blocked 時不寫入任何 key
     const quota = await checkQuotaLevel()
@@ -1382,7 +1414,7 @@ async function replaceAllData ({ books, tags, tagCategories }) {
     // 步驟 B：建立寫入前快照（三 key）
     // 快照 key 名稱必須對齊 SNAPSHOT_KEY_TO_STORAGE_KEY 契約：
     // categories→TAG_CATEGORIES、tags→TAGS，books 走 saveBooksWrapper 特殊處理。
-    const previousBooks = await loadBooks()
+    const previousBooks = await loadBooks(platformId)
     const previousTags = await loadTags()
     const previousCategories = await loadCategories()
 
@@ -1390,12 +1422,13 @@ async function replaceAllData ({ books, tags, tagCategories }) {
     const result = await withAtomicRollback(
       { books: previousBooks, tags: previousTags, categories: previousCategories },
       async () => {
-        await saveBooksWrapper(books)
+        await saveBooksWrapper(books, platformId)
         await saveToStorage({ [STORAGE_KEYS.TAGS]: tags })
         await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: tagCategories })
         return { success: true }
       },
-      'replaceAllData'
+      'replaceAllData',
+      platformId
     )
 
     // 步驟 D：判定終點
@@ -1780,13 +1813,14 @@ function computeMergeResult (local, incoming, idGenerators) {
  * @param {Array<Object>} data.books          - 匯入的 v2 書籍陣列
  * @param {Array<Object>} data.tags           - 匯入的 v2 tag 陣列
  * @param {Array<Object>} data.tagCategories  - 匯入的 v2 tag category 陣列
+ * @param {string} [platformId='readmoo']     - books 所屬書城
  * @returns {Promise<{ success: boolean, error?: string,
  *                      counts?: { books: number, tags: number, tagCategories: number },
  *                      remap?: { categories: number, tags: number } }>}
  *   success=true：合併結果原子寫回三 key，counts 為合併後筆數，remap 為重映射統計
  *   success=false：error 為 'quota_exceeded' | 'storage_error'
  */
-async function mergeAllData ({ books, tags, tagCategories }) {
+async function mergeAllData ({ books, tags, tagCategories }, platformId = 'readmoo') {
   return operationLock.run(async () => {
     // 步驟 A：配額前置攔截——blocked 時不讀、不算、不寫
     const quota = await checkQuotaLevel()
@@ -1796,7 +1830,7 @@ async function mergeAllData ({ books, tags, tagCategories }) {
     }
 
     // 步驟 B：讀本地三 key 現況作為合併輸入
-    const previousBooks = await loadBooks()
+    const previousBooks = await loadBooks(platformId)
     const previousTags = await loadTags()
     const previousCategories = await loadCategories()
 
@@ -1815,12 +1849,13 @@ async function mergeAllData ({ books, tags, tagCategories }) {
     const result = await withAtomicRollback(
       { books: previousBooks, tags: previousTags, categories: previousCategories },
       async () => {
-        await saveBooksWrapper(merged.books)
+        await saveBooksWrapper(merged.books, platformId)
         await saveToStorage({ [STORAGE_KEYS.TAGS]: merged.tags })
         await saveToStorage({ [STORAGE_KEYS.TAG_CATEGORIES]: merged.tagCategories })
         return { success: true }
       },
-      'mergeAllData'
+      'mergeAllData',
+      platformId
     )
 
     // 步驟 E：判定終點
