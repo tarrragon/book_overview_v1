@@ -101,14 +101,15 @@ class ExportService {
       processor: (data, options) => {
         if (!Array.isArray(data.books)) return ''
 
-        const headers = ['標題', '作者', '出版社', '分類', '進度', '評分']
+        const headers = ['標題', '作者', '出版社', '分類', '進度', '評分', '來源']
         const rows = data.books.map(book => [
           book.title || '',
           book.author || '',
           book.publisher || '',
           book.category || '',
           book.progress || 0,
-          book.rating || 0
+          book.rating || 0,
+          book.source || ''
         ])
 
         return [headers, ...rows].map(row =>
@@ -183,7 +184,7 @@ class ExportService {
 
   generateFilename (format, options = {}) {
     const timestamp = new Date().toISOString().slice(0, 10)
-    const prefix = options.filenamePrefix || 'readmoo_books'
+    const prefix = options.filenamePrefix || 'book_overview'
     const extension = this.exportFormats.get(format)?.extension || format
     return `${prefix}_${timestamp}.${extension}`
   }

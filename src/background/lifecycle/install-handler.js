@@ -17,6 +17,7 @@
 const BaseModule = require('./base-module')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 const MigrationService = require('src/background/domains/data-management/services/migration-service')
+const { PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
 
 class InstallHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -318,8 +319,11 @@ class InstallHandler extends BaseModule {
       }
 
       // 設定基本儲存結構
+      // 每個書城獨立 storage key（platformBooksKey），避免多書城資料互相覆蓋
       const storageInit = {
-        readmoo_books: null,
+        ...Object.fromEntries(
+          Object.values(PLATFORM_IDS).map(platformId => [platformBooksKey(platformId), null])
+        ),
         extraction_history: [],
         last_extraction: null
       }

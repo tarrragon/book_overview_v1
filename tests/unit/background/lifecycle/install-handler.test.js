@@ -14,6 +14,7 @@
 // eslint-disable-next-line no-unused-vars
 const InstallHandler = require('src/background/lifecycle/install-handler')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
+const { PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
 
 describe('InstallHandler', () => {
   // eslint-disable-next-line no-unused-vars
@@ -362,7 +363,9 @@ describe('InstallHandler', () => {
       await installHandler.initializeStorage()
 
       expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
-        readmoo_books: null,
+        ...Object.fromEntries(
+          Object.values(PLATFORM_IDS).map(platformId => [platformBooksKey(platformId), null])
+        ),
         extraction_history: [],
         last_extraction: null
       })
@@ -370,21 +373,27 @@ describe('InstallHandler', () => {
 
     test('應該跳過已存在的儲存項目', async () => {
       mockChrome.storage.local.get.mockImplementation((keys, callback) => {
-        if (callback) {
-          callback({
-            readmoo_books: 'existing_data',
-            extraction_history: ['some_history']
-          })
-        }
-        return Promise.resolve({
+        const existing = {
           readmoo_books: 'existing_data',
           extraction_history: ['some_history']
-        })
+        }
+        if (callback) {
+          callback(existing)
+        }
+        return Promise.resolve(existing)
       })
 
       await installHandler.initializeStorage()
 
+      const missingPlatformKeys = Object.fromEntries(
+        Object.values(PLATFORM_IDS)
+          .map(platformBooksKey)
+          .filter(key => key !== 'readmoo_books')
+          .map(key => [key, null])
+      )
+
       expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
+        ...missingPlatformKeys,
         last_extraction: null
       })
     })
