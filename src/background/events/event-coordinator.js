@@ -15,7 +15,7 @@
  */
 
 const BaseModule = require('src/background/lifecycle/base-module')
-const { SYSTEM_EVENTS, EVENT_PRIORITIES } = require('src/background/constants/module-constants')
+const { SYSTEM_EVENTS, EVENT_PRIORITIES, PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
 const { Logger } = require('src/core/logging/Logger')
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 const BookSchemaV2 = require('src/data-management/BookSchemaV2')
@@ -540,11 +540,12 @@ class EventCoordinator extends BaseModule {
 
       try {
         let books = event.data?.booksData || event.data?.books
+        const source = event.data?.source || PLATFORM_IDS.READMOO
 
         // 正規化每本書並套用 BookSchemaV2 model 轉換
         //
         // 轉換順序（單一 map callback 內，順序關鍵）：
-        // 1. tags 正規化（既有邏輯）— 確保含書城來源名 'readmoo'
+        // 1. tags 正規化（既有邏輯）— 確保含書城來源名（platform-aware）
         // 2. derive readingStatus — 由 progress 經 mapV1StatusToV2() 推導
         // 3. applyDefaults() — 填入 tagIds:[]、isManualStatus:false 等 schema 預設
         // 4. 顯式設定 schemaVersion — schema fields 未定義此欄位，applyDefaults 不會填
@@ -555,7 +556,7 @@ class EventCoordinator extends BaseModule {
         if (Array.isArray(books)) {
           books = books.map(b => {
             const existing = Array.isArray(b.tags) ? b.tags : (b.tag ? [b.tag] : [])
-            const tags = Array.from(new Set([...(existing || []), 'readmoo']))
+            const tags = Array.from(new Set([...(existing || []), source]))
 
             // derive readingStatus（DRY：複用 BookSchemaV2 既有 derivation，
             // 異常 progress 由 normalizeV1Progress 退化為 unread，不丟錯）
@@ -579,14 +580,16 @@ class EventCoordinator extends BaseModule {
             extractionTimestamp: event.timestamp || Date.now(),
             extractionCount: event.data?.count || books.length,
             extractionDuration: event.data?.duration || 0,
-            source: event.data?.source || 'readmoo'
+            source
           }
 
-          this.logger.log(`[SAVE] 準備儲存 ${books.length} 本書籍到 Chrome Storage`)
-          await chrome.storage.local.set({ readmoo_books: storageData })
+          const storageKey = platformBooksKey(source)
 
-          const verifyData = await chrome.storage.local.get(['readmoo_books'])
-          this.logger.log('[OK] 驗證儲存結果:', verifyData.readmoo_books ? `${verifyData.readmoo_books.books?.length || 0} 本書籍` : '無資料')
+          this.logger.log(`[SAVE] 準備儲存 ${books.length} 本書籍到 Chrome Storage（key: ${storageKey}）`)
+          await chrome.storage.local.set({ [storageKey]: storageData })
+
+          const verifyData = await chrome.storage.local.get([storageKey])
+          this.logger.log('[OK] 驗證儲存結果:', verifyData[storageKey] ? `${verifyData[storageKey].books?.length || 0} 本書籍` : '無資料')
         } else {
           this.logger.warn('[WARN] 提取完成事件中沒有有效的書籍資料')
         }

@@ -21,7 +21,9 @@
 
 const {
   EXTRACTION_EVENTS,
-  EVENT_PRIORITIES
+  EVENT_PRIORITIES,
+  PLATFORM_IDS,
+  platformBooksKey
 } = require('src/background/constants/module-constants')
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 
@@ -192,9 +194,58 @@ class DataProcessingService {
    * 初始化資料處理器
    */
   initializeDataProcessors () {
-    // Readmoo 書籍資料處理器
-    this.dataProcessors.set('readmoo_books', async (rawData) => {
-      this.logger.log('處理 Readmoo 書籍資料')
+    // 書籍資料處理器：依 PLATFORM_IDS 逐一註冊，key 為 platformBooksKey(platformId)
+    // （如 readmoo_books、kobo_books），處理邏輯本身與書城無關，僅 source 隨平台不同
+    Object.values(PLATFORM_IDS).forEach(platformId => {
+      this.dataProcessors.set(platformBooksKey(platformId), this.createBooksProcessor(platformId))
+    })
+
+    // 閱讀進度資料處理器
+    this.dataProcessors.set('reading_progress', async (rawData) => {
+      this.logger.log('處理閱讀進度資料')
+
+      return {
+        progressRecords: rawData.map(record => ({
+          bookId: this.cleanString(record.bookId),
+          progress: this.normalizeProgress(record.progress),
+          readingTime: this.normalizeNumber(record.readingTime),
+          lastPosition: this.cleanString(record.lastPosition),
+          updatedAt: this.normalizeDate(record.updatedAt)
+        })),
+        processedAt: Date.now()
+      }
+    })
+
+    // 書籍元資料處理器
+    this.dataProcessors.set('book_metadata', async (rawData) => {
+      this.logger.log('處理書籍元資料')
+
+      return {
+        metadata: {
+          totalCount: this.normalizeNumber(rawData.totalCount),
+          lastSync: this.normalizeDate(rawData.lastSync),
+          dataVersion: this.cleanString(rawData.version),
+          source: this.cleanString(rawData.source)
+        },
+        processedAt: Date.now()
+      }
+    })
+
+    this.logger.log(`[OK] 初始化了 ${this.dataProcessors.size} 個資料處理器`)
+  }
+
+  /**
+   * 建立書籍資料處理器（platform-aware）
+   *
+   * 處理邏輯與書城無關，僅 source 隨平台不同：優先採 rawData.source
+   * （呼叫端可顯式指定），無指定時退回註冊時的 platformId。
+   *
+   * @param {string} platformId - PLATFORM_IDS 中的值，作為 source 預設值
+   * @returns {Function} 資料處理器 async function
+   */
+  createBooksProcessor (platformId) {
+    return async (rawData) => {
+      this.logger.log(`處理 ${platformId} 書籍資料`)
 
       if (!rawData || !Array.isArray(rawData.books)) {
         const error = new Error('無效的書籍資料格式')
@@ -203,6 +254,7 @@ class DataProcessingService {
         throw error
       }
 
+      const source = rawData.source || platformId
       const processedBooks = []
 
       for (const book of rawData.books) {
@@ -242,7 +294,7 @@ class DataProcessingService {
 
           // 元資料
           extractedAt: Date.now(),
-          source: 'readmoo',
+          source,
           version: '1.0'
         }
 
@@ -258,40 +310,7 @@ class DataProcessingService {
           processedAt: Date.now()
         }
       }
-    })
-
-    // 閱讀進度資料處理器
-    this.dataProcessors.set('reading_progress', async (rawData) => {
-      this.logger.log('處理閱讀進度資料')
-
-      return {
-        progressRecords: rawData.map(record => ({
-          bookId: this.cleanString(record.bookId),
-          progress: this.normalizeProgress(record.progress),
-          readingTime: this.normalizeNumber(record.readingTime),
-          lastPosition: this.cleanString(record.lastPosition),
-          updatedAt: this.normalizeDate(record.updatedAt)
-        })),
-        processedAt: Date.now()
-      }
-    })
-
-    // 書籍元資料處理器
-    this.dataProcessors.set('book_metadata', async (rawData) => {
-      this.logger.log('處理書籍元資料')
-
-      return {
-        metadata: {
-          totalCount: this.normalizeNumber(rawData.totalCount),
-          lastSync: this.normalizeDate(rawData.lastSync),
-          dataVersion: this.cleanString(rawData.version),
-          source: this.cleanString(rawData.source)
-        },
-        processedAt: Date.now()
-      }
-    })
-
-    this.logger.log(`[OK] 初始化了 ${this.dataProcessors.size} 個資料處理器`)
+    }
   }
 
   /**
