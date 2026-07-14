@@ -1,6 +1,6 @@
 # Readmoo 書庫提取器 - Use Cases 規格
 
-**版本**: v1.3
+**版本**: v1.4
 **文件版本**: 2026-07-14
 **基於**: [技術文件導覽中心](./domains/README.md)
 
@@ -203,6 +203,18 @@
 - 匯出欄位集定義需更新（BASIC/EXTENDED/COMPLETE 等加入 tag 相關欄位） 詳見 [CSV 匯出欄位規格](./spec/csv-export-spec.md)。
 - **新邊界條件**：書籍無 tag 時匯出為空陣列而非省略欄位
 
+**多書城影響**（v1.5+）:
+
+- **匯出檔名**：從 `readmoo-books-YYYY-MM-DD.json` 改為依匯出範圍動態命名：
+  - 全部書城合併匯出：`all-books-YYYY-MM-DD.json`
+  - 單一書城匯出：`{platformId}-books-YYYY-MM-DD.json`（如 `kobo-books-2026-07-14.json`）
+- **匯出範圍選擇**：使用者可選擇「匯出全部書城」或「僅匯出當前書城」。預設為全部書城合併匯出（透過 `loadAllPlatformBooks()` 合併讀取所有 `{platformId}_books` key）
+- **CSV source 欄位**：CSV 匯出新增 `source` 欄位，值為 `platformId`（如 `readmoo`、`kobo`），讓使用者在試算表中可依書城篩選。（對齊 SPEC-STORAGE-ISOLATION D4）
+- **JSON canonical source**：book-interchange-v1 canonical 格式中每本書的 `source` 欄位保留書城歸屬，匯出後再匯入時可路由回正確的 storage key
+- **新邊界條件**：
+  - 僅有一個書城有資料時，全部匯出與單一匯出結果相同
+  - 匯出時某書城的 storage key 為空（已安裝但未提取），該書城不含在匯出中
+
 ---
 
 ### UC-04: 資料匯入與恢復
@@ -266,6 +278,20 @@
   - v1 檔案含不合法的 isNew/isFinished 組合（如兩者皆 true）時的降級處理
   - 匯入的 tag_category 在本地不存在時自動建立
   - 匯入超大 tag 數量（單本書 > 50 個 tag）時的處理
+
+**多書城影響**（v1.5+）:
+
+- **匯入路由邏輯**：匯入時系統依每本書的 `source` 欄位路由至對應的 storage key：
+  - `source === 'readmoo'` → 寫入 `readmoo_books`
+  - `source === 'kobo'` → 寫入 `kobo_books`
+  - `source` 為空或不存在 → 歸入 `readmoo_books`（向後相容，假設舊資料來自 Readmoo）
+- **多書城合併匯入**：匯入檔案可包含多個書城的書籍，系統依 `source` 欄位分組後分別寫入對應 storage key
+- **合併模式下的跨書城行為**：合併模式的去重在同一書城 storage key 內進行。不同書城的同 ID 書籍各自獨立儲存（跨書城合併歸 v2.0.0 範疇）
+- **覆蓋模式下的跨書城行為**：覆蓋模式依 `source` 分組後，僅覆蓋對應書城的 storage key，不影響其他書城
+- **新邊界條件**：
+  - 匯入檔案中出現未知的 `source` 值（如 `source === 'amazon_jp'` 但尚未註冊該書城）：自動建立 storage key，記錄 warning
+  - 匯入舊版匯出檔（v1.3 前，無 `source` 欄位）：全部歸入 `readmoo_books`
+  - 單一書城匯出檔匯入另一台裝置，該裝置已有該書城資料：依合併/覆蓋模式處理
 
 ---
 
@@ -554,6 +580,7 @@
 | v1.1 | 2026-04-03 | PROP-007 tag-based model 對齊：閱讀狀態 3→6、tag-based 影響分析、新增邊界條件、新增錯誤場景 E/F/G |
 | v1.2 | 2026-05-24 | UC-01 成功標準補正：`authors` 標為 source-limited（非必要欄位），引用 W1-061 ANA |
 | v1.3 | 2026-07-14 | UC-01/02/07 多書城影響章節增補：書城偵測切換、per-store storage 隔離、多書城錯誤場景 H/I/J/K（1.6.0-W2-004 / W3-002） |
+| v1.4 | 2026-07-14 | UC-03/04 多書城影響章節增補：匯出檔名動態命名、source 欄位、匯入路由邏輯（1.6.0-W3-004） |
 
 ## 相關規範與連結
 
