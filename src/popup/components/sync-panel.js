@@ -14,7 +14,7 @@ import { Logger } from '../../core/logging/Logger.js'
 import { encodeBookDataToQRFrames } from '../../sync/qr-encoder.js'
 import { buildSyncJSON } from '../../sync/sync-json-builder.js'
 import { SyncQRRenderer } from '../services/sync-qr-renderer.js'
-import { STORAGE_KEYS } from '../../background/constants/module-constants.js'
+import { loadAllPlatformBooks } from '../../storage/helpers/multi-platform-storage.js'
 
 const logger = new Logger('SyncPanel')
 
@@ -93,14 +93,12 @@ export class SyncPanel {
   }
 
   /**
-   * 讀取書庫 books 陣列（chrome.storage.local.readmoo_books.books）。
+   * 讀取所有書城合併後的 books 陣列。
    * @returns {Promise<Array>}
    */
   async _loadBooks () {
     try {
-      const data = await chrome.storage.local.get([STORAGE_KEYS.READMOO_BOOKS])
-      const stored = data && data[STORAGE_KEYS.READMOO_BOOKS]
-      return (stored && stored.books) || []
+      return await loadAllPlatformBooks()
     } catch (error) {
       logger.error('讀取書庫失敗：' + error.message, { component: 'SyncPanel' })
       throw new Error('讀取書庫失敗')

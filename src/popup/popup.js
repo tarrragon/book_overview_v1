@@ -1074,13 +1074,15 @@ async function checkCurrentTab () {
  * - W1-001.2 實機驗證發現 928 本提取成功後 popup 仍顯示「檢測中...」
  * - UC-01 step 6 規格要求「Popup 顯示提取結果：成功提取 X 本書籍」
  * - 根因：popup 對 START_EXTRACTION 的同步回應只代表「流程已啟動」，
- *   真實提取結果由 background 異步寫入 chrome.storage.local.readmoo_books，
+ *   真實提取結果由 background 異步寫入 chrome.storage.local 的 {platform}_books key，
  *   popup 缺乏對該 storage key 變更的監聽，導致提取完成事件無正向回饋
+ * - 1.6.0-W2-003.2：多書城合併顯示，監聽器改為匹配任一 `*_books` 後綴 key
+ *   （非固定 readmoo_books），避免其他書城提取完成事件被忽略
  *
  * 處理流程：
  * 1. 在 startExtraction 觸發成功後呼叫
  * 2. 註冊一次性 chrome.storage.onChanged 監聽器
- * 3. 偵測 readmoo_books 變更時，依新值 books 陣列長度更新 UI
+ * 3. 偵測任一 `*_books` 後綴 key 變更時，依新值 books 陣列長度更新 UI
  * 4. 完成更新後自動移除監聽器，避免後續干擾或記憶體累積
  *
  * 設計考量：
@@ -1097,9 +1099,11 @@ function setupExtractionCompletionListener () {
 
   const listener = (changes, areaName) => {
     if (areaName !== 'local') return
-    if (!changes || !changes.readmoo_books) return
 
-    const newValue = changes.readmoo_books.newValue
+    const changedBooksKey = changes && Object.keys(changes).find(key => key.endsWith('_books'))
+    if (!changedBooksKey) return
+
+    const newValue = changes[changedBooksKey].newValue
     if (!newValue || !Array.isArray(newValue.books)) return
 
     const bookCount = newValue.books.length

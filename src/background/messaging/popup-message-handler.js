@@ -16,6 +16,8 @@
 
 const BaseModule = require('src/background/lifecycle/base-module')
 const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
+const { loadAllPlatformBooks } = require('src/storage/helpers/multi-platform-storage')
 
 class PopupMessageHandler extends BaseModule {
   constructor (dependencies = {}) {
@@ -382,11 +384,11 @@ class PopupMessageHandler extends BaseModule {
 
       switch (dataType) {
         case 'books': {
-          const booksData = await chrome.storage.local.get(['readmoo_books'])
+          const allBooks = await loadAllPlatformBooks()
           responseData = {
-            books: booksData.readmoo_books?.books || [],
-            count: booksData.readmoo_books?.extractionCount || 0,
-            lastExtraction: booksData.readmoo_books?.extractionTimestamp || null
+            books: allBooks,
+            count: allBooks.length,
+            lastExtraction: null
           }
           break
         }
@@ -747,8 +749,8 @@ class PopupMessageHandler extends BaseModule {
     }
 
     if (permissions.requiresData) {
-      const data = await chrome.storage.local.get(['readmoo_books'])
-      if (!data.readmoo_books || !data.readmoo_books.books || data.readmoo_books.books.length === 0) {
+      const allBooks = await loadAllPlatformBooks()
+      if (allBooks.length === 0) {
         const error = new Error('操作需要已提取的資料')
         error.code = ErrorCodes.MISSING_REQUIRED_DATA
         error.details = {
@@ -808,10 +810,12 @@ class PopupMessageHandler extends BaseModule {
     const clearedItems = []
 
     switch (clearType) {
-      case 'books':
-        await chrome.storage.local.remove(['readmoo_books'])
-        clearedItems.push('readmoo_books')
+      case 'books': {
+        const allPlatformBookKeys = Object.values(PLATFORM_IDS).map(platformBooksKey)
+        await chrome.storage.local.remove(allPlatformBookKeys)
+        clearedItems.push(...allPlatformBookKeys)
         break
+      }
 
       case 'history':
         await chrome.storage.local.remove(['extraction_history'])

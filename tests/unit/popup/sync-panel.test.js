@@ -187,7 +187,8 @@ describe('SyncPanel', () => {
     const firstClick = elements.syncButton.click()
     // 第二次點擊在第一次流程仍處理中（isProcessing=true）時觸發，應立即 return
     elements.syncButton.click()
-    // 推進 microtask 佇列：第一次流程的 storage await 完成後才呼叫 encoder
+    // 推進 microtask 佇列：_loadBooks -> loadAllPlatformBooks -> storage.get 三層 await 鏈完成後才呼叫 encoder
+    await Promise.resolve()
     await Promise.resolve()
     await Promise.resolve()
 

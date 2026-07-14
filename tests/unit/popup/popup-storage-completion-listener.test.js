@@ -178,4 +178,24 @@ describe('Popup 提取完成監聽器 (W1-062)', () => {
     expect(document.getElementById('bookCount').textContent).toBe('0')
     expect(chrome.storage.onChanged.removeListener).toHaveBeenCalledTimes(1)
   })
+
+  test('非 readmoo 書城（kobo_books）變更亦應觸發成功訊息（1.6.0-W2-003.2）', () => {
+    const setupListener = window.setupExtractionCompletionListener
+    setupListener()
+
+    const fakeBooks = new Array(12).fill(0).map((_, i) => ({ id: `kobo-${i}` }))
+    chrome.storage.onChanged._trigger(
+      {
+        kobo_books: {
+          newValue: { books: fakeBooks, extractionTimestamp: Date.now() }
+        }
+      },
+      'local'
+    )
+
+    expect(document.getElementById('statusText').textContent).toBe('提取成功')
+    expect(document.getElementById('statusInfo').textContent).toBe('提取成功 12 本書籍')
+    expect(document.getElementById('bookCount').textContent).toBe('12')
+    expect(chrome.storage.onChanged.removeListener).toHaveBeenCalledTimes(1)
+  })
 })
