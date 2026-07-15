@@ -246,7 +246,35 @@ Ticket 的 `what` / `how` 含以下任一特徵即屬於驗證類：
 
 ### worktree 派發注意事項
 
-> **worktree base 取 origin/main（可能 stale）**：cc runtime 的 `Agent(isolation: "worktree")` 以 `origin/main`（remote-tracking ref）為 worktree base，**而非** local main HEAD（W3-007 實證）。**Why**：cc runtime 取 remote-tracking ref 作 base；當 local main 領先 origin/main（有未 push 的本地 commit）時，worktree 建在 stale 基底上，缺少最新本地 commit。**Consequence**：agent 以缺 commit 的過時基底工作，產出與 local main 不相容，需 agent 手動 recovery（W2-013 實證 parsley 手動 checkout feat 分支救回）。**Action**：(1) **派發 worktree agent 前先 `git push origin main`**，使 origin/main 對齊 local main（消除根因分歧）；`worktree-commit-before-dispatch-hook.py` 會在 origin/main 落後時 stderr 警告。(2) 派發 prompt 開頭加 `git merge main` 指引作補強（worktree 共享 `.git`，main ref 一致）。完整說明與 prompt 範本見 `.claude/references/agent-dispatch-template.md`「worktree 派發 base 同步指引（W1-035）」。
+> **設計依據（W5-008 方案 C 分段採納）**：低風險任務（ANA/DOC/唯讀，約 40-60%）免 worktree 是既有實務的明文化（hook 本來就不對分析/審核代理人強制 worktree）；高風險長 IMP 維持 worktree 強制。中風險短 IMP 共享 tree + PM 統一 commit 暫緩，待 W5-033 受控實驗結論。
+
+### 風險分級表
+
+| 風險等級 | 任務特徵 | 隔離策略 | 代理人範例 |
+|---------|---------|---------|-----------|
+| 低風險 | ANA/DOC/唯讀分析，不修改 `src/` `lib/` `test/` 產品程式碼 | 主 repo cwd（不需 worktree） | saffron, linux, bay, basil, thyme-documentation, lavender, Explore |
+| 高風險 | IMP/重構/測試實作，修改 `src/` `lib/` `test/` 產品程式碼或測試 | `isolation: "worktree"` 強制 | parsley, fennel, thyme-python, cinnamon, pepper, mint |
+| 中風險 | 短 IMP 共享 tree + PM 統一 commit | **暫緩**（blocked pending W5-033 受控實驗結論） | — |
+
+> **worktree 為 fresh checkout，gitignored 生成產物須先確認就緒**：worktree 是全新 checkout，任何 gitignored 的建置生成產物（i18n 產物、序列化程式碼、DI 註冊等）若未同步存在，會造成連鎖編譯失敗且極易被誤判為高並行編譯器資源耗盡（實證與歸因陷阱見 `IMP-APP-003`）。**Why**：gitignore 排除生成產物是常見慣例，但該慣例假設「產物可即時重新生成」，worktree 派發若未確保生成步驟已執行，假設不成立。**Consequence**：全套件測試結果不可信，數十至上百項編譯失敗會被誤歸因為環境噪音而非缺產物。**Action**：(1) 派發跑全套件的 worktree agent 前，PM 先確認該 worktree 內含當前所有必要生成產物；(2) 對每個 gitignored 生成產物，評估納入版控，或於派發 prompt 中要求 agent 先執行對應 generation 指令（如 `flutter gen-l10n` / `dart run build_runner build`）；(3) 判斷「大量編譯失敗」是否為此類根因時，先查該產物是否 gitignored 且未納版控，勿逕自歸因並行資源耗盡。
+
+### Redirect 派發反模式禁令（強制，W1-016）
+
+**禁止 `isolation: worktree` + prompt 導向另一個既有外部 worktree 的組合派發。**
+
+**Why**：`isolation: worktree` 建 auto-worktree（`.claude/worktrees/agent-*`），agent cwd 在 auto-worktree 內。若 prompt 又導向另一個外部 worktree 做檔案操作，ticket CLI（claim/append-log/Exit Status auto-commit）依 cwd 解析落在 auto-worktree 分支，code changes 落在外部 worktree 分支，形成 ghost commits——ticket metadata 與 code changes 分裂到不同分支，PM 需手動回收（W1-001/W1-003 實證：各 3 筆 ghost append-log commit 需 `-s ours` 回收）。
+
+**Consequence**：(1) main 票面停在 pending（auto-worktree 的 ticket 變更未進 main）；(2) PM 需手動比對兩個分支確認超集關係；(3) auto-worktree 分支清理後 ghost commits 可能遺失。
+
+**Action**：依需求選擇正確的單一隔離模式：
+
+| 需求 | 正確派發模式 | 說明 |
+|------|------------|------|
+| agent 需要隔離 | `isolation: worktree` 單獨使用 | agent 在 auto-worktree 工作，ticket CLI 和 code changes 都落在 auto-worktree 分支，PM merge 時一併取回 |
+| agent 需在特定分支/worktree 工作 | 不用 `isolation: worktree`，prompt 提供外部 worktree 路徑 | agent cwd 在 main repo，file ops 用絕對路徑，ticket CLI 落 main repo |
+| agent 需在特定分支 + 隔離 | `isolation: worktree` + prompt 加 `git checkout <branch>` | auto-worktree 可 checkout 任何分支（共享 git object store），不需另一個 worktree |
+
+> **根因分析**：paths.py 的 `_linked_worktree_root()` 偵測 auto-worktree 為 linked worktree 並回傳其根目錄是 W3-010 修復的**正確行為**。問題在於兩個不相容隔離機制疊加，不在路徑解析邏輯。完整分析見 0.38.1-W1-016 ANA。
 
 ### 並行場景路徑區分（`.claude/` vs `src/`）
 
@@ -300,7 +328,7 @@ Claude Code runtime 對 subagent 操作 worktree 內 `.claude/` 有硬編碼保�
 | 2 | 允許並行；確認檔案邊界互斥 |
 | 3+ | 拆 batch（每批 ≤ 2）或改序列；緊急情境豁免需在 dispatch-plan 註明並接受 deny 風險 |
 
-**重啟條件**：若 W17-177.1 落地後仍出現並行 ≤ 2 場景的 `.claude/` Edit deny，需執行 W17-177 NeedsContext 的對照組實驗區辨「並行假設」vs 其他變因（PC-115 trigger 計數歸零後重新累積）。
+**重啟條件**：若並行 ≤ 2 場景仍出現 `.claude/` Edit deny，需重啟調查並執行對照組實驗（非並行單發 Edit 對照），區辨「並行假設」vs 其他未識別變因（PC-115 trigger 計數歸零後重新累積；完整背景見 PC-137「觀察」章節）。
 
 #### 實務落地對照
 
@@ -383,7 +411,7 @@ PC-137 並行 ≤ 2 規則為 worktree 模式下的觀察結論（W17-097.1-.4 +
 
 ## 嵌套派發整合條款（嵌套協議 v2 與並行規則的互動）
 
-> **協議權威來源**：嵌套派發協議 v2 定義於 `.claude/agents/AGENT_PRELOAD.md` 規則 9（D1 ticket 主通道三階段表、D2 descend/ascend 決策速查、D3 `can_descend()` 層級自覺）；完整設計依據見 ticket `1.0.0-W1-056.5` Solution「修訂版協議（v2）」。本章節**不複寫**該協議的條件表，只規範嵌套場景與本文件既有並行規則（`.claude/` 並行數限制、PC-092 精準 staging、worktree 隔離）的互動口徑。
+> **協議權威來源**：嵌套派發協議 v2 定義於 `.claude/agents/AGENT_PRELOAD.md` 規則 9（D1 ticket 主通道三階段表、D2 descend/ascend 決策速查、D3 `can_descend()` 層級自覺），完整設計依據與決策脈絡記錄於該規則本身。本章節**不複寫**該協議的條件表，只規範嵌套場景與本文件既有並行規則（`.claude/` 並行數限制、PC-092 精準 staging、worktree 隔離）的互動口徑。
 
 ### 嵌套層並行數計算口徑（`.claude/` 限制跨層累計）
 
@@ -425,7 +453,7 @@ PC-137 並行 ≤ 2 規則為 worktree 模式下的觀察結論（W17-097.1-.4 +
 |------|--------|------|
 | 父層 worktree 內、child 需要父層中間產物 | 條件相容 | 父層必須先 commit 並 merge 回 main（worktree base 以派發瞬間 main HEAD 為準，父層 worktree 內未回 main 的變更對 child 不可見）；無法滿足時禁止 descend，改在本層完成 |
 | child 修改 `.claude/` | 受 D2 敏感操作禁止 | `.claude/` 寫入屬敏感操作，嵌套層禁止 descend 此類子任務；ARCH-015 限制（target 必須在主 repo 樹內）跨層不變 |
-| 父層主 repo cwd、child 修改 `src/` 等 worktree 適用路徑 | 相容 | 同單層規則：child 派發遵循「Worktree 隔離」章節（含 base 同步指引） |
+| 父層主 repo cwd、child 修改 `src/` 等 worktree 適用路徑 | 相容 | 同單層規則：child 派發遵循「Worktree 隔離（風險分級）」章節（含 base 同步指引） |
 
 **嵌套層 worktree 受控驗證**：嵌套層的 worktree 建立行為（base 取點、合併歸屬、GC 回收）尚無受控實驗資料；上表為依單層已知行為與 D1 不變量推導的保守規則。本段屬規則檔擴充性說明（依 `.claude/rules/core/decision-trigger-binding.md` 規則 1.5）：實際出現嵌套層 worktree descend 需求時，建 ANA ticket 執行對照實驗後再放寬。
 
@@ -442,6 +470,39 @@ PC-137 並行 ≤ 2 規則為 worktree 模式下的觀察結論（W17-097.1-.4 +
 ```
 
 > 詳細驗證步驟和常見原因：.claude/references/parallel-dispatch-details.md
+
+---
+
+## 派發機制選用準則（named agent vs 一般 subagent，W2-002 ANA 落地）
+
+> **來源**：0.38.0-W2-002 — W2-001 執行中 PM 對循序兩階段任務（star-anise → lavender）誤用 named agent（Agent tool 帶 `name` 參數）走 mailbox 機制，產生非必要的 idle 通知與 shutdown 回收步驟，並使用戶誤以為 mailbox 指真實電子信箱。實驗確認本文件、`agent-dispatch-template.md`、`agent-team SKILL.md` 三檔**零處**明確標示選用時機。
+
+**Why**：named agent 與一般 subagent 除了「回傳方式」不同外，還牽動 idle 態回收成本（見下方「idle agent 回收 SOP」）與用戶認知風險；決策若無顯性依據，PM 容易誤選看似「更慎重」的機制，實際只是徒增複雜度。
+
+**Consequence**：循序一次性任務誤用 named agent，會產生非必要的 `idle_notification` 噪音、需額外執行 `SendMessage shutdown_request` 回收步驟；用戶亦可能因 mailbox 一詞誤解為電子郵件系統而困惑（W2-001 實證）。
+
+**Action**：派發前先依下表判斷機制。**預設一律選一般 subagent（不帶 `name` 參數）**，僅在下表列出的顯性理由成立時才改用 named agent。本節是任務分派的最前置步驟——先確定每個 agent 是否需要 `name`，再進入本文件「決策流程」章節的並行/序列判斷。
+
+### 選用準則決策表
+
+| 判斷條件 | 選擇 | 理由 |
+|---------|------|------|
+| 循序一次性任務（A 完成後才派 B） | 一般 subagent | 無平行/協作需求，named agent 增加 idle 回收成本 |
+| 獨立分析/實作任務（無跨 agent 即時溝通需求） | 一般 subagent | 結果直接回傳 PM context，流程最簡 |
+| 平行派發 2+ agent，各自獨立無即時協作 | 一般 subagent | 各自完成後結果分別回傳，PM 彙整（本文件既有並行流程） |
+| 平行派發且 Agent A 的發現會改變 Agent B 正在進行的工作 | Agent Teams（含 named agent） | 需 SendMessage 即時協商，見 `.claude/skills/agent-team/SKILL.md` 核心判據 |
+| 同 Wave 有 3+ 張同類型 ticket 且預期逐一派發 | named agent（可選） | 續用省冷啟動成本（約 30 秒/次）；但 context 飽和風險需權衡 |
+
+### 兩機制差異對照（決策依據）
+
+| 面向 | named agent（帶 `name`） | 一般 subagent（不帶 `name`） |
+|------|--------------------------|------------------------------|
+| 回傳方式 | 透過 mailbox（`idle_notification` / agent-message），PM 以 SendMessage 取報告 | 直接作為 tool result 回傳 PM context |
+| 生命週期 | 完工後進入 idle 態，需明確 shutdown 回收（見下方「idle agent 回收 SOP」） | 完工後自動終止，無 idle 態 |
+| 可重用性 | 可 SendMessage 續派新任務 | 一次性，完成即銷毀 |
+| 用戶認知風險 | mailbox 一詞易誤解為電子郵件（W2-001 實證） | 無此風險 |
+
+> 與 `.claude/skills/agent-team/SKILL.md`「快速決策表」的關係：該表回答上一層問題（Task subagent vs Agent Teams，依「Agent A 的發現是否改變 Agent B 工作」判斷）；本節回答下一層問題（在確定不需要 Agent Teams 的前提下，Task subagent 本身是否要帶 `name`）。兩表判準不重疊，依序套用：先查 agent-team 決策表定是否需要 Agent Teams，再查本節決策表定是否需要 named agent。
 
 ---
 
@@ -530,7 +591,16 @@ Wave 所有 ticket 完成後，PM 對所有仍存活的 idle agent 依序發送 
 
 ---
 
-**Last Updated**: 2026-07-08
+**Last Updated**: 2026-07-10
+**Version**: 4.13.0 - Worktree 隔離章節從「強制」改為「風險分級」：新增風險分級表（低/高/中三級），低風險（ANA/DOC/唯讀）免 worktree 為既有實務明文化，高風險（IMP/重構/測試實作）維持 worktree 強制，中風險暫緩待 W5-033 實驗結論；原代理人類型表合併至風險分級表，Source of truth 註記同步更新（0.38.0-W5-034，W5-008 方案 C 分段採納落地）
+
+**Version**: 4.12.0 - 清理 2 處依賴型專案 ticket ID 引用（改抽象描述，避免框架資產 sync 至其他專案後成死連結）：嵌套派發整合條款的協議設計依據引用改指向規則本身；`.claude/` 並行數限制的重啟條件改抽象描述並改引用 PC-137（框架 error-pattern，跨專案穩定）（0.38.0-W5-030，W5-015 結論落地）
+
+**Last Updated**: 2026-07-09
+**Version**: 4.11.0 - Worktree 隔離章節新增「worktree 為 fresh checkout，gitignored 生成產物須先確認就緒」提示：訂立生成產物的納入版控評估與派發前確認 SOP（源自 `IMP-APP-003` 對照實驗）
+
+**Version**: 4.10.0 - 新增「派發機制選用準則（named agent vs 一般 subagent）」章節：選用準則決策表 + 兩機制差異對照 + 與 agent-team SKILL.md 快速決策表的分層關係說明；置於「idle agent 回收 SOP」之前（先講何時該用，再講用了怎麼回收），填補 W2-001 PM 誤用 named agent 的規範缺口（0.38.0-W2-002 ANA 落地，W4-005）
+
 **Version**: 4.9.0 - 新增「idle agent 回收 SOP」章節：續用/放生二分判準表 + SendMessage 續用/shutdown_request 放生範本 + Wave 收尾批次放生流程（W1-008 ANA 落地，W1-010）
 
 **Version**: 4.8.0 - 新增「嵌套派發整合條款」章節：`.claude/` 並行數限制跨層累計口徑（常態收斂於 L0 dispatch-plan 帳本）+ 嵌套 descend staging 責任歸屬表（PC-092 延伸）+ worktree 模式與嵌套相容性（D1 不變量隔離檔案層差異）；協議權威來源引用 AGENT_PRELOAD 規則 9 與 1.0.0-W1-056.5 v2，不複寫條件表（1.0.0-W1-056.10）

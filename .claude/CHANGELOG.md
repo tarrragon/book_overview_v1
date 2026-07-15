@@ -1,3 +1,52 @@
+## [2.17.0] - 2026-07-15
+
+### Summary
+feat: complete cascade 新增 blockedBy 反向掃描解鎖機制; feat: Phase 4 審查證據 WARNING hook + 規則 2 覆蓋修正; feat: 實作 doc uc acceptance-check CLI + dispatch-validate 規則 5 (+18 more)
+
+Changes: 8 feat, 5 fix, 5 docs, 3 chore
+
+- feat: complete cascade 新增 blockedBy 反向掃描解鎖機制
+- feat: Phase 4 審查證據 WARNING hook + 規則 2 覆蓋修正
+- feat: 實作 doc uc acceptance-check CLI + dispatch-validate 規則 5
+- feat: 實作 UC fingerprint 漂移偵測 CLI + PostToolUse hook
+- feat: context_bundle_extractor UC 自動注入
+- feat: uc CLI trace 截斷分組 + 錯誤訊息 actionable + except 觀測性
+- feat: 實作 uc-reference-validation-hook.py（PreToolUse UC 引用驗證，WARNING-only）
+- feat: 實作 doc skill uc list/verify/trace/context 子命令群組
+- fix: get_uc_summary 非標準 UC 結構容錯
+- fix: test_stop_hook 5 測試 project_root 隔離修復
+- fix: UC 掃描 token 變體/豁免路徑/常數治理 hardening
+- fix: uc hook 補 MultiEdit 提取分支 + settings 註冊
+- fix: uc verify 壞路徑/空白名單 fail-fast exit 2
+- docs: quality-baseline 規則 2 補充非 TDD 流程覆蓋
+- docs: UC 規範實作對齊 + 框架碼 ticket ID 抽象化
+- docs: 平行審查 UC 治理交付——建 ~072 + IMP-APP-005
+- docs: 補完 doc SKILL.md frontmatter uc 能力宣告
+- docs: 新增 PC-APP-011 驗收 pattern 盲區 + IMP-APP-004 pipeline exit 假守衛
+- chore: pre-dispatch — ticket 分析 + hook 權限修正
+- chore: redirect 派發反模式禁令文件化
+- chore: 為 install-skill-clis.py 補執行位元
+
+---
+
+## [2.16.0] - 2026-07-14
+
+### Summary
+feat: ux-interaction-feedback Skill 補畫面級回饋 + spinner/skeleton 判準 + 去專案化; feat: 新增 ux-interaction-feedback Skill（三層回饋模型 + 按鈕狀態 + 時間門檻）; feat: version-release check 新增佔位掃描（WARNING only） (+5 more)
+
+Changes: 3 feat, 1 fix, 3 docs, 1 chore
+
+- feat: ux-interaction-feedback Skill 補畫面級回饋 + spinner/skeleton 判準 + 去專案化
+- feat: 新增 ux-interaction-feedback Skill（三層回饋模型 + 按鈕狀態 + 時間門檻）
+- feat: version-release check 新增佔位掃描（WARNING only）
+- fix: ux-interaction-feedback Skill 三輪審查修法（9 finding）
+- docs: 新增 PC-APP-010 code 杜撰 UC- 前綴偽需求 ID
+- docs: DI 架構規格化 + 可觀測性規則 5 落地
+- docs: 發版前實機冒煙驗證清單三層結構
+- chore: manifest APP 對照對帳完成 + PC-APP-009 錯誤模式記錄
+
+---
+
 ## [2.15.1] - 2026-07-11
 
 ### Summary
