@@ -305,6 +305,11 @@ const { TextEncoder, TextDecoder } = require('util')
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
 
+// JSDOM 的 crypto 缺少 randomUUID（Chrome SW 環境原生支援，僅測試環境需補）
+if (!global.crypto.randomUUID) {
+  global.crypto.randomUUID = require('crypto').randomUUID
+}
+
 // 修復 JSDOM 中 Blob 的 type 屬性問題
 const OriginalBlob = global.Blob
 global.Blob = class extends OriginalBlob {

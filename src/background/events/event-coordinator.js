@@ -564,6 +564,18 @@ class EventCoordinator extends BaseModule {
 
             // 先放入 derive 結果，再 applyDefaults 才不會覆蓋為預設 unread
             const withStatus = { ...b, tags, readingStatus }
+
+            // ID 正規化（須在 applyDefaults 前）：BookSchemaV2 的 id 為
+            // required 但無 default，applyDefaults 不會補 id。
+            // kobo/books-com-tw adapter 用 bookId 欄位，先映射為 platformBookId，
+            // 合併後 id 仍為 falsy（如 books-com-tw 空字串 bookId）時生成 UUID。
+            if (withStatus.bookId) {
+              withStatus.platformBookId = withStatus.bookId
+            }
+            if (!withStatus.id) {
+              withStatus.id = globalThis.crypto.randomUUID()
+            }
+
             const normalized = BookSchemaV2.applyDefaults(withStatus)
 
             // book 物件層級的 schema 版本標記（採 camelCase，與 book 既有
