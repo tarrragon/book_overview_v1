@@ -60,9 +60,9 @@ describe('KoboAdapter - SSR 分頁', () => {
       <nav class="library-filters">
         <span class="filter-chip">所有項目 (${books.length})</span>
       </nav>
-      <region aria-label="書籍">
+      <section class="library-content book-list">
         <ul>${bookItems}</ul>
-      </region>
+      </section>
     </body></html>`
   }
 
@@ -220,7 +220,7 @@ describe('KoboAdapter - SSR 分頁', () => {
         <nav class="library-filters">
           <span class="filter-chip">所有項目 (80)</span>
         </nav>
-        <region aria-label="書籍">
+        <section class="library-content book-list">
           <ul>${page1Books.map(b => `
             <li class="item-wrapper book">
               <div class="item-detail">
@@ -234,7 +234,7 @@ describe('KoboAdapter - SSR 分頁', () => {
               </div>
             </li>
           `).join('')}</ul>
-        </region>
+        </section>
       `
 
       // 第二頁：20 本
@@ -265,7 +265,7 @@ describe('KoboAdapter - SSR 分頁', () => {
         <nav class="library-filters">
           <span class="filter-chip">所有項目 (120)</span>
         </nav>
-        <region aria-label="書籍">
+        <section class="library-content book-list">
           <ul>${page1Books.map(b => `
             <li class="item-wrapper book">
               <div class="item-detail">
@@ -279,7 +279,7 @@ describe('KoboAdapter - SSR 分頁', () => {
               </div>
             </li>
           `).join('')}</ul>
-        </region>
+        </section>
       `
 
       // fetch 第二頁失敗
@@ -301,7 +301,7 @@ describe('KoboAdapter - SSR 分頁', () => {
         <nav class="library-filters">
           <span class="filter-chip">所有項目 (999999)</span>
         </nav>
-        <region aria-label="書籍">
+        <section class="library-content book-list">
           <ul><li class="item-wrapper book">
             <div class="item-detail">
               <div class="item-info main-meta">
@@ -313,7 +313,7 @@ describe('KoboAdapter - SSR 分頁', () => {
               <div class="date-field">2024/1/15</div>
             </div>
           </li></ul>
-        </region>
+        </section>
       `
 
       // 每頁都回傳 60 本（永遠不停止）
