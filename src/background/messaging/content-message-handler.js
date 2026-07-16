@@ -17,6 +17,12 @@
 const BaseModule = require('src/background/lifecycle/base-module')
 const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
+// CONTENT.FETCH.PAGE_HTML 允許的平台域名白名單（跨書城通用）
+const ALLOWED_FETCH_DOMAINS = ['kobo.com', 'books.com.tw', 'readmoo.com']
+
+// CONTENT.FETCH.PAGE_HTML fetch 逾時時間（毫秒）
+const FETCH_TIMEOUT_MS = 30000
+
 class ContentMessageHandler extends BaseModule {
   constructor (dependencies = {}) {
     super(dependencies)
@@ -43,7 +49,8 @@ class ContentMessageHandler extends BaseModule {
       'CONTENT.STATUS.UPDATE',
       'CONTENT.STATUS.READY',
       'CONTENT.SCRIPT.READY',
-      'CONTENT.SCRIPT.ERROR'
+      'CONTENT.SCRIPT.ERROR',
+      'CONTENT.FETCH.PAGE_HTML'
     ])
   }
 
@@ -219,6 +226,9 @@ class ContentMessageHandler extends BaseModule {
 
       case 'CONTENT.SCRIPT.ERROR':
         return await this.handleContentScriptError(message, sender, sendResponse)
+
+      case 'CONTENT.FETCH.PAGE_HTML':
+        return await this.handleFetchPageHtml(message, sender, sendResponse)
 
       default: {
         const error = new Error(`未支援的訊息類型: ${message.type}`)
@@ -472,6 +482,80 @@ class ContentMessageHandler extends BaseModule {
     })
 
     return false
+  }
+
+  /**
+   * 處理 CONTENT.FETCH.PAGE_HTML：由 Background SW 代 Content Script 發出跨頁 fetch
+   * @param {Object} message - 訊息物件（需含 url）
+   * @param {Object} sender - 發送者資訊
+   * @param {Function} sendResponse - 回應函數
+   * @returns {Promise<boolean>}
+   * @private
+   */
+  async handleFetchPageHtml (message, sender, sendResponse) {
+    const { url } = message
+
+    if (!url) {
+      sendResponse({ success: false, error: '缺少 url 參數' })
+      return false
+    }
+
+    let parsedUrl
+    try {
+      parsedUrl = new URL(url)
+    } catch (error) {
+      sendResponse({ success: false, error: `URL 格式無效: ${error.message}` })
+      return false
+    }
+
+    if (!this.isAllowedFetchDomain(parsedUrl.hostname)) {
+      sendResponse({ success: false, error: `不允許的域名: ${parsedUrl.hostname}` })
+      return false
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
+    try {
+      const response = await fetch(url, {
+        credentials: 'include',
+        signal: controller.signal
+      })
+
+      if (!response.ok) {
+        sendResponse({
+          success: false,
+          error: `HTTP ${response.status}: ${response.statusText}`,
+          status: response.status
+        })
+        return false
+      }
+
+      const html = await response.text()
+      sendResponse({ success: true, html, status: response.status })
+      return false
+    } catch (error) {
+      const isAbort = error.name === 'AbortError'
+      sendResponse({
+        success: false,
+        error: isAbort ? `Fetch request timeout (${FETCH_TIMEOUT_MS}ms): ${error.message}` : error.message
+      })
+      return false
+    } finally {
+      clearTimeout(timeoutId)
+    }
+  }
+
+  /**
+   * 檢查 hostname 是否屬於允許的平台域名（含子域名）
+   * @param {string} hostname - URL hostname
+   * @returns {boolean}
+   * @private
+   */
+  isAllowedFetchDomain (hostname) {
+    return ALLOWED_FETCH_DOMAINS.some(
+      domain => hostname === domain || hostname.endsWith(`.${domain}`)
+    )
   }
 
   /**
