@@ -45,6 +45,51 @@ cp .claude/skills/doc/templates/usecase-template.md docs/usecases/UC-{XX}-{簡�
 | partial | 部分實作或概念相通但細節不同 | 2 |
 | not-applicable | 不適用於 Chrome Extension | 2 |
 
+## 雙 UC 系統關係說明
+
+本專案存在兩套 UC 編號系統，來源於不同開發階段，編號重疊但語意不同。
+
+### 兩套系統對照
+
+| 項目 | v1 基線 UC | APP 版 UC（本目錄） |
+|------|-----------|-------------------|
+| 檔案位置 | `docs/use-cases.md`（單一檔案） | `docs/usecases/UC-*.md`（原子化檔案） |
+| 原始來源 | Chrome Extension v1.0 規格 | `docs/app-use-cases.md`（已原子化至本目錄） |
+| UC 數量 | 7 個（UC-01 ~ UC-07） | 12 個（UC-01 ~ UC-12） |
+| 適用範圍 | 僅 Chrome Extension（Readmoo 單一書城） | Chrome Extension + Flutter APP（多書城） |
+| 維護狀態 | v1.0 基線凍結，不再新增 UC | 活躍維護，隨功能擴展新增 |
+| 引用場景 | CLAUDE.md 里程碑 v1.0 驗收參考 | 新功能開發的規格依據、測試設計基礎 |
+
+### 編號重疊對照表
+
+v1 與 APP 版的 UC-01 ~ UC-07 編號相同但語意不同：
+
+| 編號 | v1 基線（`docs/use-cases.md`） | APP 版（`docs/usecases/`） |
+|------|-------------------------------|---------------------------|
+| UC-01 | 首次安裝與設定 | 匯入 Chrome Extension 書庫資料 |
+| UC-02 | 日常書籍資料提取 | 匯出書庫資料 |
+| UC-03 | 資料匯出與備份 | ISBN 條碼掃描新增書籍 |
+| UC-04 | 資料匯入與恢復 | 關鍵字搜尋補充書籍資訊 |
+| UC-05 | 跨設備資料同步 | 雙模式書庫展示系統 |
+| UC-06 | 書籍資料檢視與管理 | 借閱管理系統 |
+| UC-07 | 錯誤處理與恢復 | 跨平台資料同步 |
+| UC-08 | （不存在） | 系統錯誤處理與恢復 |
+| UC-09 | （不存在） | 全自動化書庫提取 |
+| UC-10 | （不存在） | 多書城偵測與切換 |
+| UC-11 | （不存在） | 跨書城合併檢視 |
+| UC-12 | （不存在） | 單一書城資料管理 |
+
+### 引用時的區分方式
+
+引用 UC 編號時須標明所屬系統，避免混淆：
+
+| 引用格式 | 指向 |
+|---------|------|
+| `docs/use-cases.md` UC-01 | v1 基線「首次安裝與設定」 |
+| `docs/usecases/UC-01-import.md` | APP 版「匯入 Chrome Extension 書庫資料」 |
+
+doc CLI（`/doc`）的 `uc list` / `uc verify` 操作以 `docs/usecases/` 原子化檔案為 SSOT，不納管 v1 基線。
+
 ## 來源
 
-原始用例文件：`../app-use-cases.md`（保留為歷史參考）
+原始用例文件：`../app-use-cases.md`（保留為歷史參考，內容已原子化至本目錄各 UC-*.md 檔案）
