@@ -180,6 +180,7 @@ function createReadmooAdapter (options = {}) {
   const PLACEHOLDER_URL_PATTERN = /\/api\/reader\/\d+$/
   const UNSTABLE_COVER_IDS = new Set(['openbook', 'undefined', 'placeholder', 'default'])
   const MAX_ANCESTOR_DEPTH = 12
+  const VALID_HOSTNAME = 'readmoo.com'
 
   // 建立穩定 ID 生成器
   const idGenerator = createStableIdGenerator({
@@ -846,6 +847,56 @@ function createReadmooAdapter (options = {}) {
 
     handleWithFallback (methodName, operation, fallbackValue, context = '') {
       return handleWithFallback(methodName, operation, fallbackValue, context, logger)
+    },
+
+    // === 頁面偵測方法（PlatformAdapterInterface） ===
+
+    /**
+     * 檢查域名是否為 Readmoo
+     * @param {string} [url] - 待檢查 URL
+     * @returns {boolean}
+     */
+    isValidDomain (url) {
+      const target = typeof url === 'string' ? url : (getLocation().href || '')
+      let hostname
+      try {
+        hostname = new URL(target).hostname.toLowerCase()
+      } catch (error) {
+        // 設計性靜默：無法解析的 URL（空字串 / 'not-a-url'）即非有效 Readmoo 域名
+        return false
+      }
+      return hostname === VALID_HOSTNAME || hostname.endsWith(`.${VALID_HOSTNAME}`)
+    },
+
+    /**
+     * 判斷頁面類型（SPA hash routing：書庫頁 hash 含 #/library，閱讀器 pathname 含 /api/reader/）
+     * @param {string} [url] - 待判斷 URL
+     * @returns {Promise<string>} 'library' / 'reader' / 'unknown'
+     */
+    async getPageType (url) {
+      const target = typeof url === 'string' ? url : (getLocation().href || '')
+      try {
+        const parsed = new URL(target)
+        if (parsed.hash.includes('#/library')) {
+          return 'library'
+        }
+        if (parsed.pathname.includes('/api/reader/')) {
+          return 'reader'
+        }
+        return 'unknown'
+      } catch (error) {
+        // 設計性靜默：URL 無法解析時視為非書庫/閱讀器頁
+        return 'unknown'
+      }
+    },
+
+    /**
+     * 判斷頁面是否可提取
+     * @param {string} [url] - 待判斷 URL
+     * @returns {Promise<boolean>}
+     */
+    async isExtractablePage (url) {
+      return (await this.getPageType(url)) === 'library'
     },
 
     // === 標準介面 ===

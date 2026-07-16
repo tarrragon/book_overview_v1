@@ -6,13 +6,15 @@
  * 負責功能：
  * - 驗證 PlatformRegistry.detect -> adapter.getPageType -> isExtractablePage 全鏈路
  * - 覆蓋 Readmoo、博客來、Kobo 三個書城的真實 URL pattern
- * - 暴露 readmoo-adapter 缺少 getPageType/isExtractablePage/isValidDomain 的結構性缺口
+ * - 驗證 readmoo-adapter 已實作 getPageType/isExtractablePage/isValidDomain，
+ *   delegation chain 走 adapter 而非 extractor 硬編碼 fallback（1.6.0-W4-009）
  *
  * 背景（1.6.0-W4-001）：
  * book-data-extractor 的 getPageType() 優先委派 platformAdapter.getPageType()，
  * adapter 無此方法或回傳 'unknown' 時才 fallback 到 Readmoo 硬編碼 URL pattern。
- * readmoo-adapter（factory 模式）未實作這些方法，實際靠 extractor fallback 運作；
+ * readmoo-adapter（factory 模式）原未實作這些方法，實際靠 extractor fallback 運作；
  * 單元測試因 mock 遮蔽了這條 delegation chain，故本測試以真實模組串接驗證。
+ * 1.6.0-W4-009 補齊 adapter 介面一致性後，本測試改為驗證 adapter delegation 生效。
  */
 
 const PlatformRegistry = require('src/content/platform/platform-registry')
@@ -33,7 +35,7 @@ describe('多書城 URL-to-extract 全鏈路整合測試', () => {
     })
   }
 
-  describe('Readmoo（adapter 無 getPageType，驗證 extractor fallback delegation 缺口）', () => {
+  describe('Readmoo（adapter 完整實作 getPageType，靠 hash routing 判斷）', () => {
     const LIBRARY_URL = 'https://read.readmoo.com/#/library'
     const UNMATCHED_URL = 'https://read.readmoo.com/#/notifications'
 
@@ -45,21 +47,23 @@ describe('多書城 URL-to-extract 全鏈路整合測試', () => {
       expect(typeof detection.createAdapter).toBe('function')
     })
 
-    test('createAdapter 建立的 Readmoo adapter 缺少 getPageType/isExtractablePage/isValidDomain', () => {
+    test('createAdapter 建立的 Readmoo adapter 已實作 getPageType/isExtractablePage/isValidDomain', () => {
       const detection = PlatformRegistry.detect(LIBRARY_URL)
       const adapter = detection.createAdapter()
 
-      expect(typeof adapter.getPageType).not.toBe('function')
-      expect(typeof adapter.isExtractablePage).not.toBe('function')
-      expect(typeof adapter.isValidDomain).not.toBe('function')
+      expect(typeof adapter.getPageType).toBe('function')
+      expect(typeof adapter.isExtractablePage).toBe('function')
+      expect(typeof adapter.isValidDomain).toBe('function')
       expect(typeof adapter.extractAllBooks).toBe('function')
+      expect(adapter.isValidDomain(LIBRARY_URL)).toBe(true)
     })
 
-    test('全鏈路：library URL 經 extractor fallback 判斷為可提取頁面', async () => {
+    test('全鏈路：library URL 經 adapter.getPageType 判斷為可提取頁面（delegation 生效，非 fallback）', async () => {
       setLocation(LIBRARY_URL)
 
       const detection = PlatformRegistry.detect(LIBRARY_URL)
       const adapter = detection.createAdapter()
+      const getPageTypeSpy = jest.spyOn(adapter, 'getPageType')
       const extractor = createBookDataExtractor()
       extractor.setPlatformAdapter(adapter)
 
@@ -68,14 +72,16 @@ describe('多書城 URL-to-extract 全鏈路整合測試', () => {
 
       expect(pageType).toBe('library')
       expect(extractable).toBe(true)
+      expect(getPageTypeSpy).toHaveBeenCalled()
       expect(typeof adapter.extractAllBooks).toBe('function')
     })
 
-    test('不匹配 URL：extractor fallback 正確回傳 unknown/false', async () => {
+    test('不匹配 URL：adapter delegation 正確回傳 unknown/false', async () => {
       setLocation(UNMATCHED_URL)
 
       const detection = PlatformRegistry.detect(UNMATCHED_URL)
       const adapter = detection.createAdapter()
+      const getPageTypeSpy = jest.spyOn(adapter, 'getPageType')
       const extractor = createBookDataExtractor()
       extractor.setPlatformAdapter(adapter)
 
@@ -84,6 +90,7 @@ describe('多書城 URL-to-extract 全鏈路整合測試', () => {
 
       expect(pageType).toBe('unknown')
       expect(extractable).toBe(false)
+      expect(getPageTypeSpy).toHaveBeenCalled()
     })
   })
 

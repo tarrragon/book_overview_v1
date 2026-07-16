@@ -548,16 +548,16 @@ describe('Modular Content Script', () => {
       const originalGlobalLocation = globalThis.location
 
       globalThis.location = {
-        hostname: 'readmoo.com',
-        href: 'https://readmoo.com/library',
-        pathname: '/library',
+        hostname: 'read.readmoo.com',
+        href: 'https://read.readmoo.com/#/library',
+        pathname: '/',
         protocol: 'https:',
-        host: 'readmoo.com',
+        host: 'read.readmoo.com',
         port: '',
         search: '',
-        hash: '',
-        origin: 'https://readmoo.com',
-        toString: () => 'https://readmoo.com/library'
+        hash: '#/library',
+        origin: 'https://read.readmoo.com',
+        toString: () => 'https://read.readmoo.com/#/library'
       }
 
       // eslint-disable-next-line no-unused-vars
@@ -579,7 +579,7 @@ describe('Modular Content Script', () => {
         pageType: 'library',
         bookCount: 2,
         extractable: true,
-        url: 'https://readmoo.com/library',
+        url: 'https://read.readmoo.com/#/library',
         timestamp: expect.any(Number)
       })
 
@@ -592,6 +592,19 @@ describe('Modular Content Script', () => {
     })
 
     test('應該能夠啟動提取流程', async () => {
+      globalThis.location = {
+        hostname: 'read.readmoo.com',
+        href: 'https://read.readmoo.com/#/library',
+        pathname: '/',
+        protocol: 'https:',
+        host: 'read.readmoo.com',
+        port: '',
+        search: '',
+        hash: '#/library',
+        origin: 'https://read.readmoo.com',
+        toString: () => 'https://read.readmoo.com/#/library'
+      }
+
       // eslint-disable-next-line no-unused-vars
       const createContentEventBus = require('src/content/core/content-event-bus')
       // eslint-disable-next-line no-unused-vars
@@ -603,7 +616,7 @@ describe('Modular Content Script', () => {
       // eslint-disable-next-line no-unused-vars
       const extractor = createBookDataExtractor()
       // eslint-disable-next-line no-unused-vars
-      const adapter = createReadmooAdapter()
+      const adapter = createReadmooAdapter({ document })
 
       extractor.setEventBus(eventBus)
       extractor.setPlatformAdapter(adapter)

@@ -72,7 +72,7 @@ describe('Content Script Extractor Integration', () => {
         </body>
       </html>
     `, {
-      url: 'https://readmoo.com/library',
+      url: 'https://read.readmoo.com/#/library',
       runScripts: 'dangerously',
       resources: 'usable'
     })
@@ -882,12 +882,13 @@ describe('Content Script Extractor Integration', () => {
       // jsdom 的 location/document 是特殊屬性，需要用 delete + 重新賦值覆寫
       delete globalThis.location
       globalThis.location = {
-        hostname: 'readmoo.com',
-        href: 'https://readmoo.com/library',
-        pathname: '/library',
-        origin: 'https://readmoo.com',
+        hostname: 'read.readmoo.com',
+        href: 'https://read.readmoo.com/#/library',
+        pathname: '/',
+        hash: '#/library',
+        origin: 'https://read.readmoo.com',
         protocol: 'https:',
-        host: 'readmoo.com'
+        host: 'read.readmoo.com'
       }
 
       // 確保 document 和 MutationObserver 來自同一個 JSDOM 實例，避免跨 realm 錯誤
