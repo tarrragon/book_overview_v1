@@ -4,8 +4,8 @@ title: "多書城偵測與切換"
 status: draft
 source_proposal: null
 created: "2026-07-14"
-updated: "2026-07-14"
-version: "1.0"
+updated: "2026-07-16"
+version: "1.1"
 
 primary_actor: "使用者"
 secondary_actors: ["系統（PlatformRegistry）"]
@@ -113,23 +113,27 @@ ticket_refs: [1.6.0-W2-004, 1.6.0-W3-003, 1.6.0-W3-006]
 
 ### 支援的書城清單（v1.5.0+）
 
-| 書城 | platformId | 狀態 | 目標版本 |
-|------|-----------|------|---------|
-| Readmoo | readmoo | implemented | v1.0.0 |
-| Kobo 台灣站 | kobo | planned | v1.6.0 |
-| Kobo 日本站 | kobo_jp | planned | v1.6.1 |
-| BookWalker 台灣站 | bookwalker | planned | v1.7.0 |
-| BookWalker 日本站 | bookwalker_jp | planned | v1.7.1 |
-| Kindle JP | kindle_jp | planned | v1.8.0 |
-| Kindle US | kindle_us | planned | v1.9.0 |
-| Google Play Books | google_play_books | planned | v1.10.0 |
-| Audible | audible | planned | v1.11.0 |
+| 書城 | platformId | 涵蓋地區 | 狀態 | 目標版本 |
+|------|-----------|---------|------|---------|
+| Readmoo | readmoo | 台灣 | implemented | v1.0.0 |
+| 博客來 | books-com-tw | 台灣 | implemented | v1.5.0 |
+| Kobo | kobo | 全球（台灣/日本/其他，統一帳號） | implemented | v1.6.0（台灣站）、v1.6.1（多地區路徑） |
+| BookWalker 台灣站 | bookwalker | 台灣 | planned | v1.7.0 |
+| BookWalker 日本站 | bookwalker_jp | 日本 | planned | v1.7.1 |
+| Kindle JP | kindle_jp | 日本 | planned | v1.8.0 |
+| Kindle US | kindle_us | 美國 | planned | v1.9.0 |
+| Google Play Books | google_play_books | 全球 | planned | v1.10.0 |
+| Audible | audible | 全球 | planned | v1.11.0 |
+
+> **v1.6.1 發現**：Kobo 已整合為全球統一平台（www.kobo.com），台灣站（/tw/zh/）和日本站（/jp/ja/）
+> 共用 domain、帳號、書庫，DOM 結構完全一致。因此不需要獨立的 `kobo_jp` platformId，
+> 以單一 `kobo` adapter 涵蓋所有地區。其他書城是否亦為統一平台，待各版本實測確認。
 
 ### 邊界條件
 
 - 使用者在非書城網站時，Extension 圖示可見但功能受限（僅顯示已蒐集的書庫總覽）
-- VPN 切換地區後書城 URL 不變但內容可能不同（如 Kobo 台灣 vs 國際版），系統以 URL 為準不判斷地區
-- 同一書城不同地區站點（如 kindle_jp vs kindle_us）視為不同 platformId，資料獨立儲存
+- **同一書城多地區路徑**：Kobo 等全球統一平台以單一 platformId 涵蓋所有地區路徑（`/tw/zh/`、`/jp/ja/` 等），adapter 需使用語系無關的選擇器（CSS class 而非 aria-label）
+- **不同書城相同名稱的地區站點**：需實測確認帳號體系是否互通。互通者共用 platformId（如 Kobo）；不互通者拆分為獨立 platformId（如 kindle_jp vs kindle_us），資料獨立儲存
 
 ### 與其他 UC 的關係
 

@@ -1,6 +1,6 @@
 # Kobo 書城資訊
 
-實機勘查目標：Kobo 台灣站書庫頁的 DOM 結構、分頁機制與適配器開發基礎。
+實機勘查目標：Kobo 書庫頁的 DOM 結構、分頁機制與適配器開發基礎。
 
 ---
 
@@ -9,32 +9,53 @@
 | 項目 | 值 |
 |------|----|
 | 平台名稱 | 樂天 Kobo |
+| 全球統一 domain | www.kobo.com |
 | 官方網址（台灣） | https://www.kobo.com/tw/zh/ |
 | 官方網址（日本） | https://www.kobo.com/jp/ja/ |
 | 電子書庫頁（台灣） | https://www.kobo.com/tw/zh/library/books |
-| 電子書庫頁（日本） | 待實機確認（路徑可能為 `/jp/ja/library/books`） |
+| 電子書庫頁（日本） | https://www.kobo.com/jp/ja/library/books |
 | 閱讀方式 | Kobo APP / 網頁版閱讀器（readnow.kobo.com） |
 | 是否需登入 | **是**（書庫頁強制登入，未登入 redirect 到 `authorize.kobo.com`） |
 | 登入方式 | Kobo/Rakuten 帳號、Facebook、Google |
-| 帳號隔離 | 台日帳號不同步，視為獨立書城 |
-| 目標版本 | v1.6.0（台灣站）、v1.6.1（日本站） |
+| 帳號體系 | **全球統一帳號**（台灣站帳號可直接登入日本站，書庫內容共用） |
+| platformId | `kobo`（全地區共用，不拆分 kobo_jp） |
+| 目標版本 | v1.6.0（台灣站適配器）、v1.6.1（多地區路徑擴展） |
 | 對應提案 | PROP-001 |
+
+### 多地區統一平台發現（2026-07-16 實測）
+
+v1.6.1 規劃前實測發現 Kobo 已整合為全球統一平台：
+
+| 觀察項 | 結論 |
+|--------|------|
+| Domain | 台灣站和日本站共用 `www.kobo.com`，僅路徑前綴不同（`/tw/zh/` vs `/jp/ja/`） |
+| 帳號 | 台灣帳號可直接登入日本站，無需另外註冊 |
+| 書庫 | 兩站顯示完全相同的書庫內容（同一本書、同一閱讀進度） |
+| DOM 結構 | CSS class 完全一致（`li.item-wrapper.book`、`section.library-content.book-list` 等） |
+| aria-label | 唯一差異：書庫容器的 aria-label 隨語系變化（台灣「書籍」、日本「本」） |
+| 地區限制 | 部分書顯示「ご購入いただけません」（無法購買），但已購書目不受影響 |
+
+**結論**：Kobo 台灣站和日本站不需要獨立的 platformId 或獨立適配器。
+現有 `kobo` adapter 只需將 `bookContainer` 選擇器從語系依賴（`[aria-label="書籍"]`）改為
+語系無關（`section.library-content.book-list`），並在 platform-registry 擴展路徑辨識即可。
 
 ---
 
 ## 測試目標 URL
 
-| 用途 | URL | 登入需求 |
-|------|-----|---------|
-| 官方首頁 | https://www.kobo.com/tw/zh | 否 |
-| **書庫頁（主要提取目標）** | https://www.kobo.com/tw/zh/library/books | **是** |
-| 我的書籍（總覽） | https://www.kobo.com/tw/zh/library | 是 |
-| 筆記本 | https://www.kobo.com/tw/zh/library/notebooks | 是 |
-| 收藏系列 | https://www.kobo.com/tw/zh/library/collections | 是 |
-| 封存 | https://www.kobo.com/tw/zh/library/archive | 是 |
-| 帳戶設定 | https://www.kobo.com/tw/zh/account/settings | 是 |
-| 網頁閱讀器 | https://readnow.kobo.com/{book-uuid} | 是 |
-| 書籍詳情 | https://www.kobo.com/tw/zh/ebook/{slug} | 否 |
+URL 路徑格式：`/{region}/{lang}/...`。region/lang 組合隨地區不同，但頁面結構相同。
+
+| 用途 | URL（台灣站範例） | 日本站對應 | 登入需求 |
+|------|-------------------|-----------|---------|
+| 官方首頁 | https://www.kobo.com/tw/zh | /jp/ja | 否 |
+| **書庫頁（主要提取目標）** | https://www.kobo.com/tw/zh/library/books | /jp/ja/library/books | **是** |
+| 我的書籍（總覽） | https://www.kobo.com/tw/zh/library | /jp/ja/library | 是 |
+| 筆記本 | https://www.kobo.com/tw/zh/library/notebooks | /jp/ja/library/notebooks | 是 |
+| 收藏系列 | https://www.kobo.com/tw/zh/library/collections | /jp/ja/library/collections | 是 |
+| 封存 | https://www.kobo.com/tw/zh/library/archive | /jp/ja/library/archive | 是 |
+| 帳戶設定 | https://www.kobo.com/tw/zh/account/settings | /jp/ja/account/settings | 是 |
+| 網頁閱讀器 | https://readnow.kobo.com/{book-uuid} | 共用（無地區前綴） | 是 |
+| 書籍詳情 | https://www.kobo.com/tw/zh/ebook/{slug} | /jp/ja/ebook/{slug} | 否 |
 
 ---
 
@@ -70,7 +91,7 @@ Extension `manifest.json` 需新增的 `content_scripts.matches`：
 
 | URL | 是否注入 | 用途 |
 |-----|---------|------|
-| https://www.kobo.com/tw/zh/library/books* | 是 | 書庫頁（主要提取目標） |
+| https://www.kobo.com/*/library/books* | 是 | 書庫頁（主要提取目標，涵蓋所有地區路徑） |
 | https://authorize.kobo.com/* | 是 | 登入偵測 |
 
 ---
@@ -107,7 +128,7 @@ body
 │   │   ├── button "新增日期"                   -- 排序下拉
 │   │   ├── .pagination-filter-container      -- 每頁筆數（24/36/48/60）
 │   │   └── button "格線" / button "清單"       -- 顯示模式
-│   ├── region[aria-label="書籍"]              -- 書目列表區
+│   ├── section.library-content.book-list       -- 書目列表區（aria-label 隨語系變化：台灣「書籍」/日本「本」）
 │   │   ├── table header（標題/作者/系列/狀態/新增日期）
 │   │   └── ul > li.item-wrapper.book (repeat) -- 書目卡片
 │   └── .page-navigation                      -- 分頁導航（有多頁時）
