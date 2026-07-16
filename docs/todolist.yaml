@@ -1,6 +1,6 @@
 # Todolist - 專案版本與任務追蹤
 # 格式規範：使用 versions 列表，ticket CLI 自動偵測 status=active 的版本
-last_updated: "2026-06-26"
+last_updated: "2026-07-16"
 
 versions:
   - version: "1.4.0"
@@ -32,8 +32,9 @@ versions:
       platform adapter 實作。含多書城共用架構（PlatformIsolationService 骨架）。
 
   - version: "1.6.0"
-    status: active
+    status: completed
     description: "多書城支援 — Kobo 台灣站 DOM 觀察 + 適配器"
+    worklog: "docs/work-logs/v1/v1.6/v1.6.0/"
 
   - version: "1.6.1"
     status: planned

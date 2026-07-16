@@ -2,6 +2,30 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [1.6.0] - 2026-07-16
+
+### Added
+- Kobo 台灣站（tw.kobo.com）書庫書目擷取適配器（SSR 分頁迴圈 + background SW 中繼 fetch）（W3-001）
+- 多書城提取結果儲存隔離（platform-aware 路徑改造）（W2-003）
+- Tag 系統 platform-aware 讀寫（W2-003.3）
+- 匯出 source 欄位 + 生命週期初始化/清除（W2-003.4）
+- event-coordinator 書目 ID 正規化（bookId→platformBookId 映射 + UUID 自動生成）（W4-002）
+- overview 多書城書目載入（loadAllPlatformBooks 整合）（W4-004）
+- 既有無 ID 書目修復遷移（UUID 補生成）（W4-005）
+- 多書城整合測試（URL-to-extract 全鏈路驗證）（W4-001）
+- UC-10 多書城偵測與切換、UC-11/UC-12 新增（W3-003/W3-005）
+- UC-01~07 多書城維度增補（W3-002/W3-004/W3-005）
+- Background SW CONTENT.FETCH_PAGE_HTML message handler（W3-001.1）
+
+### Changed
+- book-data-extractor 頁面類型判斷委派給 adapter（W2-002）
+- Kobo 登入偵測與導航啟用（W2-001）
+- readmoo-adapter 補實作 PlatformAdapterInterface 方法（W4-009）
+- books-com-tw DOM 路徑補 bookId 欄位（W4-003）
+- 雙 UC 系統（v1 基線 vs APP 版）關係說明文件化（W4-008）
+
+---
+
 ## [1.4.3] - 2026-06-25
 
 ### Added
