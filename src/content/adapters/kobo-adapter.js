@@ -30,7 +30,8 @@ const koboAdapterMessages = new MessageDictionary({
   KOBO_INIT: 'Kobo 適配器初始化完成',
   KOBO_EXTRACT_START: '開始提取 Kobo 書庫，初始書籍數：{count}',
   KOBO_EXTRACT_DONE: 'Kobo 書庫提取完成，成功 {success} / 失敗 {fail}',
-  KOBO_BOOK_PARSE_FAILED: '單一書籍解析失敗：{reason}'
+  KOBO_BOOK_PARSE_FAILED: '單一書籍解析失敗：{reason}',
+  KOBO_PAGE_FETCH_FAILED: '第 {page} 頁提取失敗，停止分頁：{reason}'
 })
 
 /**
@@ -83,6 +84,31 @@ const AUTHOR_SEPARATOR = '、'
  * 安全 URL 協定白名單
  */
 const SAFE_URL_PROTOCOLS = ['https:', 'http:']
+
+/**
+ * SSR 分頁每頁書籍數（Kobo 書庫頁固定值）
+ */
+const PAGE_SIZE = 60
+
+/**
+ * SSR 分頁硬上限（防止篩選器數字異常導致無限迴圈）
+ */
+const MAX_PAGES = 100
+
+/**
+ * 篩選器總筆數選擇器（「所有項目 (N)」文字所在元素）
+ */
+const FILTER_CHIP_SELECTOR = '.filter-chip'
+
+/**
+ * 篩選器文字中的總筆數格式（括號內數字）
+ */
+const TOTAL_COUNT_PATTERN = /\((\d+)\)/
+
+/**
+ * Content Script 背景 fetch 訊息類型（對應 1.6.0-W3-001.1 handler）
+ */
+const FETCH_PAGE_HTML_MESSAGE_TYPE = 'CONTENT.FETCH.PAGE_HTML'
 
 /**
  * Kobo 電子書平台適配器
@@ -242,9 +268,9 @@ class KoboAdapter extends PlatformAdapterInterface {
   }
 
   /**
-   * 提取所有書籍（v1.6.0 W2：僅解析當前頁面）
+   * 提取所有書籍（含 SSR 分頁翻頁）
    *
-   * SSR 分頁翻頁（pageSize=60 + pageNumber）留待 1.6.0-W3-001 實作。
+   * 先解析當前頁面，再依篩選器總筆數計算總頁數，翻頁 fetch 剩餘頁面並彙整。
    *
    * @returns {Promise<Array<Object>>} 書籍資料陣列
    */
@@ -264,11 +290,46 @@ class KoboAdapter extends PlatformAdapterInterface {
       }
     }
 
+    await this._extractRemainingPages(books)
+
     this.logger.info('KOBO_EXTRACT_DONE', {
       success: this._stats.successCount,
       fail: this._stats.failCount
     })
     return books
+  }
+
+  /**
+   * 翻頁 fetch 剩餘頁面並彙整至 books
+   *
+   * 停止條件：頁碼超過總頁數 / 該頁解析出 0 本 / fetch 失敗 / 超過 MAX_PAGES 硬上限。
+   *
+   * @param {Array<Object>} books - 已提取書籍陣列（原地追加）
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _extractRemainingPages (books) {
+    const totalCount = this._extractTotalCount()
+    const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+    const lastPage = Math.min(totalPages, MAX_PAGES)
+
+    for (let pageNumber = 2; pageNumber <= lastPage; pageNumber += 1) {
+      let html
+      try {
+        html = await this._fetchPageHtml(this._buildPageUrl(pageNumber))
+      } catch (error) {
+        this.logger.warn('KOBO_PAGE_FETCH_FAILED', { page: pageNumber, reason: error.message })
+        break
+      }
+
+      const pageBooks = this._parseHtmlToBooks(html)
+      if (pageBooks.length === 0) {
+        break
+      }
+      books.push(...pageBooks)
+      this._stats.totalExtracted += pageBooks.length
+      this._stats.successCount += pageBooks.length
+    }
   }
 
   // ==================
@@ -447,6 +508,63 @@ class KoboAdapter extends PlatformAdapterInterface {
    */
   _stripHtml (text) {
     return text.replace(/<[^>]*>/g, '').trim()
+  }
+
+  /**
+   * 從篩選器「所有項目 (N)」文字解析總筆數
+   * @returns {number} 總筆數，找不到或無法解析回傳 0
+   * @private
+   */
+  _extractTotalCount () {
+    if (typeof document === 'undefined') {
+      return 0
+    }
+    const chip = document.querySelector(FILTER_CHIP_SELECTOR)
+    if (!chip) {
+      return 0
+    }
+    const match = chip.textContent.match(TOTAL_COUNT_PATTERN)
+    return match ? parseInt(match[1], 10) : 0
+  }
+
+  /**
+   * 建構分頁 URL
+   * @param {number} pageNumber - 頁碼（從 1 開始）
+   * @returns {string} 含 pageSize/pageNumber 查詢字串的書庫頁 URL
+   * @private
+   */
+  _buildPageUrl (pageNumber) {
+    return `${LIBRARY_URL}?pageSize=${PAGE_SIZE}&pageNumber=${pageNumber}`
+  }
+
+  /**
+   * 透過 background service worker fetch 指定分頁 HTML
+   * @param {string} url - 分頁 URL
+   * @returns {Promise<string>} 頁面 HTML
+   * @throws {Error} sendMessage 回傳 success:false 時拋出
+   * @private
+   */
+  async _fetchPageHtml (url) {
+    const response = await chrome.runtime.sendMessage({
+      type: FETCH_PAGE_HTML_MESSAGE_TYPE,
+      url
+    })
+    if (!response || !response.success) {
+      throw new Error((response && response.error) || 'Kobo 分頁 fetch 失敗')
+    }
+    return response.html
+  }
+
+  /**
+   * 解析分頁 HTML 字串並提取書目資料
+   * @param {string} html - background fetch 回傳的頁面 HTML
+   * @returns {Array<Object>} 清理後書籍資料陣列
+   * @private
+   */
+  _parseHtmlToBooks (html) {
+    const parsedDocument = new DOMParser().parseFromString(html, 'text/html')
+    const elements = Array.from(parsedDocument.querySelectorAll(SELECTORS.bookItem))
+    return elements.map(element => this.sanitizeData(this.parseBookElement(element)))
   }
 
   /**
