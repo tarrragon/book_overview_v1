@@ -508,6 +508,11 @@ class ContentMessageHandler extends BaseModule {
       return false
     }
 
+    if (parsedUrl.protocol !== 'https:') {
+      sendResponse({ success: false, error: `不允許的協定: ${parsedUrl.protocol}（僅允許 https:）` })
+      return false
+    }
+
     if (!this.isAllowedFetchDomain(parsedUrl.hostname)) {
       sendResponse({ success: false, error: `不允許的域名: ${parsedUrl.hostname}` })
       return false
