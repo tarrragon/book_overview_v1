@@ -38,7 +38,8 @@ versions:
 
   - version: "1.6.1"
     status: active
-    description: "多書城支援 — Kobo 日本站適配器（帳號與台灣站獨立）"
+    description: "Kobo 多地區路徑支援（日本站 + 語系無關選擇器）"
+    worklog: "docs/work-logs/v1/v1.6/v1.6.1/"
 
   - version: "1.7.0"
     status: planned
