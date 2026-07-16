@@ -188,6 +188,19 @@ describe('BooksComTwAdapter', () => {
       const result = adapter.parseBookElement(el)
       expect(result.source).toBe('books-com-tw')
     })
+
+    test('從封面 URL 提取 bookId', () => {
+      const el = createMockBookElement()
+      const result = adapter.parseBookElement(el)
+      expect(result.bookId).toBe('G000034891')
+    })
+
+    test('元素缺少封面時 bookId 回傳空字串', () => {
+      const el = document.createElement('div')
+      el.classList.add('bookshelf__book')
+      const result = adapter.parseBookElement(el)
+      expect(result.bookId).toBe('')
+    })
   })
 
   describe('sanitizeData', () => {
