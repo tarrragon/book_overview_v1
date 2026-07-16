@@ -227,10 +227,12 @@ class BooksComTwAdapter extends PlatformAdapterInterface {
    * @returns {Object} 書籍資料物件
    */
   parseBookElement (element) {
+    const coverUrl = this._extractCoverUrl(element)
     return {
+      bookId: this._extractBookIdFromCoverUrl(coverUrl),
       title: this._extractText(element, SELECTORS.bookTitle),
       author: this._extractAuthor(element),
-      coverUrl: this._extractCoverUrl(element),
+      coverUrl,
       readProgress: this._extractProgress(element),
       source: PLATFORM_NAME
     }
@@ -512,6 +514,22 @@ class BooksComTwAdapter extends PlatformAdapterInterface {
       return ''
     }
     return img.getAttribute('src') || ''
+  }
+
+  /**
+   * 從封面 URL 檔名提取 bookId（去除路徑與副檔名，如 G000034891.jpg -> G000034891）
+   * @param {string} coverUrl - 封面 URL
+   * @returns {string} bookId，無法提取時回傳空字串
+   * @private
+   */
+  _extractBookIdFromCoverUrl (coverUrl) {
+    if (typeof coverUrl !== 'string' || coverUrl.trim() === '') {
+      return ''
+    }
+    const withoutQuery = coverUrl.split(/[?#]/)[0]
+    const segments = withoutQuery.split('/')
+    const filename = segments[segments.length - 1] || ''
+    return filename.replace(/\.[^./]+$/, '')
   }
 
   /**
