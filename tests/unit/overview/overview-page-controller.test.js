@@ -470,8 +470,10 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
       await controller.handleReload()
 
-      // 檢查是否調用了 Chrome Storage
-      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(['readmoo_books'])
+      // 檢查是否調用了 Chrome Storage（多書城：載入所有 {platform}_books key）
+      const { PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
+      const expectedKeys = Object.values(PLATFORM_IDS).map(platformBooksKey)
+      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(expectedKeys)
     })
 
     test('應該能處理檔案載入操作', async () => {
@@ -534,19 +536,19 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       consoleErrorSpy.mockRestore()
     })
 
-    test('場景 1：storage 有書 → 寫入 currentBooks 並渲染表格', async () => {
-      const mockBooks = [
-        makeBook({ id: '1', title: '自動載入書 1', progress: 30, readingStatus: 'reading' }),
+    test('場景 1：storage 有多書城書目 → 合併寫入 currentBooks 並渲染表格 checkbox', async () => {
+      const { PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
+      const readmooBooks = [
+        makeBook({ id: '1', title: '自動載入書 1', progress: 30, readingStatus: 'reading' })
+      ]
+      const koboBooks = [
         makeBook({ id: '2', title: '自動載入書 2', progress: 100, readingStatus: 'finished' })
       ]
-      const extractionTimestamp = Date.now()
 
-      // 覆蓋預設 mock：回傳 readmoo_books 物件結構（books + timestamp）
+      // 覆蓋預設 mock：多書城 storage key 各自回傳 {books} 結構
       global.chrome.storage.local.get = jest.fn().mockResolvedValue({
-        readmoo_books: {
-          books: mockBooks,
-          extractionTimestamp
-        }
+        [platformBooksKey(PLATFORM_IDS.READMOO)]: { books: readmooBooks },
+        [platformBooksKey(PLATFORM_IDS.KOBO)]: { books: koboBooks }
       })
 
       const { OverviewPageController } = require('src/overview/overview-page-controller')
@@ -554,19 +556,22 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
       await controller.loadBooksFromChromeStorage()
 
-      // 1. 已呼叫正確的 storage key
-      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(['readmoo_books'])
+      // 1. 已呼叫所有書城的 storage key
+      const expectedKeys = Object.values(PLATFORM_IDS).map(platformBooksKey)
+      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(expectedKeys)
 
-      // 2. 內部狀態正確更新（驗證 _updateBooksData 被呼叫的副作用）
-      expect(controller.currentBooks).toEqual(mockBooks)
-      expect(controller.filteredBooks).toEqual(mockBooks)
+      // 2. 內部狀態正確更新為合併後的書目（驗證 _updateBooksData 被呼叫的副作用）
+      const mergedBooks = [...readmooBooks, ...koboBooks]
+      expect(controller.currentBooks).toEqual(mergedBooks)
+      expect(controller.filteredBooks).toEqual(mergedBooks)
 
-      // 3. 表格已渲染（updateDisplay → renderBooksTable）
+      // 3. 表格已渲染（updateDisplay → renderBooksTable），且每列有選取 checkbox
       const tableBody = document.getElementById('tableBody')
       const rows = tableBody.querySelectorAll('tr')
       expect(rows.length).toBe(2)
       expect(rows[0].textContent).toContain('自動載入書 1')
       expect(rows[1].textContent).toContain('自動載入書 2')
+      expect(tableBody.querySelectorAll('input.row-checkbox').length).toBe(2)
 
       // 4. 統計顯示正確
       expect(document.getElementById('totalBooks').textContent).toBe('2')
@@ -577,7 +582,7 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
     })
 
     test('場景 2：storage 空 → 顯示空資料狀態（保留手動載入 UI）', async () => {
-      // storage 完全沒有 readmoo_books key
+      // storage 完全沒有任何 {platform}_books key
       global.chrome.storage.local.get = jest.fn().mockResolvedValue({})
 
       const { OverviewPageController } = require('src/overview/overview-page-controller')
@@ -585,7 +590,9 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
 
       await controller.loadBooksFromChromeStorage()
 
-      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(['readmoo_books'])
+      const { PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
+      const expectedKeys = Object.values(PLATFORM_IDS).map(platformBooksKey)
+      expect(global.chrome.storage.local.get).toHaveBeenCalledWith(expectedKeys)
 
       // 1. 空資料 log 已輸出
       const logCalls = consoleLogSpy.mock.calls.map(args => args.join(' ')).join('\n')
@@ -662,6 +669,77 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       expect(document.getElementById('loadingIndicator').style.display).toBe('none')
 
       // 5. currentBooks 維持初始空陣列（未誤更新）
+      expect(controller.currentBooks).toEqual([])
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // 1.6.0-W4-004 — storage change listener 多書城監聽
+  //
+  // 目的：驗證 chrome.storage.onChanged 監聽器改為監聽所有 {platform}_books key，
+  //       任一書城變更觸發合併重載（loadAllPlatformBooks），而非僅監聽 readmoo_books。
+  // ---------------------------------------------------------------------------
+  describe('chrome.storage.onChanged 多書城監聽（1.6.0-W4-004）', () => {
+    let onChangedCallback
+
+    beforeEach(() => {
+      onChangedCallback = null
+      global.chrome.storage.onChanged = {
+        addListener: jest.fn((cb) => {
+          onChangedCallback = cb
+        })
+      }
+    })
+
+    test('非 readmoo 書城（kobo_books）變更時觸發合併重載', async () => {
+      const { PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
+      const readmooBooks = [makeBook({ id: '1', title: '既有 Readmoo 書', tags: ['readmoo'] })]
+      const koboBooks = [makeBook({ id: '2', title: '新增 Kobo 書', tags: ['kobo'] })]
+
+      global.chrome.storage.local.get = jest.fn().mockResolvedValue({
+        [platformBooksKey(PLATFORM_IDS.READMOO)]: { books: readmooBooks },
+        [platformBooksKey(PLATFORM_IDS.KOBO)]: { books: koboBooks }
+      })
+
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+
+      expect(global.chrome.storage.onChanged.addListener).toHaveBeenCalled()
+      expect(typeof onChangedCallback).toBe('function')
+
+      onChangedCallback(
+        { [platformBooksKey(PLATFORM_IDS.KOBO)]: { newValue: { books: koboBooks } } },
+        'local'
+      )
+
+      // loadAllPlatformBooks() 為 async，等待 microtask 佇列推進
+      await Promise.resolve()
+      await Promise.resolve()
+
+      expect(controller.currentBooks).toEqual([...readmooBooks, ...koboBooks])
+    })
+
+    test('非 local 區域變更不觸發重載', async () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      const initialGetCallCount = global.chrome.storage.local.get.mock.calls.length
+
+      onChangedCallback({ readmoo_books: { newValue: { books: [] } } }, 'sync')
+      await Promise.resolve()
+
+      expect(global.chrome.storage.local.get.mock.calls.length).toBe(initialGetCallCount)
+      expect(controller.currentBooks).toEqual([])
+    })
+
+    test('無 platform_books key 變更不觸發重載', async () => {
+      const { OverviewPageController } = require('src/overview/overview-page-controller')
+      const controller = new OverviewPageController(mockEventBus, document)
+      const initialGetCallCount = global.chrome.storage.local.get.mock.calls.length
+
+      onChangedCallback({ someOtherKey: { newValue: 'x' } }, 'local')
+      await Promise.resolve()
+
+      expect(global.chrome.storage.local.get.mock.calls.length).toBe(initialGetCallCount)
       expect(controller.currentBooks).toEqual([])
     })
   })

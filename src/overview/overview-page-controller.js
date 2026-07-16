@@ -38,6 +38,9 @@ const { createInput } = require('src/core/ui/components/ui-factory')
 const BookDataExporter = require('src/export/book-data-exporter')
 // Tag 資料來源（v2 匯出需要 tags / tagCategories 頂層區段）
 const TagStorageAdapter = require('src/storage/adapters/tag-storage-adapter')
+// 多書城書目載入（1.6.0-W4-004）：合併所有書城的 {platform}_books storage key
+const { loadAllPlatformBooks } = require('src/storage/helpers/multi-platform-storage')
+const { PLATFORM_IDS, platformBooksKey } = require('src/background/constants/module-constants')
 
 // 常數定義
 const CONSTANTS = {
@@ -280,15 +283,24 @@ class OverviewPageController extends EventHandlerClass {
     }
 
     // 監聽 Chrome Storage 資料變更，實現跨上下文的自動資料同步
+    // 多書城書目載入（1.6.0-W4-004）：任一書城的 {platform}_books key 變更皆觸發合併重載
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+      const watchedKeys = Object.values(PLATFORM_IDS).map(platformBooksKey)
+
       chrome.storage.onChanged.addListener((changes, area) => {
         try {
-          if (area === 'local' && changes.readmoo_books && changes.readmoo_books.newValue) {
-            const newValue = changes.readmoo_books.newValue
-            const books = Array.isArray(newValue.books) ? newValue.books : []
+          if (area !== 'local') return
+
+          const hasPlatformBooksChange = watchedKeys.some((key) => key in changes)
+          if (!hasPlatformBooksChange) return
+
+          loadAllPlatformBooks().then((books) => {
             this._updateBooksData(books)
             this.updateDisplay()
-          }
+          }).catch((error) => {
+            // eslint-disable-next-line no-console
+            console.warn('[WARNING] 處理 storage 變更失敗:', error)
+          })
         } catch (error) {
           // Logger 後備方案: UI Component 輕量化設計
           // 設計理念: Overview 頁面組件優先保持輕量，避免依賴重量級 Logger
@@ -507,19 +519,10 @@ class OverviewPageController extends EventHandlerClass {
     try {
       this.showLoading('從儲存載入書籍資料...')
 
-      const result = await chrome.storage.local.get(['readmoo_books'])
+      // 多書城書目載入（1.6.0-W4-004）：合併所有書城的 {platform}_books storage key
+      const books = await loadAllPlatformBooks()
 
-      if (result.readmoo_books && result.readmoo_books.books) {
-        const books = result.readmoo_books.books
-        const timestamp = result.readmoo_books.extractionTimestamp
-
-        // Logger 後備方案: UI Component 資訊記錄
-        // 設計理念: Overview 頁面載入時的關鍵資訊需要用戶可見
-        // 後備機制: console.log 提供資料時間戳記錄，便於除錯
-        // 使用場景: 顯示書籍資料的提取時間，幫助用戶了解資料新舊程度
-        // eslint-disable-next-line no-console
-        console.log(`提取時間: ${new Date(timestamp).toLocaleString()}`)
-
+      if (books.length > 0) {
         this._updateBooksData(books)
         this.updateDisplay()
       } else {
