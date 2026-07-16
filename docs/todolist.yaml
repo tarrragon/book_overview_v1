@@ -37,7 +37,7 @@ versions:
     worklog: "docs/work-logs/v1/v1.6/v1.6.0/"
 
   - version: "1.6.1"
-    status: planned
+    status: active
     description: "多書城支援 — Kobo 日本站適配器（帳號與台灣站獨立）"
 
   - version: "1.7.0"
