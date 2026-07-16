@@ -4,7 +4,7 @@
  * @since 2026-07-14
  *
  * 負責功能：
- * - Kobo 台灣站書庫頁（www.kobo.com/tw/zh/library/books）的書籍資料提取
+ * - Kobo 書庫頁（www.kobo.com/tw/zh/library/books）的書籍資料提取
  * - DOM 解析（書名 / 作者 / 類別 / 系列 / 閱讀狀態 / 新增日期 / 封面 / slug / readnow UUID）
  * - 安全性過濾（javascript: / data: URL 攔截、HTML 標籤移除）
  *
@@ -58,7 +58,7 @@ const LIBRARY_PATH_SEGMENT = '/library/books'
  * DOM 選擇器配置（對齊 docs/bookstores/kobo.md 勘查結果）
  */
 const SELECTORS = {
-  bookContainer: '[aria-label="書籍"]',
+  bookContainer: 'section.library-content.book-list',
   bookItem: 'li.item-wrapper.book',
   bookTitle: '.title.product-field',
   bookTitleLink: '.title.product-field a[href*="/ebook/"]',
