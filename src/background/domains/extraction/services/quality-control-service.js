@@ -23,7 +23,7 @@ const {
   EXTRACTION_EVENTS,
   EVENT_PRIORITIES
 } = require('src/background/constants/module-constants')
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class QualityControlService {
   constructor (dependencies = {}) {

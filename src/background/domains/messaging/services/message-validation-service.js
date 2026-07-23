@@ -1,4 +1,4 @@
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const { EVENT_PRIORITIES, MESSAGE_EVENTS } = require('src/background/constants/module-constants')
 

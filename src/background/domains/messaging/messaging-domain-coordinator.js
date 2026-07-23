@@ -24,7 +24,7 @@ const SessionManagementService = require('./services/session-management-service'
 const { ConnectionMonitoringService } = require('./services/connection-monitoring-service')
 const { MessageValidationService } = require('./services/message-validation-service')
 const { QueueManagementService } = require('./services/queue-management-service')
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const {
   MESSAGE_EVENTS,

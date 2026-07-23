@@ -1,4 +1,4 @@
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 const { Logger } = require('src/core/logging/Logger')
 

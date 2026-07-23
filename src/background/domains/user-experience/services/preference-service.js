@@ -26,7 +26,7 @@
  * - 功能開關管理
  */
 
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class PreferenceService {
   constructor (dependencies = {}) {

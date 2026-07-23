@@ -26,7 +26,7 @@
  * - 無障礙合規性驗證
  */
 
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class AccessibilityService {
   constructor (dependencies = {}) {

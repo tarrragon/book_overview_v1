@@ -34,7 +34,7 @@ const PersonalizationService = require('./services/personalization-service')
 const AccessibilityService = require('./services/accessibility-service')
 
 const { EVENT_PRIORITIES } = require('src/background/constants/module-constants')
-const ErrorCodes = require('src/core/errors/ErrorCodes')
+const { ErrorCodes } = require('src/core/errors/ErrorCodes')
 
 class UXDomainCoordinator {
   constructor (dependencies = {}) {
