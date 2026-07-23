@@ -158,6 +158,7 @@ Readmoo 頁面的 DOM 結構會隨版本更新變化。選擇器設計原則：
 - `src/background/messaging/message-router.js` — 訊息路由層
 - `src/background/events/event-coordinator.js` — 事件監聽與儲存層
 - `src/overview/overview-page-controller.js` — 顯示層
+- `docs/spec/README.md` — Domain 規格索引（含各 domain 的 domain-map）
 
 ---
 

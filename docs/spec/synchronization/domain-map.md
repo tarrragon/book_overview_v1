@@ -14,7 +14,7 @@ updated: "2026-07-23"
 
 ## 1. 目的
 
-synchronization domain 定義跨裝置同步的協議規格（QR 離線同步 frame 格式、sync_meta 結構）。本 domain 在 V1 Chrome Extension 中無獨立 src 目錄——同步服務實作散佈在 data-management/services/ 下（SynchronizationOrchestrator 等），但協議規格獨立於實作歸本 domain。
+synchronization domain 定義跨裝置同步的協議規格（QR 離線同步 frame 格式、sync_meta 結構）。本 domain 的同步實作分散在 `src/sync/`（編碼/格式純計算：qr-encoder.js、sync-json-builder.js）與 `src/background/domains/data-management/services/`（協調流程：SynchronizationOrchestrator 等），無統一的 `src/synchronization/` 目錄。協議規格獨立於實作歸本 domain。
 
 ## 2. 分層與依賴方向
 
@@ -27,7 +27,7 @@ core（基礎型別）+ data-management（Book/Tag aggregate 定義，被同步�
 
 **消費者**：data-management（消費同步協議，實際執行同步流程——SynchronizationOrchestrator 等）。
 
-> 本 domain 無獨立 src 目錄，箭頭表 spec-level 參照而非 code import。
+> 本 domain 無統一 `src/synchronization/` 目錄。`src/sync/` 含編碼純計算（import core），DAG 箭頭同時表 code import 和 spec-level 參照。
 
 **依賴方向底線（不可違反）**：
 
@@ -38,8 +38,8 @@ core（基礎型別）+ data-management（Book/Tag aggregate 定義，被同步�
 
 | Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
 |---|---|---|---|---|---|
-| QR Frame Codec | supporting VO | Frame Header 結構（15 bytes：magic/version/total_frames/frame_index/total_size/crc32）、frame 切塊/拼接規則 | QR Code 影像編解碼 | `docs/spec/synchronization/` | unit：header 編解碼、CRC32 驗證 |
-| Sync Meta | supporting VO | sync_meta 結構（source/exported_at/total_books）、format_version | 實際同步執行 | `docs/spec/synchronization/` | unit：schema 驗證 |
+| QR Frame Codec | supporting VO | Frame Header 結構（15 bytes：magic/version/total_frames/frame_index/total_size/crc32）、frame 切塊/拼接規則 | QR Code 影像編解碼 | `src/sync/qr-encoder.js` | unit：header 編解碼、CRC32 驗證 |
+| Sync Meta | supporting VO | sync_meta 結構（source/exported_at/total_books）、format_version | 實際同步執行 | `src/sync/sync-json-builder.js` | unit：schema 驗證 |
 | Merge Rules | domain service | 5 案例合併規則（正常遷移 / privacyBookId 缺失 / cover-openbook 碰撞（Readmoo 書籍 ID 格式 cover-{isbn} 與 openbook-{hash} 同書兩 ID 造成重複判定）/ 同 ID 多筆 / cross-device 衝突） | 衝突偵測實作（歸 data-management） | `docs/spec/synchronization/` | unit：合併邏輯 |
 
 ### Bundle 不變式清單（per-bundle）
@@ -54,7 +54,7 @@ core（基礎型別）+ data-management（Book/Tag aggregate 定義，被同步�
 
 ### 4.1 協議規格 vs 實作分離
 
-synchronization domain 只定義協議（frame 格式、合併規則），不含實作程式碼。實際同步執行（SynchronizationOrchestrator 等）歸 data-management domain 的 Sync Coordination bundle。此為現況邊界——V1 無獨立 synchronization src 目錄，與 APP（獨立 synchronization domain）架構不同。
+synchronization domain 定義協議（frame 格式、合併規則），編碼純計算實作在 `src/sync/`（qr-encoder.js、sync-json-builder.js），協調流程（SynchronizationOrchestrator 等）歸 data-management domain 的 Sync Coordination bundle。此為現況邊界——V1 無統一的 `src/synchronization/` 目錄，與 APP（獨立 synchronization domain）架構不同。
 
 ### 4.2 測試 fixtures 歸本 domain
 

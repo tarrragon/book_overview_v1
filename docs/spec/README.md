@@ -83,8 +83,23 @@ UseCase 是跨 domain 的使用場景，一個 UC 可能涉及多個 domain：
 | SPEC-006 | page | [頁面管理](page/page-management.md) | approved | 1/1 (100%) |
 | SPEC-007 | system | [系統管理](system/system-management.md) | approved | 2/2 (100%) |
 | SPEC-008 | user-experience | [用戶體驗](user-experience/user-experience.md) | approved | 5/5 (100%) |
+| SPEC-009 | synchronization | [QR Frame Format](synchronization/SPEC-009-qr-frame-format.md) | approved | 跨平台協議 |
 
 **整體完成度**：26/29 功能需求已實作（~90%）
+
+### Domain Map 索引
+
+| Domain | Domain Map | Source Specs |
+|--------|-----------|-------------|
+| core | [domain-map](core/domain-map.md) | SPEC-001 |
+| data-management | [domain-map](data-management/domain-map.md) | SPEC-004, SPEC-STORAGE-ISOLATION, SPEC-010 |
+| extraction | [domain-map](extraction/domain-map.md) | SPEC-002, SPEC-002a |
+| messaging | [domain-map](messaging/domain-map.md) | SPEC-005 |
+| page | [domain-map](page/domain-map.md) | SPEC-006 |
+| platform | [domain-map](platform/domain-map.md) | SPEC-003 |
+| synchronization | [domain-map](synchronization/domain-map.md) | SPEC-009 |
+| system | [domain-map](system/domain-map.md) | SPEC-007 |
+| user-experience | [domain-map](user-experience/domain-map.md) | SPEC-008 |
 
 ### 未完成項目摘要
 
