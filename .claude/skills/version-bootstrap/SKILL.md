@@ -24,7 +24,7 @@ description: "版本規劃波 orchestrator。封裝「提案→spec→教學比�
 ## 使用方式
 
 ```
-/version-bootstrap --version 0.3.0
+/version-bootstrap --version <version>
 ```
 
 PM 執行後，依 6 步流程逐步推進。每步有 checkpoint（PM 確認後才進下一步），不是全自動 pipeline。
@@ -43,13 +43,13 @@ doc list proposals  # 確認提案狀態
 
 **輸出**：提案 ID + 標題 + 狀態表格。
 
-**跨提案依賴檢查（強制，0.4.1-W2-007 新增）**：接著執行依賴檢查腳本，偵測「本版提案依賴的提案排在更晚版本」的排序矛盾。
+**跨提案依賴檢查（強制）**：接著執行依賴檢查腳本，偵測「本版提案依賴的提案排在更晚版本」的排序矛盾。
 
 ```bash
-uv run .claude/skills/version-bootstrap/scripts/check_proposal_dependencies.py --version 0.4.0
+uv run .claude/skills/version-bootstrap/scripts/check_proposal_dependencies.py --version <version>
 ```
 
-腳本讀 `docs/proposals-tracking.yaml` 各提案的 `depends_on` 欄位（選填，格式見該檔案頭部註解）比對 `target_version` 排序。輸出 `[WARNING]` 時，PM 必須在本 Checkpoint 前二擇一處理：(1) 把依賴提案移入本版或更早版本一起排入，(2) 把本提案移至依賴提案完成之後的版本。**動機案例**：0.4.0 曾以 PROP-008 + PROP-010 雙提案啟動，PROP-010 依賴 PROP-011（排在 v0.5.0）卻排入 v0.4.0，矛盾拖到 W1 中段才由用戶手動發現，最終移版至 v0.5.0 與 PROP-011 同節點（詳見 0.4.1-W1-001 Solution「版本切分決策評估」）。若此檢查在 Step 1 就位，矛盾可在提案確認階段被攔截。
+腳本讀 `docs/proposals-tracking.yaml` 各提案的 `depends_on` 欄位（選填，list of str，元素為本提案依賴的前置提案 id；格式定義見 `.claude/skills/doc/doc_system/core/tracking_schema.py` 的 `PROPOSALS_TRACKING_SCHEMA["proposal_entry_optional"]`，該 schema 為權威來源，非本 yaml 檔案本身的頭部註解）比對 `target_version` 排序。輸出 `[WARNING]` 時，PM 必須在本 Checkpoint 前二擇一處理：(1) 把依賴提案移入本版或更早版本一起排入，(2) 把本提案移至依賴提案完成之後的版本。**動機案例**：曾有版本以雙提案啟動，其中一提案依賴另一個排在更晚版本的提案，卻仍排入本版，矛盾拖到規劃波中段才由用戶手動發現，最終將該提案移至依賴對象所在的版本節點。若此檢查在 Step 1 就位，矛盾可在提案確認階段被攔截。
 
 **Checkpoint**：PM 確認版本範圍——哪些提案納入本版、哪些延後；依賴檢查腳本無 `[WARNING]` 輸出，或警告已處理（移版/補前置）。
 
@@ -60,7 +60,7 @@ uv run .claude/skills/version-bootstrap/scripts/check_proposal_dependencies.py -
 **動作**：用 `/doc batch-init` 批量建立 spec 骨架。
 
 ```bash
-doc batch-init --proposals PROP-007,PROP-008 --domain collector
+doc batch-init --proposals PROP-XXX,PROP-YYY --domain <domain>
 ```
 
 **輸出**：每個提案對應 1 份 spec 骨架檔案。
@@ -73,10 +73,36 @@ doc batch-init --proposals PROP-007,PROP-008 --domain collector
 |--------|---------|-----------|
 | design token 層 | 專案 design-system 樣式檔（顏色/間距/字體/圓角/陰影參數集中管理） | 先建立 design token 層 |
 | L3 元件庫章節 | spec 文件的元件庫章節（元件清單 + 原生元件禁用對照表 + 豁免清單） | 先建立或補齊 L3 元件庫章節 |
+| design-system spec 文件 | 用 doc skill `design-system-spec-template` 產出的 design system 專屬 spec（如 `docs/spec/design-system-spec.md`），非混入一般功能 spec | 用 design-system-spec-template 補產 |
 
 判準與分層依據（L1/L2/L3 分層、狀態綁定判準、流程整合點）見 `.claude/methodologies/component-library-bidirectional-constraint-methodology.md`。非 UI 類提案略過本檢查。
 
-**Checkpoint**：所有 spec FR 填寫完成；UI 類提案已完成元件庫前置檢查（design token 層與 L3 元件庫章節存在，或已補齊），非 UI 類提案略過本項。
+> **Why 加 design-system spec 檢查**：doc skill 已提供 `design-system-spec-template`，但 `batch-init` 只產一般功能 spec，UI 版本易漏產 design system 專屬 spec。**Consequence**：漏產則 Step 4.5 地基波的 design-system 實作無契約可依（實證：PM 用 batch-init 產一般功能 spec 卻未產 design-system spec，經指正後才補）。**Action**：UI 版本填 spec 時一併用 design-system-spec-template 產出 design system spec，作為 Step 4.5 design-system 實作的契約。
+
+**Checkpoint**：所有 spec FR 填寫完成；UI 類提案已完成元件庫前置檢查（design token 層、L3 元件庫章節、design-system spec 三者存在或已補齊），非 UI 類提案略過本項。
+
+---
+
+### Step 2.5：Domain 規劃（半自動）
+
+> **Why**：spec 定義 FR（系統做什麼）、UC 定義使用者場景（誰怎麼用），兩者皆為垂直視角，不界定 domain 的水平聚合邊界——aggregate / kernel / read-model 分類、依賴方向、層測試策略。**Consequence**：跳過本步驟，domain 邊界會在實作階段臨場拍板（退化為「哪個檔案太大就拆」），依賴方向底線無文件可依，易出現 read-model 互相耦合、持久化細節混入 domain；測試設計（Step 5）也無 per-bundle 依據。需事後補 domain map（實證：flutter_balance W2-014 於實作前補建）。**Action**：spec FR 填完後、測試設計前，為每個 domain 產出或更新 domain map。
+
+**動作**：用 doc skill 的 domain-map-template 為每個 domain 產出 domain map（多 domain 專案放 domain 子目錄，單 domain 專案放 `docs/` 根層）：
+
+```bash
+# 多 domain 專案：放對應 domain 子目錄
+cp .claude/skills/doc/templates/domain-map-template.md docs/spec/{domain}/domain-map.md
+# 單 domain 專案：放 docs/ 根層
+cp .claude/skills/doc/templates/domain-map-template.md docs/domain-map.md
+```
+
+**PM 工作**：依模板從 spec FR 反推 bundle 邊界（切分判準見 `.claude/methodologies/domain-bundle-mapping-methodology.md`）——界定 aggregate / kernel / read-model 分類、依賴方向 DAG（**用實際 import 鏈驗證，不憑心智模型宣告**——如 `grep -rn "import.*<lower_layer>" lib/<domain_dir>/` 或 codegraph callers，確認 import 集合不含被禁層）、每 bundle 的目標路徑與測試層、FR→bundle 全覆蓋表。
+
+**產出或更新語意**：saas 起手的版本，saas Stage 1/2 的 DDD 切分已餵入 domain map 的產出端，本步驟將其精修為層/依賴/測試 map；非 saas 起手（提案 / handoff 起手）則從模板新建。此語意消除「domain 規劃綁死 saas 起手」——標準化為所有規劃波的通用步驟。
+
+**被誰消費**：Step 5 測試設計依 domain map 逐 bundle 決定測試層（domain unit / data repository / presentation widget）；Step 6 建票依 domain / data / presentation 分層切分。
+
+**Checkpoint**：每個 domain 有 domain map；依賴方向底線經 import 鏈驗證；spec 全部 FR 在 FR→bundle 覆蓋表有歸屬（含標為非 domain 的 presentation / data FR）。
 
 ---
 
@@ -104,11 +130,37 @@ doc batch-init --proposals PROP-007,PROP-008 --domain collector
 
 ---
 
+### Step 4.5：地基波（半自動，僅含 UI 提案的版本）
+
+> **Why**：測試設計（Step 5）需驗 zh/en overflow 與元件互動反應，這些依賴 i18n 系統與元件實體先存在；若 Step 4 後直接進 Step 5，UI 版本會在 i18n / design-system / 元件庫尚未 build 時進測試設計，無可驗對象。**Consequence**：跳過本步驟，測試票會假設不存在的 i18n key 與元件，Phase 3b 才暴露缺地基，需回頭補甚至推翻測試設計（實證：地基波經指正後手動插入）。**Action**：對含 UI 提案的版本，於測試設計前編排地基波實作波。
+
+**動作**：依 component-library 方法論〈地基波 build 順序〉為權威，編排四塊地基實作：
+
+| 順序 | 地基塊 | 產出 |
+|------|--------|------|
+| 1 | i18n 系統 | 多語系資源檔 + 產生器（元件文字取 i18n key，測試可驗 zh/en overflow） |
+| 2 | design-system 實作 | design token 集中檔（消費 Step 2 的 design-system spec） |
+| 3 | UX 審查 | 每個互動元件的反應/動畫/提示 + 頁面跳轉/退出/生命週期完整性審查（產出反應規格供元件庫與測試點） |
+| 4 | 元件庫實作 | 集中元件庫（套 token + i18n + UX 反應），barrel 匯出 |
+
+**PM 工作**：為四塊各建實作票——i18n 與 design-system 可並行；UX 審查產出反應規格；元件庫依賴前三者為 `blockedBy`。順序與依賴依方法論〈地基波 build 順序〉，本 skill 不重複判準只做 orchestration。
+
+**Checkpoint**：UI 版本的 i18n / design-system / UX 審查 / 元件庫四塊實作完成並測試綠；非 UI 版本略過本步驟（比照 Step 2 UI 判別）。
+
+---
+
 ### Step 5：紅燈測試設計（半自動，可並行）
 
 **動作**：對每份 spec 派發 sage-test-architect 做 Phase 2 紅燈測試設計。
 
 多 spec 可並行派發（每個 spec 1 張子票）。派發時使用 `/tdd` Phase 2 流程，sage 產出紅燈測試規格。
+
+**消費 Step 2.5 domain map（兩軸測試設計）**：
+
+1. **層軸**：依 domain map 逐 bundle 決定測試層——domain bundle 走純函式 unit test、data 走 repository test、presentation 走 widget test（分層測試策略見 `.claude/methodologies/hybrid-testing-strategy-methodology.md`）。
+2. **不變式軸**：依 domain map 的「Bundle 不變式清單」節逐 bundle 列舉 domain 行為不變式測試（例：某項缺漏沿用前值、比率分母為 0 的定義值、依賴方向不成環等**各專案自己的** domain 不變式），**與 UC 場景測試並存去重**——UC 場景測試涵蓋垂直使用者行為，不變式測試涵蓋水平 domain 規則，兩軸交集去重、聯集為完整覆蓋。避免 domain 規則只靠「剛好出現於某 UC 場景」被動覆蓋。
+
+> sage 派發 prompt 應同時帶 spec FR / UC 場景（既有）與 domain map 的 bundle 不變式清單（新增），使兩軸都被系統列舉。traceability 的 domain-bundle→test 軸（見下）記錄不變式軸覆蓋。
 
 **PM 工作**：驗收 sage 產出——確認 FR↔AC 覆蓋矩陣（Q12）無空行。
 
@@ -127,6 +179,7 @@ doc batch-init --proposals PROP-007,PROP-008 --domain collector
 - spec FR 列表 → IMP ticket
 - Phase 2 紅燈規格 → 確認 ticket 粒度（每張 ticket 的紅燈數）
 - UC 場景 → 整合測試 ticket
+- domain map bundle 分層 → 按 domain / data / presentation 切分實作票，並依 domain map §5「對實作票切分指引」對齊各票的層歸屬與依賴方向底線
 
 **PM 工作**：確認 Wave 分配、並行安全（共用檔案需整合票）。
 
@@ -146,11 +199,11 @@ doc batch-init --proposals PROP-007,PROP-008 --domain collector
 
 ---
 
-## 移版硬耦合盤點 SOP（0.4.1-W2-007 新增）
+## 移版硬耦合盤點 SOP
 
-提案因跨提案依賴矛盾（Step 1 檢查結果）或其他理由決定移版時，禁止整包提案原封不動搬到新版本——必須先盤點該提案在**本版**留下的 schema / DDL / 契約級殘留耦合，比照 0.4.0-W1-011 模式先行定形，斬斷後才能讓移出的主體與留在本版的部分變成獨立軌道。
+提案因跨提案依賴矛盾（Step 1 檢查結果）或其他理由決定移版時，禁止整包提案原封不動搬到新版本——必須先盤點該提案在**本版**留下的 schema / DDL / 契約級殘留耦合，比照下方動機案例「契約先定形、業務邏輯後移版」的模式先行定形，斬斷後才能讓移出的主體與留在本版的部分變成獨立軌道。
 
-**動機**：0.4.0 曾規劃 PROP-008 + PROP-010 雙提案，PROP-010 因依賴 PROP-011 整體移至 v0.5.0，但其 checklist 第 1 項「Event schema `_flags` metadata 擴充」會動 `schema/event.schema.json`（契約 SOT）並牽動 PostgreSQL DDL——若放任不管、等 v0.4.0 的 PG DDL 凍結後才在 v0.5.0 定形 `_flags`，會重演 `batch_id` 式三段漂移（`docs/challenges/006-*.md` 實證）。0.4.0-W1-011 提前在 DDL 凍結前定形 `_flags` 形狀，才讓兩個提案真正解耦。
+**動機**：曾有版本規劃雙提案，其中一提案因依賴另一個排在更晚版本的提案而整體移版，但其變更清單第一項會動到契約 SOT 檔案（如 schema 定義）並牽動資料庫 DDL——若放任不管、等本版 DDL 凍結後才在移版目標版本定形該欄位，會重演過往「先上線、後補契約定義」造成的多階段漂移。提前在 DDL 凍結前定形該欄位形狀，才讓兩個提案真正解耦。
 
 **盤點步驟**：
 
@@ -159,7 +212,7 @@ doc batch-init --proposals PROP-007,PROP-008 --domain collector
 | 1. 契約掃描 | 對照移版提案的 checklist，逐項檢查是否觸及 `schema/*.schema.json`、`docs/spec/**/*.md` 的 DDL 章節、或其他跨版本共用契約檔案 | 觸及項清單 |
 | 2. 凍結時序確認 | 確認本版是否有「DDL 凍結」「schema 定案」類的既定時間點（通常在 PG/儲存實作票之前） | 凍結時間點 + 是否早於移版提案原訂完成時間 |
 | 3. 硬耦合分級 | 觸及項逐一判斷：純程式邏輯（無耦合，可整包移版）vs 契約形狀（硬耦合，需本版先定形） | 硬耦合項清單 |
-| 4. 定形票建立 | 對每個硬耦合項建立獨立 IMP ticket（比照 0.4.0-W1-011），範圍限定「只定形契約形狀，不含業務邏輯實作」 | 定形 ticket（本版 Wave 排入） |
+| 4. 定形票建立 | 對每個硬耦合項建立獨立 IMP ticket（比照上方動機案例的定形票模式），範圍限定「只定形契約形狀，不含業務邏輯實作」 | 定形 ticket（本版 Wave 排入） |
 | 5. 教學比對 | 依 CLAUDE.md 強制操作 2，定形前讀 blog 對應模組確認欄位設計是否已有教學定義；有則優先採用，無則先在 blog 補完 | Solution 段落記錄教學比對結論 |
 | 6. Ticket 交叉標記 | 定形票 `why` 欄位引用移版提案 ID + 目標版本；移版提案的 `checklist` 對應項標記 `verified_by` 指向定形票 | 雙向可追溯 |
 
@@ -174,9 +227,9 @@ doc batch-init --proposals PROP-007,PROP-008 --domain collector
 
 ---
 
-## 與 v0.2 W1 的對照
+## 與早期手動流程的對照
 
-| v0.2 W1（手動） | /version-bootstrap |
+| 早期手動流程 | /version-bootstrap |
 |----------------|-------------------|
 | 手動 cp 模板建 spec | Step 2 `/doc batch-init` |
 | 手動讀 blog 比對 | Step 3 `/spec validate --dim 4` |
@@ -187,5 +240,7 @@ doc batch-init --proposals PROP-007,PROP-008 --domain collector
 
 ---
 
+**Version**: 1.3.0 — 新增 Step 2.5「Domain 規劃」於 Step 2 與 Step 3 間：spec FR 填完後、測試設計前產出/更新 domain map（doc domain-map-template），含 saas / standalone 調和語意（domain 規劃是所有規劃波通用步驟，非 saas 專屬）；Step 5 補「消費 domain map 逐 bundle 定測試層」、Step 6 建票來源補「domain map bundle 分層 → domain/data/presentation 切分」（0.1.0-W2-016.2，落地 W2-016 ANA domain 規劃整合）
+**Version**: 1.2.0 — 新增 Step 4.5「地基波（僅含 UI 提案版本）」於 Step 4 與 Step 5 間：測試設計前依 component-library 方法論〈地基波 build 順序〉編排 i18n / design-system / UX 審查 / 元件庫四塊實作（Why：測試需驗 zh/en overflow 與元件反應，依賴 i18n/元件先存在；實證地基波經指正後手動插入）；Step 2 UI 前置檢查補「design-system spec（用 design-system-spec-template）」檢查項。非 UI 版本略過
 **Version**: 1.1.0 — Step 2 新增「UI 類提案元件庫前置檢查」小節：判別提案是否涉及 UI/頁面/元件，涉及則須先確認 design token 層與 L3 元件庫章節存在（缺則先補齊），才可繼續 UI 實作票規劃，落地元件庫雙向約束方法論流程整合點 1
-**Last Updated**: 2026-07-09
+**Last Updated**: 2026-07-21

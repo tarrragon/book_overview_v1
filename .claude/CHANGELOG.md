@@ -1,3 +1,139 @@
+## [2.20.1] - 2026-07-23
+
+### Summary
+chore: skill 庫雙向同步 + 新增 neurodivergent-output skill
+
+Changes: 1 chore
+
+- chore: skill 庫雙向同步 + 新增 neurodivergent-output skill
+
+---
+
+## [2.20.0] - 2026-07-23
+
+### Summary
+feat: domain-layer import 方向 lint hook; feat: /spec validate domain 覆蓋閘門 + 收掛; feat: 測試規劃消費 domain-map 不變式（兩軸測試設計） (+15 more)
+
+Changes: 5 feat, 2 refactor, 4 fix, 4 docs, 3 chore
+
+- feat: domain-layer import 方向 lint hook
+- feat: /spec validate domain 覆蓋閘門 + 收掛
+- feat: 測試規劃消費 domain-map 不變式（兩軸測試設計）
+- feat: version-bootstrap Step 2.5 Domain 規劃 + doc saas 調和
+- feat: domain-map-template.md + doc skill 五種文件類型註冊
+- refactor: 中立化 framework 判準本體的專屬 domain 不變式
+- refactor: domain-map-template 去除專案專屬細節提升可重用性
+- fix: 校準 observability-rules AppLogger → developer.log
+- fix: phase4-hook M1 regex 不再誤傷標準章節名
+- fix: multi-round Round 3 修正 + spawn 延伸票
+- fix: multi-round Round 2 修正（含 gate 假通過致命 bug）
+- docs: 接線 domain map outbound 反向引用
+- docs: TEST-BAL-001 理想化 fixture 遮蔽 validator 假通過
+- docs: domain-bundle-mapping 方法論
+- docs: PC-BAL-005 phase4-hook 觸發詞誤傷標準章節名
+- chore: extend domain-bundle-mapping for multi-aggregate + command-side
+- chore: ARCH-BAL-001 Layer 2 潤飾（定語堆疊拆句）
+- chore: domain map 定案 + 四視角審查 + ARCH-BAL-001 + 防護票
+
+---
+
+## [2.19.4] - 2026-07-21
+
+### Summary
+chore: pull .claude 更新（上游 5ec670b）
+
+Changes: 1 chore
+
+- chore: pull .claude 更新（上游 5ec670b）
+
+---
+
+## [2.19.3] - 2026-07-21
+
+### Summary
+chore: pull .claude 更新（上游 680073cf）
+
+Changes: 1 chore
+
+- chore: pull .claude 更新（上游 680073cf）
+
+---
+
+## [2.19.2] - 2026-07-20
+
+### Summary
+feat: depends_on schema 宣告與 version-bootstrap 權威來源修正
+
+---
+
+## [2.19.1] - 2026-07-20
+
+### Summary
+feat: doc CLI 模板打包修復、CLI 子欄位寫入路徑、schema 一致性檢查與派發 context 品質規範
+
+---
+
+## [2.19.0] - 2026-07-20
+
+### Summary
+feat: 建立 schema 清單一致性檢查與驗證器過期判斷規則; feat: 移植 envelope 抑制邏輯至 cli-error-feedback-hook; feat: 註冊 pre-test-scan hook，刪除 superseded checkpoint hook (+5 more)
+
+Changes: 3 feat, 2 fix, 2 docs, 1 chore
+
+- feat: 建立 schema 清單一致性檢查與驗證器過期判斷規則
+- feat: 移植 envelope 抑制邏輯至 cli-error-feedback-hook
+- feat: 註冊 pre-test-scan hook，刪除 superseded checkpoint hook
+- fix: 補列三份 _SCHEMA_SECTION_NAMES 的 Spawn Requests 成員
+- fix: 改用真實檔案取代失效 mock，4 項紅燈轉綠
+- docs: 記錄越層建票模式並新增載體選擇閘門
+- docs: 記錄合併遺漏子功能但檔頭宣稱完整的錯誤模式
+- chore: 從 skill 庫拉取 compositional-writing →
+
+---
+
+## [2.18.3] - 2026-07-20
+
+### Summary
+docs: 新增 error-pattern 專案代號 BAL 與 PC-BAL-001（驗證端清單過期誤判 canonical 結構）
+
+---
+
+## [2.18.2] - 2026-07-20
+
+### Summary
+sync .claude configuration
+
+---
+
+## [2.18.1] - 2026-07-20
+
+### Summary
+fix: 新增靜默佔位偵測到 version-release 佔位掃描器; fix: 修復 version-release 下一版本候選掃描窗口越界誤傷 tech_debt; fix: 修復 version-release 安裝版 CLI 跨 skill import 斷裂 (+3 more)
+
+Changes: 4 fix, 2 chore
+
+- fix: 新增靜默佔位偵測到 version-release 佔位掃描器
+- fix: 修復 version-release 下一版本候選掃描窗口越界誤傷 tech_debt
+- fix: 修復 version-release 安裝版 CLI 跨 skill import 斷裂
+- fix: skill-sync push 排除清單補 hook-logs 目錄
+- chore: ux-interaction-feedback 升級替換為 ux-design-evaluation（skill-sync pull）
+- chore: skill-sync pull compositional-writing + multi-round-review 1.10.1
+
+---
+
+## [2.18.0] - 2026-07-17
+
+### Summary
+feat: complete 阻擋訊息加入 type-aware 內容引導 note; feat: create placeholder 依 ticket type 差異化引導文字; fix: spec_reference_checker 改讀兩份 SPEC 登錄簿聯集
+
+Changes: 2 feat, 1 fix
+
+- feat: complete 阻擋訊息加入 type-aware 內容引導 note
+- feat: create placeholder 依 ticket type 差異化引導文字
+- fix: spec_reference_checker 改讀兩份 SPEC 登錄簿聯集
+
+---
+
 ## [2.17.0] - 2026-07-15
 
 ### Summary
