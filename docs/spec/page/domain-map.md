@@ -12,7 +12,7 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-006（FR 清單）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
 page domain 管理頁面偵測、導航事件處理、Content Script 協調和標籤頁狀態追蹤。專注於「使用者目前在看什麼頁面」的知識，為 extraction 和 user-experience 提供頁面上下文。
 
@@ -40,8 +40,8 @@ core（ErrorCodes）+ messaging（跨 context 通訊）
 | Content Script Coordination | domain service | ContentScriptCoordinatorService（CS 生命週期管理） | CS 內部業務邏輯 | `src/background/domains/page/services/` | unit：CS 注入/銷毀流程 |
 | Tab State Tracking | read-model | TabStateTrackingService（tab 提取狀態追蹤、tab 切換歷史）| 提取邏輯 | `src/background/domains/page/services/` | unit：狀態追蹤正確性 |
 | Navigation | domain service | NavigationService（URL 變更偵測、MutationObserver） | 頁面內容處理 | `src/background/domains/page/services/` | unit：URL 變更事件 |
-| Permission Management | domain service | PermissionManagementService（activeTab / scripting 權限） | 業務授權 | `src/background/domains/page/services/` | unit：權限檢查 |
-| Page Type Detector Utils | supporting VO | page-type-detector.js（頁面類型判斷工具函式） | CS 側偵測器 | `src/background/domains/page/utils/` | unit：判斷邏輯 |
+| Permission Management | 非 domain（infra） | PermissionManagementService（activeTab / scripting 權限） | 業務授權 | `src/background/domains/page/services/` | unit：權限檢查 |
+| Page Type Detector Utils | domain service | page-type-detector.js（頁面類型判斷工具函式） | CS 側偵測器 | `src/background/domains/page/utils/` | unit：判斷邏輯 |
 
 ### Bundle 不變式清單（per-bundle）
 
@@ -58,7 +58,7 @@ core（ErrorCodes）+ messaging（跨 context 通訊）
 
 ### 4.1 PageDetector CS 側 vs SW 側
 
-PageDetector 在 Content Script 側（`src/content/detectors/`）執行頁面偵測，PageDetectionService 在 SW 側（`src/background/domains/page/`）協調。兩者同屬 page domain 但執行環境不同。
+PageDetector 在 Content Script（CS）側（`src/content/detectors/`）執行頁面偵測，PageDetectionService 在 Service Worker（SW）側（`src/background/domains/page/`）協調。決策：此雙環境分佈源於 Chrome Extension 架構限制（CS 可存取 DOM、SW 不可），無需統一。
 
 ### 4.2 content-modular.js 歸 page 而非 extraction
 

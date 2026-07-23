@@ -12,7 +12,7 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-002（FR 清單）、SPEC-002a（E2E 契約規格）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
 extraction domain 負責從電子書平台網頁提取書籍資料，涵蓋提取協調、資料處理、驗證、品質控制。提取結果透過事件系統傳遞至 data-management 寫入 Storage，不直接操作 Storage。
 

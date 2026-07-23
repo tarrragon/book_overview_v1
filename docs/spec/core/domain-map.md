@@ -12,7 +12,7 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-001（FR 清單）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
 core domain 是所有其他 domain 的基礎依賴，提供錯誤處理、事件系統、日誌、訊息字典、列舉、效能監控和資料遷移工具。UC-01 至 UC-08 全部間接依賴 core 提供的基礎設施。
 
@@ -35,11 +35,11 @@ domain core（基礎設施層：ErrorCodes / EventBus / Logger / Enums / Operati
 | Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
 |---|---|---|---|---|---|
 | ErrorCodes + OperationResult | supporting VO | ErrorCodes 常數（11 類）、StandardError、NetworkError、BookValidationError、ErrorHelper、OperationResult | 各 UC 的 ErrorAdapter/Factory（歸各自 domain） | `src/core/errors/` | unit：錯誤碼唯一性、OperationResult 結構 |
-| EventBus | domain service | EventBus、EventHandler、EventSystemUnifier、事件命名與優先級 | 事件消費者（歸各自 domain） | `src/core/events/`, `src/core/` | unit：事件註冊/發射/解除 |
-| Logger | supporting VO | Logger 類別、日誌等級過濾、MessageDictionary 整合 | 各模組的具體日誌呼叫 | `src/core/logging/` | unit：多環境 logger、等級過濾 |
+| EventBus | 非 domain（infra） | EventBus、EventHandler、EventSystemUnifier、事件命名與優先級 | 事件消費者（歸各自 domain） | `src/core/events/`, `src/core/` | unit：事件註冊/發射/解除 |
+| Logger | 非 domain（infra） | Logger 類別、日誌等級過濾、MessageDictionary 整合 | 各模組的具體日誌呼叫 | `src/core/logging/` | unit：多環境 logger、等級過濾 |
 | MessageDictionary | supporting VO | 統一訊息管理、鍵值查詢、參數替換 | 各模組的具體訊息定義 | `src/core/messages/` | unit：鍵值查詢、參數替換 |
 | Enum System | supporting VO | OperationStatus、ErrorTypes、MessageTypes、LogLevel、驗證工具 | 業務層列舉（ReadingStatus 歸 data-management） | `src/core/enums/` | unit：列舉值完整性、驗證函式 |
-| Performance Monitoring | read-model | MetricsCollector、PerformanceAssessment、異常偵測 | 具體模組的效能資料來源 | `src/core/performance/` | unit：指標收集、評估計算 |
+| Performance Monitoring | domain service | MetricsCollector、PerformanceAssessment、異常偵測 | 具體模組的效能資料來源 | `src/core/performance/` | unit：指標收集、評估計算 |
 | Migration Tools | domain service | AutoMigrationConverter、MigrationValidator、StandardErrorWrapper | 具體 schema migration（歸 data-management） | `src/core/migration/` | unit：遷移驗證、進度追蹤 |
 
 ### Bundle 不變式清單（per-bundle）
@@ -62,7 +62,7 @@ domain core（基礎設施層：ErrorCodes / EventBus / Logger / Enums / Operati
 
 ### 4.2 Design System 歸 core 但屬 presentation 邊界
 
-`src/core/design-system/`（COLORS / SPACING / FONT_SIZES / SHADOWS）物理上在 core 路徑下，但功能屬 presentation cross-cutting。domain map 中不列為 domain bundle，僅記錄此觀察。
+`src/core/design-system/`（COLORS / SPACING / FONT_SIZES / SHADOWS）物理上在 core 路徑下，但功能屬 presentation cross-cutting。決策：保留現有路徑不遷出——Design System token 被所有 presentation 元件消費，放 core 確保零循環依賴。
 
 ## 5. 對實作票的切分指引
 

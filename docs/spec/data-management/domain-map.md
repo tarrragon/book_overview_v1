@@ -12,7 +12,7 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-004 / SPEC-STORAGE-ISOLATION / SPEC-010（FR 清單）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
 data-management domain 負責書目資料的儲存、匯入匯出、驗證、品質管理、Schema 遷移和衝突解決。涵蓋兩個獨立 aggregate（Book 和 Tag），多書城 storage 隔離，以及跨裝置同步準備。
 

@@ -12,7 +12,7 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-008（FR 清單）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
 user-experience domain 涵蓋 Popup 介面、書庫總覽、搜尋篩選、主題管理、通知和無障礙功能。本 domain 大部分 bundle 屬 presentation 層或 cross-cutting，domain 層僅有 SearchEngine 衍生計算。
 
@@ -75,7 +75,7 @@ UXDomainCoordinator 協調 Theme / Preference / Personalization / Notification /
 
 ## 6. 觀察到的技術債（待追蹤）
 
-- 無重大技術債
+截至本次審查，已掃描以下面向均無異常：UXDomainCoordinator 協調複雜度、虛擬滾動實作、SearchEngine 索引策略。
 
 ## 7. FR → Bundle 覆蓋對照
 

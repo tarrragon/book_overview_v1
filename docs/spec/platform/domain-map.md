@@ -12,7 +12,7 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-003（FR 清單）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
 platform domain 管理電子書平台的偵測、註冊、切換和適配器工廠。目前支援 Readmoo / 博客來 / Kobo，架構已為多平台預留（BookWalker / Kindle / Google Play Books 等）。
 
@@ -36,7 +36,7 @@ core（ErrorCodes）
 
 | Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
 |---|---|---|---|---|---|
-| Platform Registry | aggregate root | PlatformRegistryService（平台註冊表、已註冊平台集合） | 平台偵測邏輯 | `src/background/domains/platform/services/` | unit：註冊/查詢/移除 |
+| Platform Registry | domain service | PlatformRegistryService（平台註冊表、已註冊平台集合） | 平台偵測邏輯 | `src/background/domains/platform/services/` | unit：註冊/查詢/移除 |
 | Platform Detection | domain service | PlatformDetectionService（URL/hostname → 平台識別） | Content Script 偵測（歸 page） | `src/background/domains/platform/services/` | unit：各書城 URL 識別 |
 | Platform Switcher | domain service | PlatformSwitcherService（活躍平台切換邏輯） | UI 切換按鈕 | `src/background/domains/platform/services/` | unit：切換狀態轉換 |
 | Adapter Factory | 非 domain（infra） | AdapterFactoryService（adapter 實例建立、資源池化） | adapter 實作（歸各書城） | `src/background/domains/platform/services/` | unit + integration：工廠建立正確類型 |

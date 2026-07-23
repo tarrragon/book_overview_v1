@@ -12,7 +12,7 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-007（FR 清單）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
 system domain 管理 Chrome Extension 的生命週期（SW 啟動/關閉）、配置管理、版本控制、健康監控和系統診斷。
 
@@ -37,7 +37,7 @@ core（ErrorCodes, EventBus）
 | Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
 |---|---|---|---|---|---|
 | Lifecycle Management | domain service | LifecycleManagementService、background.js（SW 啟動）、BackgroundCoordinator、install-handler、startup-handler、shutdown-handler、lifecycle-coordinator | 各 domain 的初始化邏輯 | `src/background/`, `src/background/lifecycle/`, `src/background/domains/system/` | unit + integration：初始化順序、關閉清理 |
-| Config Management | supporting VO | ConfigManagementService（配置載入、預設值、覆蓋） | 業務配置項 | `src/background/domains/system/services/` | unit：配置載入、合併、驗證 |
+| Config Management | domain service | ConfigManagementService（配置載入、預設值、覆蓋） | 業務配置項 | `src/background/domains/system/services/` | unit：配置載入、合併、驗證 |
 | Version Control | domain service | VersionControlService（版本檢查、升級管理） | Schema migration（歸 data-management） | `src/background/domains/system/services/` | unit：版本比較、升級判斷 |
 | Health Monitoring | read-model | HealthMonitoringService（系統狀態監控、心跳） | 業務狀態監控 | `src/background/domains/system/services/` | unit：健康指標計算 |
 | Diagnostics | read-model | DiagnosticService（除錯資訊收集、健康報告） | 業務診斷 | `src/background/domains/system/services/` | unit：報告生成 |

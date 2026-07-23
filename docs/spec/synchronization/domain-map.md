@@ -12,7 +12,7 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-009（QR Frame Format）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
 synchronization domain 定義跨裝置同步的協議規格（QR 離線同步 frame 格式、sync_meta 結構）。本 domain 在 V1 Chrome Extension 中無獨立 src 目錄——同步服務實作散佈在 data-management/services/ 下（SynchronizationOrchestrator 等），但協議規格獨立於實作歸本 domain。
 
@@ -40,7 +40,7 @@ core（基礎型別）+ data-management（Book/Tag aggregate 定義，被同步�
 |---|---|---|---|---|---|
 | QR Frame Codec | supporting VO | Frame Header 結構（15 bytes：magic/version/total_frames/frame_index/total_size/crc32）、frame 切塊/拼接規則 | QR Code 影像編解碼 | `docs/spec/synchronization/` | unit：header 編解碼、CRC32 驗證 |
 | Sync Meta | supporting VO | sync_meta 結構（source/exported_at/total_books）、format_version | 實際同步執行 | `docs/spec/synchronization/` | unit：schema 驗證 |
-| Merge Rules | domain service | 5 案例合併規則（正常遷移 / privacyBookId 缺失 / cover-openbook 碰撞 / 同 ID 多筆 / cross-device 衝突） | 衝突偵測實作（歸 data-management） | `docs/spec/synchronization/` | unit：合併邏輯 |
+| Merge Rules | domain service | 5 案例合併規則（正常遷移 / privacyBookId 缺失 / cover-openbook 碰撞（Readmoo 書籍 ID 格式 cover-{isbn} 與 openbook-{hash} 同書兩 ID 造成重複判定）/ 同 ID 多筆 / cross-device 衝突） | 衝突偵測實作（歸 data-management） | `docs/spec/synchronization/` | unit：合併邏輯 |
 
 ### Bundle 不變式清單（per-bundle）
 

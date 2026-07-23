@@ -12,9 +12,9 @@ updated: "2026-07-23"
 > 產出來源：1.6.1-W2-002。本文件界定 DDD domain bundle 邊界，作為切層、派發與測試策略的權威依據。
 > 與 SPEC-005（FR 清單）交叉引用。
 
-## 1. 目的與 UC / DDD 正交關係
+## 1. 目的
 
-messaging domain 處理 Chrome Extension 各 context（Background SW / Content Script / Popup）間的訊息路由、驗證、會話管理和連線監控。所有 UC 都透過 messaging 進行跨 context 通訊。
+messaging domain 處理 Chrome Extension 各 context（Background Service Worker（SW）/ Content Script（CS）/ Popup）間的訊息路由、驗證、會話管理和連線監控。所有 UC 都透過 messaging 進行跨 context 通訊。
 
 ## 2. 分層與依賴方向
 
@@ -38,7 +38,7 @@ core（ErrorCodes, EventBus）
 | Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
 |---|---|---|---|---|---|
 | Message Routing | 非 domain（infra） | MessageRoutingService、message-router.js（routeMessage / routeBySource）、ChromeEventBridge | 具體 message handler（歸各 domain） | `src/background/domains/messaging/services/`, `src/background/messaging/`, `src/content/bridge/` | unit + integration：路由分派、來源識別 |
-| Message Validation | supporting VO | MessageValidationService（envelope 格式驗證、type 白名單） | 業務 payload 驗證 | `src/background/domains/messaging/services/` | unit：envelope schema 驗證 |
+| Message Validation | domain service | MessageValidationService（envelope = { type, payload, source, timestamp } 格式驗證、type 白名單） | 業務 payload 驗證 | `src/background/domains/messaging/services/` | unit：envelope schema 驗證 |
 | Session Management | domain service | SessionManagementService | 認證（不在 v1 scope） | `src/background/domains/messaging/services/` | unit：session 建立/銷毀 |
 | Connection Monitoring | read-model | ConnectionMonitoringService（連線狀態追蹤、健康偵測） | 具體 reconnect 實作 | `src/background/domains/messaging/services/` | unit：連線狀態轉換 |
 | Queue Management | domain service | QueueManagementService（優先級佇列、訊息排程） | 訊息內容處理 | `src/background/domains/messaging/services/` | unit：優先級排序、佇列容量 |
@@ -59,7 +59,7 @@ core（ErrorCodes, EventBus）
 
 ### 4.1 Message Router 歸 messaging 而非獨立 infra
 
-message-router.js 物理上在 `src/background/messaging/` 而非 `src/background/domains/messaging/`。從 domain map 角度，其職責（跨 context 訊息分派）屬 messaging domain 的基礎設施層。
+message-router.js 物理上在 `src/background/messaging/` 而非 `src/background/domains/messaging/`。決策：容忍路徑分散——此為 Chrome Extension 架構歷史（messaging 先於 domains/ 重構建立），搬遷需同步修改所有 import 路徑，收益低於風險。
 
 ### 4.2 Message Handler 歸各業務 domain
 
