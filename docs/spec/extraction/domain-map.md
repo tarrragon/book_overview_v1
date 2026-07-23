@@ -24,7 +24,7 @@ presentation（popup 觸發按鈕 — 歸 user-experience）
 extraction domain service（協調、處理、驗證、品質控制）
         │ 依賴（單向）
         ▼
-core（ErrorCodes, EventBus）+ platform（平台偵測）+ messaging（跨 context 通訊）
+core（ErrorCodes, EventBus）+ platform（平台偵測）+ messaging（跨 context 通訊）+ page（頁面偵測結果）
 ```
 
 **依賴方向底線（不可違反）**：

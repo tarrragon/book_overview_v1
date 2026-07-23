@@ -40,7 +40,7 @@ core（ErrorCodes）
 | Platform Detection | domain service | PlatformDetectionService（URL/hostname → 平台識別） | Content Script 偵測（歸 page） | `src/background/domains/platform/services/` | unit：各書城 URL 識別 |
 | Platform Switcher | domain service | PlatformSwitcherService（活躍平台切換邏輯） | UI 切換按鈕 | `src/background/domains/platform/services/` | unit：切換狀態轉換 |
 | Adapter Factory | 非 domain（infra） | AdapterFactoryService（adapter 實例建立、資源池化） | adapter 實作（歸各書城） | `src/background/domains/platform/services/` | unit + integration：工廠建立正確類型 |
-| Platform Validators | domain service | ReadmooDataValidator、ReadmooMigrationValidator | 通用驗證（歸 extraction/data-management） | `src/platform/` | unit：平台專屬驗證規則 |
+| Platform Validators | domain service | ReadmooMigrationValidator | 通用驗證（歸 extraction/data-management）；ReadmooDataValidator 歸 extraction（`src/extractors/`） | `src/platform/` | unit：平台專屬驗證規則 |
 | Platform Isolation | 非 domain（infra，刻意暫置） | PlatformIsolationService（1,308 行）、CrossPlatformRouter | 所有其他 bundle | `src/background/domains/platform/services/` | （v2.0+ 啟用後補測試） |
 
 ### Bundle 不變式清單（per-bundle）
@@ -60,7 +60,7 @@ PlatformIsolationService（1,308 行）程式碼已寫好但 v1.0 不啟用。�
 
 ### 4.2 Platform Validators 物理位置
 
-ReadmooDataValidator / ReadmooMigrationValidator 在 `src/platform/` 而非 `src/background/domains/platform/`。兩者都屬 platform domain 的驗證職責。
+ReadmooMigrationValidator 在 `src/platform/` 而非 `src/background/domains/platform/`。ReadmooDataValidator 在 `src/extractors/`，歸 extraction domain。
 
 ## 5. 對實作票的切分指引
 

@@ -19,7 +19,7 @@ messaging domain 處理 Chrome Extension 各 context（Background SW / Content S
 ## 2. 分層與依賴方向
 
 ```
-所有其他 domain（extraction / page / system / user-experience）
+所有其他 domain（extraction / page / data-management / system / user-experience）
         │ 消費（透過 chrome.runtime.sendMessage / chrome.tabs.sendMessage）
         ▼
 messaging domain service（路由、驗證、會話、佇列）
@@ -53,7 +53,7 @@ core（ErrorCodes, EventBus）
 | Session Management | session 建立後必須可查詢；銷毀後不可再查詢 |
 | Connection Monitoring | 連線中斷偵測後狀態標記為 disconnected；重連後恢復 connected |
 | Queue Management | 高優先級訊息優先出隊；佇列容量超限時拒絕入隊 |
-| Content Event System | CS 側 emit 的 EXTRACTION 事件（5 種）正確轉發至 SW |
+| Content Event System | CS 側 emit 的 EXTRACTION 系列事件正確轉發至 SW |
 
 ## 4. 邊界決策
 

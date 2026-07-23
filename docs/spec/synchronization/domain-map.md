@@ -19,13 +19,15 @@ synchronization domain 定義跨裝置同步的協議規格（QR 離線同步 fr
 ## 2. 分層與依賴方向
 
 ```
-data-management（消費同步協議，實際執行同步流程）
-        │
 synchronization domain（協議定義：frame 格式、sync_meta、合併規則）
-        │ 依賴（單向）
+        │ 參照（單向，spec-level）
         ▼
-core（基礎型別）+ data-management（Book/Tag aggregate 定義，被同步的資料）
+core（基礎型別）+ data-management（Book/Tag aggregate 定義，被同步的資料結構）
 ```
+
+**消費者**：data-management（消費同步協議，實際執行同步流程——SynchronizationOrchestrator 等）。
+
+> 本 domain 無獨立 src 目錄，箭頭表 spec-level 參照而非 code import。
 
 **依賴方向底線（不可違反）**：
 

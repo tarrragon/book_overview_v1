@@ -52,6 +52,7 @@ core（ErrorCodes）+ messaging（跨 context 通訊）
 | Tab State Tracking | tab 狀態變更有對應事件記錄；tabHistory 保留最近 N 筆 |
 | Navigation | URL 變更偵測不漏（含 SPA hash 變更）；MutationObserver 正確清理 |
 | Permission Management | 必要權限（activeTab / scripting）缺失時回傳明確錯誤 |
+| Page Type Detector Utils | page-type-detector.js 判斷函式覆蓋所有已知頁面類型（library / shelf / reader / unknown） |
 
 ## 4. 邊界決策
 

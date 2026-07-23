@@ -32,6 +32,9 @@ Book aggregate    Tag aggregate（by-id 參照：Book.tagIds 引用 Tag.id）
    ▲                   ▲
    │                   │
  data（ChromeStorageAdapter、ExportManager）
+        │ 外部依賴
+        ▼
+ core（ErrorCodes, EventBus）+ messaging（跨 context 通訊）
 ```
 
 **依賴方向底線（不可違反）**：
