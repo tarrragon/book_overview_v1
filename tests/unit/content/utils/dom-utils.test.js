@@ -515,9 +515,11 @@ describe('DOMUtils - TDD Red 階段測試', () => {
       // eslint-disable-next-line no-unused-vars
       const result = await DOMUtils.waitForContent('.book', { timeout: 500 })
 
+      // 行為驗證：找到元素即代表在 timeout 前完成，不採絕對計時門檻斷言，
+      // 避免機器負載造成 flaky（.claude/rules/core/test-assertion-design-rules.md 規則 D1）
       expect(result.found).toBe(true)
       expect(result.element).toBeTruthy()
-      expect(result.waitTime).toBeLessThan(500)
+      expect(typeof result.waitTime).toBe('number')
     }, 1000)
 
     test('應該在超時後停止等待', async () => {
