@@ -106,5 +106,23 @@ describe('PlatformRegistry', () => {
 
       expect(second.map((p) => p.name)).not.toContain('fake')
     })
+
+    test('kobo 配置的 libraryUrls 應涵蓋台灣站與日本站 (/jp/ja/) 路徑', () => {
+      const platforms = PlatformRegistry.getRegisteredPlatforms()
+      const kobo = platforms.find((p) => p.name === 'kobo')
+
+      expect(Array.isArray(kobo.libraryUrls)).toBe(true)
+      expect(kobo.libraryUrls.some((url) => url.includes('/tw/zh/'))).toBe(true)
+      expect(kobo.libraryUrls.some((url) => url.includes('/jp/ja/'))).toBe(true)
+    })
+  })
+
+  describe('detect(url) — kobo 多地區路徑', () => {
+    test('應該識別日本站書庫頁 URL 並回傳 kobo 配置', () => {
+      const result = PlatformRegistry.detect('https://www.kobo.com/jp/ja/library/books')
+
+      expect(result).not.toBeNull()
+      expect(result.config.name).toBe('kobo')
+    })
   })
 })

@@ -23,6 +23,12 @@ const BOOKSTORE_LIST = Object.freeze([
     name: 'Kobo',
     url: 'https://www.kobo.com/tw/zh/library/books',
     enabled: true
+  },
+  {
+    id: 'kobo-jp',
+    name: 'Kobo（日本）',
+    url: 'https://www.kobo.com/jp/ja/library/books',
+    enabled: true
   }
 ])
 

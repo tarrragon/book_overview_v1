@@ -21,7 +21,8 @@
  * @property {string[]} matchPatterns manifest content script 用 URL match patterns
  * @property {string[]} hostnames 偵測比對用 hostname 清單
  * @property {() => Function} adapterFactory lazy require，回傳適配器工廠函式
- * @property {string} libraryUrl 書庫頁 URL
+ * @property {string} libraryUrl 書庫頁 URL（預設地區）
+ * @property {string[]} [libraryUrls] 多地區書庫頁 URL 清單（同一 platformId 涵蓋多地區時填寫）
  */
 
 /**
@@ -52,7 +53,11 @@ const PLATFORM_CONFIGS = [
     matchPatterns: ['*://*.kobo.com/*'],
     hostnames: ['www.kobo.com', 'kobo.com'],
     adapterFactory: () => require('../adapters/kobo-adapter'),
-    libraryUrl: 'https://www.kobo.com/tw/zh/library/books'
+    libraryUrl: 'https://www.kobo.com/tw/zh/library/books',
+    libraryUrls: [
+      'https://www.kobo.com/tw/zh/library/books',
+      'https://www.kobo.com/jp/ja/library/books'
+    ]
   }
 ]
 

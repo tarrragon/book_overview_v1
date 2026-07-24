@@ -30,4 +30,11 @@ describe('bookstore-config', () => {
     const ids = BOOKSTORE_LIST.map(s => s.id)
     expect(new Set(ids).size).toBe(ids.length)
   })
+
+  test('contains Kobo Japan entry with /jp/ja/ library URL', () => {
+    const koboJp = BOOKSTORE_LIST.find(s => s.id === 'kobo-jp')
+    expect(koboJp).toBeDefined()
+    expect(koboJp.url).toBe('https://www.kobo.com/jp/ja/library/books')
+    expect(koboJp.enabled).toBe(true)
+  })
 })
