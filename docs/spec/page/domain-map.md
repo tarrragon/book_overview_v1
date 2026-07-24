@@ -34,25 +34,25 @@ core（ErrorCodes）+ messaging（跨 context 通訊）
 
 ## 3. Bundle 界定表
 
-| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
-|---|---|---|---|---|---|
-| Page Detection | domain service | PageDetectionService（SW 側）、PageDetector（CS 側，頁面類型識別：library/shelf/reader/unknown）、hostname 偵測、SPA hash 路由處理 | DOM 提取（歸 extraction） | `src/background/domains/page/services/`, `src/content/detectors/` | unit：頁面類型分類正確性 |
-| Content Script Coordination | domain service | ContentScriptCoordinatorService（CS 生命週期管理） | CS 內部業務邏輯 | `src/background/domains/page/services/` | unit：CS 注入/銷毀流程 |
-| Tab State Tracking | read-model | TabStateTrackingService（tab 提取狀態追蹤、tab 切換歷史）| 提取邏輯 | `src/background/domains/page/services/` | unit：狀態追蹤正確性 |
-| Navigation | domain service | NavigationService（URL 變更偵測、MutationObserver） | 頁面內容處理 | `src/background/domains/page/services/` | unit：URL 變更事件 |
-| Permission Management | 非 domain（infra） | PermissionManagementService（activeTab / scripting 權限） | 業務授權 | `src/background/domains/page/services/` | unit：權限檢查 |
-| Page Type Detector Utils | domain service | page-type-detector.js（頁面類型判斷工具函式） | CS 側偵測器 | `src/background/domains/page/utils/` | unit：判斷邏輯 |
+| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 | 實作狀態 |
+|---|---|---|---|---|---|---|
+| Page Detection | domain service | PageDetectionService（SW 側）、PageDetector（CS 側，頁面類型識別：library/shelf/reader/unknown）、hostname 偵測、SPA hash 路由處理 | DOM 提取（歸 extraction） | `src/background/domains/page/services/`, `src/content/detectors/` | unit：頁面類型分類正確性 | 已實作 |
+| Content Script Coordination | domain service | ContentScriptCoordinatorService（CS 生命週期管理） | CS 內部業務邏輯 | `src/background/domains/page/services/` | unit：CS 注入/銷毀流程 | 已實作 |
+| Tab State Tracking | read-model | TabStateTrackingService（tab 提取狀態追蹤、tab 切換歷史）| 提取邏輯 | `src/background/domains/page/services/` | unit：狀態追蹤正確性 | 已實作 |
+| Navigation | domain service | NavigationService（URL 變更偵測、MutationObserver） | 頁面內容處理 | `src/background/domains/page/services/` | unit：URL 變更事件 | 已實作 |
+| Permission Management | 非 domain（infra） | PermissionManagementService（activeTab / scripting 權限） | 業務授權 | `src/background/domains/page/services/` | unit：權限檢查 | 已實作 |
+| Page Type Detector Utils | domain service | page-type-detector.js（頁面類型判斷工具函式） | CS 側偵測器 | `src/background/domains/page/utils/` | unit：判斷邏輯 | 已實作 |
 
 ### Bundle 不變式清單（per-bundle）
 
-| Bundle | 不變式（每條可轉一個 unit test） |
-|---|---|
-| Page Detection | readmoo.com 域名必須偵測為 isReadmooPage=true；library/shelf 頁面 isExtractablePage=true；SPA hash 路由（#/library）正確識別 |
-| Content Script Coordination | CS 初始化九步驟依序執行；Step 9 reportReadyStatus 為最後步驟 |
-| Tab State Tracking | tab 狀態變更有對應事件記錄；tabHistory 保留最近 N 筆 |
-| Navigation | URL 變更偵測不漏（含 SPA hash 變更）；MutationObserver 正確清理 |
-| Permission Management | 必要權限（activeTab / scripting）缺失時回傳明確錯誤 |
-| Page Type Detector Utils | page-type-detector.js 判斷函式覆蓋所有已知頁面類型（library / shelf / reader / unknown） |
+| Bundle | 不變式（每條可轉一個 unit test） | 已實作 |
+|---|---|---|
+| Page Detection | readmoo.com 域名必須偵測為 isReadmooPage=true；library/shelf 頁面 isExtractablePage=true；SPA hash 路由（#/library）正確識別 | 已實作 |
+| Content Script Coordination | CS 初始化九步驟依序執行；Step 9 reportReadyStatus 為最後步驟 | 已實作 |
+| Tab State Tracking | tab 狀態變更有對應事件記錄；tabHistory 保留最近 N 筆 | 已實作 |
+| Navigation | URL 變更偵測不漏（含 SPA hash 變更）；MutationObserver 正確清理 | 已實作 |
+| Permission Management | 必要權限（activeTab / scripting）缺失時回傳明確錯誤 | 已實作 |
+| Page Type Detector Utils | page-type-detector.js 判斷函式覆蓋所有已知頁面類型（library / shelf / reader / unknown） | 已實作 |
 
 ## 4. 邊界決策
 

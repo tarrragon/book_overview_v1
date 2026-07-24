@@ -36,23 +36,23 @@ core（ErrorCodes, COLORS design-system）+ data-management（Book/Tag aggregate
 
 ## 3. Bundle 界定表
 
-| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
-|---|---|---|---|---|---|
-| Search Engine | read-model | SearchEngine、SearchIndexManager、SearchCoordinator、FilterEngine、BookSearchFilter | 搜尋 UI 元件 | `src/ui/search/`, `src/ui/` | unit：索引建立、搜尋結果排序、多條件篩選 |
-| Popup UI | 非 domain（presentation） | PopupController、PopupEventController、PopupProgressManager、PopupStatusManager、PopupCommunicationService、PopupExtractionService、PopupUIComponents、PopupUIManager、PopupUICoordinationService | 業務邏輯 | `src/popup/` | widget test：UI 渲染、按鈕事件 |
-| Overview Page | 非 domain（presentation） | OverviewPageController、overview.js、BookGridRenderer（虛擬滾動） | 業務邏輯 | `src/overview/`, `src/ui/` | widget test：書籍網格渲染、虛擬滾動 |
-| Theme & Personalization | 非 domain（cross-cutting） | ThemeManagementService、PreferenceService、PersonalizationService | 業務邏輯 | `src/background/domains/user-experience/services/` | unit：主題切換、偏好持久化 |
-| Notification & Accessibility | 非 domain（cross-cutting） | NotificationService、AccessibilityService | 業務邏輯 | `src/background/domains/user-experience/services/` | unit：通知觸發、無障礙合規 |
+| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 | 實作狀態 |
+|---|---|---|---|---|---|---|
+| Search Engine | read-model | SearchEngine、SearchIndexManager、SearchCoordinator、FilterEngine、BookSearchFilter | 搜尋 UI 元件 | `src/ui/search/`, `src/ui/` | unit：索引建立、搜尋結果排序、多條件篩選 | 已實作 |
+| Popup UI | 非 domain（presentation） | PopupController、PopupEventController、PopupProgressManager、PopupStatusManager、PopupCommunicationService、PopupExtractionService、PopupUIComponents、PopupUIManager、PopupUICoordinationService | 業務邏輯 | `src/popup/` | widget test：UI 渲染、按鈕事件 | 已實作 |
+| Overview Page | 非 domain（presentation） | OverviewPageController、overview.js、BookGridRenderer（虛擬滾動） | 業務邏輯 | `src/overview/`, `src/ui/` | widget test：書籍網格渲染、虛擬滾動 | 已實作 |
+| Theme & Personalization | 非 domain（cross-cutting） | ThemeManagementService、PreferenceService、PersonalizationService | 業務邏輯 | `src/background/domains/user-experience/services/` | unit：主題切換、偏好持久化 | 已實作 |
+| Notification & Accessibility | 非 domain（cross-cutting） | NotificationService、AccessibilityService | 業務邏輯 | `src/background/domains/user-experience/services/` | unit：通知觸發、無障礙合規 | 已實作 |
 
 ### Bundle 不變式清單（per-bundle）
 
-| Bundle | 不變式（每條可轉一個 unit test） |
-|---|---|
-| Search Engine | 空搜尋回傳全部書籍；搜尋結果按相關度排序；多條件篩選交集正確 |
-| Popup UI | popup 開啟時顯示當前書籍數量；提取按鈕狀態與提取流程同步 |
-| Overview Page | 虛擬滾動渲染可見範圍內的書籍卡片；書籍數量 > 0 時 tableBody 非空 |
-| Theme & Personalization | 深色/淺色主題切換後 CSS 變數更新；偏好持久化後重啟保留 |
-| Notification & Accessibility | 通知顯示後可手動關閉；無障礙色彩對比度 >= 4.5 |
+| Bundle | 不變式（每條可轉一個 unit test） | 已實作 |
+|---|---|---|
+| Search Engine | 空搜尋回傳全部書籍；搜尋結果按相關度排序；多條件篩選交集正確 | 已實作 |
+| Popup UI | popup 開啟時顯示當前書籍數量；提取按鈕狀態與提取流程同步 | 已實作 |
+| Overview Page | 虛擬滾動渲染可見範圍內的書籍卡片；書籍數量 > 0 時 tableBody 非空 | 已實作 |
+| Theme & Personalization | 深色/淺色主題切換後 CSS 變數更新；偏好持久化後重啟保留 | 已實作 |
+| Notification & Accessibility | 通知顯示後可手動關閉；無障礙色彩對比度 >= 4.5 | 已實作 |
 
 ## 4. 邊界決策
 

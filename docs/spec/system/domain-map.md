@@ -34,23 +34,23 @@ core（ErrorCodes, EventBus）
 
 ## 3. Bundle 界定表
 
-| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
-|---|---|---|---|---|---|
-| Lifecycle Management | domain service | LifecycleManagementService、background.js（SW 啟動）、BackgroundCoordinator、install-handler、startup-handler、shutdown-handler、lifecycle-coordinator | 各 domain 的初始化邏輯 | `src/background/`, `src/background/lifecycle/`, `src/background/domains/system/` | unit + integration：初始化順序、關閉清理 |
-| Config Management | domain service | ConfigManagementService（配置載入、預設值、覆蓋） | 業務配置項 | `src/background/domains/system/services/` | unit：配置載入、合併、驗證 |
-| Version Control | domain service | VersionControlService（版本檢查、升級管理） | Schema migration（歸 data-management） | `src/background/domains/system/services/` | unit：版本比較、升級判斷 |
-| Health Monitoring | read-model | HealthMonitoringService（系統狀態監控、心跳） | 業務狀態監控 | `src/background/domains/system/services/` | unit：健康指標計算 |
-| Diagnostics | read-model | DiagnosticService（除錯資訊收集、健康報告） | 業務診斷 | `src/background/domains/system/services/` | unit：報告生成 |
+| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 | 實作狀態 |
+|---|---|---|---|---|---|---|
+| Lifecycle Management | domain service | LifecycleManagementService、background.js（SW 啟動）、BackgroundCoordinator、install-handler、startup-handler、shutdown-handler、lifecycle-coordinator | 各 domain 的初始化邏輯 | `src/background/`, `src/background/lifecycle/`, `src/background/domains/system/` | unit + integration：初始化順序、關閉清理 | 已實作 |
+| Config Management | domain service | ConfigManagementService（配置載入、預設值、覆蓋） | 業務配置項 | `src/background/domains/system/services/` | unit：配置載入、合併、驗證 | 已實作 |
+| Version Control | domain service | VersionControlService（版本檢查、升級管理） | Schema migration（歸 data-management） | `src/background/domains/system/services/` | unit：版本比較、升級判斷 | 已實作 |
+| Health Monitoring | read-model | HealthMonitoringService（系統狀態監控、心跳） | 業務狀態監控 | `src/background/domains/system/services/` | unit：健康指標計算 | 已實作 |
+| Diagnostics | read-model | DiagnosticService（除錯資訊收集、健康報告） | 業務診斷 | `src/background/domains/system/services/` | unit：報告生成 | 已實作 |
 
 ### Bundle 不變式清單（per-bundle）
 
-| Bundle | 不變式（每條可轉一個 unit test） |
-|---|---|
-| Lifecycle Management | SW 啟動順序：install-handler → startup-handler → registerServiceWorkerEvents；shutdown 廣播 SYSTEM.SHUTDOWN 後才回收 |
-| Config Management | 配置必有預設值；使用者覆蓋不影響預設值完整性 |
-| Version Control | 版本比較遵循 semver；升級從低到高單調；降級被拒 |
-| Health Monitoring | 健康狀態為 healthy/degraded/unhealthy 三態；心跳間隔可配置 |
-| Diagnostics | 診斷報告包含所有必要系統資訊（版本、配置、模組狀態） |
+| Bundle | 不變式（每條可轉一個 unit test） | 已實作 |
+|---|---|---|
+| Lifecycle Management | SW 啟動順序：install-handler → startup-handler → registerServiceWorkerEvents；shutdown 廣播 SYSTEM.SHUTDOWN 後才回收 | 已實作 |
+| Config Management | 配置必有預設值；使用者覆蓋不影響預設值完整性 | 已實作 |
+| Version Control | 版本比較遵循 semver；升級從低到高單調；降級被拒 | 已實作 |
+| Health Monitoring | 健康狀態為 healthy/degraded/unhealthy 三態；心跳間隔可配置 | 已實作 |
+| Diagnostics | 診斷報告包含所有必要系統資訊（版本、配置、模組狀態） | 已實作 |
 
 ## 4. 邊界決策
 

@@ -35,25 +35,25 @@ core（ErrorCodes, EventBus）
 
 ## 3. Bundle 界定表
 
-| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
-|---|---|---|---|---|---|
-| Message Routing | 非 domain（infra） | MessageRoutingService、message-router.js（routeMessage / routeBySource）、ChromeEventBridge | 具體 message handler（歸各 domain） | `src/background/domains/messaging/services/`, `src/background/messaging/`, `src/content/bridge/` | unit + integration：路由分派、來源識別 |
-| Message Validation | domain service | MessageValidationService（envelope = { type, payload, source, timestamp } 格式驗證、type 白名單） | 業務 payload 驗證 | `src/background/domains/messaging/services/` | unit：envelope schema 驗證 |
-| Session Management | domain service | SessionManagementService | 認證（不在 v1 scope） | `src/background/domains/messaging/services/` | unit：session 建立/銷毀 |
-| Connection Monitoring | read-model | ConnectionMonitoringService（連線狀態追蹤、健康偵測） | 具體 reconnect 實作 | `src/background/domains/messaging/services/` | unit：連線狀態轉換 |
-| Queue Management | domain service | QueueManagementService（優先級佇列、訊息排程） | 訊息內容處理 | `src/background/domains/messaging/services/` | unit：優先級排序、佇列容量 |
-| Content Event System | 非 domain（infra） | ContentEventBus（CS 側本地事件管理）、contentChromeBridge 事件轉發 | 事件消費者 | `src/content/core/`, `src/content/bridge/` | unit：事件發射/訂閱 |
+| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 | 實作狀態 |
+|---|---|---|---|---|---|---|
+| Message Routing | 非 domain（infra） | MessageRoutingService、message-router.js（routeMessage / routeBySource）、ChromeEventBridge | 具體 message handler（歸各 domain） | `src/background/domains/messaging/services/`, `src/background/messaging/`, `src/content/bridge/` | unit + integration：路由分派、來源識別 | 已實作 |
+| Message Validation | domain service | MessageValidationService（envelope = { type, payload, source, timestamp } 格式驗證、type 白名單） | 業務 payload 驗證 | `src/background/domains/messaging/services/` | unit：envelope schema 驗證 | 已實作 |
+| Session Management | domain service | SessionManagementService | 認證（不在 v1 scope） | `src/background/domains/messaging/services/` | unit：session 建立/銷毀 | 已實作 |
+| Connection Monitoring | read-model | ConnectionMonitoringService（連線狀態追蹤、健康偵測） | 具體 reconnect 實作 | `src/background/domains/messaging/services/` | unit：連線狀態轉換 | 已實作 |
+| Queue Management | domain service | QueueManagementService（優先級佇列、訊息排程） | 訊息內容處理 | `src/background/domains/messaging/services/` | unit：優先級排序、佇列容量 | 已實作 |
+| Content Event System | 非 domain（infra） | ContentEventBus（CS 側本地事件管理）、contentChromeBridge 事件轉發 | 事件消費者 | `src/content/core/`, `src/content/bridge/` | unit：事件發射/訂閱 | 已實作 |
 
 ### Bundle 不變式清單（per-bundle）
 
-| Bundle | 不變式（每條可轉一個 unit test） |
-|---|---|
-| Message Routing | 未知 message type 回傳 { success: false }；來源識別（content/popup/background）正確 |
-| Message Validation | request envelope 必須含 type 欄位；response success=false 時 error 必填 |
-| Session Management | session 建立後必須可查詢；銷毀後不可再查詢 |
-| Connection Monitoring | 連線中斷偵測後狀態標記為 disconnected；重連後恢復 connected |
-| Queue Management | 高優先級訊息優先出隊；佇列容量超限時拒絕入隊 |
-| Content Event System | CS 側 emit 的 EXTRACTION 系列事件正確轉發至 SW |
+| Bundle | 不變式（每條可轉一個 unit test） | 已實作 |
+|---|---|---|
+| Message Routing | 未知 message type 回傳 { success: false }；來源識別（content/popup/background）正確 | 已實作 |
+| Message Validation | request envelope 必須含 type 欄位；response success=false 時 error 必填 | 已實作 |
+| Session Management | session 建立後必須可查詢；銷毀後不可再查詢 | 已實作 |
+| Connection Monitoring | 連線中斷偵測後狀態標記為 disconnected；重連後恢復 connected | 已實作 |
+| Queue Management | 高優先級訊息優先出隊；佇列容量超限時拒絕入隊 | 已實作 |
+| Content Event System | CS 側 emit 的 EXTRACTION 系列事件正確轉發至 SW | 已實作 |
 
 ## 4. 邊界決策
 

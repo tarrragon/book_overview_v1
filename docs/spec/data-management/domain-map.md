@@ -45,31 +45,31 @@ Book aggregate    Tag aggregate（by-id 參照：Book.tagIds 引用 Tag.id）
 
 ## 3. Bundle 界定表
 
-| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
-|---|---|---|---|---|---|
-| Book Aggregate | aggregate root | BookSchemaV2（欄位定義、SCHEMA_VERSION）、ReadingStatus 列舉（6 種）、isManualStatus 狀態追蹤、Book 欄位驗證 | Tag 結構、Storage 適配器 | `src/data-management/BookSchemaV2.js` | unit：schema 驗證、狀態轉換規則 |
-| Tag Aggregate | aggregate root | TagSchema（TagCategory + Tag）、唯一鍵語意（parentId+name scoped）、TAG_TREE_MAX_DEPTH、makeCategoryKey | Book 關聯、Storage 適配器 | `src/data-management/TagSchema.js` | unit：schema 驗證、樹狀結構不變式 |
-| Validation & Quality | domain service | DataValidationService、ValidationEngine、DataQualityAnalyzer、DataNormalizationService、PlatformRuleManager | Storage I/O | `src/background/domains/data-management/services/` | unit + integration：驗證規則、品質評估 |
-| Schema Migration | domain service | SchemaMigrationService、cover-to-reader migration、v1-to-v2 migration | 具體 Storage 寫入 | `src/data-management/migration/` | unit：遷移規則、冪等性、回滾 |
-| Conflict Detection | domain service | ConflictDetectionService、SyncConflictResolver | 網路 I/O | `src/background/domains/data-management/services/` | unit：衝突偵測規則、LWW 解決策略 |
-| Sync Coordination | saga / process manager | CrossDeviceSyncService、SyncProgressTracker、SynchronizationOrchestrator、CacheManagementService | 網路傳輸實作 | `src/background/domains/data-management/services/` | unit（狀態機）+ integration：同步流程、重試 |
-| Tag Presets | supporting VO | 賴永祥分類法預裝資料（chinese-classification.json）、DEFAULT_TAG_CATEGORIES | 載入機制（歸 infra） | `src/data-management/presets/` | unit：預裝資料完整性 |
-| Storage Adapter | 非 domain（infra） | ChromeStorageAdapter、LocalStorageAdapter、tag-storage-adapter、platformBooksKey、saveBooksWrapper、雙形態容錯 | domain 計算 | `src/storage/` | repository test：讀寫正確性、配額管理 |
-| Export System | 非 domain（infra） | ExportManager、BookDataExporter、JsonExportHandler、CsvExportHandler、ExcelExportHandler、HandlerRegistry | domain 計算 | `src/export/` | integration：多格式匯出正確性 |
+| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 | 實作狀態 |
+|---|---|---|---|---|---|---|
+| Book Aggregate | aggregate root | BookSchemaV2（欄位定義、SCHEMA_VERSION）、ReadingStatus 列舉（6 種）、isManualStatus 狀態追蹤、Book 欄位驗證 | Tag 結構、Storage 適配器 | `src/data-management/BookSchemaV2.js` | unit：schema 驗證、狀態轉換規則 | 已實作 |
+| Tag Aggregate | aggregate root | TagSchema（TagCategory + Tag）、唯一鍵語意（parentId+name scoped）、TAG_TREE_MAX_DEPTH、makeCategoryKey | Book 關聯、Storage 適配器 | `src/data-management/TagSchema.js` | unit：schema 驗證、樹狀結構不變式 | 已實作 |
+| Validation & Quality | domain service | DataValidationService、ValidationEngine、DataQualityAnalyzer、DataNormalizationService、PlatformRuleManager | Storage I/O | `src/background/domains/data-management/services/` | unit + integration：驗證規則、品質評估 | 已實作 |
+| Schema Migration | domain service | SchemaMigrationService、cover-to-reader migration、v1-to-v2 migration | 具體 Storage 寫入 | `src/data-management/migration/` | unit：遷移規則、冪等性、回滾 | 已實作 |
+| Conflict Detection | domain service | ConflictDetectionService、SyncConflictResolver | 網路 I/O | `src/background/domains/data-management/services/` | unit：衝突偵測規則、LWW 解決策略 | 已實作 |
+| Sync Coordination | saga / process manager | CrossDeviceSyncService、SyncProgressTracker、SynchronizationOrchestrator、CacheManagementService | 網路傳輸實作 | `src/background/domains/data-management/services/` | unit（狀態機）+ integration：同步流程、重試 | 已實作 |
+| Tag Presets | supporting VO | 賴永祥分類法預裝資料（chinese-classification.json）、DEFAULT_TAG_CATEGORIES | 載入機制（歸 infra） | `src/data-management/presets/` | unit：預裝資料完整性 | 已實作 |
+| Storage Adapter | 非 domain（infra） | ChromeStorageAdapter、LocalStorageAdapter、tag-storage-adapter、platformBooksKey、saveBooksWrapper、雙形態容錯 | domain 計算 | `src/storage/` | repository test：讀寫正確性、配額管理 | 已實作 |
+| Export System | 非 domain（infra） | ExportManager、BookDataExporter、JsonExportHandler、CsvExportHandler、ExcelExportHandler、HandlerRegistry | domain 計算 | `src/export/` | integration：多格式匯出正確性 | 已實作 |
 
 ### Bundle 不變式清單（per-bundle）
 
-| Bundle | 不變式（每條可轉一個 unit test） |
-|---|---|
-| Book Aggregate | readingStatus 必為 6 種列舉值之一；isManualStatus=true 時自動轉換不觸發；progress 範圍 0-100；id 必填 |
-| Tag Aggregate | 同一 parentId 下 name 唯一（scoped uniqueness）；樹深度 <= TAG_TREE_MAX_DEPTH；無循環引用；isSystem=true 不可刪除 |
-| Validation & Quality | 驗證規則集 required/format/range 覆蓋所有必填欄位；品質分數 0-100 |
-| Schema Migration | 遷移冪等（重複執行結果相同）；失敗時 backup 保留供回滾；schema_version 單調遞增 |
-| Conflict Detection | LWW 以 updatedAt 裁決；同 id 衝突必須產出解決方案 |
-| Sync Coordination | 同步狀態機轉換有效；重試次數不超過上限；進度 0-100% 單調遞增 |
-| Tag Presets | 預裝約 110 節點全部 isSystem=true；確定性 ID 前綴 sys_cat_ |
-| Storage Adapter | 雙形態（Object/Array）容錯讀取正確；配額 > 95% 時阻擋寫入；saveBooksWrapper 保留原始容器結構 |
-| Export System | 所有匯出格式（JSON/CSV/Excel）含必要欄位；進度追蹤 0-100% |
+| Bundle | 不變式（每條可轉一個 unit test） | 已實作 |
+|---|---|---|
+| Book Aggregate | readingStatus 必為 6 種列舉值之一；isManualStatus=true 時自動轉換不觸發；progress 範圍 0-100；id 必填 | 已實作 |
+| Tag Aggregate | 同一 parentId 下 name 唯一（scoped uniqueness）；樹深度 <= TAG_TREE_MAX_DEPTH；無循環引用；isSystem=true 不可刪除 | 已實作 |
+| Validation & Quality | 驗證規則集 required/format/range 覆蓋所有必填欄位；品質分數 0-100 | 已實作 |
+| Schema Migration | 遷移冪等（重複執行結果相同）；失敗時 backup 保留供回滾；schema_version 單調遞增 | 已實作 |
+| Conflict Detection | LWW 以 updatedAt 裁決；同 id 衝突必須產出解決方案 | 已實作 |
+| Sync Coordination | 同步狀態機轉換有效；重試次數不超過上限；進度 0-100% 單調遞增 | 已實作 |
+| Tag Presets | 預裝約 110 節點全部 isSystem=true；確定性 ID 前綴 sys_cat_ | 已實作 |
+| Storage Adapter | 雙形態（Object/Array）容錯讀取正確；配額 > 95% 時阻擋寫入；saveBooksWrapper 保留原始容器結構 | 已實作 |
+| Export System | 所有匯出格式（JSON/CSV/Excel）含必要欄位；進度追蹤 0-100% | 已實作 |
 
 ## 4. 邊界決策
 

@@ -32,27 +32,27 @@ domain core（基礎設施層：ErrorCodes / EventBus / Logger / Enums / Operati
 
 ## 3. Bundle 界定表
 
-| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
-|---|---|---|---|---|---|
-| ErrorCodes + OperationResult | supporting VO | ErrorCodes 常數（11 類）、StandardError、NetworkError、BookValidationError、ErrorHelper、OperationResult | 各 UC 的 ErrorAdapter/Factory（歸各自 domain） | `src/core/errors/` | unit：錯誤碼唯一性、OperationResult 結構 |
-| EventBus | 非 domain（infra） | EventBus、EventHandler、EventSystemUnifier、事件命名與優先級 | 事件消費者（歸各自 domain） | `src/core/events/`, `src/core/` | unit：事件註冊/發射/解除 |
-| Logger | 非 domain（infra） | Logger 類別、日誌等級過濾、MessageDictionary 整合 | 各模組的具體日誌呼叫 | `src/core/logging/` | unit：多環境 logger、等級過濾 |
-| MessageDictionary | supporting VO | 統一訊息管理、鍵值查詢、參數替換 | 各模組的具體訊息定義 | `src/core/messages/` | unit：鍵值查詢、參數替換 |
-| Enum System | supporting VO | OperationStatus、ErrorTypes、MessageTypes、LogLevel、驗證工具 | 業務層列舉（ReadingStatus 歸 data-management） | `src/core/enums/` | unit：列舉值完整性、驗證函式 |
-| Performance Monitoring | domain service | MetricsCollector、PerformanceAssessment、異常偵測 | 具體模組的效能資料來源 | `src/core/performance/` | unit：指標收集、評估計算 |
-| Migration Tools | domain service | AutoMigrationConverter、MigrationValidator、StandardErrorWrapper | 具體 schema migration（歸 data-management） | `src/core/migration/` | unit：遷移驗證、進度追蹤 |
+| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 | 實作狀態 |
+|---|---|---|---|---|---|---|
+| ErrorCodes + OperationResult | supporting VO | ErrorCodes 常數（11 類）、StandardError、NetworkError、BookValidationError、ErrorHelper、OperationResult | 各 UC 的 ErrorAdapter/Factory（歸各自 domain） | `src/core/errors/` | unit：錯誤碼唯一性、OperationResult 結構 | 已實作 |
+| EventBus | 非 domain（infra） | EventBus、EventHandler、EventSystemUnifier、事件命名與優先級 | 事件消費者（歸各自 domain） | `src/core/events/`, `src/core/` | unit：事件註冊/發射/解除 | 已實作 |
+| Logger | 非 domain（infra） | Logger 類別、日誌等級過濾、MessageDictionary 整合 | 各模組的具體日誌呼叫 | `src/core/logging/` | unit：多環境 logger、等級過濾 | 已實作 |
+| MessageDictionary | supporting VO | 統一訊息管理、鍵值查詢、參數替換 | 各模組的具體訊息定義 | `src/core/messages/` | unit：鍵值查詢、參數替換 | 已實作 |
+| Enum System | supporting VO | OperationStatus、ErrorTypes、MessageTypes、LogLevel、驗證工具 | 業務層列舉（ReadingStatus 歸 data-management） | `src/core/enums/` | unit：列舉值完整性、驗證函式 | 已實作 |
+| Performance Monitoring | domain service | MetricsCollector、PerformanceAssessment、異常偵測 | 具體模組的效能資料來源 | `src/core/performance/` | unit：指標收集、評估計算 | 已實作 |
+| Migration Tools | domain service | AutoMigrationConverter、MigrationValidator、StandardErrorWrapper | 具體 schema migration（歸 data-management） | `src/core/migration/` | unit：遷移驗證、進度追蹤 | 已實作 |
 
 ### Bundle 不變式清單（per-bundle）
 
-| Bundle | 不變式（每條可轉一個 unit test） |
-|---|---|
-| ErrorCodes + OperationResult | ErrorCodes 11 類分類碼互不重複；OperationResult.success=false 時 error 必存在 |
-| EventBus | 同一事件名多次 on 後 emit 觸發全部 handler；off 後不再觸發；事件名符合命名規範 |
-| Logger | 日誌等級 ERROR > WARNING > INFO > DEBUG 過濾正確；多環境（browser/Node.js）皆可輸出 |
-| MessageDictionary | 鍵值查詢不存在時回傳 fallback；參數替換正確處理多參數 |
-| Enum System | 每個列舉型別值集合不重複；驗證函式對非法值回傳 false |
-| Performance Monitoring | MetricsCollector 指標不丟失；異常偵測閾值判定正確 |
-| Migration Tools | MigrationValidator 驗證通過才允許遷移執行；遷移進度 0-100% 單調遞增 |
+| Bundle | 不變式（每條可轉一個 unit test） | 已實作 |
+|---|---|---|
+| ErrorCodes + OperationResult | ErrorCodes 11 類分類碼互不重複；OperationResult.success=false 時 error 必存在 | 已實作 |
+| EventBus | 同一事件名多次 on 後 emit 觸發全部 handler；off 後不再觸發；事件名符合命名規範 | 已實作 |
+| Logger | 日誌等級 ERROR > WARNING > INFO > DEBUG 過濾正確；多環境（browser/Node.js）皆可輸出 | 已實作 |
+| MessageDictionary | 鍵值查詢不存在時回傳 fallback；參數替換正確處理多參數 | 已實作 |
+| Enum System | 每個列舉型別值集合不重複；驗證函式對非法值回傳 false | 已實作 |
+| Performance Monitoring | MetricsCollector 指標不丟失；異常偵測閾值判定正確 | 已實作 |
+| Migration Tools | MigrationValidator 驗證通過才允許遷移執行；遷移進度 0-100% 單調遞增 | 已實作 |
 
 ## 4. 邊界決策
 

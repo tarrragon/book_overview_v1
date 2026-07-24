@@ -35,25 +35,25 @@ core（ErrorCodes, EventBus）+ platform（平台偵測）+ messaging（跨 cont
 
 ## 3. Bundle 界定表
 
-| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 |
-|---|---|---|---|---|---|
-| Extraction Coordinator | domain service | ExtractionDomainCoordinator、ExtractionStateService | Storage 寫入 | `src/background/domains/extraction/` | unit + integration：協調流程 |
-| Data Processing | domain service | DataProcessingService（格式轉換、管道處理、快取） | DOM 操作 | `src/background/domains/extraction/services/` | unit：資料管道處理 |
-| Extraction Validation | domain service | ValidationService（批量驗證、規則管理、錯誤報告） | Storage I/O | `src/background/domains/extraction/services/` | unit：驗證規則覆蓋 |
-| Quality Control | read-model | QualityControlService（品質評估、異常偵測） | 資料修正（歸 data-management） | `src/background/domains/extraction/services/` | unit：品質評分計算 |
-| Platform Adapters | 非 domain（infra） | ReadmooAdapter（DOM 提取）、PlatformAdapterInterface、BookDataExtractor | domain 計算 | `src/content/adapters/`, `src/content/extractors/` | E2E + unit：DOM 選擇器、資料正規化 |
-| Readmoo Validator | domain service | ReadmooDataValidator（平台專屬驗證規則、清理、統計） | 通用驗證邏輯（歸 Extraction Validation） | `src/extractors/` | unit：平台專屬規則 |
+| Bundle | 分類 | 納入概念 | 排除 | 目標路徑 | 測試層/方法 | 實作狀態 |
+|---|---|---|---|---|---|---|
+| Extraction Coordinator | domain service | ExtractionDomainCoordinator、ExtractionStateService | Storage 寫入 | `src/background/domains/extraction/` | unit + integration：協調流程 | 已實作 |
+| Data Processing | domain service | DataProcessingService（格式轉換、管道處理、快取） | DOM 操作 | `src/background/domains/extraction/services/` | unit：資料管道處理 | 已實作 |
+| Extraction Validation | domain service | ValidationService（批量驗證、規則管理、錯誤報告） | Storage I/O | `src/background/domains/extraction/services/` | unit：驗證規則覆蓋 | 已實作 |
+| Quality Control | read-model | QualityControlService（品質評估、異常偵測） | 資料修正（歸 data-management） | `src/background/domains/extraction/services/` | unit：品質評分計算 | 已實作 |
+| Platform Adapters | 非 domain（infra） | ReadmooAdapter（DOM 提取）、PlatformAdapterInterface、BookDataExtractor | domain 計算 | `src/content/adapters/`, `src/content/extractors/` | E2E + unit：DOM 選擇器、資料正規化 | 已實作 |
+| Readmoo Validator | domain service | ReadmooDataValidator（平台專屬驗證規則、清理、統計） | 通用驗證邏輯（歸 Extraction Validation） | `src/extractors/` | unit：平台專屬規則 | 已實作 |
 
 ### Bundle 不變式清單（per-bundle）
 
-| Bundle | 不變式（每條可轉一個 unit test） |
-|---|---|
-| Extraction Coordinator | 提取狀態機：idle → extracting → completed/failed；不可從 completed 直接回 extracting |
-| Data Processing | 管道處理順序固定（parse → normalize → validate）；快取命中時跳過 parse |
-| Extraction Validation | 必填欄位（id, title）缺失時驗證失敗；batch 驗證回傳每本書的個別結果 |
-| Quality Control | 品質分數 0-100；異常偵測閾值可配置 |
-| Platform Adapters | adapter 實作 PlatformAdapterInterface 全部方法；DOM 選擇器命中 0 元素時回傳空陣列非 null |
-| Readmoo Validator | Readmoo 專屬規則集（URL 格式、作者格式、進度範圍）全部覆蓋 |
+| Bundle | 不變式（每條可轉一個 unit test） | 已實作 |
+|---|---|---|
+| Extraction Coordinator | 提取狀態機：idle → extracting → completed/failed；不可從 completed 直接回 extracting | 已實作 |
+| Data Processing | 管道處理順序固定（parse → normalize → validate）；快取命中時跳過 parse | 已實作 |
+| Extraction Validation | 必填欄位（id, title）缺失時驗證失敗；batch 驗證回傳每本書的個別結果 | 已實作 |
+| Quality Control | 品質分數 0-100；異常偵測閾值可配置 | 已實作 |
+| Platform Adapters | adapter 實作 PlatformAdapterInterface 全部方法；DOM 選擇器命中 0 元素時回傳空陣列非 null | 已實作 |
+| Readmoo Validator | Readmoo 專屬規則集（URL 格式、作者格式、進度範圍）全部覆蓋 | 已實作 |
 
 ## 4. 邊界決策
 
