@@ -88,11 +88,21 @@ function getLogLevelColor (level) {
  */
 const RESET_COLOR = '\x1b[0m'
 
+/**
+ * 檢查給定值是否為合法的 LogLevel
+ * @param {string} level - 待驗證的日誌等級值
+ * @returns {boolean} 是否為合法的 LogLevel
+ */
+function isValidLogLevel (level) {
+  return Object.values(LogLevel).includes(level)
+}
+
 module.exports = {
   LogLevel,
   LogLevelValues,
   compareLogLevels,
   shouldLog,
   getLogLevelColor,
-  RESET_COLOR
+  RESET_COLOR,
+  isValidLogLevel
 }

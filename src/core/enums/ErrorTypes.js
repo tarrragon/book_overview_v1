@@ -41,7 +41,62 @@ const ErrorSeverity = Object.freeze({
   CRITICAL: 'CRITICAL'
 })
 
+/**
+ * 錯誤類型對應的預設嚴重程度
+ * 未列出的類型一律回傳 ErrorSeverity.MEDIUM
+ */
+const DEFAULT_SEVERITY_MAP = Object.freeze({
+  [ErrorTypes.SYSTEM_ERROR]: ErrorSeverity.CRITICAL,
+  [ErrorTypes.EXTENSION_ERROR]: ErrorSeverity.CRITICAL,
+  [ErrorTypes.STORAGE_ERROR]: ErrorSeverity.HIGH,
+  [ErrorTypes.PERMISSION_ERROR]: ErrorSeverity.HIGH,
+  [ErrorTypes.AUTHENTICATION_ERROR]: ErrorSeverity.HIGH,
+  [ErrorTypes.BOOK_SYNC_ERROR]: ErrorSeverity.HIGH,
+  [ErrorTypes.NETWORK_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.BUSINESS_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.TIMEOUT_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.CONFIGURATION_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.EXTERNAL_SERVICE_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.CONTENT_SCRIPT_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.BACKGROUND_SCRIPT_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.POPUP_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.BOOK_EXTRACTION_ERROR]: ErrorSeverity.MEDIUM,
+  [ErrorTypes.BOOK_VALIDATION_ERROR]: ErrorSeverity.LOW,
+  [ErrorTypes.VALIDATION_ERROR]: ErrorSeverity.LOW,
+  [ErrorTypes.UNKNOWN_ERROR]: ErrorSeverity.MEDIUM
+})
+
+/**
+ * 檢查給定值是否為合法的 ErrorTypes
+ * @param {string} errorType - 待驗證的錯誤類型值
+ * @returns {boolean} 是否為合法的 ErrorTypes
+ */
+function isValidErrorType (errorType) {
+  return Object.values(ErrorTypes).includes(errorType)
+}
+
+/**
+ * 檢查給定值是否為合法的 ErrorSeverity
+ * @param {string} severity - 待驗證的嚴重程度值
+ * @returns {boolean} 是否為合法的 ErrorSeverity
+ */
+function isValidSeverity (severity) {
+  return Object.values(ErrorSeverity).includes(severity)
+}
+
+/**
+ * 依錯誤類型取得預設嚴重程度，未知類型回傳 MEDIUM
+ * @param {string} errorType - 錯誤類型值
+ * @returns {string} 對應的 ErrorSeverity
+ */
+function getDefaultSeverity (errorType) {
+  return DEFAULT_SEVERITY_MAP[errorType] || ErrorSeverity.MEDIUM
+}
+
 module.exports = {
   ErrorTypes,
-  ErrorSeverity
+  ErrorSeverity,
+  isValidErrorType,
+  isValidSeverity,
+  getDefaultSeverity
 }
