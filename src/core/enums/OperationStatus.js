@@ -21,6 +21,43 @@ const OperationStatus = Object.freeze({
   PARTIAL_SUCCESS: 'PARTIAL_SUCCESS'
 })
 
+/**
+ * 檢查給定值是否為合法的 OperationStatus
+ * @param {string} status - 待驗證的狀態值
+ * @returns {boolean} 是否為合法的 OperationStatus
+ */
+function isValidOperationStatus (status) {
+  return Object.values(OperationStatus).includes(status)
+}
+
+/**
+ * 檢查狀態是否代表操作已結束（成功、失敗、取消、逾時、部分成功）
+ * @param {string} status - 待檢查的狀態值
+ * @returns {boolean} 是否為已完成狀態
+ */
+function isCompletedStatus (status) {
+  const completedStatuses = [
+    OperationStatus.SUCCESS,
+    OperationStatus.FAILED,
+    OperationStatus.CANCELLED,
+    OperationStatus.TIMEOUT,
+    OperationStatus.PARTIAL_SUCCESS
+  ]
+  return completedStatuses.includes(status)
+}
+
+/**
+ * 檢查狀態是否代表操作成功（成功或部分成功）
+ * @param {string} status - 待檢查的狀態值
+ * @returns {boolean} 是否為成功狀態
+ */
+function isSuccessStatus (status) {
+  return status === OperationStatus.SUCCESS || status === OperationStatus.PARTIAL_SUCCESS
+}
+
 module.exports = {
-  OperationStatus
+  OperationStatus,
+  isValidOperationStatus,
+  isCompletedStatus,
+  isSuccessStatus
 }

@@ -17,8 +17,10 @@ const {
   isValidLogLevel,
   isValidErrorType,
   isValidSeverity,
+  getDefaultSeverity,
   isValidMessageType,
   isValidPriority,
+  getDefaultPriority,
   isValidOperationStatus,
   isCompletedStatus,
   isSuccessStatus
@@ -50,29 +52,64 @@ describe('Enum System', () => {
     })
   })
 
-  describe('驗證函式 API 缺口（src/core/enums/index.js 匯出但未實作）', () => {
-    // src/core/enums/index.js 解構 isValid* 系列函式，但 OperationStatus.js /
-    // ErrorTypes.js / MessageTypes.js / LogLevel.js 皆未定義對應函式，
-    // destructure 結果為 undefined。此為既有 src API 缺口，非本票（1.6.1-W3-004）範圍，
-    // 以下測試鎖定現況並在 Solution 記錄，避免未來誤以為這些函式可用。
-    test('isValidOperationStatus / isCompletedStatus / isSuccessStatus 未實作', () => {
-      expect(isValidOperationStatus).toBeUndefined()
-      expect(isCompletedStatus).toBeUndefined()
-      expect(isSuccessStatus).toBeUndefined()
+  describe('OperationStatus 驗證函式', () => {
+    test('isValidOperationStatus 對合法/非法值正確判斷', () => {
+      expect(isValidOperationStatus(OperationStatus.SUCCESS)).toBe(true)
+      expect(isValidOperationStatus('NOT_A_STATUS')).toBe(false)
     })
 
-    test('isValidErrorType / isValidSeverity 未實作', () => {
-      expect(isValidErrorType).toBeUndefined()
-      expect(isValidSeverity).toBeUndefined()
+    test('isCompletedStatus 對已完成/未完成狀態正確判斷', () => {
+      expect(isCompletedStatus(OperationStatus.SUCCESS)).toBe(true)
+      expect(isCompletedStatus(OperationStatus.FAILED)).toBe(true)
+      expect(isCompletedStatus(OperationStatus.PENDING)).toBe(false)
+      expect(isCompletedStatus(OperationStatus.IN_PROGRESS)).toBe(false)
     })
 
-    test('isValidMessageType / isValidPriority 未實作', () => {
-      expect(isValidMessageType).toBeUndefined()
-      expect(isValidPriority).toBeUndefined()
+    test('isSuccessStatus 對成功/失敗狀態正確判斷', () => {
+      expect(isSuccessStatus(OperationStatus.SUCCESS)).toBe(true)
+      expect(isSuccessStatus(OperationStatus.PARTIAL_SUCCESS)).toBe(true)
+      expect(isSuccessStatus(OperationStatus.FAILED)).toBe(false)
+    })
+  })
+
+  describe('ErrorTypes 驗證函式', () => {
+    test('isValidErrorType 對合法/非法值正確判斷', () => {
+      expect(isValidErrorType(ErrorTypes.NETWORK_ERROR)).toBe(true)
+      expect(isValidErrorType('NOT_AN_ERROR_TYPE')).toBe(false)
     })
 
-    test('isValidLogLevel 未實作', () => {
-      expect(isValidLogLevel).toBeUndefined()
+    test('isValidSeverity 對合法/非法值正確判斷', () => {
+      expect(isValidSeverity(ErrorSeverity.HIGH)).toBe(true)
+      expect(isValidSeverity('NOT_A_SEVERITY')).toBe(false)
+    })
+
+    test('getDefaultSeverity 回傳合法 ErrorSeverity，未知類型回傳 MEDIUM', () => {
+      expect(isValidSeverity(getDefaultSeverity(ErrorTypes.SYSTEM_ERROR))).toBe(true)
+      expect(getDefaultSeverity('NOT_AN_ERROR_TYPE')).toBe(ErrorSeverity.MEDIUM)
+    })
+  })
+
+  describe('MessageTypes 驗證函式', () => {
+    test('isValidMessageType 對合法/非法值正確判斷', () => {
+      expect(isValidMessageType(MessageTypes.ERROR)).toBe(true)
+      expect(isValidMessageType('NOT_A_MESSAGE_TYPE')).toBe(false)
+    })
+
+    test('isValidPriority 對合法/非法值正確判斷', () => {
+      expect(isValidPriority(MessagePriority.HIGH)).toBe(true)
+      expect(isValidPriority('NOT_A_PRIORITY')).toBe(false)
+    })
+
+    test('getDefaultPriority 回傳合法 MessagePriority，未知類型回傳 NORMAL', () => {
+      expect(isValidPriority(getDefaultPriority(MessageTypes.ERROR))).toBe(true)
+      expect(getDefaultPriority('NOT_A_MESSAGE_TYPE')).toBe(MessagePriority.NORMAL)
+    })
+  })
+
+  describe('LogLevel 驗證函式', () => {
+    test('isValidLogLevel 對合法/非法值正確判斷', () => {
+      expect(isValidLogLevel(LogLevel.INFO)).toBe(true)
+      expect(isValidLogLevel('NOT_A_LEVEL')).toBe(false)
     })
   })
 })

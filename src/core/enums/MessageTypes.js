@@ -55,7 +55,51 @@ const MessagePriority = Object.freeze({
   URGENT: 'URGENT'
 })
 
+/**
+ * 訊息類型對應的預設優先級
+ * 未列出的類型一律回傳 MessagePriority.NORMAL
+ */
+const DEFAULT_PRIORITY_MAP = Object.freeze({
+  [MessageTypes.ERROR]: MessagePriority.URGENT,
+  [MessageTypes.SYSTEM_SHUTDOWN]: MessagePriority.URGENT,
+  [MessageTypes.WARNING]: MessagePriority.HIGH,
+  [MessageTypes.VALIDATION_ERROR]: MessagePriority.HIGH,
+  [MessageTypes.USER_CONFIRMATION]: MessagePriority.HIGH,
+  [MessageTypes.DEBUG]: MessagePriority.LOW,
+  [MessageTypes.OPERATION_PROGRESS]: MessagePriority.LOW
+})
+
+/**
+ * 檢查給定值是否為合法的 MessageTypes
+ * @param {string} messageType - 待驗證的訊息類型值
+ * @returns {boolean} 是否為合法的 MessageTypes
+ */
+function isValidMessageType (messageType) {
+  return Object.values(MessageTypes).includes(messageType)
+}
+
+/**
+ * 檢查給定值是否為合法的 MessagePriority
+ * @param {string} priority - 待驗證的優先級值
+ * @returns {boolean} 是否為合法的 MessagePriority
+ */
+function isValidPriority (priority) {
+  return Object.values(MessagePriority).includes(priority)
+}
+
+/**
+ * 依訊息類型取得預設優先級，未知類型回傳 NORMAL
+ * @param {string} messageType - 訊息類型值
+ * @returns {string} 對應的 MessagePriority
+ */
+function getDefaultPriority (messageType) {
+  return DEFAULT_PRIORITY_MAP[messageType] || MessagePriority.NORMAL
+}
+
 module.exports = {
   MessageTypes,
-  MessagePriority
+  MessagePriority,
+  isValidMessageType,
+  isValidPriority,
+  getDefaultPriority
 }
