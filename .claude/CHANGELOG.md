@@ -1,3 +1,281 @@
+## [2.22.1] - 2026-07-29
+
+### Summary
+fix: clean 豁免清單依比對維度拆集合; docs: 收尾 並記錄 clean 豁免比對維度錯置
+
+Changes: 1 fix, 1 docs
+
+- fix: clean 豁免清單依比對維度拆集合
+- docs: 收尾 並記錄 clean 豁免比對維度錯置
+
+---
+
+## [2.22.0] - 2026-07-29
+
+### Summary
+feat: 移除 personal 遮蔽副本並訂定全域覆蓋層正規流程; refactor: 刪除 wrap-decision 孤兒目錄 integration-patterns; fix: 移除 sync-claude-push 已隨 schema 變更失效的漂移檢查 (+9 more)
+
+Changes: 1 feat, 1 refactor, 5 fix, 4 docs, 1 chore
+
+- feat: 移除 personal 遮蔽副本並訂定全域覆蓋層正規流程
+- refactor: 刪除 wrap-decision 孤兒目錄 integration-patterns
+- fix: 移除 sync-claude-push 已隨 schema 變更失效的漂移檢查
+- fix: 改用內容雜湊取代 skill-sync 的版本字串比對
+- fix: 修正 error-pattern severity frontmatter/內文分歧
+- fix: 遷移 README 7 筆模糊碰撞列一級資料至精確列後移除
+- fix: readme_index 支援一 ID 對多檔複合鍵，補列 7 個隱形 pattern
+- docs: 記錄 PC-BAL-014 skill 註冊表 session 快取遮蔽檔案系統變更
+- docs: personal 覆蓋層的收斂方向與已發生損害
+- docs: 校正三項幽靈重編陳述與碰撞登記表脫節
+- docs: 記錄 ARCH-BAL-007 非唯一識別符被當主鍵
+- chore: 補上 test_error_pattern_severity_audit.py 執行權限
+
+---
+
+## [2.21.1] - 2026-07-27
+
+### Summary
+sync .claude configuration
+
+---
+
+## [2.21.0] - 2026-07-27
+
+### Summary
+feat: error-pattern README 索引改保守 upsert 並接線; feat: error-pattern README 索引全量 sync 純函式層 + CLI; feat: memory 寫入攔截改為 PreToolUse deny 加改道指引 (+49 more)
+
+Changes: 9 feat, 11 fix, 28 docs, 2 chore, 2 test
+
+- feat: error-pattern README 索引改保守 upsert 並接線
+- feat: error-pattern README 索引全量 sync 純函式層 + CLI
+- feat: memory 寫入攔截改為 PreToolUse deny 加改道指引
+- feat: 刪除 test-timeout-post.py 死碼 + config 白名單納入
+- feat: 規則 8 守衛實作依賴型 vs 歷史錨點型判別
+- feat: WRAP 觸發綁定至二元處置取捨
+- feat: version-tracking-consistency-guard-hook 新增 todolist.yaml 解析失敗偵測
+- feat: 新增 doc validate-filenames 檔名慣例驗證
+- feat: 擴充 TICKET_EXEMPT_AGENT_TYPES 收錄唯讀常駐審查委員
+- fix: skill-shadowing hook 修復 N1 context 送達與 H1/N5 目錄層級靜默失效
+- fix: skill-shadowing hook 修正 L1 大小寫偵測與 L3 版本正則
+- fix: skill-shadowing hook 改遞迴比對整個目錄
+- fix: 修復 wrap-decision/zellij 全域 skill 遮蔽專案版
+- fix: 修正 ask_user_question_reminders.py 六處失效路徑引用
+- fix: 降級 ticket-quality-gate 失敗出口為 advisory
+- fix: 移除 8 個事實判斷型 hook 的 effort=low 短路 + 同步固化測試
+- fix: acceptance-gate 誤判 create 命令引號文字為 complete 呼叫致死鎖
+- fix: acceptance-gate-hook effort=low 短路不再豁免 complete 命令
+- fix: PEP 723 依賴宣告取代 version-tracking hook 的 python3 探測
+- fix: validate-filenames 豁免框架約定固定命名文件
+- docs: PC-BAL-013 更正 team 訊息路由的事實陳述
+- docs: PC-BAL-013 context 中斷誤判為代理人終止
+- docs: error-patterns README 的 memory 定位改為排除論述
+- docs: 補齊 error-patterns README 索引 148 筆缺漏
+- docs: 修正規則 12 依賴型判準的字面矛盾
+- docs: AGENT_PRELOAD 規則 12 自我稽核，發現規則本身的字面矛盾
+- docs: 多階段分支流落地，memory 目錄清空
+- docs: PC-061 / PC-160 防護章改寫指向現行攔截機制
+- docs: 清理 error-patterns 內指向不存在 memory 檔的引用
+- docs: memory 五檔處置 4/5，餘一檔阻塞於落地位置設計
+- docs: 框架檔案禁依賴型 ticket 引用禁令上移至預設載入層
+- docs: 移除 memory-capture-guide 與死指標，記錄 PC-BAL-012
+- docs: 改寫四處剩餘 memory 目的地表述
+- docs: 改寫規則層分流表述為 memory 排除 policy
+- docs: PC-160 補 v3 案例——框架落地已在飛行仍寫 memory
+- docs: 新增 ARCH-BAL-006 宣告層窄於執行層
+- docs: PC-BAL-002 補案例二與比對維度分流
+- docs: 新增 PC-BAL-011 + 修正 Layer 2 發現 1
+- docs: Recommended 標記適用邊界對稱補述
+- docs: IMP-BAL-001 適用範圍擴充至 PostToolUse
+- docs: 新增 ARCH-BAL-005 自證式豁免 error-pattern
+- docs: 新增 PC-BAL-010 驗證管道對待驗現象不敏感（家族層）
+- docs: 新增 PC-BAL-009 測試套件顏色隨 cwd 翻轉
+- docs: 新增 ARCH-BAL-004 + spawn
+- docs: 修文件範例源頭 + 記錄 診斷修正
+- docs: 修正 AGENT_PRELOAD claim 前提衝突 + PC-V1-002 第三變體固化
+- docs: 新增 ARCH-BAL-003 白名單判準與成員脫節
+- docs: 新增 IMP-BAL-003 稽核器與消費端解析器嚴格度落差
+- chore: test_version_tracking_consistency_guard_hook_yaml_parse.py 權限 644 -> 755
+- chore: 清除 hook-exclude-list 五個殭屍條目與失效 archived 模式
+- test: hook 測試 cwd 無關化 + 防 fixture 殘留污染 repo
+- test: 修復 hook 測試三紅燈 + 一無鑑別力測試（測試側）
+
+---
+
+## [2.20.16] - 2026-07-26
+
+### Summary
+fix: set-exit-status 冪等取代語意; docs: 完成收尾 + PC-BAL-008 並行 index 危害 + spawn; docs: 記錄 ARCH-BAL-002 識別符雙載體工具只讀一側（book 實證）
+
+Changes: 1 fix, 2 docs
+
+- fix: set-exit-status 冪等取代語意
+- docs: 完成收尾 + PC-BAL-008 並行 index 危害 + spawn
+- docs: 記錄 ARCH-BAL-002 識別符雙載體工具只讀一側（book 實證）
+
+---
+
+## [2.20.15] - 2026-07-26
+
+### Summary
+fix: 框架簡體字清理
+
+Changes: 1 fix
+
+- fix: 框架簡體字清理
+
+---
+
+## [2.20.14] - 2026-07-26
+
+### Summary
+docs: 記錄 TEST-BAL-002 測試替身建構路徑分歧（monitor 實證）
+
+Changes: 1 docs
+
+- docs: 記錄 TEST-BAL-002 測試替身建構路徑分歧（monitor 實證）
+
+---
+
+## [2.20.13] - 2026-07-26
+
+### Summary
+fix: doc validate 子命令; fix: doc skill 既有測試紅燈修復; docs: 分冊判準 + domain 清單去專案化
+
+Changes: 2 fix, 1 docs
+
+- fix: doc validate 子命令
+- fix: doc skill 既有測試紅燈修復
+- docs: 分冊判準 + domain 清單去專案化
+
+---
+
+## [2.20.12] - 2026-07-26
+
+### Summary
+fix: TRACEABILITY_SCHEMA 三軸補齊; docs: methodology dormant 豁免 + traceability 判準成文; docs: PC-APP-012 防護收編 canonical
+
+Changes: 1 fix, 2 docs
+
+- fix: TRACEABILITY_SCHEMA 三軸補齊
+- docs: methodology dormant 豁免 + traceability 判準成文
+- docs: PC-APP-012 防護收編 canonical
+
+---
+
+## [2.20.11] - 2026-07-26
+
+### Summary
+fix: doc CLI data-contract 接線 + next-id; docs: spec data-contract 防誤用 + 維度 4 降級; docs: PC-BAL-007 實查約束落地
+
+Changes: 1 fix, 2 docs
+
+- fix: doc CLI data-contract 接線 + next-id
+- docs: spec data-contract 防誤用 + 維度 4 降級
+- docs: PC-BAL-007 實查約束落地
+
+---
+
+## [2.20.10] - 2026-07-25
+
+### Summary
+docs: 記錄 PC-BAL-007 並行文件票未交叉驗證的事實漂移（/006 實證）
+
+Changes: 1 docs
+
+- docs: 記錄 PC-BAL-007 並行文件票未交叉驗證的事實漂移（/006 實證）
+
+---
+
+## [2.20.9] - 2026-07-25
+
+### Summary
+docs: 記錄 PC-BAL-006 chpwd ls 淹沒被誤診為 CLI 故障（ 驗收重現實證）
+
+Changes: 1 docs
+
+- docs: 記錄 PC-BAL-006 chpwd ls 淹沒被誤診為 CLI 故障（ 驗收重現實證）
+
+---
+
+## [2.20.8] - 2026-07-25
+
+### Summary
+docs: 記錄 IMP-BAL-002 sync-pull 未知參數推進 base SHA 缺陷（framework issue #18）
+
+Changes: 1 docs
+
+- docs: 記錄 IMP-BAL-002 sync-pull 未知參數推進 base SHA 缺陷（framework issue #18）
+
+---
+
+## [2.20.7] - 2026-07-25
+
+### Summary
+docs: 記錄 IMP-BAL-001 PreToolUse 提前 emit stdout 被 exit 2 丟棄模式
+
+Changes: 1 docs
+
+- docs: 記錄 IMP-BAL-001 PreToolUse 提前 emit stdout 被 exit 2 丟棄模式
+
+---
+
+## [2.20.6] - 2026-07-25
+
+### Summary
+fix: lag 警告延後 emit 至 PC-019 判定後，四路徑零丟失
+
+Changes: 1 fix
+
+- fix: lag 警告延後 emit 至 PC-019 判定後，四路徑零丟失
+
+---
+
+## [2.20.5] - 2026-07-25
+
+### Summary
+sync .claude configuration
+
+---
+
+## [2.20.4] - 2026-07-25
+
+### Summary
+fix: 警告升 additionalContext + lag 超閾值 deny; docs: version-bootstrap Step 2.6 資料契約產出 + domain-map §3 契約引用連結欄; docs: 建立 data-contract-template 模板 + doc SKILL.md 註冊 (+2 more)
+
+Changes: 1 fix, 4 docs
+
+- fix: 警告升 additionalContext + lag 超閾值 deny
+- docs: version-bootstrap Step 2.6 資料契約產出 + domain-map §3 契約引用連結欄
+- docs: 建立 data-contract-template 模板 + doc SKILL.md 註冊
+- docs: 建立 data-layer-contract-methodology 方法論 + 索引註冊
+- docs: domain-map 補標實作狀態欄 + 修正目標路徑
+
+---
+
+## [2.20.3] - 2026-07-24
+
+### Summary
+fix: doc skill + saffron agent 加 domain-map bundle 存在性驗證（PC-APP-012 防護）
+
+Changes: 1 fix
+
+- fix: doc skill + saffron agent 加 domain-map bundle 存在性驗證（PC-APP-012 防護）
+
+---
+
+## [2.20.2] - 2026-07-24
+
+### Summary
+docs: domain-map 模板和 9 個既有 map 補標 bundle 實作狀態欄; docs: PC-APP-012 domain-map 未實作 bundle 衍生不可執行 ticket; chore: pull .claude 更新（上游 e41fd80）
+
+Changes: 2 docs, 1 chore
+
+- docs: domain-map 模板和 9 個既有 map 補標 bundle 實作狀態欄
+- docs: PC-APP-012 domain-map 未實作 bundle 衍生不可執行 ticket
+- chore: pull .claude 更新（上游 e41fd80）
+
+---
+
 ## [2.20.1] - 2026-07-23
 
 ### Summary
