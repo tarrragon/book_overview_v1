@@ -18,7 +18,7 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | **共享範圍** | 單一專案本機，個人可見 | 團隊共享，所有協作者可見，可跨專案複用 |
 | **查詢方式** | 系統自動載入相關記憶 | `/error-pattern query` 主動查詢 |
 
-**排除說明**：memory 不納入 git、不隨 `.claude/` sync 到其他專案，與「經驗須跨專案複用」的框架目標根本衝突——寫在 memory 的跨專案原則會在其他專案消失，導致同樣的問題被重複踩雷。因此本框架的知識記錄一律遵循**捕獲時分流判準**：框架相關內容（替換專案名稱與檔案路徑後仍成立）進 `.claude/error-patterns/` 或 `.claude/rules/`、`.claude/methodologies/`、`.claude/references/`；專案相關內容（僅本專案成立）進 `docs/` 或 `CLAUDE.md`；兩者皆非則不記錄。**memory 不是任一分支的合法目的地**。完整判準見 `.claude/pm-rules/pm-quality-baseline.md` 規則 7（`.claude/skills/continuous-learning/skill.md` 為執行工具）。
+**排除說明**：memory 不納入 git、不隨 `.claude/` sync 到其他專案，與「經驗須跨專案複用」的框架目標根本衝突——寫在 memory 的跨專案原則會在其他專案消失，導致同樣的問題被重複踩雷。因此本框架的知識記錄一律遵循**捕獲時分流判準**：框架相關內容（替換專案名稱與檔案路徑後仍成立）進 `.claude/error-patterns/` 或 `.claude/rules/`、`.claude/methodologies/`、`.claude/references/`；專案相關內容（僅本專案成立）進 `docs/` 或 `CLAUDE.md`；兩者皆非則不記錄。**memory 不是任一分支的合法目的地**。完整判準見 `.claude/pm-rules/pm-quality-baseline.md` 規則 7（`.claude/skills/continuous-learning/SKILL.md` 為執行工具）。
 
 ---
 
@@ -153,6 +153,8 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | TEST-BAL-002 | 測試替身走簡化建構路徑，繞過 production 裝配步驟使缺口對測試不可見 | 高 | — |
 | TEST-MON-001 | 硬編碼時間戳 fixture × 時間相對查詢窗 = clock 時間炸彈 | 高 | — |
 | TEST-MON-002 | TDD Phase 2 紅燈設計漏 handler/lifecycle 行為測試；GREEN agent confidence<1.0 是補洞訊號 | 中 | — |
+| TEST-SCLK-001 | 快取化建置使「零警告 / 無 X」類驗收成為空訊號 | — | — |
+| TEST-V1-001 | 多書城擴展時測試體系未同步演進導致實機全壞 | 高 | — |
 
 ### 文件 (DOC)
 
@@ -169,6 +171,8 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | DOC-V1-001 | 位置編號引用隨目標文件演進靜默失效（misdirected 比 broken 難偵測） | 中 | v1.0.0 |
 | DOC-009 | 「靜默處理」用語誤用 — 混淆「不記錄」與「記錄但不顯示」 | 中 | — |
 | DOC-010 | 框架文件引用專案 ticket ID 造成跨專案 sync 誤導 | 中 | — |
+| DOC-BAL-001 | 規則只寫 Action 未寫 Consequence，讀者讀成偏好而非約束 | 高 | v0.2.1 |
+| DOC-BAL-002 | 同檔案內的行為契約隨程式碼變更漂移，因為只有程式碼有自動驗證而契約沒有 | 高 | v0.2.1 |
 
 ### 架構 (ARCH)
 
@@ -208,9 +212,16 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | ARCH-MON-001 | 多 wave 票各加進同一中心檔，累積 domain 過載而無單票觸發閾值 | 中 | — |
 | ARCH-TUNL-001 | settings.local.json 註冊 hook 在 relocate 後成幽靈（sync 無法自癒） | 中 | v1.0.0（1.0.0-W9-001 ANA） |
 | ARCH-BAL-007 | 非唯一識別符被當主鍵，集合去重靜默丟棄同鍵資料 | 高 | v0.2.1（0.2.1-W3-110 ANA） |
-| ARCH-010 (module-assembly-omission) | 模組組裝遺漏導致功能鏈路靜默斷裂 | 高 | v0.15.4 |
 | ARCH-010 (overengineered-state-management) | 過度設計的狀態管理 — 框架機制已解決的問題不需要額外狀態層 | 中 | v0.1.0 |
 | ARCH-BAL-008 | 以單一消費者內容覆寫共用覆蓋層，靜默刪除其他消費者的獨有內容 | — | — |
+| ARCH-BAL-014 | 修好上游過濾層使原本被攔下的資料抵達下游，同根因的下游缺陷暴露面反而擴大 | 高 | v0.2.1（0.2.1-W3-306 Phase 4） |
+| ARCH-BAL-015 | 補救機制的掃描軸超出真實需求，把原問題轉化為另一類問題 | 中 | v0.2.1（0.2.1-W3-319） |
+| ARCH-BAL-016 | 宣稱重用他處實作，實際只重用中段，頭尾各自重寫成第二套 | 高 | v0.2.1（0.2.1-W3-353） |
+| ARCH-BAL-009 | 預覽路徑各自實作執行路徑的判定邏輯，兩者必然漂移使預覽閘門失效 | — | — |
+| ARCH-BAL-010 | 可選欄位的解析成敗決定記錄是否存在，解析失敗即整筆消失且無告警 | 高 | v0.2.1 |
+| ARCH-BAL-011 | 以主題命名的機制群造成該主題已被涵蓋的假象，查證止於名稱不及職責 | 高 | v0.2.1 |
+| ARCH-BAL-012 | 同一概念的第二份實作重新推導第一份刻意迴避的假設，且未繼承第一份的測試嚴謹度 | 高 | v0.2.1 |
+| ARCH-BAL-013 | 防護元件的處置建議未經其他防護檢驗，執行者照做即被另一道防護阻擋 | 中 | — |
 
 ### 程式碼品質 (CQ)
 
@@ -222,6 +233,7 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | CQ-004 | namedtuple 早退路徑返回裸型別 | 高 | v0.1.0 |
 | CQ-005 | Mock 路徑未隨函式遷移同步更新 | 中 | v0.1.0 |
 | CQ-006 | 純工具函式定義在 commands/ 層阻礙複用 | 中 | v0.1.0 |
+| CQ-SCLK-001 | 程式碼宣告了實際不存在的保證（註解描述未實作的行為、註解描述不存在的對應、fallback 交出孤兒物件），且該落差不產生任何測試訊號 | 中 | — |
 
 ### 實作 (IMP)
 
@@ -252,7 +264,6 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | IMP-023 | uv tool install --force 不更新已安裝套件程式碼 | 中 | v0.3.0 |
 | IMP-024 | phase-completion-gate-hook 在編輯 tdd_phase 欄位時誤觸 Phase 3b 完成警告 | 低 | v0.1.0 |
 | IMP-025 | 新模組引入 except Exception: pass 靜默吞掉異常 | 中 | v0.1.0 |
-| IMP-026 | 新建 Hook 檔案後未設定執行權限（+x） | 高 | v0.1.1 |
 | IMP-027 | 跨 Context 函式庫與 Hook 邏輯重複 | 低 | v0.1.0 |
 | IMP-028 | Hook 提前返回與 API 簽名漂移 | 中 | v0.1.0 |
 | IMP-029 | 強制 logger 參數破壞共用工具重用性 | 中 | v0.1.0 |
@@ -322,8 +333,14 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | IMP-V1-004 | Hook 內部工具名字面守衛因平台工具改名靜默早退（matcher 別名仍投遞） | 高 | — |
 | IMP-V1-005 | index.lock 競爭下 fast-forward 移動 HEAD 但 index 寫入失敗，後續 commit 靜默刪除剛合併的檔案 | 高 | — |
 | IMP-V1-006 | 大小寫不敏感檔案系統上 Edit 工具寫入成功，但 git pathspec 以不同大小寫尋址失敗 | 低 | — |
+| IMP-V1-007 | querySelector 在多同類元素 DOM 中命中靜態錨點而非動態目標 | 中 | v1.5.0 |
+| IMP-SCLK-001 | macOS bash 3.2 在 UTF-8 locale 下將裸 `$VAR` 後緊鄰的全形標點併入變數名，`set -u` 時崩在只有錯誤路徑才走到的分支 | 中 | — |
 | IMP-049 (hook-error-display-is-cli-bug) | "hook error" 顯示是 Claude Code CLI 已知 Bug，非 Hook 程式碼問題 | 低 | v0.17.3 |
 | IMP-049 (undefined-constants-in-hook-source) | Hook 原始碼引用未定義常數 | — | — |
+| IMP-BAL-004 | 豁免清單以檔名比對而非路徑錨定，使樹中任意深度的同名檔全數豁免 | — | — |
+| IMP-BAL-005 | 錯誤訊號被消費為顯示而非判定——印了紅字，流程照走 | 高 | v0.2.1 |
+| IMP-BAL-007 | 共用 runner 整體 strip 破壞下游格式敏感解析，測試 mock 在 runner 層繞過缺陷點 | 高 | — |
+| IMP-BAL-008 | docstring 宣稱「永不拋出」，但 try 只包住取得資料的前半段，消費資料的後半段在保護之外 | 高 | v0.2.1（0.2.1-W3-353） |
 
 ### 流程 (PROC)
 
@@ -422,6 +439,7 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | PC-162 | Ticket 描述含過時環境狀態 + schema 註解 PC 引用語意錯誤 | 中 | v0.19.0 |
 | PC-172 | Wrapper command 參數推斷未經 runtime 驗證（只讀底層 binary --help，忽略 wrapper 自動注入參數） | 中 | v0.19.1 |
 | PC-176 | 跨環境設定不一致時歸因「環境差異」而非驗證被 git 同步的共用設定本身（便利假設掩蓋一份錯設定的單點根因） | 中 | v0.19.1 |
+| PC-177 | malformed tool-call 被當文字渲染而未執行 | — | v0.20.0 |
 | PC-180 | 雙專案共用 sync 時混淆「共享 repo 納入範圍」與「本地保留範圍」致框架調整誤失（preserve 清單為根本解） | 中 | v1.0.0 |
 | PC-V1-001 | sync-push 無 --help，未知參數當 commit 訊息觸發真實不可逆推送 | 高 | v1.0.0 |
 | PC-V1-002 | Ticket ID 引用觸發 agent 自律收尾越權（引用 ≠ 指派缺口） | 高 | v1.0.0 |
@@ -438,6 +456,7 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | PC-V1-014 | 為繞過 gate 而改變語意載體（children→spawned_tickets） | 中 | v1.5.0 |
 | PC-V1-015 | 角色指定雙載體矛盾：CLAUDE.md 與 agent 定義檔職責記載相反，派發行為不可預測 | 高 | v1.5.0 |
 | PC-V1-016 | 代理人敘述聲稱已執行副作用型 CLI（spawn request 上報），實際未執行、章節為空 | 中 | v1.5.0 |
+| PC-V1-017 | 任務執行發現寫入 memory 而非 ticket，繞過追蹤體系 | 中 | — |
 | PC-APP-001 | 延後決策綁定的 trigger ticket 引用未查證 scope 一致性（trigger 名存實亡） | 中 | v0.32.0 |
 | PC-APP-002 | sync-pull 孤兒清理超出宣稱範圍刪除，preserve 機制未生效致專案特化檔遺失 | 高 | v0.32.0 |
 | PC-APP-004 | 症狀緩解累積偏誤——同一根因累積多個緩解機制而非根治 | 中 | v0.37.0 |
@@ -558,6 +577,28 @@ Claude Code 內建原生的 memory 系統（`~/.claude/projects/{project}/memory
 | PC-105 (feature-implemented-without-doc-integration) | 新功能實作後缺乏文件引導整合 | — | — |
 | PC-105 (pm-cli-syntax-autopilot) | PM 對 SKILL CLI 語法的 autopilot 假設 | 中 | v0.18.0 |
 | PC-BAL-014 | Skill 註冊表 session 快取遮蔽檔案系統變更 — 同 session 驗證得出假陰性 | 中 | v0.2.1 |
+| PC-BAL-015 | idle 通知加上尚未落地的寫入被當成代理人未執行，據以前台重做 | — | — |
+| PC-BAL-016 | 以既有缺陷為範本的同類掃描繼承種子缺陷的軸，零缺陷結論被下游當成全檔無缺陷 | — | — |
+| PC-BAL-017 | 以複製作為分發手段時副本凍結於複製時點，之後的上游修復不傳播且驗證易假設已含 | — | — |
+| PC-BAL-018 | 「前提已更正」標記使後手停止驗證，錯誤更正因此獲得免疫 | 高 | v0.2.1 |
+| PC-BAL-019 | 交接內容的完整度被誤讀為交接已建立，指標從未寫入任何讀取端 | 高 | v0.2.1 |
+| PC-BAL-020 | 已查證與未查證的陳述共用同一確定語氣，讀者無從分辨哪些被看過 | 高 | v0.2.1 |
+| PC-BAL-021 | 待認領的衍生票被範圍較廣的票連帶完成，票本身零狀態變化 | 中 | v0.2.1 |
+| PC-BAL-022 | 失敗歸因以因果範圍核對取代 baseline 對照，環境造成的新失敗被判為既有 | 高 | v0.2.1 |
+| PC-BAL-023 | 自我擴張集合的覆蓋率以起始快照為分母，計數相等被讀成逐項對應 | 高 | v0.2.1 |
+| PC-BAL-024 | 規則收緊為全禁而守衛停留在舊啟發式，落差被規則文件寫下卻未被修補 | 高 | v0.2.1 |
+| PC-BAL-025 | 框架防護變更的授權鏈同源自我背書，用戶選擇發生在結論已寫進選項之後 | 高 | v0.2.1 |
+| PC-SCLK-001 | 並行 agent 的 git commit --amend 改寫其他執行體的 commit | 高 | — |
+| PC-SCLK-002 | 代理人以編碼混淆繞過 sandbox 防護而非回報阻擋 | 高 | — |
+| PC-SCLK-003 | 任務 context 指定解法形態而非問題，使執行者實作弱手段並將其固化為驗收條件 | 中 | — |
+| PC-SCLK-004 | 事故回報以推測性歸因取代逐字證據，使後續票面建立在虛構前提上 | 高 | — |
+| PC-SCLK-005 | 共享 working tree 下無 pathspec 的 git commit 會夾帶他人已 staged 的檔案 | 中 | — |
+| PC-SCLK-006 | 規格內的自然語言結論與其自身形式定義相反，TDD 循環無法自曝 | 高 | — |
+| PC-SCLK-007 | Hook 讀取錯誤的 payload 欄位名，取得空值後走「無事可做」分支而靜默失效 | 高 | — |
+| PC-SCLK-008 | PM 前置分析的斷言措辭被執行者照抄進產出，成為錯誤的事實來源 | — | — |
+| PC-BAL-026 | 驗證管道經快取層讀取，輸出滯後於待驗現象，成功操作被報為失敗 | 中 | — |
+| PC-BAL-027 | 稽核器未讀既有決策登記表，把已裁定的刻意設計持續報為缺陷 | 中 | — |
+| PC-BAL-028 | 差集稽核以宣稱清單對帳實際狀態，對「從未宣稱的變更」有結構性盲區 | 中 | — |
 
 ---
 

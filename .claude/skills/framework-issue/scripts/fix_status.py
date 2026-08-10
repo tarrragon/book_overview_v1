@@ -31,9 +31,11 @@ from pathlib import Path
 from gh_common import (
     FRAMEWORK_REPO,
     emit_degraded,
+    normalize_issue_ref,
     preflight,
     run_gh,
 )
+from section_table import upsert_section
 
 # 修復矩陣標記區段（issue body 內嵌；read 解析、write 替換此段）
 MATRIX_BEGIN = "<!-- fix-matrix -->"
@@ -123,12 +125,7 @@ def render_matrix(rows: dict) -> str:
 
 def upsert_matrix(body: str, rows: dict) -> str:
     """把渲染後矩陣寫回 body：既有區段整段替換，否則 append 於 body 末。"""
-    rendered = render_matrix(rows)
-    body = body or ""
-    if MATRIX_SECTION_RE.search(body):
-        return MATRIX_SECTION_RE.sub(lambda _: rendered, body, count=1)
-    separator = "\n\n" if body and not body.endswith("\n") else "\n"
-    return f"{body}{separator}{rendered}\n"
+    return upsert_section(body, MATRIX_SECTION_RE, render_matrix(rows))
 
 
 def fetch_body(issue_ref: str) -> str:
@@ -228,8 +225,17 @@ def main(argv=None) -> int:
     if gate != 0:
         return gate
 
+    try:
+        issue_ref = normalize_issue_ref(parsed.issue_ref)
+    except ValueError as exc:
+        return emit_degraded(
+            f"issue ref 格式錯誤：{exc}",
+            "使用 owner/repo#N、#N 或純數字格式，且 repo 需與"
+            f" {FRAMEWORK_REPO} 相符",
+        )
+
     if not parsed.mark_fixed:
-        return view_matrix(parsed.issue_ref)
+        return view_matrix(issue_ref)
 
     # mark-fixed 需自我識別本 consumer（不接受手動傳入）
     try:
@@ -240,7 +246,7 @@ def main(argv=None) -> int:
             f"無法識別本 consumer：{exc}",
             "確認位於已登錄於 _project-registry.yaml 的 git repo 內後重試",
         )
-    return mark_fixed(parsed.issue_ref, consumer)
+    return mark_fixed(issue_ref, consumer)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,558 @@
+## [2.27.8] - 2026-08-10
+
+### Summary
+fix: 截斷 sync-push VERSION 回寫自反饋迴路（tarrragon/claude#66）; chore: sync-push 回寫框架版本號 （零實質變更鑄版問題見 tarrragon/claude#66）
+
+Changes: 1 fix, 1 chore
+
+- fix: 截斷 sync-push VERSION 回寫自反饋迴路（tarrragon/claude#66）
+- chore: sync-push 回寫框架版本號 （零實質變更鑄版問題見 tarrragon/claude#66）
+
+---
+
+## [2.27.7] - 2026-08-10
+
+### Summary
+chore: sync-push 回寫框架版本號
+
+Changes: 1 chore
+
+- chore: sync-push 回寫框架版本號
+
+---
+
+## [2.27.6] - 2026-08-10
+
+### Summary
+fix: framework-issue scripts 統一接受三種 issue ref 形態; fix: skill-sync get_skills_dir 改以 git toplevel 解析消除 cwd 依賴; chore: sync-push 回寫框架版本號
+
+Changes: 2 fix, 1 chore
+
+- fix: framework-issue scripts 統一接受三種 issue ref 形態
+- fix: skill-sync get_skills_dir 改以 git toplevel 解析消除 cwd 依賴
+- chore: sync-push 回寫框架版本號
+
+---
+
+## [2.27.5] - 2026-08-10
+
+### Summary
+fix: skill 庫檢查輸出標示比對遠端 repo; chore: sync-push 回寫框架版本號
+
+Changes: 1 fix, 1 chore
+
+- fix: skill 庫檢查輸出標示比對遠端 repo
+- chore: sync-push 回寫框架版本號
+
+---
+
+## [2.27.4] - 2026-08-10
+
+### Summary
+fix: canonical-schema hook WARNING 改走 additionalContext 注入 session context; docs: 新增 PC-BAL-028 差集稽核對無宣稱變更的結構性盲區; docs: 有副作用取捨的選擇題強制觸發 WRAP 規則條文 (+2 more)
+
+Changes: 1 fix, 3 docs, 1 chore
+
+- fix: canonical-schema hook WARNING 改走 additionalContext 注入 session context
+- docs: 新增 PC-BAL-028 差集稽核對無宣稱變更的結構性盲區
+- docs: 有副作用取捨的選擇題強制觸發 WRAP 規則條文
+- docs: 新增驗收條件爭議兩條裁決判準
+- chore: 回寫框架版本號 （sync-push 產出）
+
+---
+
+## [2.27.3] - 2026-08-10
+
+### Summary
+docs: 校準 language-constraints.md 非 MoE 標準字; chore: 回寫框架版本號 （sync-push 產出）
+
+Changes: 1 docs, 1 chore
+
+- docs: 校準 language-constraints.md 非 MoE 標準字
+- chore: 回寫框架版本號 （sync-push 產出）
+
+---
+
+## [2.27.2] - 2026-08-10
+
+### Summary
+docs: 清理 rules 目錄 38 處 ticket ID 引用（規則 8 全禁原則階段 2 試點）; docs: 補記 error-pattern 與 skill-sync 的版本註腳; chore: .claude 同步至 （--clean 傳播兩筆刪除）
+
+Changes: 2 docs, 1 chore
+
+- docs: 清理 rules 目錄 38 處 ticket ID 引用（規則 8 全禁原則階段 2 試點）
+- docs: 補記 error-pattern 與 skill-sync 的版本註腳
+- chore: .claude 同步至 （--clean 傳播兩筆刪除）
+
+---
+
+## [2.27.1] - 2026-08-10
+
+### Summary
+chore: .claude 同步至
+
+Changes: 1 chore
+
+- chore: .claude 同步至
+
+---
+
+## [2.27.0] - 2026-08-10
+
+### Summary
+feat: 新增 error-patterns README 索引與目錄一致性檢查 Hook; feat: 抽取共用 skill.md 大小寫告警 helper 並接線四處; feat: skill-sync 對大小寫不符的 SKILL.md 輸出告警 (+12 more)
+
+Changes: 3 feat, 4 fix, 4 docs, 3 chore, 1 test
+
+- feat: 新增 error-patterns README 索引與目錄一致性檢查 Hook
+- feat: 抽取共用 skill.md 大小寫告警 helper 並接線四處
+- feat: skill-sync 對大小寫不符的 SKILL.md 輸出告警
+- fix: 索引一致性 Hook 依凍結登記表分流 ID 碰撞誤報
+- fix: skill-registration-check-hook 小寫偵測在 case-insensitive fs 上永不觸發
+- fix: 更正 IMP-V1-006 對 pathlib.glob 大小寫行為的錯誤敘述
+- fix: 本地重命名三個 skill 為大寫 SKILL.md 並同步活引用
+- docs: 整併 IMP-026 至 IMP-054，PC-086 補姊妹模式交叉引用
+- docs: ARCH-BAL-007 案例補後續更正，七組碰撞中 ARCH-010 實為孤兒重複
+- docs: 新增 PC-BAL-027 稽核器缺政策輸入把已裁定設計報為缺陷
+- docs: IMP-V1-006 補二次觸發擴充，涵蓋 case-sensitive 掃描器靜默漏樣本
+- chore: 完成全庫孤兒重複稽核，spawn 清理 IMP-026/054/PC-086
+- chore: 刪除 ARCH-010 孤兒重複檔並修正索引與凍結表
+- chore: 框架同步至 ，驗收判定 acceptance 1 未達成轉 承接
+- test: 兩份 skill.md 大小寫判準實作對照測試 + 文案更正
+
+---
+
+## [2.26.3] - 2026-08-09
+
+### Summary
+fix: skill 庫檢查拆分兩類盲區並補齊 5 個缺漏的 manifest 記錄; fix: 移除 layer-boundary-validator 的 effort=low 短路; chore: 框架 repo 同步至 （ticket 掃描修復與 hook 註冊清理）
+
+Changes: 2 fix, 1 chore
+
+- fix: skill 庫檢查拆分兩類盲區並補齊 5 個缺漏的 manifest 記錄
+- fix: 移除 layer-boundary-validator 的 effort=low 短路
+- chore: 框架 repo 同步至 （ticket 掃描修復與 hook 註冊清理）
+
+---
+
+## [2.26.2] - 2026-08-09
+
+### Summary
+fix: 移除 hook 重複註冊與被合併版並存; fix: ticket 掃描改依實際結果分派，修復九個 hook 恆掃到空; chore: 框架 repo 同步至 （本 session hook 變更）
+
+Changes: 2 fix, 1 chore
+
+- fix: 移除 hook 重複註冊與被合併版並存
+- fix: ticket 掃描改依實際結果分派，修復九個 hook 恆掃到空
+- chore: 框架 repo 同步至 （本 session hook 變更）
+
+---
+
+## [2.26.1] - 2026-08-09
+
+### Summary
+chore: 框架 repo 同步至 （傳播三個 dart skill 移除）
+
+Changes: 1 chore
+
+- chore: 框架 repo 同步至 （傳播三個 dart skill 移除）
+
+---
+
+## [2.26.0] - 2026-08-09
+
+### Summary
+refactor: 規則 8 守衛的兩份掃描邏輯統一為單一實作; fix: layer-boundary-validator 改用 lib 套件修復測試套件收集中斷; chore: 框架 repo 同步至 ，回填 至 spawned_tickets
+
+Changes: 1 refactor, 1 fix, 1 chore
+
+- refactor: 規則 8 守衛的兩份掃描邏輯統一為單一實作
+- fix: layer-boundary-validator 改用 lib 套件修復測試套件收集中斷
+- chore: 框架 repo 同步至 ，回填 至 spawned_tickets
+
+---
+
+## [2.25.0] - 2026-08-09
+
+### Summary
+feat: 規則 8 守衛升級為 exit 2 阻擋並加行內 marker 逃生閥; feat: skill 殘留偵測器與 session 警告加 push 硬擋雙層防護; feat: style_checker 專案校準設定化並讓 hook 共用同一份規則 (+15 more)
+
+Changes: 4 feat, 2 refactor, 5 fix, 3 docs, 2 chore, 2 test
+
+- feat: 規則 8 守衛升級為 exit 2 阻擋並加行內 marker 逃生閥
+- feat: skill 殘留偵測器與 session 警告加 push 硬擋雙層防護
+- feat: style_checker 專案校準設定化並讓 hook 共用同一份規則
+- feat: skill-sync push 新增 --prune 刪除傳播
+- refactor: 移除三個無工具且綁定他專案路徑的 dart skill
+- refactor: skill 庫漂移檢查收斂為 skill-sync 的 public API
+- fix: test-assertion-design 交叉引用改回 dart 前綴命名
+- fix: 收斂本地與 canonical skill 庫的 16 項內容分歧
+- fix: prune 排除範圍、cmd_push 測試覆蓋、pull/push 對稱化
+- fix: 恢復 sync-push 的 skill 庫漂移自動檢查
+- fix: 修復 3 個 skill 的 5 處失效連結並回推 canonical 庫
+- docs: 記錄 PC-BAL-026 驗證管道經快取層讀取的滯後模式
+- docs: 修正 skill-sync 文件與實際行為的四處脫節
+- docs: 記錄多視角審查產出的兩個結構性錯誤模式
+- chore: 從 canonical 庫同步 5 個過期 skill
+- chore: 本地 VERSION 回寫至 2.24.15（sync-push 收尾）
+- test: 補雙層防護 hook 的測試納入 hooks 測試 gate
+- test: 補 dart-style-guardian-hook 測試納入 hooks 測試 gate
+
+---
+
+## [2.24.15] - 2026-08-07
+
+### Summary
+fix: 修復 broken-link-check 既存失效連結，broken 23 處歸零; chore: 本地 VERSION 回寫至 2.24.14（issue #62 群聚收尾）
+
+Changes: 1 fix, 1 chore
+
+- fix: 修復 broken-link-check 既存失效連結，broken 23 處歸零
+- chore: 本地 VERSION 回寫至 2.24.14（issue #62 群聚收尾）
+
+---
+
+## [2.24.14] - 2026-08-07
+
+### Summary
+fix: write_local_version 回傳 OSError 細節供呼叫端警告; chore: 本地 VERSION 回寫至 2.24.13（write_local_version 首次 runtime 產物）
+
+Changes: 1 fix, 1 chore
+
+- fix: write_local_version 回傳 OSError 細節供呼叫端警告
+- chore: 本地 VERSION 回寫至 2.24.13（write_local_version 首次 runtime 產物）
+
+---
+
+## [2.24.13] - 2026-08-07
+
+### Summary
+fix: sync-push 成功後回寫本地 .claude/VERSION
+
+Changes: 1 fix
+
+- fix: sync-push 成功後回寫本地 .claude/VERSION
+
+---
+
+## [2.24.12] - 2026-08-07
+
+### Summary
+docs: 記錄 PC-BAL-025 框架自我修改的授權鏈自我背書
+
+Changes: 1 docs
+
+- docs: 記錄 PC-BAL-025 框架自我修改的授權鏈自我背書
+
+---
+
+## [2.24.11] - 2026-08-07
+
+### Summary
+fix: 移除 ticket_quality 產出內容中的 emoji 字面
+
+Changes: 1 fix
+
+- fix: 移除 ticket_quality 產出內容中的 emoji 字面
+
+---
+
+## [2.24.10] - 2026-08-06
+
+### Summary
+fix: 修復 why 欄位跨行冒號誤判巢狀 dict 的資料遺失; fix: 修復 where.files 型別假設死碼（error-pattern/doc-only）
+
+Changes: 2 fix
+
+- fix: 修復 why 欄位跨行冒號誤判巢狀 dict 的資料遺失
+- fix: 修復 where.files 型別假設死碼（error-pattern/doc-only）
+
+---
+
+## [2.24.9] - 2026-08-06
+
+### Summary
+fix: 移除 ticket-quality-gate 註冊並刪除已無效 hook; fix: 移植 C1/C3 判準至 acceptance_checkers 並實測誤判率
+
+Changes: 2 fix
+
+- fix: 移除 ticket-quality-gate 註冊並刪除已無效 hook
+- fix: 移植 C1/C3 判準至 acceptance_checkers 並實測誤判率
+
+---
+
+## [2.24.8] - 2026-08-06
+
+### Summary
+fix: PM 補修 .1 漏抓的 skills 深層路徑 11 處 dependency_ref; fix: 補正 30 處第 1 類論證依據型 ticket ID 引用; fix: 複核 error-patterns/pm-rules/methodologies/rules/scripts/lib 36 行引用，修正 6 行 (+4 more)
+
+Changes: 7 fix
+
+- fix: PM 補修 .1 漏抓的 skills 深層路徑 11 處 dependency_ref
+- fix: 補正 30 處第 1 類論證依據型 ticket ID 引用
+- fix: 複核 error-patterns/pm-rules/methodologies/rules/scripts/lib 36 行引用，修正 6 行
+- fix: 複核 references/hooks 44 行引用，移除 19 行 ticket ID
+- fix: 複核 skills 目錄 ticket ID 引用並按五類分類修正
+- fix: 規則 8 守衛改全禁偵測 + 逐檔淨增量存量凍結
+- fix: agent-ticket-validation-hook 補 filelock 依賴並改 noisy fallback
+
+---
+
+## [2.24.7] - 2026-08-06
+
+### Summary
+fix: 修復 hook 權限自動修正的掃描軸過寬與 auto-commit 永不觸發; fix: 第三輪 Phase 4 品質修復（規則 8/Action 句/不變式/事實）; fix: 三個 handoff hook PEP 723 補 filelock，修復 PC-135 復發 (+11 more)
+
+Changes: 8 fix, 4 docs, 2 chore
+
+- fix: 修復 hook 權限自動修正的掃描軸過寬與 auto-commit 永不觸發
+- fix: 第三輪 Phase 4 品質修復（規則 8/Action 句/不變式/事實）
+- fix: 三個 handoff hook PEP 723 補 filelock，修復 PC-135 復發
+- fix: 三個 handoff hook 顯示/排序/判定路徑改以 target 為對象
+- fix: 第三輪修復 Phase 4 審查發現（SSOT 合併/靜默 fallback/註解）
+- fix: resume.py 三處消費者改用 resolve_target 統一對象解析
+- fix: 統一 handoff JSON 消費者對象解析為 target/source 判準
+- fix: 修復 handoff 同步檢查的段落界定失效與交接語意錯置
+- docs: 誤差預算原則上移至框架規則層 quality-baseline
+- docs: 記錄 PC-BAL-024 規則收緊而守衛判準過期
+- docs: 記錄 ARCH-BAL-014 上游過濾修復擴大下游暴露面
+- docs: 依 Layer 2 審查修正 PC-BAL-023 兩處實質缺陷
+- chore: test_dispatch_record_hook.py 補上執行權限
+- chore: 完成框架 issue 歸屬盤點並補 PC-BAL-023
+
+---
+
+## [2.24.6] - 2026-08-05
+
+### Summary
+sync .claude configuration
+
+---
+
+## [2.24.5] - 2026-08-05
+
+### Summary
+fix: sync-push --clean 不再被 no-change early-exit 攔下
+
+Changes: 1 fix
+
+- fix: sync-push --clean 不再被 no-change early-exit 攔下
+
+---
+
+## [2.24.4] - 2026-08-05
+
+### Summary
+sync .claude configuration
+
+---
+
+## [2.24.3] - 2026-08-05
+
+### Summary
+fix: 遷移派發身份綁定至 PostToolUse 修復混合批次自我阻塞; test: 補 dispatch-record-hook.py 依命名慣例對應測試檔
+
+Changes: 1 fix, 1 test
+
+- fix: 遷移派發身份綁定至 PostToolUse 修復混合批次自我阻塞
+- test: 補 dispatch-record-hook.py 依命名慣例對應測試檔
+
+---
+
+## [2.24.2] - 2026-08-05
+
+### Summary
+docs: 互鏈 PC-BAL-008 與 PC-SCLK-005 跨 consumer 姊妹模式; chore: pull .claude 更新（上游 2c488f543ddf，）
+
+Changes: 1 docs, 1 chore
+
+- docs: 互鏈 PC-BAL-008 與 PC-SCLK-005 跨 consumer 姊妹模式
+- chore: pull .claude 更新（上游 2c488f543ddf，）
+
+---
+
+## [2.24.1] - 2026-08-05
+
+### Summary
+feat(screen_clock): 回推 11 個 SCLK error-pattern 與三項框架層修復
+
+error-pattern（consumer screen_clock 於 v1.4.0 捕獲，上游先前無 SCLK 條目）：
+- PC-SCLK-001~008：並行 agent amend 改寫他人 commit／編碼混淆繞過 sandbox／
+  task context 指定解法形態／推測性歸因污染後續票／共享 index commit 夾帶
+  他人 staged 檔／規格散文與形式定義相反／hook 讀錯 payload 欄位靜默失效／
+  PM 分析措辭被照抄成事實
+- IMP-SCLK-001：macOS bash 3.2 在 UTF-8 locale 下裸 $VAR 緊鄰全形標點
+- CQ-SCLK-001：宣稱的保證無測試訊號
+- TEST-SCLK-001：快取建置使不存在斷言空洞
+
+程式碼修復：
+- hooks/hook-completeness-check.py：新增 extract_merge_declarations()，解析
+  hook docstring 的合併宣告，偵測已合併卻仍與合併版共同註冊的 hook
+  （screen_clock 1.4.0-W2-029 實證：三個 hook 每次 commit 重複執行）
+- skills/doc/doc_system/commands/validate.py + tests：修 _fixed_name_exemptions
+  對無對應模板之固定命名文件的推導盲區（1.4.0-W1-013）
+
+框架知識：
+- references/agent-dispatch-decision.md：新增 isolation:worktree 派發的
+  complete 收尾限制專節，含逐字阻擋原文與探針證據（1.4.0-W1-023）
+
+---
+
+## [2.24.0] - 2026-08-05
+
+### Summary
+feat: framework-issue fix-version 註記與 close 命令; feat: framework-issue create 環境資訊自動收集; docs: PC-BAL-008 增補檔案級共用跨票吸收變體 (+1 more)
+
+Changes: 2 feat, 2 docs
+
+- feat: framework-issue fix-version 註記與 close 命令
+- feat: framework-issue create 環境資訊自動收集
+- docs: PC-BAL-008 增補檔案級共用跨票吸收變體
+- docs: 建立框架問題升級與 issue 生命週期正規化流程文件
+
+---
+
+## [2.23.1] - 2026-08-05
+
+### Summary
+chore: 傳播 9 個已刪除檔案的刪除，清理遠端孤兒
+
+包含 ticket-skill-sync-check 系列（已改名為 skill-cli-sync-check，繼任者
+已在位）、memory upgrade 相關腳本與測試、hook-registry.json、
+phase-contract-validator-hook。避免 full overlay sync 將死檔複製回下游。
+
+---
+
+## [2.23.0] - 2026-08-05
+
+### Summary
+feat: agent-commit-verification-hook 逐 worktree 檢查未落地產品碼; feat: 實作 bare-commit-guard 並行期裸 commit 防線; feat: 保障 worktree 內 ticket create 產出的追蹤與清理防護 (+96 more)
+
+Changes: 14 feat, 8 refactor, 34 fix, 38 docs, 4 chore, 1 perf
+
+- feat: agent-commit-verification-hook 逐 worktree 檢查未落地產品碼
+- feat: 實作 bare-commit-guard 並行期裸 commit 防線
+- feat: 保障 worktree 內 ticket create 產出的追蹤與清理防護
+- feat: dispatch_mode readonly 豁免路徑（fallback 版）
+- feat: 增設 complete 別名 finish 避開 CC worktree guard 誤判
+- feat: 實作 spawn request 狀態標記 CLI 子命令
+- feat: dispatch-readiness 新增 acceptance 與寫入集一致性檢查
+- feat: 泛化 skill CLI 文件同步防護 hook 至七個 skill
+- feat: WAVE_WRAP_UP_REMINDER 觸發端實查 Wave pending 數
+- feat: 新增雙軌皆空但 session 有交接訊號的 Stop hook 偵測第 7 格
+- feat: 封閉 NotebookEdit memory 寫入路徑並誠實化 Bash 缺口
+- feat: 新增 hooks 變更目標式測試 gate
+- feat: SKILLS 清單漂移偵測落在 SessionStart
+- feat: agent-dispatch-template 交付通道補派發形態維度
+- refactor: 收斂 4 份 worktree/porcelain 重複實作至 lib.git_utils
+- refactor: Guard 表驅動 + worktree 回傳型別具名化
+- refactor: 收斂 git worktree/porcelain 重複解析至 git_utils 共用層
+- refactor: 刪除 phase-contract-validator-hook 死碼及其測試與豁免條目
+- refactor: 抽取 memory 路徑與分流訊息的單一真相來源
+- refactor: memory 稽核改 SessionStart 加 Stop 事件式偵測
+- refactor: memory 稽核 layout 表格化與 docstring 敘事收斂
+- refactor: 移除 memory 升級工作流的程式碼層殘留
+- fix: 修正 worktree hook 訊息的互斥指示與 Guard 代號撞號
+- fix: 共用 git runner 改為只 rstrip 換行，保留 porcelain 首行前導空白
+- fix: 修正 worktree hook 阻擋訊息的裸 cd 與無 pathspec commit 建議
+- fix: 補上 worktree 清理路徑對已追蹤檔未提交修改的遺失防護
+- fix: readme_index 略過原子配號的 reserved 佔位檔
+- fix: 修復 worktree skill 測試套件 collection error 與 patch target 漂移
+- fix: 封閉 error-pattern allocator 兩面配號競爭
+- fix: dashboard Ready 判定加入 children 未完成過濾
+- fix: worktree-commit-before-dispatch 阻擋訊息改用「主 repo」取代歧義的 main
+- fix: set-acceptance 補上 auto-commit 消除 worktree 靜默遺失風險
+- fix: _auto_commit_ticket_md commit 訊息不再誤標 append-log
+- fix: Context Bundle 冪等判定改為 content-aware 使 claim 時重抽生效
+- fix: worktree 派發跳過主 repo 端搶先身份綁定，消除雙寫洩漏
+- fix: runqueue list 視圖不再硬編 blockedBy=[] 後綴
+- fix: 收斂 complete auto-stage 排除 siblings 與 children 路徑
+- fix: 補 hook 與測試檔的執行權限
+- fix: 移除 hook-completeness-check.py 對已刪除 hook-registry.json 的 docstring 引用
+- fix: 修正 skill-shadowing-check-hook docstring 優先序方向與過時數量
+- fix: 校準 path_permission 白名單與拒絕訊息清單，改為機制綁定
+- fix: WAVE_WRAP_UP_REMINDER 移除偽裝偵測結果的靜態文案
+- fix: handoff --from-worklog 掃描範圍限縮至交接段落
+- fix: worktree 內測試 fixture 隔離逃生艙，消除假紅燈污染
+- fix: 修復 dashboard 的 handoff target 呈現與 key 語意錯位
+- fix: 修復 worklog 交接段偵測與本專案書寫慣例失配
+- fix: get_current_version_from_todolist 改解析 status=active
+- fix: AUDIT_MESSAGE 首句改陳述能力事實、Action 改可執行指令
+- fix: 依 shell 語意分流處理跳脫引號，消除配對錯位繞過
+- fix: 重寫字面區段掃描為單趟狀態機，消除 DENY 繞過
+- fix: 消除 bash-edit-guard 模式 A 對字面命中的誤報
+- fix: 修復 memory 稽核目錄定位失效並補可攜測試
+- fix: 收斂 hooks-test-gate 的字面提及誤觸發路徑
+- fix: 修復 uv-tool-ownership-guard 測試過期成員清單
+- fix: 場景 16 提醒改為捕獲時分流，移除 memory 雙通道殘留
+- fix: 校準 uv-tool-ownership-guard 的 SKILLS 清單
+- docs: 修正 EXCLUDED_PATH_PREFIXES 排除理由表述
+- docs: 對齊 AGENT_PRELOAD 規則 12 Version footer 表述至規則 8 現行判準
+- docs: 補 writing-code-comments 原則二框架檔案路由註
+- docs: 載明唯讀派發豁免 worktree 強制的聲明方式與適用判準
+- docs: 載明 worktree 派發的非 git 狀態前置需求機制
+- docs: error-pattern SKILL 步驟 7 改接原子配號入口
+- docs: 修訂 bash-tool-usage 規則三，index.lock 競爭因果改為 lock 本身而非串接
+- docs: 規則 8 新增實證錨點型類別，commit hash 條件允許
+- docs: 收斂 SHA 擷取為 commit 同一次呼叫內完成
+- docs: PC-BAL-008 預防措施改 SHA 錨定驗證
+- docs: 補寫系統模型章節的 type 與 instance 一對多條款
+- docs: path-limited commit 補新增檔案的 git add 前置條款
+- docs: PC-BAL-008 補實證二與工具層修法
+- docs: 補強並行 commit 防護條款納入 path-limited commit
+- docs: 修正 ARCH-001-config-code-mixing 內文風險等級由高改為中
+- docs: 修訂 language-constraints 規則 5 對齊實際防護機制
+- docs: 補齊規則 8 適用範圍表與守衛掃描範圍的落差
+- docs: 消除二元處置取捨條款在四份框架文件間的 substance 重複
+- docs: 規則 8 改寫為全禁原則加五類分類
+- docs: 校正 parallel-dispatch.md 檔尾三個 Last Updated 並存
+- docs: idle agent 回收 SOP 補檔案佔用前提與通知語意
+- docs: 關閉 並擴充 PC-BAL-022（同一 pattern 發生在派發者身上）
+- docs: 記 PC-BAL-022（因果核對取代 baseline 對照）
+- docs: PC-BAL-020 併入例四並補 PC-BAL-004 邊界
+- docs: 記 PC-BAL-021 並建兩張後續追蹤票
+- docs: Round 3 三項承重論點修正，skill 升 2.0.0
+- docs: Round 2 兩項嚴重與摘要行一組
+- docs: Round 1 兩項嚴重必修
+- docs: DOC-BAL-002 補入否定式保證的加重形態
+- docs: 新增 DOC-BAL-002 契約漂移錯誤模式
+- docs: 判定三例回報偏差並落地為兩份 error-pattern
+- docs: 記 ARCH-BAL-011 主題式命名造成的覆蓋假象
+- docs: 記 DOC-BAL-001 規則缺 Consequence 層退化為偏好
+- docs: 套用第二位審查員的獨立 finding
+- docs: 套用 Layer 2 審查的 1 Critical 與 12 Warning
+- docs: 記 ARCH-BAL-010 並補既有兩則模式的實證與症狀變體
+- docs: 記 PC-BAL-019 並追蹤場景 16 提醒的 memory 殘留
+- docs: 判定經審查推翻後重寫，記 PC-BAL-018
+- chore: Phase 4 審查落地——2 個 error-pattern + 6 張衍生票 bookkeeping
+- chore: 補 test_bare_commit_guard_hook.py 執行權限
+- chore: metadata sync post-completion
+- chore: 補提交測試檔的執行權限位
+- perf: get_project_root 加程序內快取消除重複 git subprocess
+
+---
+
+## [2.22.2] - 2026-07-30
+
+### Summary
+feat: sync 守衛與工具修復三輪 + wrap-decision 2.8.0
+
+守衛（跨專案保護分支）三個獨立繞道封閉：
+- 完全未掛 Bash matcher，Bash git commit 可直接寫外部 repo 保護分支
+- 讀當下 staged 而非推導本次命令會 stage 什麼，add && commit 串接可繞過
+- -C 目標含 shell 展開語法時解析失敗即 fail-open
+
+同步工具兩項 fail-open 修復：
+- sync-pull --audit 增讀 base sha，正向孤兒分為將被刪除與將保留兩組
+- sync-push 無 base 帶 --clean 時中止（三方保護依賴 base_files 非空）
+
+wrap-decision 2.8.0：移植 blog 分支獨有演化（觸發條件兩項、快速+模式
+定義、claim-quick-wrap orphan 修復、基礎設施累積型絆腳索）。
+
+新增 error-pattern PC-BAL-015 / PC-BAL-016。
+
+---
+
 ## [2.22.1] - 2026-07-29
 
 ### Summary

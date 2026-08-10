@@ -117,14 +117,17 @@ def _parse_nested_line(
     line: str,
     current_key: Optional[str],
     multiline_marker: Optional[str],
-    current_nested_key: Optional[str] = None
+    current_nested_key: Optional[str] = None,
+    is_scalar_continuation: bool = False,
 ) -> _NestedLineResult:
     """處理嵌套行（以 2 個空格開頭的縮排行）
 
     嵌套行可能是：
     1. 多行字串的延續行（若 multiline_marker 已設定）
-    2. 嵌套鍵值對（若無 multiline_marker）
+    2. 嵌套鍵值對（若無 multiline_marker，且非純量延續狀態）
     3. 列表項目（以 "- " 開頭）
+    4. 多行純量（無 `|`/`>` 標記，靠 YAML plain scalar folding 換行）的
+       延續行，即使內容含冒號也不得誤判為巢狀鍵值對（0.2.1-W3-338）
 
     此函式無副作用，回傳明確的結果以供呼叫端處理。
 
@@ -133,6 +136,14 @@ def _parse_nested_line(
         current_key: 當前頂層鍵名
         multiline_marker: 多行標記（|, >, |-, >-）或 None
         current_nested_key: 當前嵌套鍵名（用於列表項目累積）
+        is_scalar_continuation: 呼叫端判定 `current_key` 是否正在累積
+            「非空純量字串」（即 result[current_key] 已是非空 str，而非
+            尚未寫入或已是 dict）。為 True 時，即使本行含冒號也不視為
+            巢狀鍵值對起點，改走純量延續路徑（0.2.1-W3-338 修復：`why:`
+            等欄位若以 plain scalar 跨行換行，延續行含 ASCII 冒號（如
+            中文技術寫作「根因是 X：Y」句型或時間戳 14:52）過去會被誤判
+            為巢狀 dict 並覆蓋已累積內容，造成資料遺失）。預設 False
+            以維持既有直接呼叫端（如單元測試）的行為不變。
 
     Returns:
         _NestedLineResult: 含有：
@@ -169,6 +180,16 @@ def _parse_nested_line(
         return _NestedLineResult(
             multiline_marker=None,
             update_action=(current_nested_key, item_content, False)
+        )
+
+    # 路徑 2.5：非空純量延續行（0.2.1-W3-338）—— current_key 已累積非空
+    # 字串內容，代表本行必為該純量欄位跨行換行的延續內容，不論是否含冒號
+    # 都不得改判為巢狀鍵值對（否則會如路徑 3 般用 dict 覆蓋已累積的字串，
+    # 造成資料遺失）。此路徑優先於路徑 3 判斷。
+    if is_scalar_continuation and current_key:
+        return _NestedLineResult(
+            multiline_marker=None,
+            update_action=(current_key, nested_line, False)
         )
 
     # 路徑 3：嵌套鍵值對
@@ -270,7 +291,22 @@ def _parse_yaml_lines(frontmatter_text: str) -> dict:
                 continue
 
             # 2 格：嵌套鍵值對、多行標記或列表項目
-            nested_result = _parse_nested_line(line, current_key, multiline_marker, current_nested_key)
+            # 0.2.1-W3-338：current_key 已累積「非空字串」代表正在跨行折疊
+            # 純量欄位（如 why: 長文字延續行），此時本行即使含冒號也不得
+            # 被誤判為巢狀鍵值對起點（見 _parse_nested_line 路徑 2.5 說明）。
+            # 已是 dict（真正巢狀欄位如 who/how/decision_tree_path）或尚未
+            # 寫入（空字串，如 who: 空值待補子欄位）則維持原判斷。
+            current_value = result.get(current_key)
+            is_scalar_continuation = (
+                isinstance(current_value, str) and current_value != ""
+            )
+            nested_result = _parse_nested_line(
+                line,
+                current_key,
+                multiline_marker,
+                current_nested_key,
+                is_scalar_continuation=is_scalar_continuation,
+            )
             multiline_marker = nested_result.multiline_marker
 
             # 根據回傳的 update_action 更新 result
@@ -551,17 +587,67 @@ def check_error_patterns_changed(
 # Ticket 檔案掃描函式
 # ============================================================================
 
+def _find_active_version_in_versions_block(content: str) -> "Optional[str]":
+    """在 todolist.yaml 的 versions 清單中尋找 status=active 項目的 version 值
+
+    僅以正則逐項掃描（不引入 PyYAML），因為呼叫鏈上有以
+    `uv run --script` 執行、`dependencies = []` 的獨立 hook（如
+    error-pattern-flat-gate-hook.py），對 lib 套件的匯入不可帶入額外依賴。
+
+    掃描範圍限定為頂層 `versions:` 鍵到下一個無縮排頂層內容（下一個鍵或註解）
+    之間的區塊；區塊內以 `- version: ...` 切分項目，逐項在該項目文字範圍內找
+    `status:` 欄位。
+
+    Args:
+        content: todolist.yaml 的完整文字內容
+
+    Returns:
+        第一個 status=active 項目的 version 值（去除引號），或 None
+    """
+    versions_key_match = re.search(r"^versions:\s*$", content, re.MULTILINE)
+    if not versions_key_match:
+        return None
+
+    block_start = versions_key_match.end()
+    next_top_level = re.search(r"\n(?=\S)", content[block_start:])
+    block_end = block_start + next_top_level.start() if next_top_level else len(content)
+    block = content[block_start:block_end]
+
+    entries = list(re.finditer(r"^\s*-\s*version:\s*(.+)$", block, re.MULTILINE))
+    for idx, entry_match in enumerate(entries):
+        entry_end = entries[idx + 1].start() if idx + 1 < len(entries) else len(block)
+        entry_text = block[entry_match.start():entry_end]
+
+        status_match = re.search(r"^\s*status:\s*(\S+)", entry_text, re.MULTILINE)
+        if not status_match or status_match.group(1).strip().strip("'\"") != "active":
+            continue
+
+        version_value = entry_match.group(1).strip().strip("'\"")
+        if version_value:
+            return version_value
+
+    return None
+
+
 def get_current_version_from_todolist(
     project_root: Path, logger: "Optional[logging.Logger]" = None
 ) -> "Optional[str]":
-    """從 docs/todolist.yaml 讀取 current_version 欄位
+    """從 docs/todolist.yaml 讀取當前活躍版本號
+
+    行為契約（0.2.1-W3-213 修復）：
+    - 主要格式：解析 `versions` 清單，尋找 `status` 為 `active` 的項目，回傳其
+      `version` 欄位。此為 todolist.yaml 第 5 行註解宣告的行為，也是本 repo
+      實際採用的格式（頂層已無 current_version 欄位）
+    - 舊格式相容：若找不到 status=active 項目，回退以正則解析頂層
+      `current_version:` 欄位（供仍使用舊格式的專案）
+    - 兩者皆找不到或檔案不存在時回傳 None
 
     Args:
         project_root: 專案根目錄
         logger: 可選日誌物件
 
     Returns:
-        版本號字串（如 "0.1.0"）或 None（若讀取失敗）
+        版本號字串（如 "0.2.1"）或 None（若讀取失敗或找不到當前版本）
     """
     todolist_file = project_root / "docs" / "todolist.yaml"
 
@@ -573,17 +659,27 @@ def get_current_version_from_todolist(
     try:
         content = todolist_file.read_text(encoding="utf-8")
 
-        # 簡單正則提取 current_version: 欄位值
-        match = re.search(r"current_version:\s*(\S+)", content)
+        active_version = _find_active_version_in_versions_block(content)
+        if active_version:
+            if logger:
+                logger.info(  # i18n-exempt
+                    "從 todolist.yaml versions[status=active] 讀取版本: {}".format(active_version)
+                )
+            return active_version
+
+        # 舊格式相容：頂層 current_version: 欄位
+        match = re.search(r"^current_version:\s*(\S+)", content, re.MULTILINE)
         if match:
             version = match.group(1).strip()
             if logger:
-                logger.info("從 todolist.yaml 讀取 current_version: {}".format(version))
+                logger.info(  # i18n-exempt
+                    "從 todolist.yaml current_version 欄位讀取版本（舊格式相容）: {}".format(version)
+                )
             return version
-        else:
-            if logger:
-                logger.debug("todolist.yaml 中未找到 current_version 欄位")
-            return None
+
+        if logger:
+            logger.debug("todolist.yaml 中未找到 status=active 版本或 current_version 欄位")
+        return None
     except Exception as e:
         if logger:
             logger.warning("讀取 todolist.yaml 失敗: {}".format(e))
@@ -612,9 +708,14 @@ def scan_ticket_files_by_version(
     if flat_dir.exists():
         try:
             ticket_files = list(flat_dir.glob("*.md"))
+            if ticket_files:
+                if logger:
+                    logger.debug("從版本 v{} 找到 {} 個 Ticket 檔案 (flat)".format(version, len(ticket_files)))
+                return ticket_files
             if logger:
-                logger.debug("從版本 v{} 找到 {} 個 Ticket 檔案 (flat)".format(version, len(ticket_files)))
-            return ticket_files
+                logger.debug(  # i18n-exempt
+                    "flat 目錄存在但為空，fallback 至 hierarchical 結構: v{}".format(version)
+                )
         except (OSError, PermissionError) as e:
             if logger:
                 logger.warning("掃描 Ticket 目錄失敗 (v{}): {}".format(version, e))

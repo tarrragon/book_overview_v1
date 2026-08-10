@@ -68,12 +68,24 @@ from pathlib import Path
 # 排除分類與 should_exclude / compute_content_hash 由 SSOT manifest 統一提供
 # （ARCH-020：消除 push/status 重複定義漂移）。manifest 位於 .claude/lib/。
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# skill-sync 是零框架依賴的獨立 uv 套件，未安裝為本腳本的 import 路徑；以 sys.path
+# 取用其 public API（與上一行取用 lib/ 同機制）。skill 庫漂移檢查的 repo 解析、
+# 取檔、分類全在該套件內，本檔不再持有第二份（ARCH-BAL-016）。
+sys.path.insert(
+    0, str(Path(__file__).resolve().parent.parent / "skills" / "skill-sync")
+)
 from lib.sync_exclude_manifest import (  # noqa: E402
     should_exclude,
     should_exclude_skill,
     _is_skill_path,
     load_sync_skills_config,
     compute_content_hash as _compute_content_hash,
+)
+from lib.skill_version_diff import (  # noqa: E402
+    SKILL_DRIFT_PREVIEW_LIMIT,
+    extract_skill_versions,
+    format_skill_version_diff,
+    report_skill_repo_drift,
 )
 
 REPO_URL = "https://github.com/tarrragon/claude.git"
@@ -220,6 +232,34 @@ def write_base_sha(claude_dir: Path, base_sha: str) -> None:
     )
 
 
+def write_local_version(claude_dir: Path, new_version: str) -> tuple[bool, str]:
+    """push 成功後將本次推送版本回寫本地 .claude/VERSION（0.2.1-W3-342）。
+
+    本地 .claude/VERSION 為 git tracked 檔，push 只 bump 遠端版本；若不回寫，
+    本地 VERSION 會停留於推送前版本直到下次 sync-pull。fix_version.py 省略
+    --version 時依 docstring 契約讀取本地 VERSION 視為「已同步版本」，缺此回寫
+    會令其註記過期版本（W3-050 收尾實測：推送 v2.24.12 後本地仍讀到 2.24.1）。
+
+    寫入失敗（如權限問題）不中止整個 push 流程——遠端 push 此時已成功，本步驟
+    僅影響本地便利性；本函式不直接印警告（單一警告通道由呼叫端統一負責，見
+    0.2.1-W3-343），僅將原始 OSError 訊息透過回傳值往外傳遞，供呼叫端組成含
+    錯誤細節的警告內容（observability 規則 1：日誌內容最低要求為錯誤訊息 + 位置）。
+
+    參數:
+        claude_dir: 本地 .claude 目錄路徑
+        new_version: 本次推送後的版本號（不含 v 前綴）
+
+    傳回:
+        tuple[bool, str]: (是否寫入成功, 錯誤訊息)。成功時錯誤訊息為空字串；
+        失敗時為原始 OSError 的字串內容，呼叫端應警告使用者並附上此訊息。
+    """
+    try:
+        (claude_dir / "VERSION").write_text(new_version + "\n", encoding="utf-8")
+        return True, ""
+    except OSError as exc:
+        return False, str(exc)
+
+
 def ensure_committed(project_root: Path) -> bool:
     """確認 .claude/ 已全數 commit（M1 根因解，0.19.1-W1-030）。
 
@@ -342,67 +382,9 @@ def stage_tracked_tree(project_root: Path, staging_dir: Path) -> int:
     return count
 
 
-def extract_skill_versions(skills_dir: Path) -> dict[str, str]:
-    """掃描 skills/*/SKILL.md 提取各 skill 的版本號。
-
-    參數:
-        skills_dir: skills 目錄路徑（如 temp_dir/skills/）
-
-    傳回:
-        dict[str, str]: {skill 名稱: 版本號}，無版本號者不列入
-    """
-    versions: dict[str, str] = {}
-    if not skills_dir.is_dir():
-        return versions
-    for skill_md in sorted(skills_dir.glob("*/SKILL.md")):
-        skill_name = skill_md.parent.name
-        try:
-            text = skill_md.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
-            continue
-        m = re.search(r"\*\*Version\*\*:\s*(\S+)", text)
-        if not m:
-            m = re.search(r"^version:\s*(\S+)", text, re.MULTILINE)
-        if m:
-            versions[skill_name] = m.group(1)
-    return versions
-
-
-def format_skill_version_diff(
-    before: dict[str, str], after: dict[str, str]
-) -> str | None:
-    """比對前後 skill 版本，產生摘要文字。無變更時回傳 None。
-
-    參數:
-        before: 同步前的 {skill: version}
-        after: 同步後的 {skill: version}
-
-    傳回:
-        str | None: 摘要文字（含換行），無變更時 None
-    """
-    all_names = sorted(set(before) | set(after))
-    new_skills: list[str] = []
-    updated_skills: list[str] = []
-    removed_skills: list[str] = []
-    for name in all_names:
-        old_ver = before.get(name)
-        new_ver = after.get(name)
-        if old_ver is None and new_ver is not None:
-            new_skills.append(f"{name} ({new_ver})")
-        elif old_ver is not None and new_ver is None:
-            removed_skills.append(f"{name} (was {old_ver})")
-        elif old_ver != new_ver:
-            updated_skills.append(f"{name} {old_ver} -> {new_ver}")
-    if not new_skills and not updated_skills and not removed_skills:
-        return None
-    lines = ["[Skill 變更摘要]"]  # i18n-exempt
-    if new_skills:
-        lines.append(f"  新增: {', '.join(new_skills)}")  # i18n-exempt
-    if updated_skills:
-        lines.append(f"  更新: {', '.join(updated_skills)}")  # i18n-exempt
-    if removed_skills:
-        lines.append(f"  移除: {', '.join(removed_skills)}")  # i18n-exempt
-    return "\n".join(lines)
+# extract_skill_versions / format_skill_version_diff / report_skill_repo_drift /
+# SKILL_DRIFT_PREVIEW_LIMIT 已提升至 .claude/lib/skill_version_diff.py，由本檔
+# 頂部 import（0.2.1-W3-356：消除與 sync-claude-pull.py 的逐字重複）。
 
 
 def load_preserve_list(claude_dir: Path) -> set[str]:
@@ -733,6 +715,55 @@ def collect_claude_commits(project_root: str, since: str | None) -> list[str]:
     return [line for line in result.stdout.strip().split("\n") if line.strip()]
 
 
+def _commit_touches_only_version_file(project_root: str, commit_sha: str) -> bool:
+    """判斷單一 commit 在 .claude/ 底下變更的檔案是否僅有 VERSION（記帳 commit）。
+
+    write_local_version 只回寫檔案不 commit（見該函式 docstring）；使用者事後
+    另行 `git commit` 持久化時，該 commit 在 .claude/ 底下唯一改動的檔案就是
+    VERSION，內容也早已反映於上次 push 計算的 last_push_hash 中，屬於「記帳」
+    而非「實質」變更。
+    """
+    result = run_git(
+        ["diff-tree", "--no-commit-id", "--name-only", "-r", commit_sha, "--", ".claude/"],
+        cwd=project_root,
+        check=False,
+    )
+    if result.returncode != 0:
+        return False
+    changed = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+    if not changed:
+        return False
+    return all(Path(p).name == "VERSION" for p in changed)
+
+
+def filter_out_version_only_commits(project_root: str, since: str | None) -> list[str] | None:
+    """回傳排除「僅變更 .claude/VERSION」記帳 commit 後的 commit hash 清單。
+
+    tarrragon/claude#66：VERSION 回寫後使用者提交此變更形成的記帳 commit，會被
+    collect_claude_commits 的 subject 訊號誤判為「有新變更」，使零實質變更仍
+    再次觸發版本 bump，形成回寫 -> 誤判有變更 -> 再次 bump -> 再次回寫的自反饋
+    迴路，版本永不收斂。本函式以 diff 內容（而非 commit subject）過濾此類 commit。
+
+    傳回 None 表示無法判定（例如 project_root 非 git repo或 git 指令失敗），
+    呼叫端必須 fail-safe 回退既有 subject-based 判斷，不可將 None 當作「已過濾
+    為空」處理。
+    """
+    args = ["log", "--format=%H", "--no-merges", "--", ".claude/"]
+    if since:
+        args.insert(2, f"--since={since}")
+    result = run_git(args, cwd=project_root, check=False)
+    if result.returncode != 0:
+        return None
+    if not result.stdout.strip():
+        return []
+    hashes = [line.strip() for line in result.stdout.strip().split("\n") if line.strip()]
+    return [
+        commit_sha
+        for commit_sha in hashes
+        if not _commit_touches_only_version_file(project_root, commit_sha)
+    ]
+
+
 def _normalize_subject_for_match(subject: str) -> str:
     """正規化 commit subject 用於 revert 配對比對。
 
@@ -1023,6 +1054,34 @@ def update_changelog(repo_dir: Path, new_version: str, commit_message: str, old_
     changelog_path.write_text(updated, encoding="utf-8")
 
 
+def _should_check_no_change(
+    user_message: str | None, force_mode: bool, clean_mode: bool
+) -> bool:
+    """判斷本次 push 是否應執行 no-change early-exit 檢查（0.2.1-W3-303）。
+
+    三個旗標任一成立即跳過檢查：user 明確提供 commit message（既有）、--force
+    （既有）、或 --clean（本次新增）。--clean 的意圖是把本地已刪除的檔案傳播到
+    遠端；這類刪除早於本次呼叫就已反映在本地 tracked 樹與其 content hash 中，
+    --clean 要處理的是「遠端尚未同步該次刪除」，不是「本地有新變更」。換言之
+    hash 未變、無新 commit 正是 --clean 的正常前提，early-exit 的 hash 判準與
+    --clean 語意正交，繼續攔下會使孤兒提醒建議的命令本身被另一守衛擋下
+    （ARCH-BAL-013 第三例）。
+
+    Consequence（不修）：使用者依孤兒提醒執行 `sync-push --clean` 會撞上
+    early-exit，須自行推導追加 --force 才能完成刪除傳播，孤兒在此之前持續殘留，
+    可能被下次 full overlay sync 複製回下游專案。
+
+    參數:
+        user_message: 使用者提供的 commit 訊息（None 表示未提供）
+        force_mode: 是否帶 --force
+        clean_mode: 是否帶 --clean
+
+    傳回:
+        bool: True 表示應執行 early-exit 檢查；False 表示跳過（直接進入推送流程）
+    """
+    return not user_message and not force_mode and not clean_mode
+
+
 def check_no_change_early_exit(
     claude_dir: Path,
     project_root: Path,
@@ -1063,16 +1122,25 @@ def check_no_change_early_exit(
     new_commits = collect_claude_commits(str(project_root), last_time)
     no_new_commits = len(new_commits) == 0
 
+    # tarrragon/claude#66：新 commit 存在時，進一步過濾掉僅回寫 VERSION 的記帳
+    # commit——這類 commit 不代表實質變更，卻會讓上面的 no_new_commits 訊號誤判
+    # 為「有新變更」，截斷不了 VERSION 回寫的自反饋迴路。filter 傳回 None 表示
+    # 無法判定（例如非 git repo），此時 fail-safe 維持既有訊號不變。
+    if not no_new_commits:
+        substantive_commits = filter_out_version_only_commits(str(project_root), last_time)
+        if substantive_commits is not None and len(substantive_commits) == 0:
+            no_new_commits = True
+
     if hash_unchanged and no_new_commits:
         return True, (
-            f"無實質變更可推送（hash={current_hash} 與上次推送相同，"
-            f"自 {last_time} 以來無新 .claude/ commit）"
+            f"無實質變更可推送（hash={current_hash} 與上次推送相同，"  # i18n-exempt
+            f"自 {last_time} 以來無新 .claude/ commit，或僅有 VERSION 回寫記帳 commit）"  # i18n-exempt
         )
 
     diag = (
-        f"hash {'相同' if hash_unchanged else '不同'}"
-        f"（current={current_hash} last={last_hash}）；"
-        f"自上次推送有 {len(new_commits)} 個新 commit"
+        f"hash {'相同' if hash_unchanged else '不同'}"  # i18n-exempt
+        f"（current={current_hash} last={last_hash}）；"  # i18n-exempt
+        f"自上次推送有 {len(new_commits)} 個新 commit"  # i18n-exempt
     )
     return False, diag
 
@@ -1120,6 +1188,11 @@ def _list_base_files(temp_dir: Path, base_sha: str) -> set[str]:
     """列出 base SHA 時的所有檔案路徑（用於三方比對）。
 
     base_sha 不可達時回傳空集合（降級為無三方比對的舊行為）。
+
+    注意（0.2.1-W3-155）：本函式的空集合同時代表「base 確實無檔案」與
+    「base 不可達」兩種語意。呼叫端若需要區分這兩種情況（例如判斷是否安全
+    執行 --clean），不應依賴本函式的回傳值推論，改用 `_is_base_sha_reachable`
+    獨立判定可達性。本函式契約維持不變（既有多個呼叫端依賴空集合語意）。
     """
     result = subprocess.run(
         ["git", "ls-tree", "-r", "--name-only", base_sha],
@@ -1130,6 +1203,112 @@ def _list_base_files(temp_dir: Path, base_sha: str) -> set[str]:
     if result.returncode != 0:
         return set()
     return set(result.stdout.strip().splitlines())
+
+
+def _is_base_sha_reachable(temp_dir: Path, base_sha: str | None) -> bool:
+    """獨立判定 base_sha 在 temp_dir（遠端 clone）內是否可達（0.2.1-W3-155）。
+
+    不依賴 `_list_base_files` 的空集合語意（該函式的空集合同時代表「base
+    確實無檔案」與「base 不可達」，兩種語意在此處必須區分——見
+    `clean_stale_files` 的三方保護 `if base_files and rel_posix not in
+    base_files`，base_files 為空時保護整條失效）。用 `git cat-file -e` 直接
+    檢查物件是否存在且為有效 commit，不受空集合歧義影響。
+
+    Args:
+        temp_dir: 遠端 repo 的本地 clone 暫存根目錄
+        base_sha: 待檢查的 commit SHA，None 或空字串視為不可達
+
+    Returns:
+        bool: True 表示 base_sha 存在且為有效 commit
+    """
+    if not base_sha:
+        return False
+    result = subprocess.run(
+        ["git", "cat-file", "-e", f"{base_sha}^{{commit}}"],
+        cwd=temp_dir,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
+def _estimate_clean_deletion_scale(temp_dir: Path, reference_dir: Path) -> tuple[int, int]:
+    """粗估 --clean 若在無 base 保護下執行的刪除規模（0.2.1-W3-155）。
+
+    回傳 (canonical_count, local_count)：分別為 temp_dir（遠端 canonical
+    全樹，此時已被本地檔案 overlay）與 reference_dir（本地 tracked 樹
+    staging）的檔案數。兩者差值即量級提示——未精算 `_should_skip_clean_file`
+    的排除項（.git / CHANGELOG / preserve / lineage 等），故為「預估」而非
+    `clean_stale_files` 實際刪除數的精確預測，足以讓使用者判斷風險量級。
+
+    Args:
+        temp_dir: 遠端 repo 的本地 clone 暫存根目錄（已 overlay 本地檔）
+        reference_dir: 本地 git tracked 樹 staging 目錄
+
+    Returns:
+        tuple[int, int]: (canonical 檔案數, 本地檔案數)
+    """
+    canonical_count = sum(1 for p in temp_dir.rglob("*") if p.is_file())
+    local_count = sum(1 for p in reference_dir.rglob("*") if p.is_file())
+    return canonical_count, local_count
+
+
+def _clean_requires_abort(clean_mode: bool, base_sha: str | None, temp_dir: Path) -> bool:
+    """純判斷：本次 push 是否應因「無 base 保護卻要求 --clean」而中止（0.2.1-W3-155）。
+
+    純函式（不含 print/sys.exit 副作用），供測試直接驗證判斷邏輯本身，
+    與 `_abort_clean_without_base_protection` 的實際中止動作分離。
+
+    Args:
+        clean_mode: 本次 push 是否帶 --clean
+        base_sha: `read_base_sha` 讀到的 base commit SHA（可能為 None）
+        temp_dir: 遠端 repo 的本地 clone 暫存根目錄（供可達性檢查）
+
+    Returns:
+        bool: True 表示應中止（未帶 --clean 時恆為 False，不影響既有流程）
+    """
+    if not clean_mode:
+        return False
+    return not _is_base_sha_reachable(temp_dir, base_sha)
+
+
+def _abort_clean_without_base_protection(
+    temp_dir: Path, staging_dir: Path, base_sha: str | None
+) -> None:
+    """無可達 base 卻帶 --clean 時中止 push（0.2.1-W3-155）。
+
+    三方比對（見 `clean_stale_files` docstring）是區分「其他 consumer 在
+    base 後新增」與「本地已 git rm」的唯一依據。base 不可達時
+    `_list_base_files` 回空集合，`if base_files and ...` 整條保護失效，
+    所有「canonical 有而本地無」的檔案一律視為待刪除——這與檔案是否被
+    其他專案新增或本地刻意保留無關，純粹因為保護機制本身失效
+    （0.2.1-W3-130 實測：blog 無 sync-state 時會刪除 1991 個 canonical 檔案）。
+
+    Args:
+        temp_dir: 遠端 repo 的本地 clone 暫存根目錄
+        staging_dir: 本地 git tracked 樹 staging 目錄
+        base_sha: `read_base_sha` 讀到的 base commit SHA（可能為 None，僅用於訊息顯示）
+    """
+    canonical_count, local_count = _estimate_clean_deletion_scale(temp_dir, staging_dir)
+    estimated_deletions = max(canonical_count - local_count, 0)
+
+    print_color("[中止] --clean 需要三方比對，但 base SHA 不可達，繼續執行不安全", "red")  # i18n-exempt
+    if base_sha:
+        print_color(f"   base SHA: {base_sha[:12]}（在遠端 clone 內找不到對應 commit）", "red")  # i18n-exempt
+    else:
+        print_color("   本專案無 .sync-state.json（尚未建立任何 base 記錄）", "red")  # i18n-exempt
+    print(f"   canonical 檔案數: {canonical_count}")
+    print(f"   本地檔案數: {local_count}")
+    print(f"   預估刪除規模: {estimated_deletions} 個檔案（canonical 有、本地無，未精算排除項）")
+    print()
+    print("   為何不安全：三方比對用 base 時的檔案清單區分「其他 consumer 在 base")
+    print("   後新增」與「本地已 git rm」；base 不可達時此區分機制失效，所有")
+    print("   canonical 有而本地無的檔案會被無差別視為應刪除，與檔案實際來源無關。")
+    print()
+    print("   下一步：先執行一次不帶 --clean 的 push 建立 base（寫入")
+    print("   .sync-state.json 的 last_synced_base_sha），確認後再重跑 --clean。")
+
+    sys.exit(1)
 
 
 def clean_stale_files(
@@ -1972,6 +2151,55 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def check_skill_residue(claude_dir: Path, force_mode: bool) -> bool:
+    """回報 skill 內指向不存在檔案的引用；有 blocking 級即回傳 False。
+
+    偵測邏輯取自 `skill_residue_detector`，與 SessionStart hook 和
+    skill-sync push gate 共用同一份判準——三個入口各寫一套的結果是同一份內容
+    在不同關卡得到不同結論，使用者無從判斷哪個算數。
+
+    本函式的輸出為開發者工具的終端訊息，不進使用者介面，故不走 i18n。
+    """
+    try:
+        from skill_residue_detector import blocking_only, format_report, scan_all
+    except ImportError as exc:
+        print_color(
+            # i18n-exempt: 開發者工具終端輸出
+            f"[提醒] 無法載入 skill 殘留偵測器（{exc}），本次略過該檢查",
+            "yellow",
+        )
+        return True
+
+    findings = blocking_only(scan_all(claude_dir / "skills", claude_dir.parent))
+    if not findings:
+        # i18n-exempt: 開發者工具終端輸出
+        print_color("   skill 殘留檢查通過", "green")
+        return True
+
+    total = sum(len(v) for v in findings.values())
+    if force_mode:
+        print_color(
+            # i18n-exempt: 開發者工具終端輸出
+            f"[提醒] 偵測到 {total} 項 skill 殘留，因 --force 仍繼續推送",
+            "yellow",
+        )
+        return True
+
+    print_color(
+        # i18n-exempt: 開發者工具終端輸出
+        f"偵測到 {total} 項 skill 引用指向本專案不存在的檔案，已中止推送：",
+        "red",
+    )
+    for line in format_report(findings):
+        print(line)
+    print()
+    print("這些內容推上 canonical 後會被其他 consumer 取走。處理方式擇一：")
+    print("  1. 修正引用，或改為不指名具體路徑的描述性敘述")
+    print("  2. 確屬示意路徑時，於該行加 `skill-residue-exempt: <理由>` 標記")
+    print("  3. 確知無妨時加 --force 旁路")
+    return False
+
+
 def main() -> None:
     args = parse_args(sys.argv[1:])
 
@@ -2005,9 +2233,17 @@ def main() -> None:
     # 機密檔不在 tracked 樹中，從架構層消滅 W1-019 secret-leak 風險，故無需 interim
     # detect_secret_leak_risk 防護（已隨 C1 移除）。
 
+    # 2.4. Skill 殘留 gate：他專案的檔案路徑與腳本名隨 skill 內容流入本地後，
+    # 這一步是它們擴散回 canonical 前的最後一道關卡。只擋 blocking 級（引用的
+    # 路徑或腳本在本專案不存在）；他專案 ticket ID 屬 advisory，存量上百，
+    # 擋下來只會讓 --force 變成常態動作而使真訊號一併失效。
+    if not check_skill_residue(claude_dir, force_mode):
+        sys.exit(1)
+
     # 2.5. No-change early-exit（W3-075）：避免空 commit 污染歷史
-    # 跳過條件：user 提供 commit message（明確意圖）或 --force 旗標
-    if not user_message and not force_mode:
+    # 跳過條件：user 提供 commit message（明確意圖）、--force 旗標，或 --clean 旗標
+    # （0.2.1-W3-303：--clean 的刪除傳播不依賴內容 hash 變化，見 _should_check_no_change）
+    if _should_check_no_change(user_message, force_mode, clean_mode):
         should_exit, reason = check_no_change_early_exit(claude_dir, project_root)
         if should_exit:
             print_color(f"Early-exit: {reason}", "yellow")
@@ -2134,6 +2370,10 @@ def main() -> None:
                 # 三方比對（0.3.4-W2-005）：用 base SHA 區分「本地 git rm」vs「其他 consumer 新增」
                 print_color("清理遠端過時檔案（對齊 git tracked 樹）...")  # i18n-exempt
                 sync_base_sha = read_base_sha(claude_dir)
+                # 0.2.1-W3-155：base 不可達時三方保護整條失效，--clean 會把所有
+                # 「canonical 有而本地無」的檔案無差別刪除，先行中止而非降級繼續。
+                if _clean_requires_abort(clean_mode, sync_base_sha, temp_dir):
+                    _abort_clean_without_base_protection(temp_dir, staging_dir, sync_base_sha)
                 deleted = clean_stale_files(
                     temp_dir, staging_dir, preserve, lineage_claimed, skills_config,
                     base_sha=sync_base_sha,
@@ -2271,6 +2511,20 @@ def main() -> None:
         # tagged-release：push 成功後對本版打 git tag（remote 可見），供下游 pin 特定版。
         create_and_push_version_tag(temp_dir, new_version)
 
+        # 回寫本地 .claude/VERSION 為本次推送版本（0.2.1-W3-342）。此行之前若 push
+        # 失敗已 sys.exit(1)（見上方 push_result 檢查），故本段只在 push 成功後執行。
+        # 單一警告通道（0.2.1-W3-343）：write_local_version 只回傳結果，警告訊息
+        # 統一由此處組成並印出，避免函式內外重複輸出。
+        version_written, version_error = write_local_version(claude_dir, new_version)
+        if version_written:
+            print_color(f"   已回寫本地 .claude/VERSION -> v{new_version}", "green")  # i18n-exempt
+        else:
+            version_warn_msg = (  # i18n-exempt
+                f"   警告: 回寫本地 .claude/VERSION 失敗（{version_error}），"  # i18n-exempt
+                f"請手動確認 .claude/VERSION 內容為 {new_version}"  # i18n-exempt
+            )
+            print_color(version_warn_msg, "yellow")  # i18n-exempt
+
         # 計算內容指紋並寫入 .sync-state.json（保留 last_synced_base_sha，禁覆蓋遺失）
         content_hash = _compute_content_hash(claude_dir)
         sync_state_path = claude_dir / ".sync-state.json"
@@ -2317,19 +2571,13 @@ def main() -> None:
         if skill_diff:
             print_color(skill_diff, "green")
 
-        # Skill 庫版本 drift 檢查（0.3.5-W1-001 建立，0.2.1-W3-134 移除）：
-        # 原以版本字串比對 remote versions.json，0.2.1-W3-131 將該檔改為巢狀
-        # {name: {hash, version}} 後，字串對 dict 永遠不相等，對全部 skill
-        # 誤判為漂移（且外層 except Exception 攔不下比較本身不拋例外的情形）。
-        # 正確的內容雜湊比對已存在於 skill_sync/cli.py::_classify_sync_status
-        # （涵蓋新格式 hash 比對與舊格式 skipped_no_hash 相容分支，見
-        # test_classify_sync_status_up_to_date_when_hash_matches /
-        # test_classify_sync_status_skips_remote_without_hash_field），
-        # push.py 不重複維護第二套比對邏輯，改引導使用者執行該指令。
-        print_color(  # i18n-exempt
-            "如需檢查本地 skill 與 skill 庫的內容漂移，請執行：skill-sync pull-all",
-            "yellow",
-        )
+        # Skill 庫內容漂移檢查（0.3.5-W1-001 建立，0.2.1-W3-134 移除，
+        # 0.2.1-W3-351 以重用實作的形式恢復）：比對邏輯來自
+        # skill_sync/cli.py::_classify_sync_status，本檔不維護第二套——W3-134
+        # 移除的理由是兩套實作各自隨 versions.json schema 漂移，重用即解除該
+        # 顧慮；當時改印的靜態提示則指向不存在的子命令，無自動檢查亦無可執行指引。
+        drift_report = report_skill_repo_drift(claude_dir)
+        print_color(drift_report, "yellow")
 
         # R2 soft 警告：本次未帶 --clean，但本地已 git rm 的 tracked .claude/ 檔
         # 在遠端殘留為孤兒。僅提醒（不阻擋、不改 --clean 預設），避免誤刪風險。

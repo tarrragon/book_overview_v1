@@ -37,6 +37,14 @@
           },
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/bash-git-protected-branch-guard-hook.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hooks-test-gate-hook.py"
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-test-hook.py"
           },
           {
@@ -77,6 +85,10 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/domain-import-lint-hook.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/bare-commit-guard-hook.py"
           }
         ]
       },
@@ -269,6 +281,15 @@
         ]
       },
       {
+        "matcher": "NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/memory-write-guard-hook.py"
+          }
+        ]
+      },
+      {
         "matcher": "Agent",
         "hooks": [
           {
@@ -336,6 +357,15 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/askuserquestion-charset-guard-hook.py"
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/skill-sync-push-residue-gate-hook.py"
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -360,6 +390,10 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/canonical-schema-consistency-check-hook.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/error-patterns-index-consistency-check-hook.py"
           },
           {
             "type": "command",
@@ -474,6 +508,23 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-source-diagnostic-hook.py",
             "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/uv-tool-ownership-guard-hook.py"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/memory-dir-audit-hook.py",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run $CLAUDE_PROJECT_DIR/.claude/hooks/skill-residue-check-hook.py"
           }
         ]
       }
@@ -529,7 +580,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-skill-sync-check-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/skill-cli-sync-check-hook.py",
             "timeout": 5000
           },
           {
@@ -544,17 +595,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/commit-handoff-hook.py",
-            "timeout": 5000
-          },
-          {
-            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/parallel-dispatch-verification-hook.py",
-            "timeout": 5000
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-commit-fetch-hook.py",
             "timeout": 5000
           },
           {
@@ -564,7 +605,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/changelog-update-hook.py",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-skill-sync-check-hook.py",
             "timeout": 5000
           }
         ]
@@ -670,11 +711,6 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/skills/ticket/hooks/ticket-quality-gate-hook.py",
-            "continueOnBlock": true
-          },
-          {
-            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/skills/tdd/hooks/layer-boundary-validator-hook.py"
           },
           {
@@ -703,10 +739,6 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/uc-fingerprint-drift-check-hook.py",
             "timeout": 5000
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/dart-style-guardian-hook.py"
           }
         ]
       },
@@ -726,6 +758,11 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/active-dispatch-tracker-hook.py",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/dispatch-identity-bind-hook.py",
             "timeout": 5000
           }
         ]
@@ -848,6 +885,11 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/confabulation-audit-hook.py",
             "type": "command",
             "timeout": 15000
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/memory-dir-audit-hook.py",
+            "timeout": 5000
           }
         ]
       }
