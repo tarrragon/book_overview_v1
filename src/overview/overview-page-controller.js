@@ -286,15 +286,23 @@ class OverviewPageController extends EventHandlerClass {
     // 多書城書目載入（1.6.0-W4-004）：任一書城的 {platform}_books key 變更皆觸發合併重載
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
       const watchedKeys = Object.values(PLATFORM_IDS).map(platformBooksKey)
+      // 標籤名稱與分類變更時也要重讀，表格上的標籤才會跟著更新
+      const watchedTagKeys = ['tags', 'tag_categories']
 
       chrome.storage.onChanged.addListener((changes, area) => {
         try {
           if (area !== 'local') return
 
           const hasPlatformBooksChange = watchedKeys.some((key) => key in changes)
-          if (!hasPlatformBooksChange) return
+          const hasTagChange = watchedTagKeys.some((key) => key in changes)
+          if (!hasPlatformBooksChange && !hasTagChange) return
 
-          loadAllPlatformBooks().then((books) => {
+          // 只有標籤或分類變更時才重讀標籤；書目變更沿用載入時讀好的 tagMap
+          const reload = hasTagChange
+            ? this._refreshTagMaps().then(() => loadAllPlatformBooks())
+            : loadAllPlatformBooks()
+
+          reload.then((books) => {
             this._updateBooksData(books)
             this.updateDisplay()
           }).catch((error) => {
@@ -520,7 +528,8 @@ class OverviewPageController extends EventHandlerClass {
       this.showLoading('從儲存載入書籍資料...')
 
       // 多書城書目載入（1.6.0-W4-004）：合併所有書城的 {platform}_books storage key
-      const books = await loadAllPlatformBooks()
+      // 標籤名稱與分類一起讀進 tagMap / categoryMap，標籤欄才解析得出名稱
+      const [books] = await Promise.all([loadAllPlatformBooks(), this._refreshTagMaps()])
 
       if (books.length > 0) {
         this._updateBooksData(books)
@@ -1089,11 +1098,32 @@ class OverviewPageController extends EventHandlerClass {
   }
 
   /**
+   * 把標籤與分類讀進 tagMap / categoryMap
+   *
+   * 書目只存 tagIds，標籤欄要靠這兩個 Map 解析出名稱與分類；沒讀進來時每本書
+   * 都只顯示「未分類」。載入書目與 tags / tag_categories 變更時呼叫。
+   *
+   * @private
+   * @returns {Promise<void>}
+   */
+  async _refreshTagMaps () {
+    try {
+      const { tags, tagCategories } = await this._loadTagData()
+      this.tagMap = new Map(tags.map((tag) => [tag.id, tag]))
+      this.categoryMap = new Map(tagCategories.map((category) => [category.id, category]))
+    } catch (error) {
+      // 標籤讀取失敗不擋書目顯示：標籤欄退回「未分類」
+      // eslint-disable-next-line no-console
+      console.warn('[WARNING] 讀取標籤資料失敗:', error)
+    }
+  }
+
+  /**
    * 從 Chrome Storage 讀取 tags 與 tagCategories
    *
-   * v2 匯出需要完整的 tags / tagCategories 頂層區段。透過 TagStorageAdapter
-   * 讀取對應 storage key（tags / tag_categories）。非 Chrome Extension 環境
-   * （如測試）或 storage 無資料時退回空陣列，匯出仍可進行。
+   * 透過 TagStorageAdapter 讀取對應 storage key（tags / tag_categories），供
+   * _refreshTagMaps 與 v2 匯出共用（v2 匯出需要完整的 tags / tagCategories 頂層區段）。
+   * 非 Chrome Extension 環境（如測試）或 storage 無資料時退回空陣列。
    *
    * @private
    * @returns {Promise<{tags: Array, tagCategories: Array}>}
