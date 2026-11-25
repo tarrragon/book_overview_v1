@@ -139,7 +139,8 @@
     },
     "testPathIgnorePatterns": [
       "<rootDir>/node_modules/",
-      "<rootDir>/build/"
+      "<rootDir>/build/",
+      "<rootDir>/tests/e2e/browser/"
     ],
     "verbose": true
   },
