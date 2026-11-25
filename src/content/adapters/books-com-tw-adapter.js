@@ -26,6 +26,7 @@
  */
 
 const PlatformAdapterInterface = require('../platform/platform-adapter-interface')
+const { isLibraryPageUrl } = require('src/content/platform/library-page-rules')
 const { Logger } = require('src/core/logging/Logger')
 const { MessageDictionary } = require('src/core/messages/MessageDictionary')
 
@@ -168,13 +169,8 @@ class BooksComTwAdapter extends PlatformAdapterInterface {
    */
   async getPageType (url) {
     const target = typeof url === 'string' ? url : this._currentUrl()
-    try {
-      const params = new URL(target).searchParams
-      return params.has('readlist') ? 'library' : 'unknown'
-    } catch (error) {
-      // 設計性靜默：URL 無法解析時視為非書庫頁
-      return 'unknown'
-    }
+    // 書庫規則的單一來源在 library-page-rules（popup 也讀同一份）
+    return isLibraryPageUrl('books-com-tw', target) ? 'library' : 'unknown'
   }
 
   /**

@@ -47,7 +47,7 @@ function setupPopupDom () {
 
 function mockBookstoreTab () {
   chrome.tabs.query.mockImplementation((queryInfo, callback) => {
-    const tabs = [{ id: 1, url: 'https://readmoo.com/library', active: true }]
+    const tabs = [{ id: 1, url: 'https://read.readmoo.com/#/library', active: true }]
     if (callback) callback(tabs)
     return Promise.resolve(tabs)
   })

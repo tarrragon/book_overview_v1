@@ -10,6 +10,8 @@
     本檔內中文文字為無 JS fallback；執行時由 popup.js applyStaticUIText() 以常數覆寫。
     維護文字請改常數檔，本檔同步即可。
     尺寸常數（width 350 / min-height 400）對應 src/popup/constants/layout.js POPUP_DIMENSIONS。
+    版面依目前分頁替換主動作（body[data-context]：library / store / none），
+    元件樣式在 src/core/design-system/component-rules.js 的 .popup-shell 區段。
   -->
   <style>
     body {
@@ -18,40 +20,41 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
-      background: var(--color-background);
-      color: var(--color-on-background);
+      background: var(--color-primary-darkest);
+      color: var(--color-surface);
     }
 
     .header {
-      background: var(--color-surface);
-      padding: var(--spacing-lg);
-      text-align: center;
-      box-shadow: 0 2px 10px var(--shadow-color-sm);
+      display: flex;
+      align-items: baseline;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md) var(--spacing-lg) 0;
     }
 
     .header h1 {
       margin: 0;
-      font-size: var(--font-size-title-medium);
-      color: var(--color-on-background);
+      font-size: var(--font-size-body-small);
       font-weight: var(--font-weight-semi-bold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-primary-light);
     }
 
     .header p {
-      margin: var(--spacing-xs) 0 0 0;
-      font-size: var(--font-size-caption);
-      color: var(--color-on-surface-muted);
+      margin: 0;
+      flex: 1;
+      font-size: var(--font-size-body-small);
+      color: var(--color-primary-light);
     }
 
     .content {
-      padding: var(--spacing-lg);
+      padding: var(--spacing-lg) var(--spacing-lg) 0;
     }
 
     .version {
-      text-align: center;
       font-size: var(--font-size-caption);
-      color: var(--color-on-surface-muted);
-      margin-top: var(--spacing-lg);
-      padding-bottom: var(--spacing-md);
+      color: var(--color-primary-light);
+      padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
     }
   </style>
 </head>
@@ -60,57 +63,89 @@
   已遷入 design-system.css（來源 SSOT：src/core/design-system/component-rules.js，
   1.5.0-W6-001）。本檔 <style> 僅保留頁面專屬佈局豁免規則。
 -->
-<body>
+<body class="popup-shell" data-context="none">
 
   <div class="header">
     <h1>Book Overview</h1>
-    <p>專業書目管理工具</p>
+    <p>電子書庫總覽</p>
+    <button class="menu-toggle" id="menuBtn" type="button" aria-expanded="false" aria-controls="popupMenu" aria-label="更多操作：匯入書庫、其他書城">選單</button>
   </div>
-  
-  <div class="content">
-    <!-- 書庫跳轉選單掛載點（由 popup.js 以 ui-factory 動態建立） -->
+
+  <!-- 選單：匯入書庫、其他書城；設定與說明尚未實作，按鈕保留但不顯示 -->
+  <div class="popup-menu" id="popupMenu" hidden>
+    <button class="button ghost menu-item" id="importBtn" aria-label="從 JSON 檔案匯入書庫資料">
+      匯入書庫
+    </button>
+    <input type="file" id="importFileInput" accept=".json" style="display: none;" aria-hidden="true">
+    <!-- 書城清單掛載點（由 popup.js 以 ui-factory 動態建立；不在書城時搬到主動作的位置） -->
     <div id="bookstoreNavMount"></div>
+    <button class="button ghost menu-item" id="settingsBtn" hidden>擴充功能設定</button>
+    <button class="button ghost menu-item" id="helpBtn" hidden>使用說明</button>
+    <button class="button ghost menu-item" id="diagnosticBtn" style="display: none;">診斷模式</button>
+  </div>
 
-    <!-- 狀態顯示 -->
-    <div class="status-card">
-      <div class="status-indicator">
-        <div class="status-dot loading" id="statusDot"></div>
-        <span id="statusText">正在檢查狀態...</span>
+  <div class="content">
+    <!-- 這個分頁：書城名稱、本數與唯一的主動作 -->
+    <section class="context" aria-labelledby="contextTitle">
+      <h2 class="context-title" id="contextTitle"></h2>
+      <p class="context-count" id="bookCountLine" data-empty="true"><span id="bookCount">-</span><span id="bookCountUnit"> 本</span></p>
+
+      <div class="keycap-slot">
+        <button class="button primary keycap" id="extractBtn" disabled>
+          開始提取書庫資料
+        </button>
+        <button class="button primary keycap" id="gotoLibraryBtn" type="button" hidden>前往書櫃</button>
+        <!-- 按鍵即進度：提取中與完成時取代提取鍵；不顯示百分比（popup 收不到真實進度） -->
+        <div class="keycap keycap-face" id="extractFace" hidden role="status" aria-live="polite">
+          <span class="keycap-fill" aria-hidden="true"></span>
+          <span class="keycap-label" id="extractFaceText"></span>
+        </div>
+        <div class="context-stores" id="storeKeysMount"></div>
       </div>
-      <div class="info-text" id="statusInfo">
-        請稍候，正在初始化擴充功能
+      <p class="extract-hint" id="extractHint" hidden>請保持這個分頁開著</p>
+      <button class="button ghost cancel-extract" id="cancelExtractBtn" type="button" hidden>取消提取</button>
+      <!-- 只在需要使用者留意時顯示（連線中、錯誤、取消）；就緒時不顯示 -->
+      <div class="status-notice" id="statusNotice" data-status="loading" role="status" aria-live="polite">
+        <div class="status-indicator">
+          <div class="status-dot loading" id="statusDot"></div>
+          <span id="statusText">正在檢查狀態...</span>
+        </div>
+        <div class="info-text" id="statusInfo">
+          請稍候，正在初始化擴充功能
+        </div>
       </div>
-    </div>
-    
-    <!-- 主要操作按鈕（主階卡片：視覺重心） -->
-    <div class="status-card primary-surface">
-      <button class="button primary" id="extractBtn" disabled>
-        開始提取書庫資料
-      </button>
 
-      <button class="button secondary" id="settingsBtn">
-        擴充功能設定
-      </button>
+      <!-- 錯誤訊息區域（按鈕收斂為 1 primary 重試 + 1 secondary 重新載入） -->
+      <div class="status-card error-card" id="errorContainer" style="display: none;">
+        <div class="error-header">
+          <strong>錯誤訊息</strong>
+        </div>
+        <div class="error-message" id="errorMessage">
+          發生未知錯誤
+        </div>
+        <div class="action-buttons">
+          <button class="button primary small" id="retryBtn">
+            重試
+          </button>
+          <button class="button secondary small" id="reloadExtensionBtn">
+            重新載入擴充功能
+          </button>
+        </div>
+        <div class="error-suggestions" id="errorSuggestions" style="display: none;">
+          <div class="info-text">
+            <strong>建議解決步驟：</strong>
+            <ol id="suggestionsList"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <button class="button secondary" id="helpBtn">
-        使用說明
-      </button>
+    <button class="button secondary keycap-outline" id="viewLibraryBtn" aria-label="開啟書庫總覽頁面檢視所有書籍">
+      檢視書庫
+    </button>
 
-      <button class="button secondary" id="viewLibraryBtn" aria-label="開啟書庫總覽頁面檢視所有書籍">
-        檢視書庫
-      </button>
-
-      <button class="button secondary" id="importBtn" aria-label="從 JSON 檔案匯入書庫資料">
-        匯入書庫
-      </button>
-      <input type="file" id="importFileInput" accept=".json" style="display: none;" aria-hidden="true">
-
-      <button class="button secondary" id="diagnosticBtn" style="display: none;">
-        診斷模式
-      </button>
-    </div>
-    
-    <!-- 進度顯示區域 -->
+    <!-- 初始化與舊流程的進度區：初始化追蹤器仍寫入；新版面由上方通知區與鍵面表達，容器不顯示 -->
+    <div class="legacy-progress" hidden>
     <div class="status-card" id="progressContainer" style="display: none;">
       <div class="progress-header">
         <strong>提取進度</strong>
@@ -125,7 +160,8 @@
         準備開始提取...
       </div>
     </div>
-    
+    </div>
+
     <!-- 結果展示區域 -->
     <div class="status-card" id="resultsContainer" style="display: none;">
       <div class="results-header">
@@ -148,8 +184,7 @@
 
     <!--
       匯入結果 / 匯入錯誤卡片掛載點。
-      原本兩張卡片（importResultContainer / importErrorContainer）的硬編碼
-      HTML 已移除，改由 popup.js 於初始化時以 src/core/ui/components/ui-factory.js
+      由 popup.js 於初始化時以 src/core/ui/components/ui-factory.js
       的 createCard / createButton 動態建立並掛載於此（ticket 1.2.0-W2-003.2）。
     -->
     <div id="importPanelMount"></div>
@@ -172,44 +207,17 @@
       </div>
     </div>
 
-    <!-- 錯誤訊息區域（按鈕收斂為 1 primary 重試 + 1 secondary 重新載入） -->
-    <div class="status-card error-card" id="errorContainer" style="display: none;">
-      <div class="error-header">
-        <strong>錯誤訊息</strong>
-      </div>
-      <div class="error-message" id="errorMessage">
-        發生未知錯誤
-      </div>
-      <div class="action-buttons">
-        <button class="button primary small" id="retryBtn">
-          重試
-        </button>
-        <button class="button secondary small" id="reloadExtensionBtn">
-          重新載入擴充功能
-        </button>
-      </div>
-      <div class="error-suggestions" id="errorSuggestions" style="display: none;">
-        <div class="info-text">
-          <strong>建議解決步驟：</strong>
-          <ol id="suggestionsList"></ol>
-        </div>
-      </div>
-    </div>
-    
-    <!-- 頁面信息 -->
-    <div class="status-card">
-      <div class="info-text">
-        <strong>當前頁面:</strong> <span id="pageInfo">檢測中...</span><br>
-        <strong>檢測到書籍:</strong> <span id="bookCount">-</span><br>
-        <strong>擴充功能狀態:</strong> <span id="extensionStatus">-</span>
-      </div>
+    <!-- 頁面資訊：內容併進上方情境區，元素保留供既有寫入點使用 -->
+    <div class="page-info" hidden>
+      <span id="pageInfo">檢測中...</span>
+      <span id="extensionStatus">-</span>
     </div>
   </div>
-  
+
   <div class="version" id="versionDisplay">
     載入中...
   </div>
-  
+
   <!--
     W4-006.2 重構（合併 popup 4 檔為單一 entry，esbuild 自動 bundle）：
 
@@ -228,4 +236,4 @@
   <script src="popup-ui-components.js"></script>
   <script src="popup.js"></script>
 </body>
-</html> 
+</html>

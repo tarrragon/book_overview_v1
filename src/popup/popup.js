@@ -184,6 +184,25 @@ popupLogger.info('POPUP_INTERFACE_LOADED')
 
 // UI 文字 / 佈局常數集中於 src/popup/constants/（見 CLAUDE.md 6.x）。
 // 此處從常數檔引用並映射回既有變數名，保持下游使用點與 window re-export 不變。
+// 書庫頁規則（與 content adapter 共用單一來源）
+let isLibraryPageUrl = () => false
+let matchPlatformIdByUrl = () => null
+if (typeof require !== 'undefined') {
+  let rules = null
+  try {
+    rules = require('src/content/platform/library-page-rules')
+  } catch (e) {
+    try {
+      rules = require('../content/platform/library-page-rules')
+    } catch (e2) {
+      rules = (typeof window !== 'undefined' && window.LibraryPageRules) || null
+    }
+  }
+  if (rules) {
+    ({ isLibraryPageUrl, matchPlatformIdByUrl } = rules)
+  }
+}
+
 const popupConstants = (() => {
   if (typeof require !== 'undefined') {
     try {
@@ -297,8 +316,152 @@ function applyStaticUIText () {
   setText('reloadExtensionBtn', ERROR_TEXT.RELOAD_EXTENSION)
   setText('forceReloadBtn', ERROR_TEXT.FORCE_RELOAD)
   setText('openExtensionPageBtn', ERROR_TEXT.OPEN_EXTENSION_PAGE)
+
+  // 選單與取消提取
+  const { CONTEXT_TEXT } = popupConstants
+  setText('menuBtn', CONTEXT_TEXT.MENU)
+  setAria('menuBtn', CONTEXT_TEXT.MENU_ARIA)
+  setText('cancelExtractBtn', CONTEXT_TEXT.CANCEL)
+  setText('extractHint', CONTEXT_TEXT.KEEP_TAB_OPEN)
+  if (extractBtn) extractBtn.textContent = CONTEXT_TEXT.EXTRACT_NO_COUNT
   setText('exportBtn', RESULTS_TEXT.EXPORT)
   setText('viewResultsBtn', RESULTS_TEXT.VIEW_RESULTS)
+}
+
+// ==================== 情境與主動作 ====================
+
+/**
+ * 目前分頁所屬的書城（不在書城時為 null）
+ */
+let currentStore = null
+
+/**
+ * 依偵測到的本數產生提取鍵文字
+ * @returns {string}
+ */
+function syncBookCountLine () {
+  const line = document.getElementById('bookCountLine')
+  const count = Number(document.getElementById('bookCount')?.textContent)
+  // 用 data-empty 保留這一行的高度（CSS 以 visibility 隱藏），本數出現時主鍵不位移
+  if (line) line.dataset.empty = String(!Number.isFinite(count))
+}
+
+function extractLabel () {
+  const { CONTEXT_TEXT } = popupConstants
+  const count = Number(document.getElementById('bookCount')?.textContent)
+  return Number.isFinite(count) && count > 0 ? CONTEXT_TEXT.EXTRACT_WITH_COUNT(count) : CONTEXT_TEXT.EXTRACT_NO_COUNT
+}
+
+/**
+ * 依目前分頁替換主動作。
+ *
+ * @param {'library'|'store'|'none'} context - 書城書庫頁／書城的其他頁／不在書城
+ * @param {Object|null} store - 目前分頁所屬的書城（BOOKSTORE_LIST 項目）
+ */
+function setPopupContext (context, store) {
+  const { CONTEXT_TEXT } = popupConstants
+  document.body.dataset.context = context
+  currentStore = store || null
+
+  const title = document.getElementById('contextTitle')
+  if (title) {
+    title.textContent = !store ? '' : (context === 'library' ? store.name + CONTEXT_TEXT.LIBRARY_SUFFIX : store.name)
+  }
+  const gotoBtn = document.getElementById('gotoLibraryBtn')
+  if (gotoBtn) {
+    gotoBtn.hidden = context !== 'store'
+    if (store) gotoBtn.textContent = CONTEXT_TEXT.GOTO_LIBRARY(store.name)
+  }
+  placeStoreList(context)
+}
+
+/**
+ * 書城清單只有一份：不在書城時放在主動作的位置，在書城時放進選單並隱藏目前這一家。
+ * @param {'library'|'store'|'none'} context
+ */
+function placeStoreList (context) {
+  const section = document.getElementById('bookstoreNavSection')
+  if (!section) return
+  const targetId = context === 'none' ? 'storeKeysMount' : 'bookstoreNavMount'
+  const target = document.getElementById(targetId)
+  if (target && section.parentElement !== target) target.appendChild(section)
+  const { CONTEXT_TEXT } = popupConstants
+  section.querySelectorAll('[data-bookstore-id]').forEach((btn) => {
+    btn.hidden = Boolean(currentStore) && btn.dataset.bookstoreId === currentStore.id
+    const store = BOOKSTORE_LIST.find((item) => item.id === btn.dataset.bookstoreId)
+    if (store) btn.textContent = CONTEXT_TEXT.GOTO_LIBRARY(store.name)
+  })
+}
+
+/**
+ * 在目前分頁切到這家書城的書庫（同一家書城不另開分頁），然後關閉 popup。
+ */
+async function gotoCurrentStoreLibrary () {
+  if (!currentStore) return
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+  if (tab) {
+    await chrome.tabs.update(tab.id, { url: currentStore.url })
+  }
+  window.close()
+}
+
+/**
+ * 按鍵即進度：提取中與完成時，鍵面取代提取鍵。
+ *
+ * @param {null|'running'|'done'} state - null 回到提取鍵
+ * @param {string} [text] - 鍵面文字
+ */
+function setExtractFace (state, text) {
+  const face = document.getElementById('extractFace')
+  const label = document.getElementById('extractFaceText')
+  const cancelBtn = document.getElementById('cancelExtractBtn')
+  const hint = document.getElementById('extractHint')
+  if (!face) return
+  // 提取中由鍵面與鍵下的提示表達，通知區不另外顯示（元素保留供 aria-live）
+  document.body.dataset.extracting = String(state === 'running')
+  if (hint) hint.hidden = state !== 'running'
+  if (!state) {
+    face.hidden = true
+    face.dataset.state = ''
+    if (cancelBtn) cancelBtn.hidden = true
+    if (elements.extractBtn) elements.extractBtn.hidden = false
+    return
+  }
+  face.hidden = false
+  face.dataset.state = state
+  if (label) label.textContent = text || ''
+  if (elements.extractBtn) elements.extractBtn.hidden = true
+  if (cancelBtn) cancelBtn.hidden = state !== 'running'
+}
+
+/**
+ * 選單：按鈕切換、Escape 與點選單外關閉，選了項目之後關閉
+ */
+function setupPopupMenu () {
+  const menuBtn = document.getElementById('menuBtn')
+  const menu = document.getElementById('popupMenu')
+  if (!menuBtn || !menu) return
+
+  const setOpen = (open) => {
+    menu.hidden = !open
+    menuBtn.setAttribute('aria-expanded', String(open))
+  }
+  menuBtn.addEventListener('click', (event) => {
+    event.stopPropagation()
+    setOpen(menu.hidden)
+  })
+  menu.addEventListener('click', (event) => {
+    if (event.target.closest('button')) setOpen(false)
+  })
+  document.addEventListener('click', (event) => {
+    if (!menu.hidden && !menu.contains(event.target)) setOpen(false)
+  })
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !menu.hidden) {
+      setOpen(false)
+      menuBtn.focus()
+    }
+  })
 }
 
 // ==================== DOM 元素管理 ====================
@@ -412,6 +575,9 @@ function updateStatus (status, text, info, type = STATUS_TYPES.LOADING) {
   elements.statusText.textContent = text
   elements.statusInfo.textContent = info
   elements.extensionStatus.textContent = status
+  // 通知區只在需要留意時顯示（loading / error / warning），就緒時由 CSS 隱藏
+  const notice = document.getElementById('statusNotice')
+  if (notice) notice.dataset.status = type
 }
 
 /**
@@ -430,6 +596,7 @@ function updateButtonState (disabled, text) {
   if (text) {
     elements.extractBtn.textContent = text
   }
+  syncBookCountLine()
 }
 
 /**
@@ -614,18 +781,20 @@ function handleExtractionError (message, error) {
   // 隱藏進度顯示
   hideProgress()
 
-  // 更新錯誤訊息
+  // 更新錯誤訊息；原因同時寫進主鍵下方的通知區（popup 只在那裡顯示一次）
   if (elements.errorMessage) {
     elements.errorMessage.textContent = message || '發生未知錯誤'
   }
+  updateStatus('失敗', '提取失敗', message || '發生未知錯誤', STATUS_TYPES.ERROR)
 
   // 記錄詳細錯誤資訊
   if (error) {
     popupLogger.error('EXTRACTION_ERROR', { error })
   }
 
-  // 重置按鈕狀態
-  updateButtonState(false, '[START] 開始提取書庫資料')
+  // 重置按鈕狀態：鍵面回到提取鍵，主鍵就是重試
+  setExtractFace(null)
+  updateButtonState(false, popupConstants.CONTEXT_TEXT.RETRY)
 }
 
 /**
@@ -689,7 +858,8 @@ function sendCancelToContentScript () {
  */
 function resetExtractionUI () {
   hideProgress()
-  updateButtonState(false, '[START] 開始提取書庫資料')
+  setExtractFace(null)
+  updateButtonState(false, extractLabel())
   updateStatus('提取已取消', '使用者手動中止', '您可以重新開始提取', STATUS_TYPES.WARNING)
 }
 
@@ -707,7 +877,7 @@ function cleanupExtractionState () {
  */
 function showCancellationRecovery () {
   setTimeout(() => {
-    updateStatus(STATUS_BADGE.READY, '準備開始提取', '請前往 Readmoo 書庫頁面', STATUS_TYPES.READY)
+    updateStatus(STATUS_BADGE.READY, '準備開始提取', '請前往書城的書櫃頁面', STATUS_TYPES.READY)
   }, 3000)
 }
 
@@ -947,7 +1117,7 @@ async function pollContentScriptOnce (tab) {
     if (response && response.success) {
       stopContentScriptPolling()
       elements.bookCount.textContent = response.bookCount !== undefined ? String(response.bookCount) : '0'
-      updateStatus('就緒', '已連線到書庫頁面', '可以開始提取書庫資料', STATUS_TYPES.READY)
+      updateStatus('就緒', '已連線到書櫃頁面', '可以開始提取這個書櫃', STATUS_TYPES.READY)
       updateButtonState(false)
       return
     }
@@ -1011,24 +1181,26 @@ async function checkCurrentTab () {
       return null
     }
 
-    // 檢查是否為任何書城的書庫頁面（比對域名，含子域名匹配）
-    const matchedStore = BOOKSTORE_LIST.find(
-      store => {
-        if (!store.enabled || !tab.url) return false
-        const storeHost = new URL(store.url).hostname
-        const tabHost = new URL(tab.url).hostname
-        return tabHost === storeHost ||
-          tabHost.endsWith('.' + storeHost) ||
-          storeHost.endsWith('.' + tabHost)
-      }
-    )
+    // 依網域判斷分頁屬於哪一家書城（規則與 content adapter 共用；子網域變動不影響）
+    const platformId = matchPlatformIdByUrl(tab.url)
+    const matchedStore = BOOKSTORE_LIST.find(store => store.enabled && store.id === platformId)
     const isBookstorePage = Boolean(matchedStore)
+    // 書庫頁才能提取；書城的其他頁主動作換成前往這家書庫（規則與 content adapter 共用）
+    const isLibraryPage = isBookstorePage && isLibraryPageUrl(matchedStore.id, tab.url)
 
     elements.pageInfo.textContent = isBookstorePage
       ? `${matchedStore.name} (${new URL(tab.url).pathname}${new URL(tab.url).hash})`
       : '非書庫頁面'
 
-    elements.extractBtn.style.display = isBookstorePage ? '' : 'none'
+    elements.extractBtn.style.display = isLibraryPage ? '' : 'none'
+    setPopupContext(isLibraryPage ? 'library' : (isBookstorePage ? 'store' : 'none'), matchedStore)
+
+    if (isBookstorePage && !isLibraryPage) {
+      stopContentScriptPolling()
+      updateStatus('待機', matchedStore.name, MESSAGES.NON_READMOO_HINT, STATUS_TYPES.READY)
+      updateButtonState(true)
+      return tab
+    }
 
     if (isBookstorePage) {
       // 嘗試與 Content Script 通訊
@@ -1042,13 +1214,14 @@ async function checkCurrentTab () {
           } else {
             elements.bookCount.textContent = '0'
           }
-          updateStatus('就緒', '已連線到書庫頁面', '可以開始提取書庫資料', STATUS_TYPES.READY)
-          updateButtonState(false)
+          updateStatus('就緒', '已連線到書櫃頁面', '可以開始提取這個書櫃', STATUS_TYPES.READY)
+          updateButtonState(false, extractLabel())
           return tab
         }
       } catch (error) {
         Logger.info('Content Script 尚未就緒', { error })
         updateStatus('載入中', MESSAGES.CONTENT_SCRIPT_LOADING, MESSAGES.CONTENT_SCRIPT_RELOAD_HINT, STATUS_TYPES.LOADING)
+        updateButtonState(true, popupConstants.CONTEXT_TEXT.CONNECTING)
         startContentScriptPolling(tab)
       }
     } else {
@@ -1108,6 +1281,11 @@ function setupExtractionCompletionListener () {
 
     const bookCount = newValue.books.length
     updateStatus('完成', '提取成功', `提取成功 ${bookCount} 本書籍`, STATUS_TYPES.READY)
+    // 鍵面寫出這次的比對摘要（extraction-merge 寫入的 extractionSummary）
+    const { CONTEXT_TEXT } = popupConstants
+    setExtractFace('done', newValue.extractionSummary
+      ? CONTEXT_TEXT.SUMMARY(newValue.extractionSummary)
+      : CONTEXT_TEXT.DONE_TOTAL(bookCount))
     if (elements.bookCount) {
       elements.bookCount.textContent = String(bookCount)
     }
@@ -1160,6 +1338,7 @@ async function startExtraction () {
   try {
     updateStatus('提取中', MESSAGES.EXTRACTION_IN_PROGRESS, MESSAGES.EXTRACTION_HINT, STATUS_TYPES.LOADING)
     updateButtonState(true)
+    setExtractFace('running', popupConstants.CONTEXT_TEXT.EXTRACTING)
 
     // 提取結果由 background 異步寫入 chrome.storage.local.readmoo_books，
     // 先註冊監聽器以免錯過 storage 變更事件
@@ -1188,6 +1367,8 @@ async function startExtraction () {
   } catch (error) {
     Logger.error('提取過程發生錯誤', { error })
     updateStatus('失敗', '提取失敗', error.message, STATUS_TYPES.ERROR)
+    setExtractFace(null)
+    updateButtonState(false, popupConstants.CONTEXT_TEXT.RETRY)
     // W1-062.1：提取失敗為終態，保持失敗訊息直到用戶再次點擊提取
     isFinalStatus = true
   } finally {
@@ -1290,6 +1471,12 @@ function setupEventListeners () {
   elements.settingsBtn.addEventListener('click', showSettings)
   elements.helpBtn.addEventListener('click', showHelp)
   elements.viewLibraryBtn.addEventListener('click', openLibraryOverview)
+
+  const gotoBtn = document.getElementById('gotoLibraryBtn')
+  if (gotoBtn) gotoBtn.addEventListener('click', gotoCurrentStoreLibrary)
+  const cancelBtn = document.getElementById('cancelExtractBtn')
+  if (cancelBtn) cancelBtn.addEventListener('click', cancelExtraction)
+  setupPopupMenu()
 
   // 結果操作按鈕
   if (elements.exportBtn) {
@@ -1410,16 +1597,19 @@ function mountBookstoreNav () {
 
   const { NAVIGATION_TEXT } = popupConstants
 
+  // 不帶 sectionTitle：清單不摺疊。不在書城時它是主動作，在書城時它在選單裡
   const section = uiFactory.createBookstoreNavSection({
     bookstores: BOOKSTORE_LIST,
-    sectionTitle: NAVIGATION_TEXT.SECTION_TITLE,
     ariaPrefix: NAVIGATION_TEXT.GO_BUTTON_ARIA_PREFIX,
     onNavigate: (store) => {
       chrome.tabs.create({ url: store.url })
     }
   })
+  const body = section.querySelector('.collapsible-body')
+  if (body) body.classList.add('expanded')
 
   mount.appendChild(section)
+  placeStoreList(document.body.dataset.context)
 }
 
 // ==================== 初始化和生命週期管理 ====================
@@ -1860,6 +2050,9 @@ if (typeof window !== 'undefined') {
 
   // 書庫導航
   window.mountBookstoreNav = mountBookstoreNav
+  // 情境與按鍵即進度
+  window.setPopupContext = setPopupContext
+  window.setExtractFace = setExtractFace
 
   // 暴露常數供測試驗證
   window.STATUS_TYPES = STATUS_TYPES

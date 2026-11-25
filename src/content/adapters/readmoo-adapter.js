@@ -50,6 +50,7 @@ const {
   handleWithFallback
 } = require('src/content/platform/adapter-utils')
 const createStableIdGenerator = require('src/content/platform/stable-id-generator')
+const { isLibraryPageUrl } = require('src/content/platform/library-page-rules')
 const createReadmooScrollLoader = require('src/content/adapters/readmoo-scroll-loader')
 
 /**
@@ -877,7 +878,8 @@ function createReadmooAdapter (options = {}) {
       const target = typeof url === 'string' ? url : (getLocation().href || '')
       try {
         const parsed = new URL(target)
-        if (parsed.hash.includes('#/library')) {
+        // 書庫規則的單一來源在 library-page-rules（popup 也讀同一份）
+        if (isLibraryPageUrl('readmoo', target)) {
           return 'library'
         }
         if (parsed.pathname.includes('/api/reader/')) {

@@ -62,7 +62,7 @@ describe('popup PING bookCount 更新 (1.4.2-W1-003)', () => {
 
   test('PING 回應含 bookCount 時應更新為實際數字', async () => {
     chrome.tabs.query.mockImplementation((queryInfo, callback) => {
-      const tabs = [{ id: 1, url: 'https://readmoo.com/library', active: true }]
+      const tabs = [{ id: 1, url: 'https://read.readmoo.com/#/library', active: true }]
       if (callback) callback(tabs)
       return Promise.resolve(tabs)
     })
@@ -80,7 +80,7 @@ describe('popup PING bookCount 更新 (1.4.2-W1-003)', () => {
 
   test('PING 回應 bookCount=0 時應顯示 0 而非檢測中', async () => {
     chrome.tabs.query.mockImplementation((queryInfo, callback) => {
-      const tabs = [{ id: 1, url: 'https://readmoo.com/library', active: true }]
+      const tabs = [{ id: 1, url: 'https://read.readmoo.com/#/library', active: true }]
       if (callback) callback(tabs)
       return Promise.resolve(tabs)
     })
@@ -98,7 +98,7 @@ describe('popup PING bookCount 更新 (1.4.2-W1-003)', () => {
 
   test('PING 回應無 bookCount 欄位時應顯示 0', async () => {
     chrome.tabs.query.mockImplementation((queryInfo, callback) => {
-      const tabs = [{ id: 1, url: 'https://readmoo.com/library', active: true }]
+      const tabs = [{ id: 1, url: 'https://read.readmoo.com/#/library', active: true }]
       if (callback) callback(tabs)
       return Promise.resolve(tabs)
     })
