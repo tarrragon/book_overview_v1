@@ -527,14 +527,16 @@ body:not([data-empty="none"]) .book-grid {
   object-fit: cover;
 }
 
+/* 沒有封面的書：淡灰底加細框，書名用一般字色，不比有封面的書顯眼 */
 .book-card-cover--empty {
   display: flex;
   align-items: flex-end;
   padding: var(--spacing-sm);
-  background: var(--color-primary-darkest);
-  color: var(--color-surface);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.4;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-small);
+  line-height: 1.5;
   overflow: hidden;
 }
 

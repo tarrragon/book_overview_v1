@@ -829,7 +829,7 @@ class OverviewPageController extends EventHandlerClass {
   applyCurrentFilter () {
     // 狀態篩選
     const statusFiltered = this.currentBooks.filter(book =>
-      (!this.statusFilter || book.readingStatus === this.statusFilter) &&
+      (!this.statusFilter || facets.getReadingStatus(book) === this.statusFilter) &&
       (!this.platformFilter || facets.getPlatformId(book) === this.platformFilter) &&
       facets.matchesImportance(book, this.importanceFilter)
     )
@@ -1502,7 +1502,8 @@ class OverviewPageController extends EventHandlerClass {
    */
   _formatBookRowData (book) {
     const { WIDTH, HEIGHT } = CONSTANTS.TABLE.COVER_SIZE
-    const readingStatus = book.readingStatus || ''
+    // 舊資料缺 readingStatus 時由進度推導，與篩選欄的分組一致
+    const readingStatus = facets.getReadingStatus(book)
 
     // authors 處理（W1-061.2）：
     // - Array 且非空：以「、」分隔顯示
@@ -1521,9 +1522,7 @@ class OverviewPageController extends EventHandlerClass {
       source: this._formatBookSource(book),
       progress: book.progress ? `${book.progress}%` : '-',
       // readingStatus 是 schema 的固定列舉；顯示中文，原值留在 data-status 給樣式用
-      status: readingStatus
-        ? `<span class="reading-status-badge" data-status="${readingStatus}">${facets.getStatusLabel(readingStatus)}</span>`
-        : (book.status || '未知')
+      status: `<span class="reading-status-badge" data-status="${readingStatus}">${facets.getStatusLabel(readingStatus)}</span>`
     }
   }
 
@@ -1533,7 +1532,7 @@ class OverviewPageController extends EventHandlerClass {
    */
   _formatBookCardData (book) {
     const row = this._formatBookRowData(book)
-    const readingStatus = book.readingStatus || ''
+    const readingStatus = facets.getReadingStatus(book)
     const progress = Math.max(0, Math.min(100, Math.round(Number(book.progress) || 0)))
     return {
       title: row.title,
@@ -1541,7 +1540,7 @@ class OverviewPageController extends EventHandlerClass {
       authorIsMissing: row.authorIsMissing,
       source: row.source,
       statusValue: readingStatus,
-      statusLabel: readingStatus ? facets.getStatusLabel(readingStatus) : (book.status || '未知'),
+      statusLabel: facets.getStatusLabel(readingStatus),
       progress
     }
   }

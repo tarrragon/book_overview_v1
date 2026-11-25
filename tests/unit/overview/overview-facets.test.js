@@ -29,6 +29,13 @@ describe('overview-facets 分組依據', () => {
     expect(facets.getImportanceId({ importanceLevel: 9 })).toBeNull()
   })
 
+  test('閱讀狀態：缺 readingStatus 的舊資料由進度推導', () => {
+    expect(facets.getReadingStatus({ progress: 100 })).toBe('finished')
+    expect(facets.getReadingStatus({ progress: 34 })).toBe('reading')
+    expect(facets.getReadingStatus({})).toBe('unread')
+    expect(facets.getReadingStatus({ readingStatus: 'queued', progress: 50 })).toBe('queued')
+  })
+
   test('buildFacetModel 算出各組本數，重要程度另列未設定', () => {
     const model = facets.buildFacetModel(BOOKS, TAG_MAP)
     expect(model.status).toEqual([

@@ -6,6 +6,8 @@
  * 值來自 book.importanceLevel，或 APP 匯入時存進的 _passthrough.tags.importance。
  */
 
+const { mapV1StatusToV2 } = require('src/data-management/BookSchemaV2')
+
 const STATUS_ORDER = ['reading', 'queued', 'unread', 'finished', 'abandoned', 'reference']
 
 const STATUS_LABELS = {
@@ -40,6 +42,15 @@ const UNSET = '__unset__'
 
 // 舊資料沒有 source 也沒有書城 tag 時，沿用表格一直以來的預設（readmoo）
 const DEFAULT_PLATFORM = 'readmoo'
+
+/**
+ * 書的閱讀狀態：有 readingStatus 就用它；舊資料沒有時照 schema 的規則由進度推導
+ * （progress ≥ 100 讀完、> 0 閱讀中、其餘未讀）。只用於顯示與篩選，不寫回 storage。
+ */
+function getReadingStatus (book) {
+  if (book && book.readingStatus && STATUS_LABELS[book.readingStatus]) return book.readingStatus
+  return mapV1StatusToV2(book || {})
+}
 
 function getPlatformId (book) {
   if (!book) return DEFAULT_PLATFORM
@@ -90,7 +101,7 @@ function countBy (books, keyOf) {
 function buildFacetModel (books, tagMap) {
   const list = Array.isArray(books) ? books : []
 
-  const statusCounts = countBy(list, b => b.readingStatus || 'unread')
+  const statusCounts = countBy(list, getReadingStatus)
   const status = STATUS_ORDER
     .filter(s => statusCounts.get(s))
     .map(s => ({ value: s, label: STATUS_LABELS[s], count: statusCounts.get(s) }))
@@ -195,6 +206,7 @@ module.exports = {
   PLATFORM_LABELS,
   IMPORTANCE_LABELS,
   UNSET,
+  getReadingStatus,
   getPlatformId,
   getPlatformLabel,
   getStatusLabel,
