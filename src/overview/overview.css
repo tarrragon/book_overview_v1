@@ -19,6 +19,8 @@
 
 :root {
   --ov-top-height: 72px;
+  --ov-tools-height: 62px;
+  scroll-padding-top: calc(var(--ov-top-height) + var(--ov-tools-height) + var(--spacing-sm));
   --ov-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -344,13 +346,30 @@ button {
   padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xxl);
 }
 
-/* ===== 工具列：搜尋與排序在左，選取與呈現方式在右；窄時右組整組換行 ===== */
+/* ===== 工具列：搜尋與排序在左，選取與呈現方式在右；窄時右組整組換行 =====
+   書目很長，工具列貼在頂欄下方跟著捲動，找書不必捲回開頭。底色與主區相同，
+   左右延伸到主區邊緣，書目從它底下捲過去。 */
 .ov-tools {
+  position: sticky;
+  top: var(--ov-top-height);
+  z-index: 5;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--spacing-sm) var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  margin: calc(var(--spacing-sm) * -1) calc(var(--spacing-xl) * -1) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 回到頂部：捲過第一個畫面才出現；隱藏時用 visibility，按鈕離開 Tab 順序，工具列也不跳動 */
+.back-to-top {
+  visibility: hidden;
+}
+
+.back-to-top[data-shown="true"] {
+  visibility: visible;
 }
 
 .ov-search {
@@ -726,7 +745,7 @@ body:not([data-empty="none"]) .table-wrap {
 
 #booksTable th {
   position: sticky;
-  top: var(--ov-top-height);
+  top: calc(var(--ov-top-height) + var(--ov-tools-height));
   z-index: 1;
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-surface);
@@ -1059,8 +1078,19 @@ body:not([data-empty="none"]) .table-wrap {
     padding: var(--spacing-md);
   }
 
-  #booksTable th {
+  /* 頂欄在窄版不貼頂，工具列改貼在最上緣 */
+  :root {
+    scroll-padding-top: calc(var(--ov-tools-height) + var(--spacing-sm));
+  }
+
+  .ov-tools {
     top: 0;
+    margin: calc(var(--spacing-md) * -1) calc(var(--spacing-md) * -1) var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  #booksTable th {
+    top: var(--ov-tools-height);
   }
 
   .table-wrap {

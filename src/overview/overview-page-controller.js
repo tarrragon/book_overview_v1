@@ -271,7 +271,7 @@ class OverviewPageController extends EventHandlerClass {
       // 空檔案覆蓋二次確認 modal 元素（UC-04 Modal B / W1-049）
       emptyFileConfirm: ['emptyFileConfirmOverlay', 'emptyFileConfirmModal', 'emptyFileConfirmTitle', 'emptyFileConfirmDesc', 'emptyFileConfirmProceedBtn', 'emptyFileConfirmCancelBtn'],
       // 篩選欄、網格與主區空狀態（overview 改版）；舊的測試 fixture 沒有這些元素，各方法遇到 null 就略過
-      browse: ['selectionCount', 'facetPanel', 'bookGrid', 'tableWrap', 'viewGridBtn', 'viewTableBtn', 'emptyState', 'emptyStateTitle', 'emptyStateBody', 'emptyStateAction']
+      browse: ['backToTopBtn', 'selectionCount', 'facetPanel', 'bookGrid', 'tableWrap', 'viewGridBtn', 'viewTableBtn', 'emptyState', 'emptyStateTitle', 'emptyStateBody', 'emptyStateAction']
     }
 
     // 批量取得元素引用
@@ -425,6 +425,53 @@ class OverviewPageController extends EventHandlerClass {
       this.elements.viewTableBtn.addEventListener('click', () => this.setViewMode('table'))
     }
     this._applyViewMode()
+    this._setupScrollAffordances()
+  }
+
+  /**
+   * 書目很長時，工具列跟著捲動（CSS sticky），捲過第一個畫面後工具列出現「回到頂部」。
+   * 工具列高度會因換行而變，量出來寫進 --ov-tools-height，表頭的 sticky 位置與
+   * scroll-padding-top 依它計算，鍵盤移動焦點時目標不會停在工具列底下。
+   * @private
+   */
+  _setupScrollAffordances () {
+    const win = this.document && this.document.defaultView
+    const btn = this.elements.backToTopBtn
+    if (!win || !btn) return
+
+    const tools = this.document.querySelector('.ov-tools')
+    if (tools && typeof win.ResizeObserver === 'function') {
+      const ro = new win.ResizeObserver(() => {
+        this.document.documentElement.style.setProperty('--ov-tools-height', `${tools.offsetHeight}px`)
+      })
+      ro.observe(tools)
+    }
+
+    // 隱藏時 aria-hidden 加 tabindex=-1，CSS 另設 visibility: hidden，按鈕不在 Tab 順序與無障礙樹裡；
+    // 用 visibility 而不是 display，出現時工具列不跳動
+    const setShown = (shown) => {
+      btn.dataset.shown = shown ? 'true' : 'false'
+      btn.setAttribute('aria-hidden', shown ? 'false' : 'true')
+      btn.tabIndex = shown ? 0 : -1
+    }
+    let ticking = false
+    const update = () => {
+      ticking = false
+      setShown(win.scrollY > win.innerHeight * 0.6)
+    }
+    win.addEventListener('scroll', () => {
+      if (ticking) return
+      ticking = true
+      win.requestAnimationFrame(update)
+    }, { passive: true })
+    update()
+
+    btn.addEventListener('click', () => {
+      const reduce = typeof win.matchMedia === 'function' && win.matchMedia('(prefers-reduced-motion: reduce)').matches
+      win.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
+      // 焦點移到搜尋框：回到頂部多半是為了找書；按鈕隨即隱藏，焦點不能留在它身上
+      if (this.elements.searchBox) this.elements.searchBox.focus({ preventScroll: true })
+    })
   }
 
   // ========== 篩選欄與呈現方式 ==========
