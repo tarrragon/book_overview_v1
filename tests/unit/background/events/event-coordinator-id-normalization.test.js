@@ -90,7 +90,7 @@ describe('event-coordinator ID 正規化', () => {
       source: 'books-com-tw'
     })
 
-    const stored = getStoredBooks('books-com-tw')
+    const stored = getStoredBooks('books_com_tw') // content 端的 books-com-tw 寫進 storage 的 books_com_tw_books
     // 空字串 bookId 為 falsy，不映射 platformBookId
     expect(stored[0].platformBookId).toBeUndefined()
     expect(stored[0].id).toBeTruthy()
@@ -107,7 +107,7 @@ describe('event-coordinator ID 正規化', () => {
       source: 'books-com-tw'
     })
 
-    const stored = getStoredBooks('books-com-tw')
+    const stored = getStoredBooks('books_com_tw') // content 端的 books-com-tw 寫進 storage 的 books_com_tw_books
     expect(stored[0].platformBookId).toBe('books-com-tw-item-123')
     expect(stored[0].id).toBeTruthy()
   })

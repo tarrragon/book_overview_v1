@@ -998,8 +998,8 @@ function createReadmooAdapter (options = {}) {
     getWindow,
     constants: {
       LIBRARY_TOTAL_PATTERN: /擁有\s*(\d+)\s*本書/,
-      ARCHIVED_PATTERN: /封存\s*(\d+)\s*本/,
-      LENT_PATTERN: /借出\s*(\d+)\s*本/,
+      ARCHIVED_PATTERN: /封存\s*(\d+)\s*本?/,
+      LENT_PATTERN: /借出\s*(\d+)\s*本?/,
       LOAD_MORE_TEXT_PATTERN: /更多/,
       MAX_ANCESTOR_DEPTH,
       COVER_SCROLL_SEGMENT_RATIO: 0.8,

@@ -291,10 +291,11 @@ class ContentMessageHandler extends BaseModule {
     // 更新事件轉發統計
     this.contentStats.eventForwards++
 
-    // 增強事件資料，加入 Content Script 來源資訊
+    // 增強事件資料，加入 Content Script 來源資訊。放在 forwardedFrom，不覆蓋事件自己的
+    // source：EXTRACTION.COMPLETED 的 data.source 是書城 ID，background 用它組 storage key
     const enhancedEventData = {
       ...message.data,
-      source: {
+      forwardedFrom: {
         type: 'content-script',
         tabId: sender.tab?.id,
         url: sender.tab?.url,

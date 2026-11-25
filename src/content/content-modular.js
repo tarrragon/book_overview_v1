@@ -1,4 +1,5 @@
 const { Logger } = require('src/core/logging/Logger')
+const { resolveLibraryBookCount } = require('src/content/utils/library-book-count')
 /**
  * content-modular.js
  *
@@ -199,7 +200,8 @@ async function reportReadyStatus () {
     // 檢查書籍數量（使用 waitForBookElements 等待 SPA 動態渲染完成）
     if (platformAdapter && pageStatus.isSupportedPage) {
       const bookElements = await platformAdapter.waitForBookElements({ timeoutMs: 3000 })
-      bookCount = bookElements.length
+      // 捲動載入的書櫃只渲染第一批，有書櫃總數時回報總數
+      bookCount = resolveLibraryBookCount(platformAdapter, bookElements.length)
     }
 
     const status = {
@@ -361,7 +363,7 @@ async function getPageStatus () {
 
   if (platformAdapter && pageStatus.isSupportedPage) {
     const bookElements = platformAdapter.getBookElements()
-    bookCount = bookElements.length
+    bookCount = resolveLibraryBookCount(platformAdapter, bookElements.length)
   }
 
   return {
@@ -379,7 +381,7 @@ function getHealthStatus () {
 
   let bookCount = 0
   if (platformAdapter && pageStatus.isSupportedPage) {
-    bookCount = platformAdapter.getBookElements().length
+    bookCount = resolveLibraryBookCount(platformAdapter, platformAdapter.getBookElements().length)
   }
 
   return {
