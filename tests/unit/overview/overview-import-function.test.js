@@ -1047,9 +1047,9 @@ describe('Overview 資料匯入功能測試', () => {
         // [4]author（W1-061.2 新增，source-limited placeholder）
         // [5]source [6]progress [7]status [8]tag（W6-012.7.1 / W1-061.2 / tagCellRenderer 累積擴增）
         expect(row.querySelector('td:nth-child(3)').textContent).toContain('完整資訊書籍')
-        expect(row.querySelector('td:nth-child(5)').textContent).toContain('readmoo')
+        expect(row.querySelector('td:nth-child(5)').textContent).toContain('Readmoo')
         expect(row.querySelector('td:nth-child(6)').textContent).toContain('75%')
-        expect(row.querySelector('td:nth-child(7)').textContent).toContain('reading')
+        expect(row.querySelector('td:nth-child(7)').textContent).toContain('閱讀中')
       })
     })
   })

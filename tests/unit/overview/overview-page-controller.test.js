@@ -819,7 +819,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const tableBody = document.getElementById('tableBody')
       const statusCell = tableBody.querySelector('.reading-status-badge')
       expect(statusCell).not.toBeNull()
-      expect(statusCell.textContent).toContain('reading')
+      // 顯示中文標籤，原值留在 data-status
+      expect(statusCell.textContent).toContain('閱讀中')
       expect(statusCell.dataset.status).toBe('reading')
     })
 
@@ -836,7 +837,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const tableBody = document.getElementById('tableBody')
       const statusCell = tableBody.querySelector('.reading-status-badge')
       expect(statusCell).not.toBeNull()
-      expect(statusCell.textContent).toContain('unread')
+      // 顯示中文標籤，原值留在 data-status
+      expect(statusCell.textContent).toContain('未讀')
       expect(statusCell.dataset.status).toBe('unread')
     })
 
@@ -853,7 +855,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const tableBody = document.getElementById('tableBody')
       const statusCell = tableBody.querySelector('.reading-status-badge')
       expect(statusCell).not.toBeNull()
-      expect(statusCell.textContent).toContain('queued')
+      // 顯示中文標籤，原值留在 data-status
+      expect(statusCell.textContent).toContain('待讀')
       expect(statusCell.dataset.status).toBe('queued')
     })
 
@@ -870,7 +873,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const tableBody = document.getElementById('tableBody')
       const statusCell = tableBody.querySelector('.reading-status-badge')
       expect(statusCell).not.toBeNull()
-      expect(statusCell.textContent).toContain('finished')
+      // 顯示中文標籤，原值留在 data-status
+      expect(statusCell.textContent).toContain('讀完')
       expect(statusCell.dataset.status).toBe('finished')
     })
 
@@ -887,7 +891,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const tableBody = document.getElementById('tableBody')
       const statusCell = tableBody.querySelector('.reading-status-badge')
       expect(statusCell).not.toBeNull()
-      expect(statusCell.textContent).toContain('abandoned')
+      // 顯示中文標籤，原值留在 data-status
+      expect(statusCell.textContent).toContain('放棄')
       expect(statusCell.dataset.status).toBe('abandoned')
     })
 
@@ -904,7 +909,8 @@ describe('🖥️ Overview 頁面控制器測試 (TDD循環 #26)', () => {
       const tableBody = document.getElementById('tableBody')
       const statusCell = tableBody.querySelector('.reading-status-badge')
       expect(statusCell).not.toBeNull()
-      expect(statusCell.textContent).toContain('reference')
+      // 顯示中文標籤，原值留在 data-status
+      expect(statusCell.textContent).toContain('參考')
       expect(statusCell.dataset.status).toBe('reference')
     })
   })

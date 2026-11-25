@@ -33,6 +33,8 @@ const { BookExporter } = require('src/overview/book-exporter')
 const { BookFileImporter } = require('src/overview/book-file-importer')
 const { ImportFlowController } = require('src/overview/import-flow-controller')
 const { createTagCellRenderer } = require('src/overview/tag-cell-renderer')
+const facets = require('src/overview/overview-facets')
+const { renderBookGrid } = require('src/overview/overview-book-grid')
 const { createInput } = require('src/core/ui/components/ui-factory')
 // v2 匯出器（Interchange Format v2）：book-data-exporter.js 使用 default export
 const BookDataExporter = require('src/export/book-data-exporter')
@@ -57,7 +59,19 @@ const CONSTANTS = {
     FILE_READ_ERROR: '檔案讀取失敗',
     INVALID_JSON: '無效的 JSON 格式',
     // l10n key 契約（1.5.0-W6-024）：searchBox placeholder 唯一來源，禁止在建立點硬編碼字面
-    SEARCH_PLACEHOLDER: '搜尋書籍標題...'
+    SEARCH_PLACEHOLDER: '搜尋書名',
+    // 主區空狀態：書庫是空的／篩選後沒有結果，各給一個下一步
+    LIBRARY_EMPTY_TITLE: '書庫還沒有書',
+    LIBRARY_EMPTY_BODY: '到 Readmoo、博客來或 Kobo 的書櫃頁，打開擴充功能按「提取」；或匯入之前匯出的 JSON 檔。',
+    LIBRARY_EMPTY_ACTION: '匯入 JSON 檔',
+    NO_MATCH_TITLE: '沒有符合條件的書',
+    NO_MATCH_ACTION: '清除篩選'
+  },
+
+  // 書目呈現方式（網格／表格），記在 localStorage，只影響這台瀏覽器
+  VIEW: {
+    STORAGE_KEY: 'overview.viewMode',
+    DEFAULT: 'grid'
   },
 
   // 表格配置
@@ -130,6 +144,9 @@ class OverviewPageController extends EventHandlerClass {
     this.isLoading = false
     this.searchTerm = ''
     this.statusFilter = null
+    this.platformFilter = null
+    this.importanceFilter = null
+    this.viewMode = this._readViewMode()
     this.tagFilterState = { selectedTagIds: new Set(), mode: 'or' }
     this.tagMap = new Map()
     this.categoryMap = new Map()
@@ -252,7 +269,9 @@ class OverviewPageController extends EventHandlerClass {
       // 匯入模式選擇 modal 元素（UC-04 Modal A）
       importMode: ['importModeOverlay', 'importModeModal', 'importModeTitle', 'importModeOverwriteBtn', 'importModeMergeBtn', 'importModeCancelBtn'],
       // 空檔案覆蓋二次確認 modal 元素（UC-04 Modal B / W1-049）
-      emptyFileConfirm: ['emptyFileConfirmOverlay', 'emptyFileConfirmModal', 'emptyFileConfirmTitle', 'emptyFileConfirmDesc', 'emptyFileConfirmProceedBtn', 'emptyFileConfirmCancelBtn']
+      emptyFileConfirm: ['emptyFileConfirmOverlay', 'emptyFileConfirmModal', 'emptyFileConfirmTitle', 'emptyFileConfirmDesc', 'emptyFileConfirmProceedBtn', 'emptyFileConfirmCancelBtn'],
+      // 篩選欄、網格與主區空狀態（overview 改版）；舊的測試 fixture 沒有這些元素，各方法遇到 null 就略過
+      browse: ['backToTopBtn', 'selectionCount', 'facetPanel', 'bookGrid', 'tableWrap', 'viewGridBtn', 'viewTableBtn', 'emptyState', 'emptyStateTitle', 'emptyStateBody', 'emptyStateAction']
     }
 
     // 批量取得元素引用
@@ -304,7 +323,8 @@ class OverviewPageController extends EventHandlerClass {
 
           reload.then((books) => {
             this._updateBooksData(books)
-            this.updateDisplay()
+            // 重套目前的篩選與排序，畫面上按下的篩選項才跟書目一致
+            this.applyCurrentFilter()
           }).catch((error) => {
             // eslint-disable-next-line no-console
             console.warn('[WARNING] 處理 storage 變更失敗:', error)
@@ -397,6 +417,202 @@ class OverviewPageController extends EventHandlerClass {
         this.handleSelectAllToggle()
       })
     }
+
+    if (this.elements.viewGridBtn) {
+      this.elements.viewGridBtn.addEventListener('click', () => this.setViewMode('grid'))
+    }
+    if (this.elements.viewTableBtn) {
+      this.elements.viewTableBtn.addEventListener('click', () => this.setViewMode('table'))
+    }
+    this._applyViewMode()
+    this._setupScrollAffordances()
+  }
+
+  /**
+   * 書目很長時，工具列跟著捲動（CSS sticky），捲過第一個畫面後工具列出現「回到頂部」。
+   * 工具列高度會因換行而變，量出來寫進 --ov-tools-height，表頭的 sticky 位置與
+   * scroll-padding-top 依它計算，鍵盤移動焦點時目標不會停在工具列底下。
+   * @private
+   */
+  _setupScrollAffordances () {
+    const win = this.document && this.document.defaultView
+    const btn = this.elements.backToTopBtn
+    if (!win || !btn) return
+
+    const tools = this.document.querySelector('.ov-tools')
+    if (tools && typeof win.ResizeObserver === 'function') {
+      const ro = new win.ResizeObserver(() => {
+        this.document.documentElement.style.setProperty('--ov-tools-height', `${tools.offsetHeight}px`)
+      })
+      ro.observe(tools)
+    }
+
+    // 隱藏時 aria-hidden 加 tabindex=-1，CSS 另設 visibility: hidden，按鈕不在 Tab 順序與無障礙樹裡；
+    // 用 visibility 而不是 display，出現時工具列不跳動
+    const setShown = (shown) => {
+      btn.dataset.shown = shown ? 'true' : 'false'
+      btn.setAttribute('aria-hidden', shown ? 'false' : 'true')
+      btn.tabIndex = shown ? 0 : -1
+    }
+    let ticking = false
+    const update = () => {
+      ticking = false
+      setShown(win.scrollY > win.innerHeight * 0.6)
+    }
+    win.addEventListener('scroll', () => {
+      if (ticking) return
+      ticking = true
+      win.requestAnimationFrame(update)
+    }, { passive: true })
+    update()
+
+    btn.addEventListener('click', () => {
+      const reduce = typeof win.matchMedia === 'function' && win.matchMedia('(prefers-reduced-motion: reduce)').matches
+      win.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
+      // 焦點移到搜尋框：回到頂部多半是為了找書；按鈕隨即隱藏，焦點不能留在它身上
+      if (this.elements.searchBox) this.elements.searchBox.focus({ preventScroll: true })
+    })
+  }
+
+  // ========== 篩選欄與呈現方式 ==========
+
+  setPlatformFilter (platformId) {
+    this.platformFilter = platformId
+    this.applyCurrentFilter()
+  }
+
+  setImportanceFilter (importanceId) {
+    this.importanceFilter = importanceId
+    this.applyCurrentFilter()
+  }
+
+  /**
+   * 篩選欄點了一項：同一組再點一次是取消；標籤可以多選（任一符合）
+   */
+  handleFacetSelect (group, value) {
+    if (group === 'tags') {
+      const next = new Set(this.tagFilterState.selectedTagIds)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      this.tagFilterState = { selectedTagIds: next, mode: 'or' }
+      this.applyCurrentFilter()
+      return
+    }
+    const key = { status: 'statusFilter', platform: 'platformFilter', importance: 'importanceFilter' }[group]
+    if (!key) return
+    this[key] = this[key] === value ? null : value
+    this.applyCurrentFilter()
+  }
+
+  /**
+   * 清除篩選欄的條件與搜尋字
+   */
+  clearAllFilters () {
+    this.statusFilter = null
+    this.platformFilter = null
+    this.importanceFilter = null
+    this.tagFilterState = { selectedTagIds: new Set(), mode: 'or' }
+    this._resetSearchState()
+    this.applyCurrentFilter()
+  }
+
+  setViewMode (mode) {
+    if (mode !== 'grid' && mode !== 'table') return
+    this.viewMode = mode
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem(CONSTANTS.VIEW.STORAGE_KEY, mode)
+    } catch (error) {
+      // localStorage 不可用時只影響這次的選擇，不中斷頁面
+    }
+    this._applyViewMode()
+    this.updateDisplay()
+  }
+
+  _readViewMode () {
+    try {
+      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(CONSTANTS.VIEW.STORAGE_KEY) : null
+      return saved === 'table' || saved === 'grid' ? saved : CONSTANTS.VIEW.DEFAULT
+    } catch (error) {
+      return CONSTANTS.VIEW.DEFAULT
+    }
+  }
+
+  _applyViewMode () {
+    const isGrid = this.viewMode === 'grid'
+    const { viewGridBtn, viewTableBtn } = this.elements
+    if (viewGridBtn) viewGridBtn.setAttribute('aria-pressed', isGrid ? 'true' : 'false')
+    if (viewTableBtn) viewTableBtn.setAttribute('aria-pressed', isGrid ? 'false' : 'true')
+    if (this.document && this.document.body) this.document.body.dataset.view = this.viewMode
+  }
+
+  _renderFacetPanel () {
+    if (!this.elements.facetPanel) return
+    const model = facets.buildFacetModel(this.currentBooks, this.tagMap)
+    facets.renderFacetPanel(this.elements.facetPanel, model, {
+      status: this.statusFilter,
+      platform: this.platformFilter,
+      importance: this.importanceFilter,
+      tags: this.tagFilterState.selectedTagIds
+    }, {
+      total: this.currentBooks.length,
+      onSelect: (group, value) => this.handleFacetSelect(group, value),
+      onClear: () => this.clearAllFilters()
+    }, this.document)
+  }
+
+  _renderBookGrid (books) {
+    if (!this.elements.bookGrid) return
+    if (this.viewMode !== 'grid') {
+      this.elements.bookGrid.textContent = ''
+      return
+    }
+    renderBookGrid(this.elements.bookGrid, books, {
+      document: this.document,
+      getId: (book) => this._getBookId(book),
+      isSelected: (id) => this.selectedBookIds.has(id),
+      onToggleSelect: (id) => this.handleRowCheckboxToggle(id),
+      format: (book) => this._formatBookCardData(book),
+      createTagCell: (tagIds) => this.tagCellRenderer.createTagCell(tagIds)
+    })
+  }
+
+  /**
+   * 主區空狀態：書庫是空的時給兩條下一步；篩選後沒有結果時給清除篩選
+   */
+  _renderEmptyState (books) {
+    const { emptyState, emptyStateTitle, emptyStateBody, emptyStateAction } = this.elements
+    if (!emptyState) return
+    const libraryEmpty = this.currentBooks.length === 0
+    const noMatch = !libraryEmpty && books.length === 0
+    emptyState.hidden = !(libraryEmpty || noMatch)
+    if (this.document && this.document.body) {
+      this.document.body.dataset.empty = libraryEmpty ? 'library' : (noMatch ? 'filter' : 'none')
+    }
+    // 書庫是空的時，匯出、選取與切換呈現方式沒有對象，停用
+    for (const key of ['exportCSVBtn', 'exportJSONBtn', 'selectAllBtn', 'viewGridBtn', 'viewTableBtn']) {
+      if (this.elements[key]) this.elements[key].disabled = libraryEmpty
+    }
+    if (emptyState.hidden) return
+
+    const M = CONSTANTS.MESSAGES
+    if (emptyStateTitle) emptyStateTitle.textContent = libraryEmpty ? M.LIBRARY_EMPTY_TITLE : M.NO_MATCH_TITLE
+    if (emptyStateBody) {
+      emptyStateBody.textContent = libraryEmpty ? M.LIBRARY_EMPTY_BODY : ''
+      emptyStateBody.hidden = !libraryEmpty
+    }
+    if (emptyStateAction) {
+      emptyStateAction.textContent = libraryEmpty ? M.LIBRARY_EMPTY_ACTION : M.NO_MATCH_ACTION
+      emptyStateAction.onclick = libraryEmpty
+        ? () => this._openFileUploader()
+        : () => this.clearAllFilters()
+    }
+  }
+
+  _openFileUploader () {
+    const uploader = this.elements.fileUploader
+    if (!uploader) return
+    uploader.style.display = 'block'
+    if (this.elements.jsonFileInput) this.elements.jsonFileInput.focus()
   }
 
   /**
@@ -422,6 +638,7 @@ class OverviewPageController extends EventHandlerClass {
     }
 
     this.renderBooksTable(this.filteredBooks)
+    this._renderBookGrid(this.filteredBooks)
     this._syncHeaderCheckboxState()
   }
 
@@ -462,6 +679,23 @@ class OverviewPageController extends EventHandlerClass {
     const allSelected = displayedIds.length > 0 &&
       displayedIds.every(id => this.selectedBookIds.has(id))
     header.checked = allSelected
+    this._syncSelectionSummary()
+  }
+
+  /**
+   * 已選本數：匯出只匯出選取的書，所以有選取時在工具列寫出本數
+   * @private
+   */
+  _syncSelectionSummary () {
+    const count = this.selectedBookIds.size
+    const summary = this.elements.selectionCount
+    if (summary) {
+      summary.hidden = count === 0
+      summary.textContent = count === 0 ? '' : `已選 ${count} 本`
+    }
+    if (this.document && this.document.body) {
+      this.document.body.dataset.selection = count === 0 ? 'none' : 'some'
+    }
   }
 
   /**
@@ -542,8 +776,9 @@ class OverviewPageController extends EventHandlerClass {
         // eslint-disable-next-line no-console
         console.log('Chrome Storage 中沒有書籍資料')
         this.hideLoading()
-        // 顯示空資料狀態，但不顯示錯誤
-        this.renderBooksTable([])
+        // 顯示空資料狀態，但不顯示錯誤；走 updateDisplay，主區的空狀態與篩選欄才會一起更新
+        this._updateBooksData([])
+        this.updateDisplay()
       }
     } catch (error) {
       // Logger 後備方案: UI Component 關鍵錯誤記錄
@@ -640,9 +875,11 @@ class OverviewPageController extends EventHandlerClass {
    */
   applyCurrentFilter () {
     // 狀態篩選
-    const statusFiltered = this.statusFilter
-      ? this.currentBooks.filter(book => book.readingStatus === this.statusFilter)
-      : [...this.currentBooks]
+    const statusFiltered = this.currentBooks.filter(book =>
+      (!this.statusFilter || facets.getReadingStatus(book) === this.statusFilter) &&
+      (!this.platformFilter || facets.getPlatformId(book) === this.platformFilter) &&
+      facets.matchesImportance(book, this.importanceFilter)
+    )
 
     // Tag 篩選
     const tagFiltered = this.tagFilterState.selectedTagIds.size === 0
@@ -730,6 +967,9 @@ class OverviewPageController extends EventHandlerClass {
   updateDisplay () {
     this.updateStatistics(this.filteredBooks)
     this.renderBooksTable(this.filteredBooks)
+    this._renderFacetPanel()
+    this._renderBookGrid(this.filteredBooks)
+    this._renderEmptyState(this.filteredBooks)
     this.hideLoading()
     this.hideError()
   }
@@ -1296,7 +1536,7 @@ class OverviewPageController extends EventHandlerClass {
   _createEmptyTableRow () {
     const emptyRow = this.document.createElement('tr')
     emptyRow.innerHTML = `
-      <td colspan="${CONSTANTS.TABLE.COLUMNS}" style="text-align: center; padding: 40px; color: #666;">
+      <td colspan="${CONSTANTS.TABLE.COLUMNS}" class="table-empty-cell">
         ${CONSTANTS.MESSAGES.EMPTY_BOOKS}
       </td>
     `
@@ -1309,7 +1549,8 @@ class OverviewPageController extends EventHandlerClass {
    */
   _formatBookRowData (book) {
     const { WIDTH, HEIGHT } = CONSTANTS.TABLE.COVER_SIZE
-    const readingStatus = book.readingStatus || ''
+    // 舊資料缺 readingStatus 時由進度推導，與篩選欄的分組一致
+    const readingStatus = facets.getReadingStatus(book)
 
     // authors 處理（W1-061.2）：
     // - Array 且非空：以「、」分隔顯示
@@ -1327,9 +1568,27 @@ class OverviewPageController extends EventHandlerClass {
       authorIsMissing,
       source: this._formatBookSource(book),
       progress: book.progress ? `${book.progress}%` : '-',
-      status: readingStatus
-        ? `<span class="reading-status-badge" data-status="${readingStatus}">${readingStatus}</span>`
-        : (book.status || '未知')
+      // readingStatus 是 schema 的固定列舉；顯示中文，原值留在 data-status 給樣式用
+      status: `<span class="reading-status-badge" data-status="${readingStatus}">${facets.getStatusLabel(readingStatus)}</span>`
+    }
+  }
+
+  /**
+   * 封面網格的卡片資料（文字一律經 textContent 寫入，這裡不組 HTML）
+   * @private
+   */
+  _formatBookCardData (book) {
+    const row = this._formatBookRowData(book)
+    const readingStatus = facets.getReadingStatus(book)
+    const progress = Math.max(0, Math.min(100, Math.round(Number(book.progress) || 0)))
+    return {
+      title: row.title,
+      authors: row.authors,
+      authorIsMissing: row.authorIsMissing,
+      source: row.source,
+      statusValue: readingStatus,
+      statusLabel: facets.getStatusLabel(readingStatus),
+      progress
     }
   }
 
@@ -1341,27 +1600,29 @@ class OverviewPageController extends EventHandlerClass {
    */
   _formatBookSource (book) {
     // 優先使用 tags 陣列
+    // 書城 id 換成顯示名稱（readmoo → Readmoo、books_com_tw → 博客來）；不認得的值原樣顯示
+    const label = facets.getPlatformLabel
     if (Array.isArray(book.tags) && book.tags.length > 0) {
-      // 如果有多個來源，顯示所有，以逗號分隔
-      return book.tags.join(', ')
+      // 如果有多個來源，顯示所有，以頓號分隔
+      return book.tags.map(label).join('、')
     }
 
     // 其次使用單一 tag 或 store 字段
     if (book.tag) {
-      return book.tag
+      return label(book.tag)
     }
 
     if (book.store) {
-      return book.store
+      return label(book.store)
     }
 
     // 最後檢查 source 字段
     if (book.source) {
-      return book.source
+      return label(book.source)
     }
 
     // 默認值
-    return 'readmoo'
+    return label('readmoo')
   }
 
   /**

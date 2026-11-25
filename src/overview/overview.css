@@ -1,360 +1,689 @@
 /**
  * Overview 頁面樣式 - Book Overview
- * 設計原則：簡潔、響應式、易於閱讀
  *
- * 樣式來源：所有顏色 / 間距 / 圓角 / 字級 / 陰影 / 遮罩皆取用 design-system.css
- * 的 :root 變數（AUTO-GENERATED，由 scripts/generate-design-system-css.js 自
- * colors.js/spacing.js/typography.js/shadows.js 產生）。本檔不得出現硬編碼
- * hex/rgba 色值與漸層。design-system.css 由 overview.html 以 <link> 在本檔之前引入。
+ * 版面：深藍頂欄（標題、本數、匯入匯出）＋左側篩選欄＋主區（工具列、封面網格或表格）。
+ * 視覺語言沿用 popup：直角、深藍 #0F317D、主動作是下緣畫成書口的白色實體鍵、
+ * 次要動作是白色描邊鍵（DESIGN.md、.impeccable/surfaces/src-overview-overview-html.md）。
  *
- * 中性陰影 / modal overlay 的純黑值已收斂為 design-system shadow/overlay token：
- * box-shadow 顏色取用 --shadow-color-sm / --shadow-color-md（offset/blur 仍由
- * 各規則自行宣告），modal backdrop 取用 --overlay-scrim。需帶品牌色調的
- * focus / hover 光暈改用 color-mix() 由 --color-primary 推導，不再硬編碼 alpha 值。
- *
- * 分隔語意的 border 宣告（表格列/表頭底線、展開行邊界）已收斂為分割陰影 divider
- * token（--divider-subtle/normal/strong，取代 border-bottom，1.5.0-W6-004，
- * 對齊 src/core/design-system/component-rules.js .divider-* 與 APP AppDivider）；
- * 容器邊框語意（輸入框 / 按鈕 / 上傳區 / 錯誤框等外框）維持既有 --color-border-*。
+ * 樣式來源：所有顏色 / 間距 / 字級 / 陰影 / 遮罩皆取用 design-system.css 的 :root 變數
+ * （AUTO-GENERATED，由 scripts/generate-design-system-css.js 產生）。本檔不得出現
+ * 硬編碼 hex/rgba 色值。design-system.css 由 overview.html 以 <link> 在本檔之前引入。
+ * 圓角一律 0（不取用 --radius-*）。
  */
 
-/* 基礎設定 */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+:root {
+  --ov-top-height: 72px;
+  --ov-tools-height: 62px;
+  scroll-padding-top: calc(var(--ov-top-height) + var(--ov-tools-height) + var(--spacing-sm));
+  --ov-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
-  line-height: 1.6;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  line-height: 1.5;
   color: var(--color-on-background);
   background-color: var(--color-background);
   font-size: var(--font-size-body-medium);
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-lg);
-  background-color: var(--color-surface);
-  box-shadow: 0 0 10px var(--shadow-color-sm);
-  min-height: 100vh;
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-primary-darkest);
 }
 
-/* 頁面標題（headline 24 / bold）
-   W3-001 §b 字級層次：headline 為最高階，與下方 title/body 拉開對比 */
-#pageTitle {
-  text-align: center;
-  color: var(--color-on-background);
-  margin-bottom: var(--spacing-xl);
-  font-size: var(--font-size-headline3);
-  font-weight: var(--font-weight-bold);
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
 }
 
-/* 統計資訊區域（W3-001 §c：去 hero-metric 化）
-   移除 primary 藍 slab，改為 canvas 上的 inline 數字組：
-   - 無背景色塊、無卡片容器，僅靠間距分組（權重「平 / inline」級）
-   - 大數字用 primary accent（藍只出現於數字，面積 < 10%）
-   - 標籤用 muted，與數字拉開層次 */
-.stats {
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ===== 頂欄 ===== */
+.ov-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
-  justify-content: center;
-  gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-lg) 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  height: var(--ov-top-height);
+  padding: 0 var(--spacing-xl);
+  background: var(--color-primary-darkest);
+  color: var(--color-surface);
 }
 
-.stat-item {
-  text-align: center;
+.ov-top :focus-visible {
+  outline-color: var(--color-surface);
+  outline-offset: 3px;
 }
 
-.stat-number {
-  font-size: var(--font-size-headline3);
+.ov-heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+#pageTitle {
+  font-size: var(--font-size-title-large);
   font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
-  margin-bottom: var(--spacing-xs);
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
-.stat-label {
-  font-size: var(--font-size-caption);
-  font-weight: var(--font-weight-regular);
+.ov-count {
+  color: var(--color-primary-light);
+  font-size: var(--font-size-body-medium);
+  white-space: nowrap;
+}
+
+.ov-count span[id] {
+  color: var(--color-surface);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-count-sep::before {
+  content: "．";
+}
+
+.ov-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ===== 按鈕 ===== */
+.ov-btn {
+  position: relative;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-semi-bold);
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: transform 140ms var(--ov-ease), background-color 140ms var(--ov-ease), border-color 140ms var(--ov-ease);
+}
+
+/* 實體鍵：白色直角，下緣厚度是書口（細線疊成的書頁邊）；滑過浮起、按下下沉 */
+.ov-btn--key,
+.ov-btn--key-dark {
+  margin-bottom: 5px;
+}
+
+.ov-btn--key {
+  background: var(--color-surface);
+  color: var(--color-primary-darkest);
+}
+
+.ov-btn--key::after,
+.ov-btn--key-dark::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 5px;
+  background: repeating-linear-gradient(180deg, var(--color-primary-lightest) 0 1px, var(--color-primary-medium) 1px 2px);
+  transition: height 140ms var(--ov-ease), bottom 140ms var(--ov-ease);
+}
+
+/* 白底區的實體鍵：深藍鍵面，書口用淺藍與白線 */
+.ov-btn--key-dark {
+  background: var(--color-primary-darkest);
+  color: var(--color-surface);
+}
+
+.ov-btn--key-dark::after {
+  background: repeating-linear-gradient(180deg, var(--color-primary-light) 0 1px, var(--color-primary-dark) 1px 2px);
+}
+
+.ov-btn--key:not(:disabled):hover,
+.ov-btn--key-dark:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+.ov-btn--key:not(:disabled):hover::after,
+.ov-btn--key-dark:not(:disabled):hover::after {
+  bottom: -7px;
+  height: 7px;
+}
+
+.ov-btn--key:not(:disabled):active,
+.ov-btn--key-dark:not(:disabled):active {
+  transform: translateY(4px);
+}
+
+.ov-btn--key:not(:disabled):active::after,
+.ov-btn--key-dark:not(:disabled):active::after {
+  bottom: -1px;
+  height: 1px;
+}
+
+/* 描邊鍵：白色描邊、下緣較厚 */
+.ov-btn--outline {
+  border: 2px solid var(--color-surface);
+  border-bottom-width: 4px;
+  color: var(--color-surface);
+  padding: calc(var(--spacing-sm) - 2px) calc(var(--spacing-md) - 2px) calc(var(--spacing-sm) - 4px);
+}
+
+.ov-btn--outline:not(:disabled):hover {
+  transform: translateY(-2px);
+}
+
+.ov-btn--outline:not(:disabled):active {
+  transform: translateY(2px);
+}
+
+.ov-btn--quiet {
+  color: var(--color-primary-light);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.ov-btn--quiet:hover {
+  color: var(--color-surface);
+}
+
+/* 書庫是空的時，匯出與選取停用：鍵面退成淺藍、不再浮起 */
+.ov-btn:disabled,
+.view-switch-btn:disabled {
+  cursor: default;
+  transform: none;
+}
+
+.ov-btn--key:disabled {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.ov-btn--key:disabled::after {
+  bottom: -5px;
+  height: 5px;
+}
+
+.ov-btn--outline:disabled {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary-light);
+}
+
+.ov-btn--plain:disabled {
+  border-color: var(--color-border);
   color: var(--color-on-surface-muted);
 }
 
-/* 搜尋區域（W3-001 §c：去 pill 化，radius-xl → radius-sm）
-   pill 對資料工具顯 toy-like，對齊類別最佳工具（6-8px） */
-#searchBox {
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  font-size: var(--font-size-body-large);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--spacing-lg);
-  outline: none;
-  transition: border-color 0.3s;
+.view-switch-btn:disabled {
+  color: var(--color-on-surface-muted);
 }
 
-#searchBox:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
-}
-
-/* 操作按鈕區域（W3-001 §c：按鈕主次三級 + 去 pill）
-   消除「5 個同色同尺寸 pill」的無主次氾濫。透過 ID 選擇器賦予語意層級
-   （HTML 共用 .export-btn class，本檔以 ID 區分主次，不需改 HTML）：
-   - 預設 .export-btn = secondary（panel 底 + ink 字 + border）
-   - #exportCSVBtn = primary（每頁唯一主動作）
-   - #reloadBtn = danger 語意（重新載入屬資料破壞性操作） */
-.export-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-  justify-content: flex-start;
-}
-
-/* 基礎按鈕 = secondary 級（一般動作：匯出 JSON / 匯入 JSON / 選取全部 / 載入檔案 / 載入範例） */
-.export-btn {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--color-panel);
-  color: var(--color-on-background);
+/* 白底區的次要鍵 */
+.ov-btn--plain {
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: var(--font-size-body-medium);
-  font-weight: var(--font-weight-medium);
-  transition: background-color 0.2s, border-color 0.2s, filter 0.2s;
-}
-
-.export-btn:hover {
   background: var(--color-surface);
-  border-color: var(--color-primary);
-}
-
-.export-btn:active {
-  filter: brightness(0.96);
-}
-
-/* primary 級：每頁唯一主動作（匯出 CSV），primary 底 + 白字 + radius-sm（非 pill） */
-#exportCSVBtn.export-btn {
-  background: var(--color-primary);
-  color: var(--color-surface);
-  border-color: var(--color-primary);
-}
-
-#exportCSVBtn.export-btn:hover {
-  background: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
-}
-
-/* danger 級：資料破壞性動作（重新載入會丟棄當前顯示資料） */
-#reloadBtn.export-btn {
-  background: var(--color-error);
-  color: var(--color-surface);
-  border-color: var(--color-error);
-}
-
-#reloadBtn.export-btn:hover {
-  background: var(--color-error);
-  border-color: var(--color-error);
-  filter: brightness(0.9);
-}
-
-/* 檔案載入區域（W3-001 §c：權重「次 / secondary panel」級）
-   panel 底 + 1px border + 無陰影，與主元素（表格）拉開視覺權重 */
-.file-uploader {
-  background: var(--color-panel);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-sm);
-  text-align: center;
-  margin-bottom: var(--spacing-lg);
-  border: 1px dashed var(--color-border-strong);
-}
-
-.file-uploader h3 {
-  margin-bottom: var(--spacing-md);
-  color: var(--color-on-surface);
-  font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semi-bold);
-}
-
-#jsonFileInput {
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-sm);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  background: var(--color-surface);
-}
-
-/* 書籍表格（W3-001 §c：權重「主 / primary surface」級 = 頁面視覺重心）
-   資料工具的核心是資料而非按鈕，故表格升為唯一較重元素：
-   surface 白底 + sm shadow（0 2px 8px）+ radius md（12，由 sm 升階） */
-#booksTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: var(--spacing-lg);
-  background: var(--color-surface);
-  box-shadow: 0 2px 8px var(--shadow-color-sm);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-/* 表頭（W3-001 §c：由 primary 藍改 panel 中性底 + ink 文字）
-   消除大面積單藍氾濫，表頭退為中性承載層（th-text 14.03:1 on panel） */
-#booksTable th {
-  background: var(--color-panel);
   color: var(--color-on-background);
-  padding: var(--spacing-md) var(--spacing-md);
-  text-align: left;
+}
+
+.ov-btn--plain:not(:disabled):hover {
+  border-color: var(--color-primary-darkest);
+}
+
+/* ===== 主體：篩選欄＋主區 ===== */
+.ov-body {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: calc(100vh - var(--ov-top-height));
+}
+
+.facet-panel {
+  position: sticky;
+  top: var(--ov-top-height);
+  align-self: start;
+  height: calc(100vh - var(--ov-top-height));
+  overflow-y: auto;
+  padding: var(--spacing-md) var(--spacing-sm) var(--spacing-xl);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+.facet-group {
+  margin-top: var(--spacing-lg);
+}
+
+.facet-title {
+  margin: 0 var(--spacing-sm) var(--spacing-xs);
+  color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-small);
   font-weight: var(--font-weight-semi-bold);
+  letter-spacing: 0.08em;
+}
+
+.facet-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: 6px var(--spacing-sm);
+  border: 0;
+  background: transparent;
+  color: var(--color-on-background);
+  text-align: left;
+  transition: background-color 120ms var(--ov-ease);
+}
+
+.facet-item:hover {
+  background: var(--color-primary-lightest);
+}
+
+.facet-item[aria-pressed="true"] {
+  background: var(--color-primary-darkest);
+  color: var(--color-surface);
+}
+
+.facet-item--all {
+  font-weight: var(--font-weight-bold);
+}
+
+.facet-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.facet-count {
+  flex: none;
+  color: var(--color-on-surface);
   font-size: var(--font-size-body-medium);
-  /* 分隔語意（標題下方界線）收斂為 divider strong 分割陰影（1.5.0-W6-004） */
-  box-shadow: 0 3px 6px var(--divider-strong);
+  font-weight: var(--font-weight-semi-bold);
+  font-variant-numeric: tabular-nums;
 }
 
-#booksTable td {
-  padding: var(--spacing-md);
-  /* 分隔語意（列表項間細分隔）收斂為 divider subtle 分割陰影（1.5.0-W6-004） */
-  box-shadow: 0 1px 2px var(--divider-subtle);
-  vertical-align: middle;
+.facet-item[aria-pressed="true"] .facet-count {
+  color: var(--color-primary-light);
+}
+
+.ov-main {
+  min-width: 0;
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xxl);
+}
+
+/* ===== 工具列：搜尋與排序在左，選取與呈現方式在右；窄時右組整組換行 =====
+   書目很長，工具列貼在頂欄下方跟著捲動，找書不必捲回開頭。底色與主區相同，
+   左右延伸到主區邊緣，書目從它底下捲過去。 */
+.ov-tools {
+  position: sticky;
+  top: var(--ov-top-height);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-md);
+  margin: calc(var(--spacing-sm) * -1) calc(var(--spacing-xl) * -1) var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-xl);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 回到頂部：捲過第一個畫面才出現；隱藏時用 visibility，按鈕離開 Tab 順序，工具列也不跳動 */
+.back-to-top {
+  visibility: hidden;
+}
+
+.back-to-top[data-shown="true"] {
+  visibility: visible;
+}
+
+.ov-search {
+  flex: 1 1 200px;
+  max-width: 320px;
+}
+
+.ov-sort,
+.ov-select {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.ov-select {
+  margin-left: auto;
+}
+
+.ov-sort label {
+  color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semi-bold);
+}
+
+.ov-search .input,
+.ov-sort select {
+  width: 100%;
+  height: 38px;
+  padding: 0 var(--spacing-md) 0 var(--spacing-sm);
+  /* 輸入框白底對主區底色幾乎沒有差，框線是唯一辨認依據，要達 3:1 */
+  border: 1px solid var(--color-on-surface-muted);
+  border-radius: 0;
+  background-color: var(--color-surface);
+  color: var(--color-on-background);
   font-size: var(--font-size-body-medium);
 }
 
-#booksTable tr:hover {
-  background-color: var(--color-background);
+.ov-search .input::placeholder {
+  color: var(--color-on-surface-muted);
 }
 
-#booksTable tr:last-child td {
+.ov-search .input:focus,
+.ov-sort select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -1px;
+  border-color: var(--color-primary);
   box-shadow: none;
 }
 
-/* 選取狀態（W6-012.7.1）*/
-#booksTable th.select-col,
-#booksTable td.select-col {
-  width: 40px;
-  text-align: center;
-  padding: var(--spacing-sm);
-}
-
-#booksTable .row-checkbox,
-#selectAllHeaderCheckbox {
-  width: 16px;
-  height: 16px;
+/* 原生下拉改畫成直角；箭頭用兩道斜切漸層畫出 */
+.ov-sort select {
+  appearance: none;
+  width: auto;
+  min-width: 96px;
+  padding-right: var(--spacing-xl);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-on-surface) 50%),
+    linear-gradient(135deg, var(--color-on-surface) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
   cursor: pointer;
-  vertical-align: middle;
 }
 
-#booksTable tr.row-selected {
-  background-color: var(--color-primary-lightest);
+.ov-tools .ov-btn--plain {
+  height: 38px;
 }
 
-#booksTable tr.row-selected:hover {
-  background-color: var(--color-primary-light);
+.selection-count {
+  white-space: nowrap;
+  color: var(--color-primary-darkest);
+  font-weight: var(--font-weight-semi-bold);
+  font-variant-numeric: tabular-nums;
 }
 
-/* 作者欄拓寬（1.4.2-W2-004） */
-.book-author-cell {
-  min-width: 100px;
+.view-switch {
+  display: flex;
+  height: 38px;
+  border: 1px solid var(--color-primary-darkest);
 }
 
-/* 展開欄位（1.4.2-W2-004）*/
-#booksTable th.expand-col,
-#booksTable td.expand-col {
-  width: 36px;
-  text-align: center;
-  padding: var(--spacing-xs);
+.view-switch-btn {
+  padding: 0 var(--spacing-md);
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-primary-darkest);
+  font-weight: var(--font-weight-semi-bold);
 }
 
-.expand-toggle-btn {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  display: inline-flex;
+.view-switch-btn[aria-pressed="true"] {
+  background: var(--color-primary-darkest);
+  color: var(--color-surface);
+}
+
+.view-switch-btn:not([aria-pressed="true"]):hover {
+  background: var(--color-primary-lightest);
+}
+
+/* ===== 匯入面板 ===== */
+.file-uploader {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  transition: border-color 0.2s;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
 }
 
-.expand-toggle-btn::after {
-  content: '';
-  display: block;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  transition: transform 0.2s;
+.file-uploader-title {
+  flex-basis: 100%;
+  font-size: var(--font-size-title-small);
+  font-weight: var(--font-weight-bold);
 }
 
-.expand-toggle-btn--collapsed::after {
-  border-width: 4px 0 4px 6px;
-  border-color: transparent transparent transparent var(--color-on-surface-muted);
+#jsonFileInput {
+  flex: 1 1 260px;
+  padding: var(--spacing-xs) 0;
 }
 
-.expand-toggle-btn--expanded::after {
-  border-width: 6px 4px 0 4px;
-  border-color: var(--color-primary) transparent transparent transparent;
+#jsonFileInput::file-selector-button {
+  margin-right: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: var(--color-panel);
+  color: var(--color-on-background);
+  font: inherit;
+  cursor: pointer;
 }
 
-.expand-toggle-btn:hover {
-  border-color: var(--color-primary);
+/* ===== 封面網格 ===== */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: var(--spacing-xl) var(--spacing-lg);
+  list-style: none;
 }
 
-.expand-toggle-btn--collapsed:hover::after {
-  border-color: transparent transparent transparent var(--color-primary);
+body[data-view="table"] .book-grid,
+body:not([data-empty="none"]) .book-grid {
+  display: none;
 }
 
-/* 標籤展開行（1.4.2-W2-004） */
-.tag-expand-row td {
-  background-color: var(--color-panel);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  /* 分隔語意（展開內容區塊邊界）收斂為 divider normal 分割陰影（1.5.0-W6-004） */
-  box-shadow: 0 2px 4px var(--divider-normal);
+.book-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.tag-expand-row:hover {
-  background-color: var(--color-panel);
-}
-
-/* 書籍封面圖片 */
-.book-cover {
-  width: 40px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: var(--radius-xs);
-  box-shadow: 0 2px 4px var(--shadow-color-sm);
-}
-
-/* 進度條 */
-.progress-bar {
-  width: 100px;
-  height: 8px;
-  background-color: var(--color-border);
-  border-radius: var(--radius-xs);
-  overflow: hidden;
+/* 封面直角；下緣兩道細線是書口 */
+.book-card-cover {
   position: relative;
+  aspect-ratio: 2 / 3;
+  background: var(--color-panel);
+  box-shadow:
+    0 2px 0 var(--color-surface),
+    0 3px 0 var(--color-border-strong),
+    0 5px 0 var(--color-surface),
+    0 6px 0 var(--color-border-strong),
+    0 10px 16px -8px var(--shadow-color-md);
+  transition: transform 160ms var(--ov-ease);
+}
+
+.book-card:hover .book-card-cover {
+  transform: translateY(-3px);
+}
+
+.book-card-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 沒有封面的書：淡灰底加細框，書名用一般字色，不比有封面的書顯眼 */
+.book-card-cover--empty {
+  display: flex;
+  align-items: flex-end;
+  padding: var(--spacing-sm);
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-small);
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+.card-checkbox {
+  position: absolute;
+  top: var(--spacing-sm);
+  left: var(--spacing-sm);
+  width: 20px;
+  height: 20px;
+  accent-color: var(--color-primary-darkest);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms var(--ov-ease);
+}
+
+.card-checkbox:focus-visible {
+  outline: 2px solid var(--color-surface);
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px var(--color-primary-darkest);
+}
+
+.book-card[data-book-id] .book-card-cover {
+  cursor: pointer;
+}
+
+.book-card:hover .card-checkbox,
+.card-checkbox:focus-visible,
+.card-checkbox:checked,
+body[data-selection="some"] .card-checkbox {
+  opacity: 1;
+}
+
+.book-card.is-selected .book-card-cover {
+  outline: 3px solid var(--color-primary-darkest);
+  outline-offset: 3px;
+}
+
+.book-card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.4;
+}
+
+.book-card-author {
+  overflow: hidden;
+  margin-top: var(--spacing-xxs);
+  color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-small);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.book-card-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.progress-track {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border);
 }
 
 .progress-fill {
+  display: block;
   height: 100%;
-  background: var(--color-success);
-  transition: width 0.3s ease;
+  background: var(--color-primary);
 }
 
-.progress-text {
-  font-size: var(--font-size-body-small);
+.progress-value {
+  min-width: 4ch;
   color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-small);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.book-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-body-small);
+}
+
+.book-card-source {
+  overflow: hidden;
+  color: var(--color-on-surface-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.book-card-tags-toggle {
+  align-self: flex-start;
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xxs) 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semi-bold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.book-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
   margin-top: var(--spacing-xs);
 }
 
-/* 閱讀狀態標籤（6 狀態，對齊 SPEC-DESIGN-SYSTEM Section 3）
-   D3：深字淺底 WCAG AA，色值取自 design-system.css --status-*-fg/bg
-   基礎樣式（padding/border-radius/font-size/font-weight/display）已收斂至
-   design-system.css 的 .badge, .reading-status-badge 合併規則（1.5.0-W6-023，
-   src/core/design-system/component-rules.js），此處僅保留 6 個 data-status 色值變體。 */
+/* ===== 閱讀狀態標籤：直角，色值取自 --status-*-fg/bg（WCAG AA） ===== */
+.reading-status-badge {
+  border-radius: 0;
+  padding: 1px 6px;
+  font-size: var(--font-size-body-small);
+  white-space: nowrap;
+}
+
 .reading-status-badge[data-status="unread"] {
   background-color: var(--status-unread-bg);
   color: var(--status-unread-fg);
@@ -385,191 +714,264 @@ body {
   color: var(--status-reference-fg);
 }
 
-/* 載入狀態 */
-#loadingIndicator {
+.tag-chip {
+  display: inline-block;
+  margin: 0 var(--spacing-xs) var(--spacing-xxs) 0;
+  padding: 0 6px;
+  font-size: var(--font-size-body-small);
+  line-height: 1.6;
+}
+
+.book-tags-empty {
+  color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-small);
+}
+
+/* ===== 表格 ===== */
+.table-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+body[data-view="grid"] .table-wrap,
+body:not([data-empty="none"]) .table-wrap {
+  display: none;
+}
+
+#booksTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#booksTable th {
+  position: sticky;
+  top: calc(var(--ov-top-height) + var(--ov-tools-height));
+  z-index: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-surface);
+  color: var(--color-on-surface-muted);
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-semi-bold);
+  text-align: left;
+  border-bottom: 2px solid var(--color-primary-darkest);
+}
+
+#booksTable td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+#booksTable td:nth-child(6) {
+  font-variant-numeric: tabular-nums;
+}
+
+#booksTable tbody tr:hover {
+  background-color: var(--color-background);
+}
+
+#booksTable td img {
+  display: block;
+}
+
+.book-title-cell {
+  font-weight: var(--font-weight-semi-bold);
+}
+
+.book-author-cell {
+  min-width: 100px;
+  color: var(--color-on-surface);
+}
+
+#booksTable th.select-col,
+#booksTable td.select-col {
+  width: 44px;
   text-align: center;
-  padding: var(--spacing-xxl);
+  padding: var(--spacing-sm);
+}
+
+#booksTable .row-checkbox,
+#selectAllHeaderCheckbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary-darkest);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+#booksTable tr.row-selected {
+  background-color: var(--color-primary-lightest);
+}
+
+#booksTable tr.row-selected:hover {
+  background-color: var(--color-primary-light);
+}
+
+.table-empty-cell {
+  padding: var(--spacing-xxl) var(--spacing-md);
+  color: var(--color-on-surface-muted);
+  text-align: center;
+}
+
+#booksTable th.expand-col,
+#booksTable td.expand-col {
+  width: 44px;
+  text-align: center;
+  padding: var(--spacing-xs);
+}
+
+.expand-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  background: var(--color-surface);
+  transition: border-color 120ms var(--ov-ease);
+}
+
+/* 箭頭用邊框畫的三角形 */
+.expand-toggle-btn::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.expand-toggle-btn--collapsed::after {
+  border-width: 4px 0 4px 6px;
+  border-color: transparent transparent transparent var(--color-on-surface);
+}
+
+.expand-toggle-btn--expanded::after {
+  border-width: 6px 4px 0 4px;
+  border-color: var(--color-primary-darkest) transparent transparent transparent;
+}
+
+.expand-toggle-btn:hover {
+  border-color: var(--color-primary-darkest);
+}
+
+.tag-expand-row td {
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) calc(44px + var(--spacing-md));
+  background-color: var(--color-panel);
+}
+
+.tag-expand-row:hover {
+  background-color: var(--color-panel);
+}
+
+/* ===== 空狀態、載入、錯誤 ===== */
+.empty-state {
+  max-width: 560px;
+  padding: var(--spacing-xxl) 0;
+}
+
+.empty-state-title {
+  font-size: var(--font-size-title-large);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+}
+
+.empty-state-body {
+  margin-top: var(--spacing-sm);
+  color: var(--color-on-surface);
+  font-size: var(--font-size-body-large);
+  line-height: 1.6;
+}
+
+.empty-state .ov-btn {
+  margin-top: var(--spacing-lg);
+}
+
+#loadingIndicator {
+  padding: var(--spacing-xxl) 0;
+  text-align: center;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--color-background);
-  border-top: 4px solid var(--color-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  width: 48px;
+  height: 6px;
   margin: 0 auto var(--spacing-md);
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  background: repeating-linear-gradient(180deg, var(--color-primary-light) 0 1px, var(--color-primary-darkest) 1px 2px);
+  background-size: 200% 100%;
+  animation: book-edge-scan 1.2s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
 }
 
 .loading-text {
   color: var(--color-on-surface-muted);
-  font-size: var(--font-size-body-large);
 }
 
-/* 錯誤訊息 */
+@keyframes book-edge-scan {
+  from {
+    clip-path: inset(0 75% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 75%);
+  }
+}
+
 #errorContainer {
-  background-color: var(--color-error-light);
-  border: 1px solid var(--color-error-light);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-lg);
-  text-align: center;
-  margin: var(--spacing-lg) 0;
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-error);
 }
 
 .error-message {
   color: var(--color-error);
-  margin-bottom: var(--spacing-md);
-  font-size: var(--font-size-body-large);
+  font-weight: var(--font-weight-semi-bold);
 }
 
 .error-retry-btn {
-  background-color: var(--color-error);
-  color: var(--color-surface);
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: var(--font-size-body-medium);
-  font-weight: var(--font-weight-medium);
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 1px solid var(--color-error);
+  border-radius: 0;
+  background: var(--color-surface);
+  color: var(--color-error);
+  font-weight: var(--font-weight-semi-bold);
 }
 
 .error-retry-btn:hover {
-  background-color: var(--color-error);
-  filter: brightness(0.92);
+  background: var(--color-error);
+  color: var(--color-surface);
 }
 
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .container {
-    padding: var(--spacing-md);
-  }
-
-  #pageTitle {
-    font-size: var(--font-size-headline3);
-  }
-
-  .stats {
-    flex-direction: column;
-    gap: var(--spacing-lg);
-  }
-
-  .export-buttons {
-    justify-content: stretch;
-  }
-
-  .export-btn {
-    flex: 1;
-    min-width: 120px;
-  }
-
-  #booksTable {
-    font-size: var(--font-size-body-small);
-  }
-
-  #booksTable th,
-  #booksTable td {
-    padding: var(--spacing-sm) var(--spacing-xs);
-  }
-
-  .book-cover {
-    width: 30px;
-    height: 45px;
-  }
-
-  .progress-bar {
-    width: 80px;
-  }
-}
-
-@media (max-width: 480px) {
-  .stats {
-    padding: var(--spacing-md);
-  }
-
-  .stat-number {
-    font-size: var(--font-size-headline3);
-  }
-
-  .export-buttons {
-    flex-direction: column;
-  }
-
-  .export-btn {
-    width: 100%;
-  }
-}
-
-/* 輔助類別 */
-.hidden {
-  display: none !important;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.mt-20 {
-  margin-top: var(--spacing-lg);
-}
-
-.mb-20 {
-  margin-bottom: var(--spacing-lg);
-}
-
-/* 動畫效果 */
-.fade-in {
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 匯入模式選擇 modal（UC-04） */
+/* ===== 匯入模式選擇／清空確認 modal（UC-04） ===== */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--overlay-scrim);
+  inset: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  background: var(--overlay-scrim);
 }
 
 .modal-dialog {
-  background: var(--color-surface);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-lg);
-  max-width: 480px;
   width: 90%;
-  box-shadow: 0 4px 20px var(--shadow-color-md);
+  max-width: 480px;
+  padding: var(--spacing-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-darkest);
+  box-shadow: 0 12px 32px var(--shadow-color-md);
 }
 
 .modal-title {
   margin: 0 0 var(--spacing-md);
   font-size: var(--font-size-title-medium);
-  font-weight: var(--font-weight-semi-bold);
+  font-weight: var(--font-weight-bold);
   color: var(--color-on-background);
 }
 
 .modal-description {
   margin: 0 0 var(--spacing-lg);
-  color: var(--color-on-surface-muted);
+  color: var(--color-on-surface);
   line-height: 1.6;
 }
 
@@ -581,15 +983,15 @@ body {
 
 .modal-btn {
   padding: var(--spacing-sm) var(--spacing-md);
-  border: none;
-  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  border-radius: 0;
   font-size: var(--font-size-body-medium);
-  cursor: pointer;
+  font-weight: var(--font-weight-semi-bold);
+  text-align: left;
 }
 
-/* modal 按鈕主次三級（W3-001 §c）：primary 底白字 / secondary panel 底 ink 字 + border */
 .modal-btn-primary {
-  background: var(--color-primary);
+  background: var(--color-primary-darkest);
   color: var(--color-surface);
 }
 
@@ -598,30 +1000,109 @@ body {
 }
 
 .modal-btn-secondary {
-  background: var(--color-panel);
+  background: var(--color-surface);
   color: var(--color-on-background);
-  border: 1px solid var(--color-border-strong);
+  border-color: var(--color-border-strong);
 }
 
 .modal-btn-secondary:hover {
-  background: var(--color-surface);
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-darkest);
 }
 
-/* W1-049: destructive 確認按鈕（紅色警告色，視覺與其他按鈕對比明顯）
-   用於不可逆操作（如清空書庫）的二次確認，與 .modal-btn-secondary 取消鈕並列 */
+/* 覆蓋會清空現有書庫，不跟安全的合併同重量 */
+#importModeOverwriteBtn {
+  background: var(--color-surface);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+#importModeOverwriteBtn:hover {
+  background: var(--color-error);
+  color: var(--color-surface);
+}
+
+/* destructive 確認按鈕（不可逆操作，如清空書庫） */
 .modal-btn-danger {
   background: var(--color-error);
   color: var(--color-surface);
 }
 
 .modal-btn-danger:hover {
-  background: var(--color-error);
   filter: brightness(0.88);
 }
 
-/* focus ring 主色歸一至 design-system primary（原自訂藍紫漂移色已移除） */
-.modal-btn:focus {
+.modal-btn:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+/* ===== 窄視窗：篩選欄收到上方 ===== */
+@media (max-width: 860px) {
+  .ov-top {
+    position: static;
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--spacing-md);
+  }
+
+  .ov-actions {
+    justify-content: flex-start;
+  }
+
+  .ov-body {
+    grid-template-columns: 1fr;
+  }
+
+  /* 四組並排成欄，書目不必等整個篩選欄捲完才出現 */
+  .facet-panel {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0 var(--spacing-md);
+    align-items: start;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .facet-item--all {
+    grid-column: 1 / -1;
+  }
+
+  .facet-group {
+    margin-top: var(--spacing-md);
+  }
+
+  .ov-main {
+    padding: var(--spacing-md);
+  }
+
+  /* 頂欄在窄版不貼頂，工具列改貼在最上緣 */
+  :root {
+    scroll-padding-top: calc(var(--ov-tools-height) + var(--spacing-sm));
+  }
+
+  .ov-tools {
+    top: 0;
+    margin: calc(var(--spacing-md) * -1) calc(var(--spacing-md) * -1) var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  #booksTable th {
+    top: var(--ov-tools-height);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
 }

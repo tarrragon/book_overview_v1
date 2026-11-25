@@ -3,92 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Readmoo書籍目錄</title>
+    <title>我的書庫 - Book Overview</title>
     <!-- design-system.css 為 build 產生的 :root 變數來源（AUTO-GENERATED），
          必須置於 overview.css 之前，使後者的 var() 取用得到變數定義。 -->
     <link rel="stylesheet" href="../core/design-system/design-system.css">
     <link rel="stylesheet" href="overview.css">
 </head>
-<body>
-    <div class="container">
-        <h1 id="pageTitle">Readmoo書籍目錄</h1>
-        
-        <!-- 統計資訊區域 -->
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-number" id="totalBooks">0</div>
-                <div class="stat-label">總書籍數</div>
+<body data-view="grid">
+    <header class="ov-top">
+        <div class="ov-heading">
+            <h1 id="pageTitle">我的書庫</h1>
+            <p class="ov-count">共 <span id="totalBooks">0</span> 本<span class="ov-count-sep" aria-hidden="true"></span>顯示 <span id="displayedBooks">0</span> 本</p>
+        </div>
+        <div class="ov-actions">
+            <button type="button" class="ov-btn ov-btn--quiet" id="reloadBtn">重新載入</button>
+            <button type="button" class="ov-btn ov-btn--outline" id="importJSONBtn">匯入</button>
+            <button type="button" class="ov-btn ov-btn--outline" id="exportCSVBtn">匯出 CSV</button>
+            <button type="button" class="ov-btn ov-btn--key" id="exportJSONBtn">匯出 JSON</button>
+        </div>
+    </header>
+
+    <div class="ov-body">
+        <!-- 篩選欄：由 overview-facets.js 依書目渲染（閱讀狀態、書城、重要程度、標籤） -->
+        <nav id="facetPanel" class="facet-panel" aria-label="篩選書目"></nav>
+
+        <main class="ov-main">
+            <div class="ov-tools">
+                <!-- searchBox 由 overview-page-controller.js 以 createInput 動態建立（1.5.0-W6-024） -->
+                <div id="searchBoxContainer" class="ov-search"></div>
+                <div class="ov-sort">
+                    <label for="sortSelect">排序</label>
+                    <select id="sortSelect">
+                        <option value="title">書名</option>
+                        <option value="progress">閱讀進度</option>
+                        <option value="source">書城</option>
+                    </select>
+                    <label for="sortDirection" class="visually-hidden">排序方向</label>
+                    <select id="sortDirection">
+                        <option value="asc">正序</option>
+                        <option value="desc">倒序</option>
+                    </select>
+                </div>
+                <div class="ov-select">
+                    <button type="button" class="ov-btn ov-btn--plain back-to-top" id="backToTopBtn" aria-hidden="true" tabindex="-1">回到頂部</button>
+                    <span id="selectionCount" class="selection-count" aria-live="polite" hidden></span>
+                    <button type="button" class="ov-btn ov-btn--plain" id="selectAllBtn">選取全部</button>
+                    <div class="view-switch" role="group" aria-label="書目呈現方式">
+                        <button type="button" class="view-switch-btn" id="viewGridBtn" aria-pressed="true">封面</button>
+                        <button type="button" class="view-switch-btn" id="viewTableBtn" aria-pressed="false">表格</button>
+                    </div>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number" id="displayedBooks">0</div>
-                <div class="stat-label">顯示中</div>
+
+            <!-- 匯入面板：按「匯入」開關 -->
+            <div id="fileUploader" style="display: none;">
+                <div class="file-uploader">
+                    <h2 class="file-uploader-title">匯入書庫 JSON 檔</h2>
+                    <input type="file" id="jsonFileInput" accept=".json,application/json">
+                    <button type="button" class="ov-btn ov-btn--key-dark" id="loadFileBtn">載入檔案</button>
+                    <button type="button" class="ov-btn ov-btn--plain" id="loadSampleBtn">載入範例資料</button>
+                </div>
             </div>
-        </div>
 
-        <!-- 搜尋區域（searchBox 由 overview-page-controller.js 以 createInput 動態建立，
-             1.5.0-W6-024；此容器保留掛載點，找不到容器時等同無搜尋框，行為與遷移前一致） -->
-        <div id="searchBoxContainer"></div>
-
-        <!-- 操作按鈕區域 -->
-        <div class="export-buttons">
-            <button class="export-btn" id="exportCSVBtn">匯出 CSV</button>
-            <button class="export-btn" id="exportJSONBtn">匯出 JSON</button>
-            <button class="export-btn" id="importJSONBtn">匯入 JSON</button>
-            <button class="export-btn" id="selectAllBtn">選取全部</button>
-            <button class="export-btn" id="reloadBtn">重新載入</button>
-            <div style="display:inline-block;margin-left:16px;">
-              <label for="sortSelect">排序：</label>
-              <select id="sortSelect">
-                <option value="title">書名</option>
-                <option value="progress">閱讀進度</option>
-                <option value="source">書城來源</option>
-              </select>
-              <select id="sortDirection">
-                <option value="asc">升冪</option>
-                <option value="desc">降冪</option>
-              </select>
+            <div id="loadingIndicator" style="display: none;" role="status">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">載入中...</div>
             </div>
-        </div>
 
-        <!-- 檔案載入區域 -->
-        <div id="fileUploader" style="display: none;">
-            <div class="file-uploader">
-                <h3>載入書籍 JSON 檔案</h3>
-                <input type="file" id="jsonFileInput" accept=".json,application/json">
-                <button class="export-btn" id="loadFileBtn">載入檔案</button>
-                <button class="export-btn" id="loadSampleBtn">載入範例資料</button>
+            <div id="errorContainer" style="display: none;" role="alert">
+                <div class="error-message" id="errorMessage"></div>
+                <button type="button" class="error-retry-btn" id="retryBtn">重試</button>
             </div>
-        </div>
 
-        <!-- 書籍表格區域 -->
-        <table id="booksTable">
-            <thead>
-                <tr>
-                    <th class="select-col"><input type="checkbox" id="selectAllHeaderCheckbox" aria-label="全選"></th>
-                    <th>封面</th>
-                    <th>書名</th>
-                    <th>作者</th>
-                    <th>書城來源</th>
-                    <th>進度</th>
-                    <th>狀態</th>
-                    <th class="expand-col"></th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-            </tbody>
-        </table>
+            <!-- 主區空狀態：書庫是空的／篩選後沒有結果（文字由 controller 寫入） -->
+            <section id="emptyState" class="empty-state" hidden>
+                <h2 id="emptyStateTitle" class="empty-state-title"></h2>
+                <p id="emptyStateBody" class="empty-state-body"></p>
+                <button type="button" class="ov-btn ov-btn--key-dark" id="emptyStateAction"></button>
+            </section>
 
-        <!-- 載入狀態區域 -->
-        <div id="loadingIndicator" style="display: none;">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">載入中...</div>
-        </div>
+            <ul id="bookGrid" class="book-grid" aria-label="書目"></ul>
 
-        <!-- 錯誤訊息區域 -->
-        <div id="errorContainer" style="display: none;">
-            <div class="error-message" id="errorMessage"></div>
-            <button class="error-retry-btn" id="retryBtn">重試</button>
-        </div>
+            <div id="tableWrap" class="table-wrap">
+                <table id="booksTable">
+                    <thead>
+                        <tr>
+                            <th class="select-col"><input type="checkbox" id="selectAllHeaderCheckbox" aria-label="全選"></th>
+                            <th>封面</th>
+                            <th>書名</th>
+                            <th>作者</th>
+                            <th>書城</th>
+                            <th>進度</th>
+                            <th>狀態</th>
+                            <th class="expand-col"><span class="visually-hidden">標籤</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
 
     <!-- 匯入模式選擇 modal（UC-04，預設隱藏；由 promptImportMode 控制顯示） -->
