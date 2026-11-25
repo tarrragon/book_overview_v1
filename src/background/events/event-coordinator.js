@@ -19,6 +19,7 @@ const { SYSTEM_EVENTS, EVENT_PRIORITIES, PLATFORM_IDS, platformBooksKey } = requ
 const { Logger } = require('src/core/logging/Logger')
 const ErrorCodes = require('src/core/errors/ErrorCodes')
 const BookSchemaV2 = require('src/data-management/BookSchemaV2')
+const { mergeExtractedBooks } = require('src/data-management/extraction-merge')
 
 class EventCoordinator extends BaseModule {
   constructor (dependencies = {}) {
@@ -587,17 +588,25 @@ class EventCoordinator extends BaseModule {
         }
 
         if (books && Array.isArray(books)) {
+          const storageKey = platformBooksKey(source)
+
+          // UC-02：與本機既有書目合併，保留使用者的標籤與手動狀態。
+          // 沒有變化時書目原樣保留，但照樣寫入這次的摘要：popup 靠這個 key 的
+          // storage.onChanged 判斷提取完成，並從 extractionSummary 讀出新增／更新本數。
+          const existing = await chrome.storage.local.get([storageKey])
+          const localBooks = existing?.[storageKey]?.books
+          const { books: mergedBooks, summary } = mergeExtractedBooks(localBooks, books)
+
           const storageData = {
-            books,
+            books: mergedBooks,
             extractionTimestamp: event.timestamp || Date.now(),
             extractionCount: event.data?.count || books.length,
             extractionDuration: event.data?.duration || 0,
+            extractionSummary: summary,
             source
           }
 
-          const storageKey = platformBooksKey(source)
-
-          this.logger.log(`[SAVE] 準備儲存 ${books.length} 本書籍到 Chrome Storage（key: ${storageKey}）`)
+          this.logger.log(`[SAVE] 準備儲存 ${mergedBooks.length} 本書籍到 Chrome Storage（key: ${storageKey}）`, summary)
           await chrome.storage.local.set({ [storageKey]: storageData })
 
           const verifyData = await chrome.storage.local.get([storageKey])
