@@ -635,6 +635,14 @@ async function build () {
     // esbuild bundling：打包三個入口點及其依賴
     await bundleEntryPoints()
 
+    // 開發版自動重新載入：改了 background／content 之後重新建置，擴充功能自己重載
+    // （正式版不套用；DEV_AUTO_RELOAD=0 可關閉；說明見 scripts/dev-auto-reload.js）
+    if (MODE === 'development' && process.env.DEV_AUTO_RELOAD !== '0') {
+      const { applyDevAutoReload } = require('./dev-auto-reload')
+      const { stamp } = applyDevAutoReload(BUILD_DIR)
+      console.log(`[DEV] 自動重新載入已啟用（建置戳記 ${stamp}）`)
+    }
+
     console.log(`\n[DONE] 編譯完成！輸出目錄: ${BUILD_DIR}`)
     console.log('[FILES] 檔案清單:')
 

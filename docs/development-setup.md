@@ -239,6 +239,48 @@ workflow 檔案本身**無法**啟用「阻擋合併」效果——required stat
 
 ---
 
+## 改動何時生效（未封裝擴充功能）
+
+未封裝的擴充功能由 Chrome 直接讀 `build/development` 資料夾，不必重新安裝；但改完重新建置之後，要不要到 `chrome://extensions` 重新載入，取決於改到的程式跑在哪裡：
+
+| 改到哪裡 | 程式跑在哪裡 | 重新建置之後 |
+|---------|------------|------------|
+| `src/popup/`、`src/overview/`、`src/core/design-system/` 等頁面用到的檔案 | 擴充功能自己的頁面 | 重新開啟 popup 或 overview 就是新程式，不必重新載入 |
+| `src/content/` | 注入書城頁面的 content script | 要重新載入擴充功能，再重新整理書城頁面 |
+| `src/background/` | service worker | 要重新載入擴充功能 |
+| `manifest.json` | — | 要重新載入擴充功能 |
+
+**實驗依據**（2026-11-26，Playwright 的 Chromium 載入 `build/development` 副本，副本 manifest 只多加 `http://127.0.0.1/*` 讓 content script 注入本機測試頁）：載入後改磁碟上的檔案、不重新載入擴充功能——popup 重新開啟讀到新檔；content script 在同一分頁重新整理與新分頁都還是舊程式；service worker 不論仍在執行、或被停掉後再喚醒，都還是舊程式。正對照：同一份改過的檔案全新載入時，content script 與 service worker 都讀到新程式。
+
+### 開發版自動重新載入
+
+`npm run build:dev` 會在開發版加入自動重新載入（`scripts/dev-auto-reload.js`），改了 `src/background/` 或 `src/content/` 之後重新建置，擴充功能會自己重新載入，不必到 `chrome://extensions` 按：
+
+- 建置時把建置戳記寫死在附加到 `background.js` 尾端的程式裡，並在建置最後寫出 `dev-build-stamp.json`；service worker 每 3 秒（`chrome.alarms`）讀一次戳記檔，與寫死的戳記不同就 `chrome.runtime.reload()`。
+- 正式版（`npm run build:prod`）不套用：不附加程式、不加 `alarms` 權限、不寫戳記檔。
+- 建置時設 `DEV_AUTO_RELOAD=0` 可關閉：`DEV_AUTO_RELOAD=0 npm run build:dev`。
+
+使用上要注意：
+
+1. **第一次要手動重新載入一次**：開發版的 manifest 多了 `alarms` 權限，manifest 的改動只有重新載入才生效；之後的建置就會自動重新載入。
+2. **content script 改動仍要重新整理書城頁面**：擴充功能重新載入後，已開著的書城分頁裡還是舊的 content script，重新整理該分頁才會注入新的。
+3. **提取進行中重新建置會中斷提取**：重新載入會結束 service worker 與所有擴充功能頁。
+4. `npm run validate:build` 對開發版會多一個「未預期的權限: alarms」警告，是這個機制造成的，正式版不會有。
+
+實驗紀錄：service worker 執行中時，改檔後約 1.3 秒偵測到新建置並關閉舊 worker；service worker 已被停掉時，鬧鐘喚醒它，約 0.2 秒偵測到。未封裝擴充功能的 `chrome.alarms` 間隔可以低於 30 秒。重新載入之後新程式是否正常執行，在 Playwright（以 `--load-extension` 載入）裡觀察不到——`chrome.runtime.reload()` 會讓這種方式載入的擴充功能消失——需要在一般 Chrome 以「載入未封裝項目」載入時確認。
+
+### 不經過使用者的 Chrome 驗證改動
+
+每次全新載入一份建置，就能測到 content script 與 service worker 的新程式：
+
+1. 把 `build/development` 複製到暫存目錄，需要時在副本 `manifest.json` 的 `content_scripts[0].matches` 加上本機網址（例如 `http://127.0.0.1/*`）。
+2. 以 Playwright `chromium.launchPersistentContext('', { channel: 'chromium', args: ['--disable-extensions-except=<副本>', '--load-extension=<副本>'] })` 載入。
+3. popup 與 overview 用 `chrome-extension://<id>/src/popup/popup.html` 開啟；content script 用本機頁面驗證注入與訊息往返。
+
+書城頁面上的提取（需要登入與真實 DOM）仍要在使用者的 Chrome 上驗證。
+
+---
+
 ## Troubleshooting
 
 | 症狀 | 可能原因 | 排查方法 | 修復動作 |
