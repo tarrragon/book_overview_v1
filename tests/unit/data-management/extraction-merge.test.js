@@ -137,3 +137,40 @@ describe('mergeExtractedBooks：舊紀錄只有書名 ID', () => {
     expect(books).toHaveLength(2)
   })
 })
+
+describe('mergeExtractedBooks：舊紀錄的封面 ID 與書名 ID 撞號（實際資料的三種情況）', () => {
+  test('舊紀錄的 ID 是 cover-<封面 ID>、封面網址版本參數變了：用 identifiers.coverId 對上', () => {
+    const old = localBook({ id: 'cover-f710gcf', title: '極限返航', cover: 'https://cdn.readmoo.com/cover/f7/f710gcf_210x315.jpg?v=1' })
+    const now = extractedBook({
+      id: 'reader-10371090',
+      title: '極限返航',
+      cover: 'https://cdn.readmoo.com/cover/f7/f710gcf_210x315.jpg?v=2',
+      identifiers: { readerLinkId: '10371090', coverId: 'f710gcf', titleBased: '極限返航' }
+    })
+    const { books, summary } = mergeExtractedBooks([old], [now], NOW)
+    expect(books).toHaveLength(1)
+    expect(summary).toMatchObject({ added: 0, updated: 1 })
+    expect(books[0].id).toBe('cover-f710gcf')
+    expect(books[0].cover).toContain('v=2')
+  })
+
+  test('兩本書的書名 ID 撞號（十月堂舊書事１、２）：各自對上書名相同的那一筆，不新增', () => {
+    const old1 = localBook({ id: 'title-十月堂舊書事', title: '十月堂舊書事１', cover: '' })
+    const old2 = localBook({ id: 'title-十月堂舊書事', title: '十月堂舊書事２', cover: '' })
+    const ids = (n) => ({ readerLinkId: String(n), titleBased: '十月堂舊書事' })
+    const now2 = extractedBook({ id: 'reader-2', title: '十月堂舊書事２', cover: 'https://img/2.jpg', identifiers: ids(2) })
+    const now1 = extractedBook({ id: 'reader-1', title: '十月堂舊書事１', cover: 'https://img/1.jpg', identifiers: ids(1) })
+    const { books, summary } = mergeExtractedBooks([old1, old2], [now2, now1], NOW)
+    expect(summary).toMatchObject({ added: 0, updated: 2, notOnPage: 0 })
+    expect(books.find(b => b.title === '十月堂舊書事１').cover).toBe('https://img/1.jpg')
+    expect(books.find(b => b.title === '十月堂舊書事２').cover).toBe('https://img/2.jpg')
+  })
+
+  test('頁面上已經沒有的舊書（克蘇魯神話辭典）照樣保留，計入 notOnPage', () => {
+    const old = localBook({ id: 'title-克蘇魯神話辭典', title: '克蘇魯神話辭典', cover: '' })
+    const other = extractedBook({ id: 'reader-9', title: '別本書', identifiers: { titleBased: '別本書' } })
+    const { books, summary } = mergeExtractedBooks([old], [other], NOW)
+    expect(books).toHaveLength(2)
+    expect(summary).toMatchObject({ added: 1, notOnPage: 1 })
+  })
+})
