@@ -1,42 +1,348 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-26T00:00:00Z",
+  "generatedAt": "2026-11-26T12:00:00Z",
   "title": "Design System: Book Overview — 電子書庫總覽",
   "extensions": {
-    "scope": "只涵蓋 popup（.popup-shell）。書庫總覽頁（src/overview/overview.css）仍是較早的外觀，還沒重新設計，不屬於本系統。",
+    "scope": "涵蓋 popup（.popup-shell）與書庫總覽頁（src/overview/overview.html、overview.css、overview-facets.js、overview-book-grid.js）。總覽頁方向契約：.impeccable/surfaces/src-overview-overview-html.md。",
     "tokenSource": "數值與 Flutter 行動版共用：docs/proposals/PROP-014-design-token-value-unification.md、src/core/design-system/token-manifest.json；本介面不改數值。",
     "colorMeta": {
-      "primary-darkest": { "role": "primary", "displayName": "書背深藍 Bookbinding Navy", "canonical": "#0F317D", "tonalRamp": ["#0F317D", "#1442AE", "#1A56DB", "#5B8DEF", "#CBDBF8", "#EAF0FD"] },
-      "primary-dark": { "role": "primary", "displayName": "墨水藍 Ink Blue", "canonical": "#1442AE", "tonalRamp": ["#0F317D", "#1442AE", "#1A56DB", "#5B8DEF", "#CBDBF8", "#EAF0FD"] },
-      "primary-medium": { "role": "primary", "displayName": "書口中藍 Page-Edge Blue", "canonical": "#5B8DEF", "tonalRamp": ["#0F317D", "#1442AE", "#1A56DB", "#5B8DEF", "#CBDBF8", "#EAF0FD"] },
-      "primary-light": { "role": "neutral", "displayName": "淡藍 Pale Blue", "canonical": "#CBDBF8", "tonalRamp": ["#0F317D", "#1442AE", "#1A56DB", "#5B8DEF", "#CBDBF8", "#EAF0FD"] },
-      "primary-lightest": { "role": "neutral", "displayName": "紙邊淡藍 Page Tint", "canonical": "#EAF0FD", "tonalRamp": ["#0F317D", "#1442AE", "#1A56DB", "#5B8DEF", "#CBDBF8", "#EAF0FD"] },
-      "surface": { "role": "neutral", "displayName": "紙白 Paper White", "canonical": "#FFFFFF", "tonalRamp": ["#FFFFFF"] },
-      "error-light": { "role": "neutral", "displayName": "錯誤淡紅 Error Blush", "canonical": "#FFCDD2", "tonalRamp": ["#C2342B", "#FFCDD2"] }
+      "primary-darkest": {
+        "role": "primary",
+        "displayName": "書背深藍 Bookbinding Navy",
+        "canonical": "#0F317D",
+        "tonalRamp": [
+          "#0F317D",
+          "#1442AE",
+          "#1A56DB",
+          "#5B8DEF",
+          "#CBDBF8",
+          "#EAF0FD"
+        ]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "墨水藍 Ink Blue",
+        "canonical": "#1442AE",
+        "tonalRamp": [
+          "#0F317D",
+          "#1442AE",
+          "#1A56DB",
+          "#5B8DEF",
+          "#CBDBF8",
+          "#EAF0FD"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "焦點藍 Focus Blue",
+        "canonical": "#1A56DB",
+        "tonalRamp": [
+          "#0F317D",
+          "#1442AE",
+          "#1A56DB",
+          "#5B8DEF",
+          "#CBDBF8",
+          "#EAF0FD"
+        ]
+      },
+      "primary-medium": {
+        "role": "primary",
+        "displayName": "書口中藍 Page-Edge Blue",
+        "canonical": "#5B8DEF",
+        "tonalRamp": [
+          "#0F317D",
+          "#1442AE",
+          "#1A56DB",
+          "#5B8DEF",
+          "#CBDBF8",
+          "#EAF0FD"
+        ]
+      },
+      "primary-light": {
+        "role": "neutral",
+        "displayName": "淡藍 Pale Blue",
+        "canonical": "#CBDBF8",
+        "tonalRamp": [
+          "#0F317D",
+          "#1442AE",
+          "#1A56DB",
+          "#5B8DEF",
+          "#CBDBF8",
+          "#EAF0FD"
+        ]
+      },
+      "primary-lightest": {
+        "role": "neutral",
+        "displayName": "紙邊淡藍 Page Tint",
+        "canonical": "#EAF0FD",
+        "tonalRamp": [
+          "#0F317D",
+          "#1442AE",
+          "#1A56DB",
+          "#5B8DEF",
+          "#CBDBF8",
+          "#EAF0FD"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "紙白 Paper White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#FFFFFF"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "工作區灰 Desk Gray",
+        "canonical": "#F5F7FA",
+        "tonalRamp": [
+          "#1A2233",
+          "#34404F",
+          "#5B6573",
+          "#C4CDD9",
+          "#D9E0EA",
+          "#EDF1F7",
+          "#F5F7FA",
+          "#FFFFFF"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "封面底灰 Cover Gray",
+        "canonical": "#EDF1F7",
+        "tonalRamp": [
+          "#1A2233",
+          "#34404F",
+          "#5B6573",
+          "#C4CDD9",
+          "#D9E0EA",
+          "#EDF1F7",
+          "#F5F7FA",
+          "#FFFFFF"
+        ]
+      },
+      "on-background": {
+        "role": "neutral",
+        "displayName": "墨色 Ink",
+        "canonical": "#1A2233",
+        "tonalRamp": [
+          "#1A2233",
+          "#34404F",
+          "#5B6573",
+          "#C4CDD9",
+          "#D9E0EA",
+          "#EDF1F7",
+          "#F5F7FA",
+          "#FFFFFF"
+        ]
+      },
+      "on-surface": {
+        "role": "neutral",
+        "displayName": "次墨 Soft Ink",
+        "canonical": "#34404F",
+        "tonalRamp": [
+          "#1A2233",
+          "#34404F",
+          "#5B6573",
+          "#C4CDD9",
+          "#D9E0EA",
+          "#EDF1F7",
+          "#F5F7FA",
+          "#FFFFFF"
+        ]
+      },
+      "on-surface-muted": {
+        "role": "neutral",
+        "displayName": "淡墨 Muted Ink",
+        "canonical": "#5B6573",
+        "tonalRamp": [
+          "#1A2233",
+          "#34404F",
+          "#5B6573",
+          "#C4CDD9",
+          "#D9E0EA",
+          "#EDF1F7",
+          "#F5F7FA",
+          "#FFFFFF"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "細線灰 Hairline",
+        "canonical": "#D9E0EA",
+        "tonalRamp": [
+          "#1A2233",
+          "#34404F",
+          "#5B6573",
+          "#C4CDD9",
+          "#D9E0EA",
+          "#EDF1F7",
+          "#F5F7FA",
+          "#FFFFFF"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "框線灰 Rule Gray",
+        "canonical": "#C4CDD9",
+        "tonalRamp": [
+          "#1A2233",
+          "#34404F",
+          "#5B6573",
+          "#C4CDD9",
+          "#D9E0EA",
+          "#EDF1F7",
+          "#F5F7FA",
+          "#FFFFFF"
+        ]
+      },
+      "error": {
+        "role": "neutral",
+        "displayName": "錯誤紅 Error Red",
+        "canonical": "#C2342B",
+        "tonalRamp": [
+          "#C2342B",
+          "#FFCDD2"
+        ]
+      },
+      "error-light": {
+        "role": "neutral",
+        "displayName": "錯誤淡紅 Error Blush",
+        "canonical": "#FFCDD2",
+        "tonalRamp": [
+          "#C2342B",
+          "#FFCDD2"
+        ]
+      }
     },
     "typographyMeta": {
-      "headline": { "displayName": "Headline", "purpose": "情境標題（書城名稱或「Readmoo 書櫃」），每個畫面只有一個。" },
-      "title": { "displayName": "Title", "purpose": "主鍵、描邊鍵與鍵面上的動作、進度與結果文字。" },
-      "body": { "displayName": "Body", "purpose": "本數，等寬數字。" },
-      "body-medium": { "displayName": "Body Medium", "purpose": "選單項目；文字連結用同字級、字重 400 加底線。" },
-      "label": { "displayName": "Label", "purpose": "只用在頂端產品名「BOOK OVERVIEW」（全大寫）。" },
-      "caption": { "displayName": "Caption", "purpose": "版本號、鍵下提示、通知區說明。" },
-      "knownGap": "共用 token --font-family 是 'PingFang SC'（簡體字形）；popup body 自己宣告系統字型堆疊，繁中顯示為 PingFang TC。未解決，改共用值需照 PROP-014 跟 Flutter 一起提案。"
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "情境標題（書城名稱或「Readmoo 書櫃」），每個畫面只有一個。"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "主鍵、描邊鍵與鍵面上的動作、進度與結果文字。"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "本數，等寬數字。"
+      },
+      "body-medium": {
+        "displayName": "Body Medium",
+        "purpose": "popup 選單項目；總覽頁的基準字級，按鍵、篩選項目與本數用 600。"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "popup 頂端產品名「BOOK OVERVIEW」（全大寫）；總覽頁篩選欄組名用同一組數值、不大寫。"
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "版本號、鍵下提示、通知區說明。"
+      },
+      "knownGap": "共用 token --font-family 是 'PingFang SC'（簡體字形）；popup body 自己宣告系統字型堆疊，繁中顯示為 PingFang TC。未解決，改共用值需照 PROP-014 跟 Flutter 一起提案。 總覽頁 body 同樣自己宣告字型堆疊（含 PingFang TC、Microsoft JhengHei）。",
+      "title-large": {
+        "displayName": "Title Large",
+        "purpose": "總覽頁頂欄「我的書庫」與空狀態標題（20px 粗體）。"
+      },
+      "title-medium": {
+        "displayName": "Title Medium",
+        "purpose": "總覽頁 modal 標題（18px 粗體）。"
+      }
     },
     "shadows": [
-      { "name": "page-edge-rest", "value": "::after 7px，repeating-linear-gradient(180deg, var(--color-primary-lightest) 0 1px, var(--color-primary-medium) 1px 2px)", "purpose": "實體鍵下緣的書口厚度（靜止）。" },
-      { "name": "page-edge-hover", "value": "::after 9px，鍵 translateY(-2px)", "purpose": "滑過時浮起。" },
-      { "name": "page-edge-pressed", "value": "::after 2px，鍵 translateY(5px)", "purpose": "按下，以及提取中與完成時的鍵面。" },
-      { "name": "menu-panel", "value": "0 12px 24px var(--shadow-color-md)", "purpose": "唯一的投影：選單面板浮在深藍底上。" }
+      {
+        "name": "page-edge-rest",
+        "value": "::after 7px，repeating-linear-gradient(180deg, var(--color-primary-lightest) 0 1px, var(--color-primary-medium) 1px 2px)",
+        "purpose": "實體鍵下緣的書口厚度（靜止）。"
+      },
+      {
+        "name": "page-edge-hover",
+        "value": "::after 9px，鍵 translateY(-2px)",
+        "purpose": "滑過時浮起。"
+      },
+      {
+        "name": "page-edge-pressed",
+        "value": "::after 2px，鍵 translateY(5px)",
+        "purpose": "按下，以及提取中與完成時的鍵面。"
+      },
+      {
+        "name": "menu-panel",
+        "value": "0 12px 24px var(--shadow-color-md)",
+        "purpose": "唯一的投影：選單面板浮在深藍底上。"
+      },
+      {
+        "name": "ov-page-edge",
+        "value": "::after 5px，repeating-linear-gradient(180deg, var(--color-primary-lightest) 0 1px, var(--color-primary-medium) 1px 2px)；滑過 7px、鍵 translateY(-2px)；按下 1px、鍵 translateY(4px)",
+        "purpose": "總覽頁白色實體鍵的書口。"
+      },
+      {
+        "name": "ov-page-edge-dark",
+        "value": "::after 5px，repeating-linear-gradient(180deg, var(--color-primary-light) 0 1px, var(--color-primary-dark) 1px 2px)",
+        "purpose": "總覽頁白底區深藍實體鍵的書口。"
+      },
+      {
+        "name": "book-cover-pages",
+        "value": "0 2px 0 var(--color-surface), 0 3px 0 var(--color-border-strong), 0 5px 0 var(--color-surface), 0 6px 0 var(--color-border-strong), 0 10px 16px -8px var(--shadow-color-md)",
+        "purpose": "封面下緣疊起的書頁細線，加一層很淡的擴散陰影。"
+      },
+      {
+        "name": "modal",
+        "value": "0 12px 32px var(--shadow-color-md)",
+        "purpose": "總覽頁 modal，浮在 --overlay-scrim 上。"
+      }
     ],
     "motion": [
-      { "name": "key-transition", "value": "140ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "實體鍵與描邊鍵的浮起、下沉，書口厚度變化。" },
-      { "name": "keycap-press", "value": "160ms cubic-bezier(0.16, 1, 0.3, 1)，translateY 0 → 5px", "purpose": "鍵面出現時播一次下沉。" },
-      { "name": "keycap-scan", "value": "1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite", "purpose": "提取中鍵面上移動的填色；不代表百分比。" },
-      { "name": "reduced-motion", "value": "@media (prefers-reduced-motion: reduce)", "purpose": "關掉過渡與動畫；提取中的填色改為靜態 primary-light、opacity 0.5。" }
+      {
+        "name": "key-transition",
+        "value": "140ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "實體鍵與描邊鍵的浮起、下沉，書口厚度變化。"
+      },
+      {
+        "name": "keycap-press",
+        "value": "160ms cubic-bezier(0.16, 1, 0.3, 1)，translateY 0 → 5px",
+        "purpose": "鍵面出現時播一次下沉。"
+      },
+      {
+        "name": "keycap-scan",
+        "value": "1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite",
+        "purpose": "提取中鍵面上移動的填色；不代表百分比。"
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce)",
+        "purpose": "關掉過渡與動畫；提取中的填色改為靜態 primary-light、opacity 0.5。"
+      },
+      {
+        "name": "ov-ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)（--ov-ease）",
+        "purpose": "總覽頁按鍵 140ms、封面滑過 160ms、篩選項目與勾選框 120ms。"
+      },
+      {
+        "name": "book-edge-scan",
+        "value": "1.2s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate，clip-path inset 0 75% 0 0 → 0 0 0 75%",
+        "purpose": "總覽頁載入條的可見段來回掃；不代表百分比。"
+      },
+      {
+        "name": "ov-reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce)",
+        "purpose": "總覽頁所有過渡與動畫時長歸零。"
+      }
     ],
     "breakpoints": [
-      { "name": "popup", "value": "350px 固定寬；最小高 400px，Chrome 上限 600px" }
+      {
+        "name": "popup",
+        "value": "350px 固定寬；最小高 400px，Chrome 上限 600px"
+      },
+      {
+        "name": "overview",
+        "value": "桌面設計寬 1440 與 1024；頂欄 72px；篩選欄 240px"
+      },
+      {
+        "name": "overview-narrow",
+        "value": "max-width: 860px：頂欄不黏、直排；篩選欄收到上方成每欄最小 160px 的格線"
+      }
     ]
   },
   "components": [
@@ -94,26 +400,110 @@
       "description": "取消提取、重新載入擴充功能：白字 14px 加底線，無框無底。",
       "html": "<div class=\"ds-popup-bg\"><button class=\"ds-text-link\">取消提取</button></div>",
       "css": ".ds-popup-bg { background: var(--color-primary-darkest, #0F317D); padding: 24px; width: 302px; } .ds-text-link { display: block; padding: 4px 0; background: transparent; border: 0; color: var(--color-surface, #FFFFFF); font-size: 14px; text-decoration: underline; text-underline-offset: 4px; text-align: left; cursor: pointer; } .ds-text-link:focus-visible { outline: 2px solid var(--color-surface, #FFFFFF); outline-offset: 3px; }"
+    },
+    {
+      "name": "總覽頁頂欄與按鍵",
+      "kind": "nav",
+      "refersTo": "ov-top-bar",
+      "description": "72px 深藍頂欄：標題與本數白字；右側由輕到重是文字鍵、描邊鍵、唯一一顆白色書口實體鍵（下緣 5px）。",
+      "html": "<header class=\"ds-ov-top\"><div><strong class=\"ds-ov-title\">我的書庫</strong> <span class=\"ds-ov-count\">共 <b>128</b> 本</span></div><div class=\"ds-ov-actions\"><button class=\"ds-ov-btn ds-ov-quiet\">重新載入</button><button class=\"ds-ov-btn ds-ov-outline\">匯入</button><button class=\"ds-ov-btn ds-ov-key\">匯出 JSON</button></div></header>",
+      "css": ".ds-ov-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 72px; padding: 0 32px; background: var(--color-primary-darkest, #0F317D); color: var(--color-surface, #FFFFFF); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', sans-serif; } .ds-ov-title { font-size: 20px; font-weight: 700; } .ds-ov-count { margin-left: 16px; color: var(--color-primary-light, #CBDBF8); font-size: 14px; } .ds-ov-count b { color: var(--color-surface, #FFFFFF); font-variant-numeric: tabular-nums; } .ds-ov-actions { display: flex; align-items: center; gap: 8px; } .ds-ov-btn { position: relative; padding: 8px 16px; border: 0; border-radius: 0; background: transparent; font-size: 14px; font-weight: 600; line-height: 1.4; white-space: nowrap; cursor: pointer; transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1), border-color 140ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-ov-key { margin-bottom: 5px; background: var(--color-surface, #FFFFFF); color: var(--color-primary-darkest, #0F317D); } .ds-ov-key::after { content: \"\"; position: absolute; left: 0; right: 0; bottom: -5px; height: 5px; background: repeating-linear-gradient(180deg, var(--color-primary-lightest, #EAF0FD) 0 1px, var(--color-primary-medium, #5B8DEF) 1px 2px); transition: height 140ms cubic-bezier(0.16, 1, 0.3, 1), bottom 140ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-ov-key:hover { transform: translateY(-2px); } .ds-ov-key:hover::after { bottom: -7px; height: 7px; } .ds-ov-key:active { transform: translateY(4px); } .ds-ov-key:active::after { bottom: -1px; height: 1px; } .ds-ov-outline { border: 2px solid var(--color-surface, #FFFFFF); border-bottom-width: 4px; color: var(--color-surface, #FFFFFF); padding: 6px 14px 4px; } .ds-ov-outline:hover { transform: translateY(-2px); } .ds-ov-outline:active { transform: translateY(2px); } .ds-ov-quiet { color: var(--color-primary-light, #CBDBF8); text-decoration: underline; text-underline-offset: 4px; } .ds-ov-quiet:hover { color: var(--color-surface, #FFFFFF); } .ds-ov-top :focus-visible { outline: 2px solid var(--color-surface, #FFFFFF); outline-offset: 3px; } @media (prefers-reduced-motion: reduce) { .ds-ov-btn, .ds-ov-key::after { transition: none; } }"
+    },
+    {
+      "name": "總覽頁深藍實體鍵與白底次要鍵",
+      "kind": "button",
+      "refersTo": "ov-key-dark",
+      "description": "白底區的主動作：深藍鍵面，書口是 primary-light / primary-dark 交替線；旁邊的次要動作是 1px border-strong 框的白底鍵。",
+      "html": "<div class=\"ds-ov-white\"><button class=\"ds-ov-btn ds-ov-key-dark\">匯入 JSON 檔</button> <button class=\"ds-ov-btn ds-ov-plain\">載入範例資料</button></div>",
+      "css": ".ds-ov-white { padding: 24px; background: var(--color-surface, #FFFFFF); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', sans-serif; } .ds-ov-btn { position: relative; padding: 8px 16px; border: 0; border-radius: 0; background: transparent; font-size: 14px; font-weight: 600; line-height: 1.4; white-space: nowrap; cursor: pointer; transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1), border-color 140ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-ov-key-dark { margin-bottom: 5px; background: var(--color-primary-darkest, #0F317D); color: var(--color-surface, #FFFFFF); } .ds-ov-key-dark::after { content: \"\"; position: absolute; left: 0; right: 0; bottom: -5px; height: 5px; background: repeating-linear-gradient(180deg, var(--color-primary-light, #CBDBF8) 0 1px, var(--color-primary-dark, #1442AE) 1px 2px); transition: height 140ms cubic-bezier(0.16, 1, 0.3, 1), bottom 140ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-ov-key-dark:hover { transform: translateY(-2px); } .ds-ov-key-dark:hover::after { bottom: -7px; height: 7px; } .ds-ov-key-dark:active { transform: translateY(4px); } .ds-ov-key-dark:active::after { bottom: -1px; height: 1px; } .ds-ov-plain { border: 1px solid var(--color-border-strong, #C4CDD9); background: var(--color-surface, #FFFFFF); color: var(--color-on-background, #1A2233); } .ds-ov-plain:hover { border-color: var(--color-primary-darkest, #0F317D); } .ds-ov-btn:focus-visible { outline: 2px solid var(--color-primary, #1A56DB); outline-offset: 2px; }"
+    },
+    {
+      "name": "總覽頁篩選欄",
+      "kind": "nav",
+      "refersTo": "facet-item",
+      "description": "白底欄，組名 12px 600 字距 0.08em；項目是整列按鈕加右側本數，選中整列反白成深藍。",
+      "html": "<nav class=\"ds-facets\"><div class=\"ds-facet-title\">閱讀狀態</div><button class=\"ds-facet\" aria-pressed=\"true\"><span>閱讀中</span><span class=\"ds-facet-n\">12</span></button><button class=\"ds-facet\" aria-pressed=\"false\"><span>待讀</span><span class=\"ds-facet-n\">34</span></button><button class=\"ds-facet\" aria-pressed=\"false\"><span>讀完</span><span class=\"ds-facet-n\">80</span></button></nav>",
+      "css": ".ds-facets { width: 240px; padding: 16px 8px; background: var(--color-surface, #FFFFFF); border-right: 1px solid var(--color-border, #D9E0EA); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', sans-serif; font-size: 14px; } .ds-facet-title { margin: 0 8px 4px; color: var(--color-on-surface-muted, #5B6573); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; } .ds-facet { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: 0; background: transparent; color: var(--color-on-background, #1A2233); font: inherit; text-align: left; cursor: pointer; transition: background-color 120ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-facet:hover { background: var(--color-primary-lightest, #EAF0FD); } .ds-facet[aria-pressed=\"true\"] { background: var(--color-primary-darkest, #0F317D); color: var(--color-surface, #FFFFFF); } .ds-facet-n { color: var(--color-on-surface, #34404F); font-weight: 600; font-variant-numeric: tabular-nums; } .ds-facet[aria-pressed=\"true\"] .ds-facet-n { color: var(--color-primary-light, #CBDBF8); } .ds-facet:focus-visible { outline: 2px solid var(--color-primary, #1A56DB); outline-offset: 2px; }"
+    },
+    {
+      "name": "總覽頁檢視切換與輸入",
+      "kind": "input",
+      "refersTo": "view-switch-button",
+      "description": "38px 高的直角搜尋框（1px 淡墨框、聚焦換 primary）與兩段式檢視切換（1px 深藍框，選中段深藍底白字）。",
+      "html": "<div class=\"ds-ov-tools\"><input class=\"ds-ov-input\" placeholder=\"搜尋書名\"><div class=\"ds-vs\"><button class=\"ds-vs-btn\" aria-pressed=\"true\">封面</button><button class=\"ds-vs-btn\" aria-pressed=\"false\">表格</button></div></div>",
+      "css": ".ds-ov-tools { display: flex; gap: 16px; align-items: center; padding: 16px; background: var(--color-background, #F5F7FA); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', sans-serif; font-size: 14px; } .ds-ov-input { height: 38px; padding: 0 16px 0 8px; border: 1px solid var(--color-on-surface-muted, #5B6573); border-radius: 0; background: var(--color-surface, #FFFFFF); color: var(--color-on-background, #1A2233); font: inherit; } .ds-ov-input::placeholder { color: var(--color-on-surface-muted, #5B6573); } .ds-ov-input:focus { outline: 2px solid var(--color-primary, #1A56DB); outline-offset: -1px; border-color: var(--color-primary, #1A56DB); } .ds-vs { display: flex; height: 38px; border: 1px solid var(--color-primary-darkest, #0F317D); } .ds-vs-btn { padding: 0 16px; border: 0; border-radius: 0; background: var(--color-surface, #FFFFFF); color: var(--color-primary-darkest, #0F317D); font: inherit; font-weight: 600; cursor: pointer; } .ds-vs-btn[aria-pressed=\"true\"] { background: var(--color-primary-darkest, #0F317D); color: var(--color-surface, #FFFFFF); } .ds-vs-btn:not([aria-pressed=\"true\"]):hover { background: var(--color-primary-lightest, #EAF0FD); } .ds-vs-btn:focus-visible { outline: 2px solid var(--color-primary, #1A56DB); outline-offset: 2px; }"
+    },
+    {
+      "name": "總覽頁封面",
+      "kind": "card",
+      "refersTo": "book-cover",
+      "description": "2:3 直角封面，下緣是疊起的書頁細線；沒有圖時是深藍替代封面，書名白字貼左下。",
+      "html": "<div class=\"ds-ov-grid\"><div class=\"ds-cover-card\"><div class=\"ds-cover ds-cover--empty\">原子習慣</div><div class=\"ds-cover-title\">原子習慣</div><div class=\"ds-cover-author\">James Clear</div></div></div>",
+      "css": ".ds-ov-grid { padding: 24px; background: var(--color-background, #F5F7FA); width: 196px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', sans-serif; } .ds-cover { aspect-ratio: 2 / 3; background: var(--color-panel, #EDF1F7); box-shadow: 0 2px 0 var(--color-surface, #FFFFFF), 0 3px 0 var(--color-border-strong, #C4CDD9), 0 5px 0 var(--color-surface, #FFFFFF), 0 6px 0 var(--color-border-strong, #C4CDD9), 0 10px 16px -8px var(--shadow-color-md, rgba(0, 0, 0, 0.25)); transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-cover-card:hover .ds-cover { transform: translateY(-3px); } .ds-cover--empty { display: flex; align-items: flex-end; padding: 8px; background: var(--color-primary-darkest, #0F317D); color: var(--color-surface, #FFFFFF); font-weight: 700; line-height: 1.4; } .ds-cover-title { margin-top: 16px; font-size: 14px; font-weight: 700; line-height: 1.4; color: var(--color-on-background, #1A2233); } .ds-cover-author { margin-top: 2px; font-size: 12px; color: var(--color-on-surface-muted, #5B6573); } @media (prefers-reduced-motion: reduce) { .ds-cover { transition: none; } }"
+    },
+    {
+      "name": "總覽頁 Modal",
+      "kind": "custom",
+      "refersTo": "modal-dialog",
+      "description": "白底、四邊 1px 深藍框的直角 modal；會清空書庫的「覆蓋」是紅色描邊鍵，不跟「合併」同重量。",
+      "html": "<div class=\"ds-modal\" role=\"dialog\"><h2 class=\"ds-modal-title\">選擇匯入模式</h2><div class=\"ds-modal-actions\"><button class=\"ds-mbtn ds-mbtn-overwrite\">覆蓋（清空現有書庫）</button><button class=\"ds-mbtn ds-mbtn-primary\">合併（保留現有書庫）</button><button class=\"ds-mbtn ds-mbtn-secondary\">取消</button></div></div>",
+      "css": ".ds-modal { max-width: 480px; padding: 24px; background: var(--color-surface, #FFFFFF); border: 1px solid var(--color-primary-darkest, #0F317D); box-shadow: 0 12px 32px var(--shadow-color-md, rgba(0, 0, 0, 0.25)); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', sans-serif; } .ds-modal-title { margin: 0 0 16px; font-size: 18px; font-weight: 700; color: var(--color-on-background, #1A2233); } .ds-modal-actions { display: flex; flex-direction: column; gap: 8px; } .ds-mbtn { padding: 8px 16px; border: 1px solid transparent; border-radius: 0; font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; } .ds-mbtn-primary { background: var(--color-primary-darkest, #0F317D); color: var(--color-surface, #FFFFFF); } .ds-mbtn-primary:hover { background: var(--color-primary-dark, #1442AE); } .ds-mbtn-secondary { background: var(--color-surface, #FFFFFF); color: var(--color-on-background, #1A2233); border-color: var(--color-border-strong, #C4CDD9); } .ds-mbtn-secondary:hover { border-color: var(--color-primary-darkest, #0F317D); } .ds-mbtn-overwrite { background: var(--color-surface, #FFFFFF); color: var(--color-error, #C2342B); border-color: var(--color-error, #C2342B); } .ds-mbtn-overwrite:hover { background: var(--color-error, #C2342B); color: var(--color-surface, #FFFFFF); } .ds-mbtn:focus-visible { outline: 2px solid var(--color-primary, #1A56DB); outline-offset: 2px; }"
     }
   ],
   "narrative": {
     "northStar": "書口鍵",
-    "overview": "整個 popup 是一片鋪滿的深藍（`primary-darkest`），上面只放一顆有厚度的白色按鍵：這一頁能做的那一件事。按鍵下緣的厚度畫成書口，一條條 1px 細線疊成書頁的邊；滑過時鍵浮起、書口變厚，按下時鍵下沉、書口收薄。提取開始後，同一顆鍵維持按下的樣子，鍵面變成進度；結束時鍵面寫出新增與更新的本數。這個世界拒絕「一張卡片裡一排同重量按鈕」的工具列預設：一個情境一顆實體主鍵，其餘入口退到描邊鍵與選單。\n\n密度低、層次靠明度而不是靠陰影：深藍底、白色實體鍵、白色描邊鍵、淺藍文字，四種明度就排出整個畫面的主次。所有形狀都是直角。文字只用在要求使用者互動或回報操作結果，不放描述情境的提示。",
+    "overview": "整個 popup 是一片鋪滿的深藍（`primary-darkest`），上面只放一顆有厚度的白色按鍵：這一頁能做的那一件事。按鍵下緣的厚度畫成書口，一條條 1px 細線疊成書頁的邊；滑過時鍵浮起、書口變厚，按下時鍵下沉、書口收薄。提取開始後，同一顆鍵維持按下的樣子，鍵面變成進度；結束時鍵面寫出新增與更新的本數。這個世界拒絕「一張卡片裡一排同重量按鈕」的工具列預設：一個情境一顆實體主鍵，其餘入口退到描邊鍵與選單。\n\n密度低、層次靠明度而不是靠陰影：深藍底、白色實體鍵、白色描邊鍵、淺藍文字，四種明度就排出整個畫面的主次。所有形狀都是直角。文字只用在要求使用者互動或回報操作結果，不放描述情境的提示。\n\n**書庫總覽頁沿用同一個世界。** 總覽頁（`src/overview/overview.html`）把 popup 的深藍底收成一條 72px 的頂欄：標題與本數白字，右側只有一顆白色書口實體鍵（「匯出 JSON」），其餘是白色描邊鍵與淡藍文字鍵。頂欄以下是工作區：左側 240px 的白色篩選欄，項目平時是純文字加右側本數，選中時整列反白成深藍，跟 popup 選單項目的反白同一個動作；右側是封面網格（可切換成表格），封面直角，下緣用疊起的細線畫成書頁。白底區需要主動作時，用同一種書口鍵的深藍版（鍵面深藍、書口淡藍與墨水藍線）。這一頁拒絕「一張表格上面壓一排同重量按鈕」的資料表預設：先回答「各類各有幾本」，再讓人點進去看。",
     "keyCharacteristics": [
       "深藍鋪滿整個 popup，沒有卡片外框把內容圍起來。",
       "一個情境一顆白色實體主鍵，下緣是 7px 的書口厚度。",
       "次要入口是白色 2px 描邊鍵，下緣 4px。",
       "全部直角（0px）。",
       "按鍵即進度：提取中與完成時，鍵面取代提取鍵，保持按下的樣子。",
-      "浮起 2px、下沉 5px 的實體回饋，`prefers-reduced-motion` 時關掉。"
+      "浮起 2px、下沉 5px 的實體回饋，`prefers-reduced-motion` 時關掉。",
+      "總覽頁：深藍頂欄只放一顆白色書口鍵（下緣 5px），白底區的主動作用深藍書口鍵。",
+      "總覽頁：篩選欄選中項整列反白成深藍；封面直角，下緣是疊起的書頁細線。"
     ],
     "rules": [
-      { "name": "The Single Ink Rule", "body": "popup 裡所有顏色都來自 `primary` 的明度階梯與白色；主次靠明度表達，不另外引進強調色。錯誤只換邊框色（`error-light`），不把整塊染紅。", "section": "colors" },
-      { "name": "The Shared Value Rule", "body": "色值與 Flutter 行動版共用；這個介面只挑選既有 token，新色值要開聯合提案。", "section": "colors" },
-      { "name": "The Weight Carries Rank Rule", "body": "層級靠字重與字級（24/16/14/12）表達，不靠顏色以外的裝飾；同一畫面只有情境標題用 24px。", "section": "typography" },
-      { "name": "The One Key Rule", "body": "一個情境只有一顆實體主鍵（書城清單情境是同一種主鍵重複三次，每顆各是一家書城）；常駐的次要入口只有一顆描邊鍵，其他入口收進選單。", "section": "layout" },
-      { "name": "The Thickness Is Depth Rule", "body": "可以按的東西用下緣厚度表達「可以按下去」，按下就收薄；不用投影或發光模擬按鍵的高度。", "section": "elevation" },
-      { "name": "The Pressed Face Rule", "body": "提取中與完成時，鍵面保持按下的位置（下移 5px、書口 2px），表示這一下已經按了；鍵面不可再按。", "section": "elevation" }
+      {
+        "name": "The Single Ink Rule",
+        "body": "popup 裡所有顏色都來自 `primary` 的明度階梯與白色；主次靠明度表達，不另外引進強調色。錯誤只換邊框色（`error-light`），不把整塊染紅。",
+        "section": "colors"
+      },
+      {
+        "name": "The White Desk Rule",
+        "body": "總覽頁的灰藍中性色只出現在頂欄以下的白底工作區；頂欄跟 popup 一樣只用藍色明度階梯與白色。錯誤紅（`error`）平時只畫框與字，只有不可逆的「確認清空」與滑過時的「覆蓋」「重試」才整塊填紅。",
+        "section": "colors"
+      },
+      {
+        "name": "The Shared Value Rule",
+        "body": "色值與 Flutter 行動版共用；這個介面只挑選既有 token，新色值要開聯合提案。",
+        "section": "colors"
+      },
+      {
+        "name": "The Weight Carries Rank Rule",
+        "body": "層級靠字重與字級（24/16/14/12）表達，不靠顏色以外的裝飾；同一畫面只有情境標題用 24px。總覽頁沒有 24px，最大是頂欄標題與空狀態標題的 20px。",
+        "section": "typography"
+      },
+      {
+        "name": "The One Key Rule",
+        "body": "一個情境只有一顆實體主鍵（書城清單情境是同一種主鍵重複三次，每顆各是一家書城）；常駐的次要入口只有一顆描邊鍵，其他入口收進選單。總覽頁的頂欄同樣只有一顆白色實體鍵（「匯出 JSON」），其他動作退成描邊鍵與文字鍵；白底區每個區塊最多一顆深藍實體鍵（空狀態的下一步、匯入面板的「載入檔案」），其餘用白底次要鍵。",
+        "section": "layout"
+      },
+      {
+        "name": "The Thickness Is Depth Rule",
+        "body": "可以按的東西用下緣厚度表達「可以按下去」，按下就收薄；不用投影或發光模擬按鍵的高度。",
+        "section": "elevation"
+      },
+      {
+        "name": "The Pressed Face Rule",
+        "body": "提取中與完成時，鍵面保持按下的位置（下移 5px、書口 2px），表示這一下已經按了；鍵面不可再按。",
+        "section": "elevation"
+      },
+      {
+        "name": "The Page Lines Rule",
+        "body": "書的厚度一律畫成 1px 細線疊起來（按鍵的書口、封面下緣、載入條），不用一整塊實色的偏移陰影。",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "**Do** 讓 `primary-darkest` 鋪滿整個 popup，內容直接放在深藍上。",
@@ -122,18 +512,26 @@
       "**Do** 讓進度與結果寫在同一顆鍵的鍵面上，鍵面保持按下的樣子。",
       "**Do** 只在連線中、錯誤、警告時顯示通知區，放在主鍵下方。",
       "**Do** 書城端寫「書櫃」，本機端寫「書庫」。",
-      "**Do** 只挑選既有 token 數值；新數值走跟 Flutter 一起的提案。"
+      "**Do** 只挑選既有 token 數值；新數值走跟 Flutter 一起的提案。",
+      "**Do** 總覽頁頂欄只放一顆白色實體鍵（下緣 5px 書口），其餘動作用白色描邊鍵與淡藍文字鍵，由輕到重往右排。",
+      "**Do** 白底區需要主動作時用深藍實體鍵（書口 `primary-light` / `primary-dark` 交替線），每個區塊最多一顆。",
+      "**Do** 篩選與切換的選中狀態一律整列或整段反白成深藍底白字，並用 `aria-pressed` 標出。",
+      "**Do** 空狀態只給一顆下一步的按鍵；書庫是空的時用「匯入 JSON 檔」，篩選後沒有結果時用「清除篩選」。",
+      "**Do** 白底區的輸入框與下拉用 1px `on-surface-muted` 框，聚焦時換成 `primary`；控制項高度統一 38px。",
+      "**Do** 把會清空書庫的選項做成紅色描邊鍵，跟安全的選項分出重量；最後一步的確認才用紅色實心鍵，預設焦點放在「取消」。"
     ],
     "donts": [
-      "**Don't** 用圓角；popup 一律 0px。",
+      "**Don't** 用圓角；popup 與總覽頁一律 0px，也不取用 `--radius-*`。",
       "**Don't** 把幾個同重量的按鈕排成一排或包進一張卡片。",
-      "**Don't** 在提取中顯示百分比或假的進度條；popup 收不到真實進度。",
+      "**Don't** 在提取中顯示百分比或假的進度條；popup 收不到真實進度。總覽頁的載入條同樣不顯示百分比。",
       "**Don't** 在完成時加打勾圖示。",
-      "**Don't** 在標題上方加小標（eyebrow）；頂端的「BOOK OVERVIEW」是產品名，不是小標的範例。",
+      "**Don't** 在標題上方加小標（eyebrow）；頂端的「BOOK OVERVIEW」是產品名，總覽頁篩選欄的組名是一組選項的名稱，都不是小標的範例。",
       "**Don't** 在卡片或通知區的單側加強調色條；按鍵下緣的書口與描邊鍵的 4px 下框是按鍵的厚度，不是強調條。",
-      "**Don't** 用 Unicode 字元或 emoji 當圖示。",
+      "**Don't** 用 Unicode 字元或 emoji 當圖示；箭頭用 CSS 畫。",
       "**Don't** 放描述情境的提示文字；文字只用在要求互動或回報結果。",
-      "**Don't** 把本檔的規則套到書庫總覽頁（overview）的現況，或把 overview 的圓角與淺色卡片帶進 popup。"
+      "**Don't** 把白色描邊鍵放到白底區；白底區的次要動作用 1px `border-strong` 框的白底次要鍵。",
+      "**Don't** 把總覽頁白底工作區的灰藍中性色（`background`、`panel`、`border`、`on-*`）或錯誤紅帶進 popup 或頂欄。",
+      "**Don't** 拿閱讀狀態標籤的 `--status-*` 色當介面的強調色。"
     ]
   }
 }
