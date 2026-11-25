@@ -394,3 +394,386 @@
   /* search 型別 v1 沿用 .input 基礎樣式（無 icon 消費場景），class 區分僅供
      契約型別語意與未來擴充預留 */
 }
+
+/* ===== popup 介面（.popup-shell 範圍，不影響 overview）=====
+   深藍鋪滿、直角；主動作是白色實體鍵，下緣厚度畫成書口（書頁邊）；
+   提取中與完成時鍵面取代提取鍵（按鍵即進度）；滑過浮起、按下下沉。
+   只用既有 token 數值，圓角取 0。 */
+.popup-shell [hidden] {
+  display: none !important;
+}
+
+.popup-shell ::selection {
+  background: var(--color-primary-light);
+  color: var(--color-primary-darkest);
+}
+
+.popup-shell .button {
+  border-radius: 0;
+  font-family: inherit;
+  line-height: 1.4;
+}
+
+.popup-shell .button:focus-visible, .popup-shell .menu-toggle:focus-visible {
+  outline: 2px solid var(--color-surface);
+  outline-offset: 3px;
+}
+
+.popup-shell .menu-toggle {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-primary-medium);
+  color: var(--color-surface);
+  font: inherit;
+  font-size: var(--font-size-body-small);
+  padding: var(--spacing-xxs) 0;
+  cursor: pointer;
+}
+
+.popup-shell .menu-toggle[aria-expanded="true"] {
+  border-bottom-color: var(--color-surface);
+}
+
+.popup-shell .popup-menu {
+  position: absolute;
+  top: var(--spacing-xxl);
+  right: var(--spacing-lg);
+  z-index: 10;
+  min-width: 220px;
+  padding: var(--spacing-xs) 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-light);
+  box-shadow: 0 12px 24px var(--shadow-color-md);
+}
+
+/* 選單項目：平時是純文字列，滑過或聚焦時整列反白 */
+.popup-shell .popup-menu .button {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: 0;
+  color: var(--color-primary-darkest);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-semi-bold);
+  text-align: left;
+}
+
+.popup-shell .popup-menu .button:hover, .popup-shell .popup-menu .button:focus-visible {
+  background: var(--color-primary-darkest);
+  color: var(--color-surface);
+  outline: none;
+}
+
+.popup-shell .context-stores .status-card {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.popup-shell .content > .status-card strong, .popup-shell #importPanelMount .status-card strong {
+  color: var(--color-surface);
+}
+
+.popup-shell .popup-menu .status-card {
+  margin: var(--spacing-xs) 0 0;
+  padding: var(--spacing-xs) 0 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--color-primary-light);
+  border-radius: 0;
+}
+
+.popup-shell .popup-menu .action-buttons, .popup-shell .context-stores .action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+}
+
+.popup-shell .context-title {
+  margin: 0;
+  font-size: var(--font-size-headline3);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.3;
+  color: var(--color-surface);
+}
+
+.popup-shell .context-count {
+  margin: var(--spacing-xxs) 0 0;
+  font-size: var(--font-size-body-large);
+  color: var(--color-primary-lightest);
+  font-variant-numeric: tabular-nums;
+}
+
+.popup-shell .context-count[data-empty="true"] {
+  visibility: hidden;
+}
+
+.popup-shell[data-context="store"] .context-count, .popup-shell[data-context="none"] .context-count, .popup-shell[data-context="none"] .context-title {
+  display: none;
+}
+
+/* 通知區：只在需要留意時出現（連線中、錯誤、取消） */
+.popup-shell .status-notice {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-primary-medium);
+  color: var(--color-surface);
+}
+
+.popup-shell .status-notice[data-status="ready"], .popup-shell[data-extracting="true"] .status-notice {
+  display: none;
+}
+
+.popup-shell .status-notice[data-status="error"] {
+  border-color: var(--color-error-light);
+}
+
+/* 深藍底上 error 紅點只有 2.2:1，改用 error-light（非文字元件需 3:1） */
+.popup-shell .status-dot.error {
+  background: var(--color-error-light);
+}
+
+.popup-shell .status-notice .status-indicator {
+  margin-bottom: 0;
+}
+
+.popup-shell .status-notice .info-text {
+  margin-top: var(--spacing-xxs);
+  color: var(--color-primary-light);
+  font-size: var(--font-size-body-small);
+}
+
+.popup-shell .keycap-slot {
+  margin-top: var(--spacing-lg);
+}
+
+.popup-shell[data-context="none"] .keycap-slot {
+  margin-top: var(--spacing-xs);
+}
+
+/* 實體鍵：白色直角，下緣厚度是書口 */
+.popup-shell .keycap, .popup-shell .context-stores .button {
+  box-sizing: border-box;
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: 0;
+  color: var(--color-primary-darkest);
+  font-size: var(--font-size-body-large);
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.popup-shell .keycap::after, .popup-shell .context-stores .button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 7px;
+  background: repeating-linear-gradient(180deg, var(--color-primary-lightest) 0 1px, var(--color-primary-medium) 1px 2px);
+  transition: height 140ms cubic-bezier(0.16, 1, 0.3, 1), bottom 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.popup-shell .keycap:not(:disabled):not(.keycap-face):hover, .popup-shell .context-stores .button:hover {
+  background: var(--color-surface);
+  transform: translateY(-2px);
+}
+
+.popup-shell .keycap:not(:disabled):not(.keycap-face):hover::after, .popup-shell .context-stores .button:hover::after {
+  bottom: -9px;
+  height: 9px;
+}
+
+.popup-shell .keycap:not(:disabled):not(.keycap-face):active, .popup-shell .context-stores .button:active {
+  transform: translateY(5px);
+}
+
+.popup-shell .keycap:not(:disabled):not(.keycap-face):active::after, .popup-shell .context-stores .button:active::after {
+  bottom: -2px;
+  height: 2px;
+}
+
+.popup-shell .keycap:disabled {
+  opacity: 1;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  cursor: default;
+}
+
+/* 按鍵即進度：鍵面取代提取鍵；提取中是一段移動的填色（不顯示百分比） */
+.popup-shell .keycap-face {
+  cursor: default;
+  line-height: 1.4;
+  transform: translateY(5px);
+  animation: keycap-press 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 鍵面是按下去之後的鍵：保持下沉，書口收成 2px */
+.popup-shell .keycap-face::after {
+  bottom: -2px;
+  height: 2px;
+}
+
+@keyframes keycap-press {
+  from { transform: translateY(0); }
+  to { transform: translateY(5px); }
+}
+
+.popup-shell .keycap-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--color-primary-light), transparent) no-repeat;
+  background-size: 45% 100%;
+  animation: keycap-scan 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.popup-shell .keycap-face[data-state="done"] .keycap-fill {
+  display: none;
+}
+
+.popup-shell .keycap-label {
+  position: relative;
+}
+
+@keyframes keycap-scan {
+  from { background-position: -80% 0; }
+  to { background-position: 180% 0; }
+}
+
+.popup-shell .extract-hint {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-primary-lightest);
+  font-size: var(--font-size-body-small);
+}
+
+.popup-shell .cancel-extract {
+  display: block;
+  text-align: left;
+  margin-top: var(--spacing-xxs);
+  padding: var(--spacing-xs) 0;
+  background: transparent;
+  border: 0;
+  color: var(--color-surface);
+  font-size: var(--font-size-body-medium);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* 次要入口：白色描邊鍵 */
+.popup-shell .keycap-outline {
+  display: block;
+  width: 100%;
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: 2px solid var(--color-surface);
+  border-bottom-width: 4px;
+  color: var(--color-surface);
+  font-size: var(--font-size-body-large);
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+  transition: transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.popup-shell .keycap-outline:hover {
+  background: transparent;
+  color: var(--color-surface);
+  transform: translateY(-2px);
+}
+
+.popup-shell .keycap-outline:active {
+  transform: translateY(2px);
+}
+
+/* 深藍底上的卡片（初始化進度、結果、錯誤、匯入結果） */
+.popup-shell .content > .status-card, .popup-shell #importPanelMount .status-card, .popup-shell #errorContainer {
+  margin: var(--spacing-md) 0 0;
+  background: transparent;
+  border: 1px solid var(--color-primary-medium);
+  border-radius: 0;
+  color: var(--color-surface);
+}
+
+.popup-shell .content > .error-card, .popup-shell #errorContainer {
+  margin-top: var(--spacing-xs);
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+/* 錯誤原因只在主鍵下方的通知區講一次；主鍵就是重試，卡片只留重新載入的文字連結 */
+.popup-shell #errorContainer .error-header, .popup-shell #errorContainer .error-message, .popup-shell #errorContainer #retryBtn {
+  display: none;
+}
+
+.popup-shell #errorContainer .action-buttons {
+  justify-content: flex-start;
+  margin: 0;
+}
+
+.popup-shell #errorContainer #reloadExtensionBtn {
+  width: auto;
+  flex: 0 0 auto;
+  text-align: left;
+  padding: var(--spacing-xs) 0;
+  background: transparent;
+  border: 0;
+  color: var(--color-surface);
+  font-size: var(--font-size-body-medium);
+  font-weight: var(--font-weight-regular);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.popup-shell .content .error-message {
+  color: var(--color-error-light);
+}
+
+.popup-shell .content > .status-card .info-text, .popup-shell #importPanelMount .info-text {
+  color: var(--color-primary-lightest);
+}
+
+.popup-shell .content > .status-card .button.primary, .popup-shell #importPanelMount .button.primary {
+  background: var(--color-surface);
+  color: var(--color-primary-darkest);
+}
+
+.popup-shell .content > .status-card .button.secondary, .popup-shell #importPanelMount .button.secondary {
+  background: transparent;
+  border: 2px solid var(--color-surface);
+  color: var(--color-surface);
+}
+
+.popup-shell .progress-bar-container {
+  background: var(--color-primary-dark);
+}
+
+.popup-shell .progress-fill {
+  background: var(--color-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popup-shell .keycap, .popup-shell .keycap::after, .popup-shell .context-stores .button, .popup-shell .context-stores .button::after, .popup-shell .keycap-outline {
+    transition: none;
+  }
+
+  .popup-shell .keycap-face {
+    animation: none;
+  }
+
+  .popup-shell .keycap-fill {
+    animation: none;
+    background: var(--color-primary-light);
+    opacity: 0.5;
+  }
+}

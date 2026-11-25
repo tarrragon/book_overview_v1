@@ -289,7 +289,7 @@ describe('Popup Interface 整合測試', () => {
       // 模擬標籤頁查詢結果
       chrome.tabs.query.mockResolvedValue([{
         id: 1,
-        url: 'https://readmoo.com/library',
+        url: 'https://read.readmoo.com/#/library',
         title: 'Readmoo 書庫'
       }])
 
@@ -315,7 +315,7 @@ describe('Popup Interface 整合測試', () => {
     test('應該正確識別 Readmoo 頁面', async () => {
       chrome.tabs.query.mockResolvedValue([{
         id: 1,
-        url: 'https://readmoo.com/library',
+        url: 'https://read.readmoo.com/#/library',
         title: 'Readmoo 書庫'
       }])
 
@@ -413,7 +413,7 @@ describe('Popup Interface 整合測試', () => {
       // 模擬標籤頁存在
       chrome.tabs.query.mockResolvedValue([{
         id: 1,
-        url: 'https://readmoo.com/library'
+        url: 'https://read.readmoo.com/#/library'
       }])
 
       chrome.tabs.sendMessage.mockResolvedValue({
@@ -782,7 +782,7 @@ describe('Popup Interface 整合測試', () => {
   describe('W4-006: extractBtn UI 觸發路徑覆蓋', () => {
     const READMOO_TAB_FIXTURE = {
       id: 42,
-      url: 'https://read.readmoo.com/library',
+      url: 'https://read.readmoo.com/#/library',
       title: 'Readmoo 書庫'
     }
 

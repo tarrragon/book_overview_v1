@@ -10,16 +10,16 @@
 
 const HEADER_TEXT = Object.freeze({
   TITLE: 'Book Overview',
-  SUBTITLE: '專業書目管理工具'
+  SUBTITLE: '電子書庫總覽'
 })
 
 const STATUS_TEXT = Object.freeze({
   CHECKING: '正在檢查狀態...',
   INITIALIZING: '請稍候，正在初始化擴充功能',
-  CONTENT_SCRIPT_LOADING: '正在連線書庫頁面',
+  CONTENT_SCRIPT_LOADING: '正在連線書櫃頁面',
   CONTENT_SCRIPT_RELOAD_HINT: '請稍候或重新整理頁面',
   NON_READMOO_PAGE: '請前往 Readmoo 網站',
-  NON_READMOO_HINT: '需要在 Readmoo 書庫頁面使用此功能'
+  NON_READMOO_HINT: '需要在書城的書櫃頁面使用此功能'
 })
 
 const ACTION_TEXT = Object.freeze({
@@ -79,7 +79,7 @@ const VERSION_TEXT = Object.freeze({
  */
 const DIALOG_TEXT = Object.freeze({
   SETTINGS_PLACEHOLDER: '設定功能將在後續版本實現',
-  HELP_TEXT: '使用說明：\n\n1. 前往 Readmoo 書庫頁面\n2. 點擊「開始提取書庫資料」\n3. 等待提取完成\n\n詳細說明將在後續版本提供'
+  HELP_TEXT: '使用說明：\n\n1. 前往 Readmoo 書櫃頁面\n2. 點擊「開始提取書庫資料」\n3. 等待提取完成\n\n詳細說明將在後續版本提供'
 })
 
 /**
@@ -118,6 +118,36 @@ const NAVIGATION_TEXT = Object.freeze({
   GO_BUTTON_ARIA_PREFIX: '前往 '
 })
 
+/**
+ * 主動作與情境（popup 依目前分頁替換主動作：提取／前往這家書庫／選一家書城）
+ */
+const CONTEXT_TEXT = Object.freeze({
+  LIBRARY_SUFFIX: ' 書櫃',
+  COUNT_UNIT: ' 本',
+  EXTRACT_WITH_COUNT: (count) => `提取這 ${count} 本`,
+  EXTRACT_NO_COUNT: '提取這一頁',
+  CONNECTING: '正在連線書櫃…',
+  // 英文書城名與中文之間留空格，中文書城名不留（前往 Readmoo 書櫃／前往博客來書櫃）
+  GOTO_LIBRARY: (storeName) => {
+    const name = /^[\x20-\x7E]/.test(storeName) ? ` ${storeName}` : storeName
+    return `前往${name}${/[\x20-\x7E]$/.test(storeName) ? ' ' : ''}書櫃`
+  },
+  STORES_TITLE: '前往書城的書櫃',
+  RETRY: '重新提取',
+  KEEP_TAB_OPEN: '請保持這個分頁開著',
+  MENU: '選單',
+  MENU_ARIA: '更多操作：匯入書庫、其他書城',
+  EXTRACTING: '提取中',
+  DONE_TOTAL: (count) => `完成：共 ${count} 本`,
+  CANCEL: '取消提取',
+  SUMMARY: ({ added, updated }) => {
+    const parts = []
+    if (added > 0) parts.push(`新增 ${added} 本`)
+    if (updated > 0) parts.push(`更新 ${updated} 本`)
+    return parts.length > 0 ? `完成：${parts.join('、')}` : '完成：沒有變化'
+  }
+})
+
 module.exports = {
   HEADER_TEXT,
   STATUS_TEXT,
@@ -131,5 +161,6 @@ module.exports = {
   STATUS_BADGE,
   STATUS_TYPES,
   MESSAGE_TYPES,
-  NAVIGATION_TEXT
+  NAVIGATION_TEXT,
+  CONTEXT_TEXT
 }

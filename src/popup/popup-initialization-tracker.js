@@ -345,6 +345,11 @@ class PopupInitializationTracker {
     if (elements.statusDot) {
       elements.statusDot.className = `status-dot ${type}`
     }
+    // 與 popup.js updateStatus 一致：通知區依狀態類型顯示或隱藏
+    const notice = typeof document !== 'undefined' && document.getElementById('statusNotice')
+    if (notice) {
+      notice.dataset.status = type
+    }
   }
 
   /**

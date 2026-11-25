@@ -17,6 +17,7 @@
  */
 
 const PlatformAdapterInterface = require('../platform/platform-adapter-interface')
+const { isLibraryPageUrl } = require('src/content/platform/library-page-rules')
 const { Logger } = require('src/core/logging/Logger')
 const { MessageDictionary } = require('src/core/messages/MessageDictionary')
 
@@ -48,11 +49,6 @@ const LIBRARY_URL = 'https://www.kobo.com/tw/zh/library/books'
  * Kobo 書庫頁有效域名（邊界比對用）
  */
 const VALID_HOSTNAME = 'kobo.com'
-
-/**
- * Kobo 書庫頁 pathname 特徵（判斷是否為書庫頁）
- */
-const LIBRARY_PATH_SEGMENT = '/library/books'
 
 /**
  * DOM 選擇器配置（對齊 docs/bookstores/kobo.md 勘查結果）
@@ -185,13 +181,8 @@ class KoboAdapter extends PlatformAdapterInterface {
    */
   async getPageType (url) {
     const target = typeof url === 'string' ? url : this._currentUrl()
-    try {
-      const pathname = new URL(target).pathname
-      return pathname.includes(LIBRARY_PATH_SEGMENT) ? 'library' : 'unknown'
-    } catch (error) {
-      // 設計性靜默：URL 無法解析時視為非書庫頁
-      return 'unknown'
-    }
+    // 書庫規則的單一來源在 library-page-rules（popup 也讀同一份）
+    return isLibraryPageUrl('kobo', target) ? 'library' : 'unknown'
   }
 
   /**
