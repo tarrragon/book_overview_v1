@@ -198,7 +198,12 @@ chrome.storage.local.get.mockImplementation((keys, callback) => {
       result[key] = null
     })
   }
-  callback(result)
+  // MV3 的 chrome.storage.local.get 不傳 callback 時回傳 Promise，假物件比照辦理
+  if (typeof callback === 'function') {
+    callback(result)
+    return undefined
+  }
+  return Promise.resolve(result)
 })
 
 chrome.storage.local.set.mockImplementation((items, callback) => {
