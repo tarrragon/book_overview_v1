@@ -17,6 +17,32 @@ const LIBRARY_PAGE_RULES = Object.freeze({
   kobo: (url) => url.pathname.includes('/library/books')
 })
 
+// 各書城的網域：該網域本身與其下任何子網域都算這家書城。
+// 依網域而非完整主機名比對，書城換子網域時（read.readmoo.com → next.readmoo.com）判斷不變。
+const PLATFORM_DOMAINS = Object.freeze({
+  readmoo: 'readmoo.com',
+  'books-com-tw': 'books.com.tw',
+  kobo: 'kobo.com'
+})
+
+/**
+ * @param {string} href - 分頁網址
+ * @returns {string|null} 書城 id；不屬於任何書城或網址無法解析時為 null
+ */
+function matchPlatformIdByUrl (href) {
+  if (typeof href !== 'string') return null
+  let hostname
+  try {
+    hostname = new URL(href).hostname.toLowerCase()
+  } catch (error) {
+    // 設計性靜默：網址無法解析時視為不屬於任何書城
+    return null
+  }
+  const entry = Object.entries(PLATFORM_DOMAINS).find(([, domain]) =>
+    hostname === domain || hostname.endsWith(`.${domain}`))
+  return entry ? entry[0] : null
+}
+
 /**
  * @param {string} platformId - 書城 id（readmoo / books-com-tw / kobo）
  * @param {string} href - 分頁網址
@@ -33,4 +59,4 @@ function isLibraryPageUrl (platformId, href) {
   }
 }
 
-module.exports = { isLibraryPageUrl, LIBRARY_PAGE_RULES }
+module.exports = { isLibraryPageUrl, matchPlatformIdByUrl, LIBRARY_PAGE_RULES, PLATFORM_DOMAINS }

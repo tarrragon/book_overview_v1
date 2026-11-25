@@ -186,15 +186,20 @@ popupLogger.info('POPUP_INTERFACE_LOADED')
 // 此處從常數檔引用並映射回既有變數名，保持下游使用點與 window re-export 不變。
 // 書庫頁規則（與 content adapter 共用單一來源）
 let isLibraryPageUrl = () => false
+let matchPlatformIdByUrl = () => null
 if (typeof require !== 'undefined') {
+  let rules = null
   try {
-    ({ isLibraryPageUrl } = require('src/content/platform/library-page-rules'))
+    rules = require('src/content/platform/library-page-rules')
   } catch (e) {
     try {
-      ({ isLibraryPageUrl } = require('../content/platform/library-page-rules'))
+      rules = require('../content/platform/library-page-rules')
     } catch (e2) {
-      isLibraryPageUrl = (typeof window !== 'undefined' && window.isLibraryPageUrl) || (() => false)
+      rules = (typeof window !== 'undefined' && window.LibraryPageRules) || null
     }
+  }
+  if (rules) {
+    ({ isLibraryPageUrl, matchPlatformIdByUrl } = rules)
   }
 }
 
@@ -1176,17 +1181,9 @@ async function checkCurrentTab () {
       return null
     }
 
-    // 檢查是否為任何書城的書庫頁面（比對域名，含子域名匹配）
-    const matchedStore = BOOKSTORE_LIST.find(
-      store => {
-        if (!store.enabled || !tab.url) return false
-        const storeHost = new URL(store.url).hostname
-        const tabHost = new URL(tab.url).hostname
-        return tabHost === storeHost ||
-          tabHost.endsWith('.' + storeHost) ||
-          storeHost.endsWith('.' + tabHost)
-      }
-    )
+    // 依網域判斷分頁屬於哪一家書城（規則與 content adapter 共用；子網域變動不影響）
+    const platformId = matchPlatformIdByUrl(tab.url)
+    const matchedStore = BOOKSTORE_LIST.find(store => store.enabled && store.id === platformId)
     const isBookstorePage = Boolean(matchedStore)
     // 書庫頁才能提取；書城的其他頁主動作換成前往這家書庫（規則與 content adapter 共用）
     const isLibraryPage = isBookstorePage && isLibraryPageUrl(matchedStore.id, tab.url)
