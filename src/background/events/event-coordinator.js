@@ -541,7 +541,20 @@ class EventCoordinator extends BaseModule {
 
       try {
         let books = event.data?.booksData || event.data?.books
-        const source = event.data?.source || PLATFORM_IDS.READMOO
+        // 書城 ID 決定寫進哪一個 storage key，只接受已知書城 ID 的字串：
+        // 轉送層曾把 data.source 換成轉送資訊物件，書目因此被寫進 "[object Object]_books"。
+        // 其次取書目自己的 source（adapter 會寫），最後才預設 readmoo。
+        // content 端的書城名用連字號（books-com-tw），storage 的書城 ID 用底線（books_com_tw），先換成底線。
+        const knownPlatforms = Object.values(PLATFORM_IDS)
+        const toPlatformId = (value) => {
+          if (typeof value !== 'string') return null
+          const id = value.replace(/-/g, '_')
+          return knownPlatforms.includes(id) ? id : null
+        }
+        const rawBooks = Array.isArray(books) ? books : []
+        const source = [event.data?.source, event.data?.platform, ...rawBooks.map(b => b && b.source)]
+          .map(toPlatformId)
+          .find(Boolean) || PLATFORM_IDS.READMOO
 
         // 正規化每本書並套用 BookSchemaV2 model 轉換
         //
