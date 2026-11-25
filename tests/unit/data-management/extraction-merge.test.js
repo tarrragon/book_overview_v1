@@ -101,3 +101,39 @@ describe('mergeExtractedBooks', () => {
     expect(books).toHaveLength(2)
   })
 })
+
+describe('mergeExtractedBooks：舊紀錄只有書名 ID', () => {
+  // 早期提取時拿不到閱讀連結與封面，ID 退回 title-<書名>、cover 為空。
+  // 現在再提取同一本書會拿到 reader- ID 與封面，三個比對鍵都對不上舊紀錄。
+  const oldRecord = () => localBook({
+    id: 'title-卡片盒筆記',
+    title: '卡片盒筆記',
+    cover: '',
+    readingStatus: undefined,
+    tagIds: ['t1']
+  })
+  const reExtracted = () => extractedBook({
+    id: 'reader-12345',
+    title: '卡片盒筆記',
+    cover: 'https://cdn.readmoo.com/cover/ab/cd_210x315.jpg',
+    progress: 30,
+    identifiers: { readerLinkId: '12345', titleBased: '卡片盒筆記', primarySource: 'reader-link' }
+  })
+
+  test('用書名 ID 對上舊紀錄：補上封面與狀態，不新增重複的書', () => {
+    const { books, summary } = mergeExtractedBooks([oldRecord()], [reExtracted()], NOW)
+    expect(books).toHaveLength(1)
+    expect(summary).toMatchObject({ added: 0, updated: 1 })
+    expect(books[0].id).toBe('title-卡片盒筆記')
+    expect(books[0].cover).toBe('https://cdn.readmoo.com/cover/ab/cd_210x315.jpg')
+    expect(books[0].readingStatus).toBe('reading')
+    expect(books[0].tagIds).toEqual(['t1'])
+  })
+
+  test('本機已有穩定 ID 的書，不用書名去比對', () => {
+    const local = localBook({ id: 'reader-999', title: '卡片盒筆記', cover: 'https://img/old.jpg' })
+    const { books, summary } = mergeExtractedBooks([local], [reExtracted()], NOW)
+    expect(summary.added).toBe(1)
+    expect(books).toHaveLength(2)
+  })
+})

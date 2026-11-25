@@ -21,6 +21,16 @@ function fallbackKey (book) {
   return `${book.title}|${book.cover || ''}`
 }
 
+// 早期提取拿不到閱讀連結與封面時，ID 退回 title-<書名>。之後再提取同一本書會拿到
+// reader- ID 與封面，id 與「書名|封面」都對不上，所以這類舊紀錄另外用書名 ID 比對。
+const TITLE_ID_PREFIX = 'title-'
+
+function titleBasedId (extracted) {
+  const raw = extracted.identifiers && extracted.identifiers.titleBased
+  if (!raw) return null
+  return raw.startsWith(TITLE_ID_PREFIX) ? raw : `${TITLE_ID_PREFIX}${raw}`
+}
+
 function findLocalMatch (extracted, index) {
   if (extracted.id && index.byId.has(extracted.id)) return index.byId.get(extracted.id)
   if (extracted.platformBookId && index.byPlatformId.has(extracted.platformBookId)) {
@@ -28,16 +38,22 @@ function findLocalMatch (extracted, index) {
   }
   const key = fallbackKey(extracted)
   if (key && index.byFallback.has(key)) return index.byFallback.get(key)
+  const titleId = titleBasedId(extracted)
+  if (titleId && index.byTitleId.has(titleId)) return index.byTitleId.get(titleId)
   return null
 }
 
 function buildIndex (localBooks) {
-  const index = { byId: new Map(), byPlatformId: new Map(), byFallback: new Map() }
+  const index = { byId: new Map(), byPlatformId: new Map(), byFallback: new Map(), byTitleId: new Map() }
   for (const book of localBooks) {
     if (book.id) index.byId.set(book.id, book)
     if (book.platformBookId) index.byPlatformId.set(book.platformBookId, book)
     const key = fallbackKey(book)
     if (key && !index.byFallback.has(key)) index.byFallback.set(key, book)
+    // 只收 ID 本身就是書名 ID 的紀錄；已有穩定 ID 的書不靠書名比對
+    if (typeof book.id === 'string' && book.id.startsWith(TITLE_ID_PREFIX) && !index.byTitleId.has(book.id)) {
+      index.byTitleId.set(book.id, book)
+    }
   }
   return index
 }
