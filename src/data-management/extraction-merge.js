@@ -21,38 +21,58 @@ function fallbackKey (book) {
   return `${book.title}|${book.cover || ''}`
 }
 
-// 早期提取拿不到閱讀連結與封面時，ID 退回 title-<書名>。之後再提取同一本書會拿到
-// reader- ID 與封面，id 與「書名|封面」都對不上，所以這類舊紀錄另外用書名 ID 比對。
+// 早期提取拿不到閱讀連結時，ID 退回 cover-<封面 ID>（有封面）或 title-<書名>（連封面都沒有）。
+// 之後再提取同一本書會拿到 reader- ID，封面網址的版本參數也可能變了，id 與「書名|封面」
+// 都對不上，所以這兩類舊紀錄另外用提取結果的 identifiers.coverId 與 identifiers.titleBased 比對。
 const TITLE_ID_PREFIX = 'title-'
+const COVER_ID_PREFIX = 'cover-'
 
-function titleBasedId (extracted) {
-  const raw = extracted.identifiers && extracted.identifiers.titleBased
+function withPrefix (prefix, raw) {
   if (!raw) return null
-  return raw.startsWith(TITLE_ID_PREFIX) ? raw : `${TITLE_ID_PREFIX}${raw}`
+  return raw.startsWith(prefix) ? raw : `${prefix}${raw}`
 }
 
-function findLocalMatch (extracted, index) {
+function legacyIds (extracted) {
+  const ids = extracted.identifiers || {}
+  return [withPrefix(COVER_ID_PREFIX, ids.coverId), withPrefix(TITLE_ID_PREFIX, ids.titleBased)].filter(Boolean)
+}
+
+/**
+ * @param {Object} extracted
+ * @param {Object} index - buildIndex 的結果
+ * @param {Map} claimed - 這次已經對上的本機紀錄；舊 ID 可能撞號，撞號時跳過已被認領的那一筆
+ */
+function findLocalMatch (extracted, index, claimed) {
   if (extracted.id && index.byId.has(extracted.id)) return index.byId.get(extracted.id)
   if (extracted.platformBookId && index.byPlatformId.has(extracted.platformBookId)) {
     return index.byPlatformId.get(extracted.platformBookId)
   }
   const key = fallbackKey(extracted)
   if (key && index.byFallback.has(key)) return index.byFallback.get(key)
-  const titleId = titleBasedId(extracted)
-  if (titleId && index.byTitleId.has(titleId)) return index.byTitleId.get(titleId)
+
+  // 書名 ID 會撞號（例如「十月堂舊書事１」「十月堂舊書事２」產生的書名 ID 相同），
+  // 同一個舊 ID 有多筆時，先找書名完全相同、還沒被認領的那一筆
+  for (const legacyId of legacyIds(extracted)) {
+    const candidates = (index.byLegacyId.get(legacyId) || []).filter(book => !claimed.has(book))
+    if (candidates.length === 0) continue
+    return candidates.find(book => book.title === extracted.title) || candidates[0]
+  }
   return null
 }
 
 function buildIndex (localBooks) {
-  const index = { byId: new Map(), byPlatformId: new Map(), byFallback: new Map(), byTitleId: new Map() }
+  const index = { byId: new Map(), byPlatformId: new Map(), byFallback: new Map(), byLegacyId: new Map() }
   for (const book of localBooks) {
     if (book.id) index.byId.set(book.id, book)
     if (book.platformBookId) index.byPlatformId.set(book.platformBookId, book)
     const key = fallbackKey(book)
     if (key && !index.byFallback.has(key)) index.byFallback.set(key, book)
-    // 只收 ID 本身就是書名 ID 的紀錄；已有穩定 ID 的書不靠書名比對
-    if (typeof book.id === 'string' && book.id.startsWith(TITLE_ID_PREFIX) && !index.byTitleId.has(book.id)) {
-      index.byTitleId.set(book.id, book)
+    // 只收 ID 本身就是封面 ID 或書名 ID 的紀錄；已有閱讀連結 ID 的書不靠這兩種比對
+    const isLegacy = typeof book.id === 'string' &&
+      (book.id.startsWith(TITLE_ID_PREFIX) || book.id.startsWith(COVER_ID_PREFIX))
+    if (isLegacy) {
+      if (!index.byLegacyId.has(book.id)) index.byLegacyId.set(book.id, [])
+      index.byLegacyId.get(book.id).push(book)
     }
   }
   return index
@@ -94,7 +114,7 @@ function mergeExtractedBooks (localBooks, extractedBooks, now = new Date().toISO
   const summary = { added: 0, updated: 0, unchanged: 0, notOnPage: 0 }
 
   for (const extracted of extractedBooks) {
-    const match = findLocalMatch(extracted, index)
+    const match = findLocalMatch(extracted, index, replaced)
     if (!match || replaced.has(match)) {
       added.push(extracted)
       summary.added++
