@@ -2,6 +2,37 @@
 
 本文件記錄 Readmoo 書庫資料提取器 Chrome Extension 的所有重要變更和版本發布。
 
+## [Unreleased] - 2026-11-26
+
+### Added
+- popup 重新設計：深藍鋪滿、唯一的主動作是白色直角實體鍵（下緣書口厚度、滑過浮起、按下下沉）；「檢視書庫」為常駐描邊鍵；匯入書庫與其他書城收進「選單」
+- popup 主鍵依目前分頁替換：書城書櫃頁＝提取這 N 本；書城其他頁＝前往該書城書櫃（在目前分頁切換）；不在書城＝各書城一顆前往鍵
+- 按鍵即進度：提取中鍵面以不定進度呈現（popup 尚未收到真實進度，不顯示百分比），完成時寫出新增／更新本數或「沒有變化」
+- popup 取消提取按鈕（接上既有 cancelExtraction）
+- 書櫃頁規則單一來源 `src/content/platform/library-page-rules.js`：各書城個人書櫃頁的網址規則（isLibraryPageUrl）與網址所屬書城（matchPlatformIdByUrl，依網域比對），三家 adapter 與 popup 共用
+- 重新提取時的書目合併 `src/data-management/extraction-merge.js`：書城頁欄位以提取為準，使用者標籤（tagIds）取聯集、手動閱讀狀態保留；儲存資料加 extractionSummary（新增／更新／未變／頁面未讀到本數）
+- 開發版自動重新載入（`scripts/dev-auto-reload.js`，只在 `npm run build:dev`）：重新建置後擴充功能自行重新載入，`DEV_AUTO_RELOAD=0` 可關閉
+- 設計紀錄：PRODUCT.md、DESIGN.md、`.impeccable/design.json`、popup 方向契約（`.impeccable/surfaces/`）
+- `docs/development-setup.md`〈改動何時生效（未封裝擴充功能）〉：popup／overview 改動重開即生效，content script 與 service worker 需重新載入（附實驗紀錄）
+
+### Changed
+- popup 只在書城書櫃頁才與 content script 連線並顯示提取；書城首頁等其他頁顯示前往書櫃
+- popup 用詞：書城端為「書櫃」，本機為「書庫」
+- popup 錯誤原因只在主鍵下方顯示一次，主鍵即「重新提取」，「重新載入擴充功能」改為文字連結
+- 「擴充功能設定」「使用說明」兩顆尚未實作的按鈕保留於 DOM 但不顯示
+- popup 樣式限定於 `.popup-shell`（component-rules.js），不影響 overview 共用元件；token 數值不變
+
+### Fixed
+- 重新提取會清掉使用者加的標籤與手動設定的閱讀狀態（原本整份覆蓋書城書目，UC-02 要求合併）
+- 沒有書號的書（博客來）每次重新提取多出一份重複書目（改以書名加封面對回本機書目）
+- Readmoo 書櫃移到 `next.readmoo.com/read#/library` 後 popup 判成「不在書城」
+- 博客來書櫃頁（`?readlist=all`）在 page-detector 的規則下判成非書庫頁（改由共用規則判斷）
+- 錯誤後提取鍵文字變成「[START] 開始提取書庫資料」
+- 初始化中狀態欄同時出現「就緒」與「正在連線」
+- 錯誤狀態紅點在深藍底上對比不足（2.18:1 → 8.49:1）
+
+---
+
 ## [1.6.0] - 2026-07-16
 
 ### Added
