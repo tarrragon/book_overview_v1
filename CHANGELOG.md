@@ -14,6 +14,12 @@
 - 開發版自動重新載入（`scripts/dev-auto-reload.js`，只在 `npm run build:dev`）：重新建置後擴充功能自行重新載入，`DEV_AUTO_RELOAD=0` 可關閉
 - 設計紀錄：PRODUCT.md、DESIGN.md、`.impeccable/design.json`、popup 方向契約（`.impeccable/surfaces/`）
 - `docs/development-setup.md`〈改動何時生效（未封裝擴充功能）〉：popup／overview 改動重開即生效，content script 與 service worker 需重新載入（附實驗紀錄）
+- overview 書庫總覽頁重新設計：深藍頂欄（匯出 JSON 為書口實體鍵）、左側篩選欄（閱讀狀態、書城、重要程度、標籤，各附本數，點選即篩選、可疊加）、封面網格與表格兩種呈現（記住上次的選擇）
+- overview 重要程度篩選（唯讀）：讀 APP 的七級 importanceLevel 或匯入時保留的 `_passthrough.tags.importance`，未設定另列；編輯另行規劃
+- overview 主區空狀態：書庫是空的給提取說明與「匯入 JSON 檔」，篩選無結果給「清除篩選」
+- overview 網格與表格共用選取，點封面即可選取，工具列顯示「已選 N 本」（匯出只匯出選取的書）
+- overview 工具列跟著捲動，捲過第一個畫面後出現「回到頂部」（焦點移到搜尋框）
+- 設計紀錄：overview 方向契約與畫面狀態矩陣（`.impeccable/surfaces/src-overview-overview-html.md`），DESIGN.md 補上總覽頁
 
 ### Changed
 - popup 只在書城書櫃頁才與 content script 連線並顯示提取；書城首頁等其他頁顯示前往書櫃
@@ -21,6 +27,11 @@
 - popup 錯誤原因只在主鍵下方顯示一次，主鍵即「重新提取」，「重新載入擴充功能」改為文字連結
 - 「擴充功能設定」「使用說明」兩顆尚未實作的按鈕保留於 DOM 但不顯示
 - popup 樣式限定於 `.popup-shell`（component-rules.js），不影響 overview 共用元件；token 數值不變
+- overview 閱讀狀態與書城改為中文顯示（閱讀中、讀完、博客來等），儲存值不變
+- overview 舊資料缺 readingStatus 時由進度推導顯示（≥100 讀完、>0 閱讀中、其餘未讀），不寫回 storage
+- overview 沒有封面的書改為淡灰底；書庫是空的時停用匯出、選取與切換
+- overview 匯入模式的「覆蓋（清空現有書庫）」改為紅色描邊，與「合併」區分輕重
+- popup 書櫃頁本數改報書櫃總數：Readmoo 讀頁首「擁有 N 本書（封存 a、借出 b）」扣掉封存與借出；讀不到總數的書城仍數已載入的書
 
 ### Fixed
 - 重新提取會清掉使用者加的標籤與手動設定的閱讀狀態（原本整份覆蓋書城書目，UC-02 要求合併）
@@ -30,6 +41,11 @@
 - 錯誤後提取鍵文字變成「[START] 開始提取書庫資料」
 - 初始化中狀態欄同時出現「就緒」與「正在連線」
 - 錯誤狀態紅點在深藍底上對比不足（2.18:1 → 8.49:1）
+- 提取結果寫進 `"[object Object]_books"`、overview 停在舊書目：content 事件轉送時把 data.source 換成轉送資訊物件，background 卻拿它當書城 ID 組 storage key（轉送資訊改放 forwardedFrom；書城 ID 只接受已知值，其次取書目自己的 source）
+- 博客來書目寫進沒有人讀的 `books-com-tw_books`（content 端書城名用連字號，storage 用底線 books_com_tw）
+- 早期提取 ID 為 `title-<書名>` 或 `cover-<封面 ID>` 的舊紀錄，再提取時對不上而新增重複的書、補不到封面與閱讀狀態（改以 identifiers.titleBased／coverId 比對；書名 ID 撞號時對書名相同的那一筆）
+- Readmoo 頁首「封存 21、借出 1」沒有「本」字時沒有扣除，提取等待永遠不會出現的 22 本才停止
+- overview 從 storage 載入 0 本書時空狀態沒有顯示；storage 變更後顯示全部書目而忽略目前的篩選
 
 ---
 
