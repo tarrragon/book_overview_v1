@@ -119,6 +119,13 @@ class ExtensionTestSetup {
    * @private
    */
   async _setupSingleAttempt () {
+    // jsdom 環境（預設 jest 設定）下 Puppeteer 的 WebSocket 連不上：Chrome 已經開出視窗，
+    // puppeteer.launch 才拋錯，this.browser 沒有被指定，cleanup 關不掉，視窗留成孤兒。
+    // 在啟動 Chrome 之前就擋下，並指出要用的設定。
+    if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
+      throw new Error('瀏覽器 E2E 測試要在 node 環境執行：npm run test:e2e:browser（jest.e2e.config.js）')
+    }
+
     // 建立 Extension 建置路徑
     const extensionPath = path.resolve(__dirname, '../../../build/development')
 
