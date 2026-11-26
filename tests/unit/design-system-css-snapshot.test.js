@@ -14,8 +14,13 @@
  * @see docs/work-logs/.../0.19.1-W2-001.md Solution 第 1 節
  */
 
-const { buildCss, camelToKebab } = require('../../scripts/generate-design-system-css.js')
-const { STATUS_COLORS } = require('../../src/core/design-system/colors.js')
+const { buildCss, camelToKebab, DARK_SCOPE_SELECTOR } = require('../../scripts/generate-design-system-css.js')
+const {
+  STATUS_COLORS,
+  DARK_COLORS,
+  DARK_STATUS_COLORS,
+  IMPORTANCE_COLORS
+} = require('../../src/core/design-system/colors.js')
 const { SHADOW_COLORS, OVERLAY_COLORS } = require('../../src/core/design-system/shadows.js')
 const { MIGRATED_SELECTORS } = require('./helpers/popup-migrated-selectors.js')
 
@@ -44,7 +49,8 @@ describe('design-system.css 產生器', () => {
       const varLines = css.split('\n').filter((line) => line.trim().startsWith('--'))
       expect(varLines.length).toBeGreaterThan(0)
       varLines.forEach((line) => {
-        expect(line).toMatch(/^ {2}--[a-z0-9-]+: .+;$/)
+        // :root 內縮排 2 格；暗色 @media 區塊內縮排 4 格
+        expect(line).toMatch(/^( {2}| {4})--[a-z0-9-]+: .+;$/)
       })
     })
   })
@@ -88,9 +94,10 @@ describe('design-system.css 產生器', () => {
       expect(css).toContain('--status-unread-bg: #ECEFF1;')
     })
 
-    test('6 個狀態各自產出 fg / bg 共 12 個變數', () => {
-      const statusVarCount = (css.match(/--status-[a-z]+-(fg|bg):/g) || []).length
-      expect(statusVarCount).toBe(12)
+    test('6 個狀態各自產出 fg / bg 共 12 個變數（:root；暗色區塊另有 12 個）', () => {
+      const [rootPart, darkPart] = css.split('@media (prefers-color-scheme: dark)')
+      expect((rootPart.match(/--status-[a-z]+-(fg|bg):/g) || []).length).toBe(12)
+      expect((darkPart.match(/--status-[a-z]+-(fg|bg):/g) || []).length).toBe(12)
     })
 
     test('產出值與 colors.js STATUS_COLORS 為單一來源（無漂移）', () => {
@@ -199,6 +206,38 @@ describe('design-system.css 產生器', () => {
       expect(camelToKebab('semiBold')).toBe('semi-bold')
       expect(camelToKebab('xxs')).toBe('xxs')
       expect(camelToKebab('headline3')).toBe('headline3')
+    })
+  })
+
+  describe('暗色工作區（UI 改版，與 APP AppColors.dark 共用）', () => {
+    const darkBlock = () => css.split('@media (prefers-color-scheme: dark)')[1].split('\n}\n')[0]
+
+    test('暗色值只套在 workspace 範圍，不放在 :root（popup 與頂欄亮暗不變）', () => {
+      expect(css).toContain('@media (prefers-color-scheme: dark) {')
+      expect(darkBlock()).toContain(`${DARK_SCOPE_SELECTOR} {`)
+      expect(darkBlock()).toContain('color-scheme: dark;')
+      expect(darkBlock()).not.toContain(':root')
+    })
+
+    test('暗色值與 colors.js 的 DARK_COLORS / DARK_STATUS_COLORS 為單一來源', () => {
+      const block = darkBlock()
+      Object.keys(DARK_COLORS).forEach((key) => {
+        expect(block).toContain(`--color-${camelToKebab(key)}: ${DARK_COLORS[key]};`)
+      })
+      Object.keys(DARK_STATUS_COLORS).forEach((status) => {
+        const { fg, bg } = DARK_STATUS_COLORS[status]
+        expect(block).toContain(`--status-${camelToKebab(status)}-fg: ${fg};`)
+        expect(block).toContain(`--status-${camelToKebab(status)}-bg: ${bg};`)
+      })
+    })
+
+    test('重要程度 7 級亮暗各一組', () => {
+      IMPORTANCE_COLORS.light.forEach((v, i) => {
+        expect(css).toContain(`  --importance-${i + 1}: ${v};`)
+      })
+      IMPORTANCE_COLORS.dark.forEach((v, i) => {
+        expect(darkBlock()).toContain(`    --importance-${i + 1}: ${v};`)
+      })
     })
   })
 })

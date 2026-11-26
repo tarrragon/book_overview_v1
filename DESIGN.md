@@ -18,6 +18,10 @@ colors:
   border-strong: "#C4CDD9"
   error: "#C2342B"
   error-light: "#FFCDD2"
+  error-text: "#8C1D17"
+  error-container: "#FDECEA"
+  warning-text: "#8A5A12"
+  warning-container: "#FFF3E0"
 typography:
   headline:
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
@@ -229,7 +233,7 @@ components:
 
 **適用範圍。** 本檔涵蓋 popup（`src/popup/popup.html`，樣式在 `src/core/design-system/component-rules.js` 的 `.popup-shell` 區段，產生到 `design-system.css`）與書庫總覽頁（`src/overview/overview.html`、`src/overview/overview.css`，篩選欄由 `overview-facets.js`、封面網格由 `overview-book-grid.js` 渲染）。總覽頁的方向契約在 `.impeccable/surfaces/src-overview-overview-html.md`。兩者共用直角、深藍、書口鍵；差別在總覽頁有白底工作區，所以多用了一組灰藍中性色（`background`、`panel`、`border`、`on-*`）與錯誤紅（`error`），popup 不用這些。
 
-**Token 數值與 Flutter 共用。** 色值、間距、字級、圓角的數值跟 Flutter 行動版對齊（`docs/proposals/PROP-014-design-token-value-unification.md`、`src/core/design-system/token-manifest.json`）。popup 與總覽頁只挑選既有 token，不新增也不改數值；要新數值時另開提案，兩端一起改。總覽頁只在 `overview.css` 的 `:root` 加兩個本頁用的版面變數（頂欄高 `--ov-top-height: 72px`、緩動 `--ov-ease`），不是色值。
+**Token 數值與 Flutter 共用。** 色值、間距、字級、圓角的數值跟 Flutter 行動版相同，亮色與暗色各一組（`docs/proposals/PROP-014-design-token-value-unification.md` 2026-11-26 的決策紀錄、`src/core/design-system/token-manifest.json`）。2026-07-11 的仲裁曾把色值當成兩端各自校準的值；2026-11-26 改成全面對齊，APP 改用本檔的色票與形狀，兩端共用同一組亮色與暗色數值。popup 與總覽頁只挑選既有 token，不新增也不改數值；要新數值時另開提案，兩端一起改。總覽頁只在 `overview.css` 的 `:root` 加兩個本頁用的版面變數（頂欄高 `--ov-top-height: 72px`、緩動 `--ov-ease`），不是色值。
 
 **Key Characteristics:**
 - 深藍鋪滿整個 popup，沒有卡片外框把內容圍起來。
@@ -267,12 +271,42 @@ components:
 
 閱讀狀態標籤（未讀、待讀、閱讀中、讀完、放棄、參考）的前景與背景取共用的 `--status-*-fg` / `--status-*-bg` token，各對都達 WCAG AA；這些是資料的分類色，只出現在標籤上，不拿來當介面的強調色。
 
+**文字用的深值。** `warning`（`#B7791F`）在白底上只有 3.64:1，只用在圖示與線條；警告文字用 `warning-text`（`#8A5A12`，5.91:1），放在 `warning-container`（`#FFF3E0`）上的字用 `#6B4510`。錯誤的淡底是 `error-container`（`#FDECEA`），其上的字用 `error-text`（`#8C1D17`）。錯誤與警告不共用顏色。
+
+**重要程度。** 1–7 級是資料分類色（`--importance-1` 到 `--importance-7`），同一個藍色明度階梯：亮色 `#5B6573`、`#4677E6`、`#2F66E0`、`#1A56DB`、`#1442AE`、`#0F317D`、`#0A2259`，級數越高越深。每級在 `surface` 與 `primary-lightest` 上 ≥ 3:1，只用在星號、圓點這類非文字圖形；不拿錯誤紅或警告色代表等級。
+
+### Dark
+
+系統是暗色模式（`prefers-color-scheme: dark`）時，**只有白底工作區換成暗色**：總覽頁的 `.ov-body` 與它的 modal 標上 `data-color-scope="workspace"`，`design-system.css` 在這個範圍覆寫色彩變數（值在 `colors.js` 的 `DARK_COLORS`、`DARK_STATUS_COLORS`、`IMPORTANCE_COLORS.dark`）。popup 與總覽頁頂欄本來就是深藍底，亮暗都不變。APP 的暗色主題用同一組數值。
+
+| token | 亮色 | 暗色 | 角色 |
+|---|---|---|---|
+| `background` | `#F5F7FA` | `#0D1320` | 工作區底 |
+| `surface` | `#FFFFFF` | `#151C2B` | 篩選欄、表格、modal、白底次要鍵 |
+| `panel` | `#EDF1F7` | `#1C2536` | 封面載入前、展開列 |
+| `on-background` | `#1A2233` | `#E6EBF3` | 主要文字 |
+| `on-surface` | `#34404F` | `#C5CEDB` | 次要文字 |
+| `on-surface-muted` | `#5B6573` | `#98A3B4` | 弱文字、輸入框框線 |
+| `border` | `#D9E0EA` | `#2A3447` | 細線 |
+| `border-strong` | `#C4CDD9` | `#3A4660` | 框線、書頁細線 |
+| `primary` | `#1A56DB` | `#7EA6F7` | 焦點、進度填色 |
+| `primary-darkest` | `#0F317D` | `#CBDBF8` | 選中列、深藍實體鍵與 modal 主鍵的鍵面 |
+| `primary-dark` | `#1442AE` | `#9DBBF9` | 墨水藍文字 |
+| `primary-light` | `#CBDBF8` | `#2A4478` | 停用鍵面、選取底、書口淺線 |
+| `primary-lightest` | `#EAF0FD` | `#1B2C52` | 滑過與選中列的淡底 |
+| `error` | `#C2342B` | `#F28B82` | 錯誤框與字、「覆蓋」「確認清空」 |
+| `warning-text` | `#8A5A12` | `#E3B05C` | 警告文字 |
+
+暗色下深藍明度階梯反轉：`primary-darkest` 變淺、`surface` 變深，所以「深藍底白字」（選中列、深藍實體鍵）在暗色下是「淺藍底深字」，元件規則不必另寫一套。閱讀狀態的暗色配色是淡字深底（例如閱讀中 `#E3F2FD` 配 `#1A3557`），重要程度的暗色階梯是 `#98A3B4`、`#5B8DEF`、`#7EA6F7`、`#9DBBF9`、`#B5CCFA`、`#CBDBF8`、`#EAF0FD`，級數越高越亮。暗色範圍內每組前景與背景都達 WCAG 2.1 AA。
+
 ### Named Rules
 **The Single Ink Rule.** popup 裡所有顏色都來自 `primary` 的明度階梯與白色；主次靠明度表達，不另外引進強調色。錯誤只換邊框色（`error-light`），不把整塊染紅。
 
 **The White Desk Rule.** 總覽頁的灰藍中性色只出現在頂欄以下的白底工作區；頂欄跟 popup 一樣只用藍色明度階梯與白色。錯誤紅（`error`）平時只畫框與字，只有不可逆的「確認清空」與滑過時的「覆蓋」「重試」才整塊填紅。
 
-**The Shared Value Rule.** 色值與 Flutter 行動版共用；這個介面只挑選既有 token，新色值要開聯合提案。
+**The Shared Value Rule.** 色值與 Flutter 行動版共用，亮色與暗色各一組；這個介面只挑選既有 token，新色值要開聯合提案。
+
+**The Scoped Dark Rule.** 暗色只覆寫白底工作區（`data-color-scope="workspace"`）；深藍的 popup 與頂欄不跟著換，`surface` 在那裡仍是紙白。新加的白底區塊或 modal 要標上同一個屬性，暗色才會套到。
 
 ## Typography
 

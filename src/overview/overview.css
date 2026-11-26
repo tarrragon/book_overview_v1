@@ -268,7 +268,14 @@ button {
 }
 
 /* ===== 主體：篩選欄＋主區 ===== */
+/* 暗色模式只套在白底工作區與 modal（design-system.css 的 workspace 範圍）：
+   body 的文字色在 body 那層已算成亮色值，這裡重新宣告，暗色值才會生效。 */
+[data-color-scope="workspace"] {
+  color: var(--color-on-background);
+}
+
 .ov-body {
+  background-color: var(--color-background);
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
   min-height: calc(100vh - var(--ov-top-height));
