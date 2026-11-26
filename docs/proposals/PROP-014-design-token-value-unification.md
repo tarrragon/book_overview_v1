@@ -21,6 +21,7 @@ related_proposals: [PROP-008, PROP-013]
 
 1. 統一強度採「值層也統一」——不滿足於契約層（markdown 表格 + 人工 diff），要求 token 值有機器可讀的單一真實來源。
 2. 色值分歧仲裁結果：「補記差異標記」——V1 的 WCAG AA 校色（primary `#1A56DB`）與 APP 原值（`#2196F3`）屬**平台校準層**，雙端各自維持，不強制歸一；本提案的平台覆蓋機制即為此仲裁結果的技術承載。
+   **2026-11-26 已推翻**：UI 改版改為色票與形狀全面對齊，兩端共用同一組亮色與暗色數值，見〈討論記錄〉2026-11-26。
 
 ## 問題描述
 
@@ -59,7 +60,7 @@ related_proposals: [PROP-008, PROP-013]
 
 - APP 端校驗 script + APP CI 接線 → sibling PROP-018（APP repo）承擔（2026-07-13 更新：原「Dart 生成 pipeline」描述隨生成方案否決作廢）
 - 元件層命名契約 → PROP-013 既有範圍
-- 色值歸一（強制雙端同色）→ 已由用戶仲裁為「平台校準層分歧」，本提案僅承載不推翻
+- 色值歸一（強制雙端同色）→ 已由用戶仲裁為「平台校準層分歧」，本提案僅承載不推翻（2026-11-26 用戶改為全面對齊，色值已歸一；manifest 的雙向校驗與平台覆蓋機制照舊沿用）
 - §14.6 差異標記補記的 spec 編輯 → APP 端契約權威，由 PROP-018 工作項承擔
 
 ## 替代方案（候選逐一評估表，heavy 級評估產出 2026-07-11）
@@ -144,6 +145,21 @@ WRAP 完整四階段 + 雙視角審查完成。重現實驗修正根因假設：
 
 APP 端（sibling PROP-018）統一作業時發現本提案三處漂移：In Scope 項 3「生成 pipeline 改造」與 AC 第 2 項「值全數由中介格式生成」仍為評估前生成語意（與已採用方案 D 矛盾）、轉化記錄 W6-007/008 標 pending（實際已完成）。已全數修正並回填 manifest 存放權威決策（V1 repo）與跨 repo 消費機制候選。用戶決策同步：雙專案主力維護者為 AI，**文件規格統一優先於程式碼調整**——manifest 定位為雙端 AI 讀取的統一規格文件本體（詳見 APP PROP-018「文件先行兩段式定位」節）。APP 端後續：manifest APP 對照複核（0.38.0-W10-004）、APP 端校驗 script（blockedBy APP CI ticket 1.0.0-W1-001）。
 
+### 2026-11-26（色值仲裁推翻：色票與形狀全面對齊）
+
+用戶在 APP 的 UI 與顏色改版中決定「色票＋形狀全面對齊」擴充功能改版後的視覺系統（`DESIGN.md`），並且「暗色模式這次一起做」，APP 與擴充功能共用同一組亮色與暗色數值。這推翻了 2026-07-11〈需求來源〉第 2 點「色值屬平台校準層、雙端各自維持」的仲裁。
+
+推翻的理由：APP 原主色 `#2196F3` 白底配白字約 3.1:1，未達 PRODUCT.md 要求的 WCAG 2.1 AA；錯誤與警告共用橘色，違反「狀態照實說」。V1 改版後的色票已經過 AA 驗證，直接共用比各自校準少一層分歧。
+
+兩端的改動：
+
+- **APP**（`book_overview_app` 分支 `ui-redesign-theme`）：`UIColors` 改用 V1 色值；新增語意層 `AppColors`（`ThemeExtension`，亮暗兩組），`ThemeData` 不再用 `ColorScheme.fromSeed`；畫面的 677 處 `UIColors` 改用 `context.appColors`；全部直角、深度改用 1px 框線與書口實體鍵、深藍頂欄。
+- **V1**（分支 `ui-dark-mode`）：`colors.js` 新增 `DARK_COLORS`、`DARK_STATUS_COLORS`、`IMPORTANCE_COLORS`，以及 APP 新增的文字深值與容器色（`warningText` 等）；`design-system.css` 在 `prefers-color-scheme: dark` 下只覆寫白底工作區（`[data-color-scope="workspace"]`），popup 與頂欄亮暗不變。`DESIGN.md` 補上暗色對照表。
+
+新增的共用值：警告文字 `#8A5A12`（`warning` `#B7791F` 白底只有 3.64:1，降為圖示與線條用）、錯誤深字 `#8C1D17`、三組淡底容器、重要程度 1–7 級的藍色明度階梯，以及整組暗色值。各組前景與背景的對比由 APP 的 `test/unit/core/design_system/app_colors_test.dart` 檢查。
+
+`token-manifest.json` 同步：色彩域除 V1 舊常數 `borderDark`、`darkBackground` 外全部改為 `shared`；閱讀狀態色改為 `shared`；新增 `darkColors` 與 `importanceColors` 兩域；`borderRadius` 因 APP 全部直角改為 `calibrated`（V1 popup 與總覽頁同樣不取用 `--radius-*`）；`shadowColors.md` 兩端同為中性黑 25%，改為 `shared`。總數 115 → 156，`shared` 35 → 94。
+
 ## 轉化記錄
 
 | 轉化類型 | 檔案 | 日期 | 狀態 |
@@ -152,3 +168,5 @@ APP 端（sibling PROP-018）統一作業時發現本提案三處漂移：In Sco
 | Ticket | 1.5.0-W6-007（分歧盤點 + manifest schema + 初版） | 2026-07-11 | completed |
 | Ticket | 1.5.0-W6-008（雙向校驗 + CI 接線） | 2026-07-11 | completed |
 | Ticket | 1.5.0-W6-027（提案文件漂移修正 + sibling 統一） | 2026-07-13 | in_progress |
+| 分支 | APP `ui-redesign-theme`（色票與形狀全面對齊，未開 ticket） | 2026-11-26 | completed |
+| 分支 | V1 `ui-dark-mode`（暗色工作區與共用暗色值，未開 ticket） | 2026-11-26 | completed |

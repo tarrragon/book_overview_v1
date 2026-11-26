@@ -44,7 +44,51 @@ const COLORS = Object.freeze({
   // Dark Theme 色
   darkBackground: '#121212',
   // 功能色（Section 2.5）
-  tagDefault: '#808080'
+  tagDefault: '#808080',
+  // 文字用深值與淡底容器（UI 改版，與 APP AppColors.light 共用，PROP-014 2026-11-26 決策）：
+  //   warning #B7791F 白底只有 3.64:1，只能用於圖示與線條；文字改用 warningText。
+  warningText: '#8A5A12', // 白底 5.91:1
+  warningContainer: '#FFF3E0', // 其上 onWarningContainer 7.71:1
+  onWarningContainer: '#6B4510',
+  errorText: '#8C1D17', // errorContainer 上 7.97:1
+  errorContainer: '#FDECEA',
+  successContainer: '#E3F2E7', // 其上 onSuccessContainer 7.86:1
+  onSuccessContainer: '#14532D'
+})
+
+// 暗色值（UI 改版，與 APP AppColors.dark 共用）。
+//   只覆寫白底工作區用到的色；popup 與總覽頁頂欄是深藍底，亮暗都不變，
+//   所以這組值由 design-system.css 的 [data-color-scope="workspace"] 套用，不放在 :root。
+//   深藍明度階梯在暗色下反轉：primaryDarkest（選中列、深藍實體鍵的鍵面）變成淺色，
+//   surface 變成深色，所以「深藍底白字」的組合在暗色下成為「淺藍底深字」。
+//   每組前景與背景都達 WCAG 2.1 AA（APP test/unit/core/design_system/app_colors_test.dart）。
+const DARK_COLORS = Object.freeze({
+  primary: '#7EA6F7', // 焦點、進度填色；surface 上 7.04:1
+  primaryLightest: '#1B2C52', // 選中列、滑過的淡底
+  primaryLight: '#2A4478', // 停用鍵面、選取底、書口淺線
+  primaryMedium: '#5B8DEF',
+  primaryDark: '#9DBBF9', // 墨水藍文字（停用鍵字、標籤 N 連結）
+  primaryDarkest: '#CBDBF8', // 選中列與深藍實體鍵的鍵面（其上用 surface 深字）
+  background: '#0D1320',
+  surface: '#151C2B',
+  panel: '#1C2536',
+  onBackground: '#E6EBF3',
+  onSurface: '#C5CEDB',
+  onSurfaceMuted: '#98A3B4',
+  border: '#2A3447',
+  borderStrong: '#3A4660',
+  error: '#F28B82',
+  errorLight: '#3A1A1A',
+  errorText: '#FFCDD2',
+  errorContainer: '#3A1A1A',
+  warning: '#E3B05C',
+  warningText: '#E3B05C',
+  warningContainer: '#33260F',
+  onWarningContainer: '#FFE0B2',
+  success: '#6CC48F',
+  successText: '#6CC48F',
+  successContainer: '#12301F',
+  onSuccessContainer: '#C8E6C9'
 })
 
 // ReadingStatus 配色映射（Section 3，D3 修正後）
@@ -63,4 +107,22 @@ const STATUS_COLORS = Object.freeze({
   reference: Object.freeze({ fg: '#311B92', bg: '#EDE7F6' })
 })
 
-module.exports = { COLORS, STATUS_COLORS }
+// ReadingStatus 暗色配色（與 APP AppColors.dark 的 status* 共用，各組 ≥ 8:1）
+const DARK_STATUS_COLORS = Object.freeze({
+  unread: Object.freeze({ fg: '#CFD8DC', bg: '#263238' }),
+  queued: Object.freeze({ fg: '#BBDEFB', bg: '#123A6B' }),
+  reading: Object.freeze({ fg: '#E3F2FD', bg: '#1A3557' }),
+  finished: Object.freeze({ fg: '#C8E6C9', bg: '#1B3B22' }),
+  abandoned: Object.freeze({ fg: '#FFE0B2', bg: '#4A2E0A' }),
+  reference: Object.freeze({ fg: '#E1D8F7', bg: '#2E2350' })
+})
+
+// 重要程度 1–7 級分級色（資料分類色，與 APP AppColors.importanceLevels 共用）。
+//   同一個藍色明度階梯，亮色級數越高越深、暗色越高越亮；每級在 surface 與
+//   primaryLightest 上 ≥ 3:1，只用在星號、圓點這類非文字圖形。
+const IMPORTANCE_COLORS = Object.freeze({
+  light: Object.freeze(['#5B6573', '#4677E6', '#2F66E0', '#1A56DB', '#1442AE', '#0F317D', '#0A2259']),
+  dark: Object.freeze(['#98A3B4', '#5B8DEF', '#7EA6F7', '#9DBBF9', '#B5CCFA', '#CBDBF8', '#EAF0FD'])
+})
+
+module.exports = { COLORS, STATUS_COLORS, DARK_COLORS, DARK_STATUS_COLORS, IMPORTANCE_COLORS }

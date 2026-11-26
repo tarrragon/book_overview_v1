@@ -150,6 +150,8 @@ class ImportFlowController {
         { value: null, text: '取消', variant: 'secondary' }
       ]
     })
+    // 白底工作區的 modal：暗色模式下套用 design-system.css 的 workspace 暗色值
+    dialog.overlay.dataset.colorScope = 'workspace'
     this.document.body.appendChild(dialog.overlay)
 
     this._importModePending = dialog.open().then((result) => {
@@ -217,6 +219,8 @@ class ImportFlowController {
         { value: true, text: '確認清空', variant: 'danger' }
       ]
     })
+    // 白底工作區的 modal：暗色模式下套用 design-system.css 的 workspace 暗色值
+    dialog.overlay.dataset.colorScope = 'workspace'
     this.document.body.appendChild(dialog.overlay)
 
     this._emptyConfirmPending = dialog.open().then((result) => {

@@ -27,6 +27,13 @@
   --color-border-dark: #424242;
   --color-dark-background: #121212;
   --color-tag-default: #808080;
+  --color-warning-text: #8A5A12;
+  --color-warning-container: #FFF3E0;
+  --color-on-warning-container: #6B4510;
+  --color-error-text: #8C1D17;
+  --color-error-container: #FDECEA;
+  --color-success-container: #E3F2E7;
+  --color-on-success-container: #14532D;
 
   /* Status Badge Colors (Section 3, D3 修正後) */
   --status-unread-fg: #546E7A;
@@ -41,6 +48,15 @@
   --status-abandoned-bg: #FFE0B2;
   --status-reference-fg: #311B92;
   --status-reference-bg: #EDE7F6;
+
+  /* Importance Levels 1-7 (UI 改版，與 APP 共用) */
+  --importance-1: #5B6573;
+  --importance-2: #4677E6;
+  --importance-3: #2F66E0;
+  --importance-4: #1A56DB;
+  --importance-5: #1442AE;
+  --importance-6: #0F317D;
+  --importance-7: #0A2259;
 
   /* Spacing (Section 5) */
   --spacing-xxs: 2px;
@@ -82,6 +98,58 @@
   --divider-subtle: rgba(33, 150, 243, 0.06);
   --divider-normal: rgba(33, 150, 243, 0.10);
   --divider-strong: rgba(33, 150, 243, 0.14);
+}
+
+/* Dark workspace (UI 改版，與 APP AppColors.dark 共用；popup 與頂欄不變) */
+@media (prefers-color-scheme: dark) {
+  [data-color-scope="workspace"] {
+    color-scheme: dark;
+    --color-primary: #7EA6F7;
+    --color-primary-lightest: #1B2C52;
+    --color-primary-light: #2A4478;
+    --color-primary-medium: #5B8DEF;
+    --color-primary-dark: #9DBBF9;
+    --color-primary-darkest: #CBDBF8;
+    --color-background: #0D1320;
+    --color-surface: #151C2B;
+    --color-panel: #1C2536;
+    --color-on-background: #E6EBF3;
+    --color-on-surface: #C5CEDB;
+    --color-on-surface-muted: #98A3B4;
+    --color-border: #2A3447;
+    --color-border-strong: #3A4660;
+    --color-error: #F28B82;
+    --color-error-light: #3A1A1A;
+    --color-error-text: #FFCDD2;
+    --color-error-container: #3A1A1A;
+    --color-warning: #E3B05C;
+    --color-warning-text: #E3B05C;
+    --color-warning-container: #33260F;
+    --color-on-warning-container: #FFE0B2;
+    --color-success: #6CC48F;
+    --color-success-text: #6CC48F;
+    --color-success-container: #12301F;
+    --color-on-success-container: #C8E6C9;
+    --status-unread-fg: #CFD8DC;
+    --status-unread-bg: #263238;
+    --status-queued-fg: #BBDEFB;
+    --status-queued-bg: #123A6B;
+    --status-reading-fg: #E3F2FD;
+    --status-reading-bg: #1A3557;
+    --status-finished-fg: #C8E6C9;
+    --status-finished-bg: #1B3B22;
+    --status-abandoned-fg: #FFE0B2;
+    --status-abandoned-bg: #4A2E0A;
+    --status-reference-fg: #E1D8F7;
+    --status-reference-bg: #2E2350;
+    --importance-1: #98A3B4;
+    --importance-2: #5B8DEF;
+    --importance-3: #7EA6F7;
+    --importance-4: #9DBBF9;
+    --importance-5: #B5CCFA;
+    --importance-6: #CBDBF8;
+    --importance-7: #EAF0FD;
+  }
 }
 
 /* Popup Component Rules (PROP-013 工作項 4, 1.5.0-W6-001) */

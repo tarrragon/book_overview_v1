@@ -23,7 +23,7 @@
         </div>
     </header>
 
-    <div class="ov-body">
+    <div class="ov-body" data-color-scope="workspace">
         <!-- 篩選欄：由 overview-facets.js 依書目渲染（閱讀狀態、書城、重要程度、標籤） -->
         <nav id="facetPanel" class="facet-panel" aria-label="篩選書目"></nav>
 
@@ -106,7 +106,7 @@
     </div>
 
     <!-- 匯入模式選擇 modal（UC-04，預設隱藏；由 promptImportMode 控制顯示） -->
-    <div id="importModeOverlay" class="modal-overlay" style="display: none;">
+    <div id="importModeOverlay" class="modal-overlay" data-color-scope="workspace" style="display: none;">
         <div id="importModeModal" class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="importModeTitle">
             <h2 id="importModeTitle" class="modal-title">選擇匯入模式</h2>
             <p class="modal-description">
@@ -123,7 +123,7 @@
     <!-- 空檔案覆蓋二次確認 modal（UC-04 / W1-049，預設隱藏；由 confirmEmptyFileOverwrite 控制顯示）
          觸發條件：覆蓋模式 + 匯入檔案 books 為空陣列
          destructive 防呆設計：預設焦點落於取消鈕（與 Modal A 的覆蓋鈕預設焦點不同） -->
-    <div id="emptyFileConfirmOverlay" class="modal-overlay" style="display: none;">
+    <div id="emptyFileConfirmOverlay" class="modal-overlay" data-color-scope="workspace" style="display: none;">
         <div id="emptyFileConfirmModal" class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="emptyFileConfirmTitle" aria-describedby="emptyFileConfirmDesc">
             <h2 id="emptyFileConfirmTitle" class="modal-title">確認清空書庫？</h2>
             <p id="emptyFileConfirmDesc" class="modal-description"></p>
